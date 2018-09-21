@@ -1,0 +1,9 @@
+[Unit]
+Description=Trigger the DCI Ansible Agent
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+
+[Install]
+WantedBy=timers.target
