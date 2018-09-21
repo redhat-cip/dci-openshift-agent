@@ -1,0 +1,66 @@
+---
+# Ansible playbook to create a Job (creates a VM, Install minishift via ssh, test app, get result, destroy )
+
+- name: Create a Minishift Job
+  hosts: localhost
+  become: yes
+  become_user: root
+
+  vars:
+    minishift_version: "1.23.0"
+    minishift_ip: "10.41.11.140"
+
+  tasks:
+    - name: Download Minishift sha256
+      get_url:
+        url: https://github.com/minishift/minishift/releases/download/v{{ minishift_version }}/minishift-{{ minishift_version }}-linux-amd64.tgz.sha256
+        dest: /root/minishift-{{ minishift_version }}-linux-amd64.tgz.sha256
+        mode: 0755
+      become: yes
+
+    - name: Importing  Minishift sha256 to variable
+      slurp:
+        src: /root/minishift-{{ minishift_version }}-linux-amd64.tgz.sha256
+      register: minishift_checksum
+      become: true
+
+    - set_fact:
+        minishift_checksum: "{{ minishift_checksum.content | b64decode }}"
+
+    - name: Download Minishift
+      get_url:
+        url: https://github.com/minishift/minishift/releases/download/v{{ minishift_version }}/minishift-{{ minishift_version }}-linux-amd64.tgz
+        dest: /root/minishift-{{ minishift_version }}-linux-amd64.tgz
+        mode: 0755
+        checksum: sha256:{{ minishift_checksum }}
+      become: yes
+
+    - name: Extract Minishift
+      unarchive:
+        src: /root/minishift-{{ minishift_version }}-linux-amd64.tgz
+        dest: /root/
+        remote_src: yes
+      become: yes
+
+    - name: Generate Jumpbox ssh-keys
+      command: ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ''
+
+#
+# To do : Launch hook to provision minishift VM (with ip set via {{ minishift_ip }})
+# ansible-playbook -i localhost -e SSH_HOST='10.41.11.140 ' -e SSH_USER='centos' -e SSH_PRIVATE_KEY_FILE='/root/.ssh/id_rsa' create-openshiftbox.yml
+#
+
+    - name: Install minishift
+      command: /root/minishift-{{ minishift_version }}-linux-amd64/minishift start --vm-driver generic --remote-ipaddress {{ minishift_ip }} --remote-ssh-user centos --remote-ssh-key  /root/.ssh/id_rsa
+
+#
+# To do : deploy a test app on minishift
+#
+
+#
+# To do : save logs files / post to dci api
+#
+
+#
+# To do : destroy minishift vm
+#
