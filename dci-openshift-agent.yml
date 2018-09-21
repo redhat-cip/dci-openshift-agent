@@ -1,0 +1,62 @@
+---
+
+# Pre-run state
+#
+# This is a user defined playbook probably used to created or start
+# VMs and feed inventory that will be used by Openshift installer.
+#
+
+- name: 'Launch pre-run hook'
+  hosts: localhost
+  tags:
+    - pre-run
+  vars:
+    dci_status: 'pre-run'
+  tasks:
+    - block:
+        - name: Run the pre-run process
+          include_tasks: '{{ dci_config_dir }}/hooks/pre-run.yml'
+
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|default('true')|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+
+- name: Prepare host
+  hosts: localhost
+  vars:
+    dci_status: 'running'
+  tasks:
+    - block:
+        - name: Configure jumpbox
+          include_tasks: plays/configure.yml
+      rescue:
+        - name: Run the teardown process
+          include_tasks: plays/failure.yml
+          when: dci_teardown_on_failure|default('true')|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+  tags:
+      - configure
+
+- name: Download Openshift media
+  hosts: localhost
+  vars:
+    dci_status: 'running'
+  tasks:
+    - block:
+        - name: Import Openshift files from DCI
+          include_tasks: plays/fetch_bits.yml
+      rescue:
+        - name: Run the teardown process
+          include_tasks: plays/failure.yml
+          when: dci_teardown_on_failure|default('true')|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+  tags:
+      - import

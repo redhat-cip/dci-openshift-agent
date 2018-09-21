@@ -1,0 +1,82 @@
+---
+- name: install the registry dependency
+  package:
+    name: '{{ item }}'
+    state: present
+  with_items:
+  - docker
+  - python-docker-py
+  - docker-distribution
+  become: True
+- name: Prepare docker configuration
+  copy:
+    content: |
+      {"insecure-registries":["{{ dci_base_ip|default(ansible_default_ipv4.address) }}:{{ dci_registry_port|default(5000) }}"] }
+    dest: /etc/docker/daemon.json
+  become: True
+- name: Enable overlay2 storage backend
+  lineinfile:
+     dest: /etc/sysconfig/docker-storage-setup
+     line: "STORAGE_DRIVER=overlay2"
+     regexp: '^STORAGE_DRIVER='
+  become: True
+- name: Create the docker.service.d directory
+  file:
+    path: /etc/systemd/system/docker.service.d/
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  become: True
+- name: Create the http-proxy configuration for systemd
+  template:
+    src: docker_http_proxy.j2
+    dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+  become: True
+- name: Ensure docker is restarted
+  service:
+    # we reload systemd in case docker.service.d content has changed
+    daemon_reload: True
+    name: docker
+    state: restarted
+  become: True
+- name: Prepare docker-distribution configuration
+  template:
+    src: docker_distribution.yml.j2
+    dest: /etc/docker-distribution/registry/config.yml
+  become: True
+- name: Ensure docker-distribution is restarted
+  service:
+    name: docker-distribution
+    state: restarted
+  become: True
+- name: Open docker registry port on the firewall
+  firewalld:
+    zone: public
+    port: '{{ dci_registry_port|default(5000) }}/tcp'
+    permanent: true
+    state: enabled
+  register: result
+  failed_when: false
+  become: true
+
+- name: Skip container images from list
+  lineinfile:
+    path: '{{ dci_mirror_location }}/dci_repo/{{ components[0].canonical_project_name }}/images_list.yaml'
+    regexp: '.*-{{ item }}.*'
+    state: absent
+  with_items: '{{ skip_container_images|default([]) }}'
+
+- name: Download the Openshift container images
+  shell: |
+    python /usr/share/dci-openshift-agent/fetch_images.py \
+      {{ dci_mirror_location | quote }}/dci_repo/{{ components[0].canonical_project_name }}/images_list.yaml
+  register: image_sync_result
+  until: image_sync_result.rc == 0
+  retries: 3
+  delay: 60
+  become: True
+  become_flags: '-E'
+  environment:
+    DCI_REGISTRY_PASSWORD: '{{ hostvars.localhost.job_informations.job.topic.data.registry.password }}'
+    DCI_REGISTRY_USER: '{{ hostvars.localhost.job_informations.job.topic.data.registry.login }}'
