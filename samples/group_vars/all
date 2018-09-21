@@ -1,0 +1,26 @@
+config_cloud_path: '{{ lookup("env", "HOME") }}/.config/openstack'
+config_cloud_name: 'MyOpenstackCloud'
+config_cloud_user: 'foo'
+config_cloud_pass: 'bar'
+config_cloud_project: 'openshift'
+config_cloud_auth: 'http://cloud.distributed-ci.io:5000/v2.0'
+config_cloud_region: 'regionOne'
+
+domain: "novalocal"
+
+instances:
+  - { "name":"master","flavor":"openshift.master" }
+  - { "name":"node1","flavor":"openshift.node" }
+  - { "name":"node2","flavor":"openshift.node" }
+networking:
+  network:
+    name: 'private'
+  router:
+    name: 'router'
+    external: 'public'
+  subnet:
+    name: 'private'
+    cidr: '192.168.0.0/24'
+    dns:
+      - 10.11.5.19
+      - 10.38.5.26
