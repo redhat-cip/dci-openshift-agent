@@ -1,0 +1,45 @@
+- name: Ensure proper directories are created
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: '{{ ansible_user_id }}'
+    group: '{{ ansible_user_gid }}'
+  with_items:
+    - '{{ dci_cache_dir }}'
+    - '{{ dci_mirror_location }}/dci_repo'
+  become: true
+              
+- name: Retrieve component
+  dci_component:
+    dest: '{{ dci_cache_dir }}/{{ item["id"] }}.tar'
+    id: '{{ item["id"] }}'
+  with_items: "{{ components }}"
+
+- name: Unarchive component
+  unarchive:
+    src: '{{ dci_cache_dir }}/{{ item["id"] }}.tar'
+    dest: '{{ dci_mirror_location }}/dci_repo'
+    remote_src: True
+    list_files: yes
+  with_items: "{{ components }}"
+
+- name: Prepare the global Yum .repo file with all the components
+  yum_repository:
+    name: '{{ item["canonical_project_name"] }}'
+    description: '{{ item["canonical_project_name"] }}'
+    baseurl: '{{ dci_baseurl }}/dci_repo/{{ item["canonical_project_name"] }}/'
+    gpgcheck: no
+    file: '{{ dci_mirror_location }}/dci_repo/dci_repo'
+  with_items: "{{ components }}"
+
+- name: Prepare a Yum .repo file per component
+  yum_repository:
+    name: '{{ item["canonical_project_name"] }}'
+    description: '{{ item["canonical_project_name"] }}'
+    baseurl: '{{ dci_baseurl }}/dci_repo/{{ item["canonical_project_name"] }}/'
+    gpgcheck: no
+    file: '{{ dci_mirror_location }}/dci_repo/dci_repo_{{ item["canonical_project_name"] }}'
+  with_items: "{{ components }}"
+
+- name: Run the sync registry process
+  include_tasks: plays/sync_registry.yaml
