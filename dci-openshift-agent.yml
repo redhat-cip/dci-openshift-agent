@@ -1,0 +1,19 @@
+---
+- name: NEW JOB
+  hosts: localhost
+  tasks:
+    - name: schedule a new job
+      dci_job:
+        topic: '{{ topic }}'
+      register: job_informations
+
+    - name: set global variables
+      set_fact:
+        job_id: "{{ job_informations['job']['id'] }}"
+        remoteci_id: "{{ job_informations['job']['remoteci_id'] }}"
+        component: "{{ job_informations['job']['components'][0] }}"
+        hwcert: "{{ job_informations['job']['components'][1] }}"
+        extraos: "{{ job_informations['job']['components'][2] }}"
+        product: "{{ job_informations['job']['topic']['product_id'] }}"
+  tags:
+      - new_job
