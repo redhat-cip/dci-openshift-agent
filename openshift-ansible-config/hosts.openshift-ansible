@@ -1,0 +1,30 @@
+
+# This is an example of an OpenShift-Ansible host inventory that provides
+# a minimum configuration.
+#
+# This file in managed by dci-openshift-agent (hooks/install-infra.yml)
+
+[OSEv3:children]
+masters
+nodes
+etcd
+
+[OSEv3:vars]
+ansible_ssh_user=centos
+ansible_become=true
+openshift_deployment_type=origin
+os_firewall_use_firewalld=False
+openshift_clock_enabled=true
+openshift_release="3.10"
+openshift_pkg_version=-3.10.0
+docker_version="1.13.1"
+[masters]
+master
+
+[etcd]
+master
+
+[nodes]
+master openshift_node_group_name='node-config-master'
+node1 openshift_node_group_name='node-config-compute'
+node2 openshift_node_group_name='node-config-compute'
