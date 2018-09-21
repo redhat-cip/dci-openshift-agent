@@ -1,0 +1,126 @@
+---
+- name: check
+  hosts: localhost
+  tasks:
+    - name: Ensure .config/openstack directory exist
+      file:
+        path: '{{ config_cloud_path }}'
+        state: directory
+      tags:
+        - config
+
+    - name: Add cloud configuration
+      blockinfile:
+        content: |
+          clouds:
+          {{'  '}}{{ config_cloud_name }}:
+              auth:
+                username: {{ config_cloud_user }}
+                password: {{ config_cloud_pass }}
+                project_name: {{ config_cloud_project }}
+                auth_url: {{ config_cloud_auth }}
+              region_name: {{ config_cloud_region }}
+        path: '{{ config_cloud_path }}/clouds.yaml'
+        create: true
+      tags:
+        - config
+
+- name: Create infra on openstack cloud
+  hosts: localhost
+  tasks:
+    - name: Ensure the vms are absent
+      os_server:
+        cloud: '{{ config_cloud_name }}'
+        name: '{{ item.name }}'
+        state: absent
+      with_items: '{{ instances }}'
+      tags:
+        - clean
+
+    - name: Ensure the network exist
+      os_network:
+        cloud: '{{ config_cloud_name }}'
+        name: '{{ networking.network.name }}'
+
+    - name: Ensure the subnet exist
+      os_subnet:
+        cloud: '{{ config_cloud_name }}'
+        name: '{{ networking.subnet.name }}'
+        network_name: '{{ networking.network.name }}'
+        cidr: '{{ networking.subnet.cidr }}'
+        dns_nameservers: '{{ networking.subnet.dns }}'
+
+    - name: Ensure the router exist
+      os_router:
+        cloud: '{{ config_cloud_name }}'
+        name: '{{ networking.router.name }}'
+        network: '{{ networking.router.external }}'
+        interfaces:
+          - '{{ networking.network.name }}'
+
+    - name: create vms
+      os_server:
+        cloud: '{{ config_cloud_name }}'
+        state: present
+        name: '{{ item.name }}'
+        image: CentOS-7-x86_64-GenericCloud-1808
+        timeout: 200
+        flavor: "{{ item.flavor }}"
+        volume_size: 50
+        userdata: |
+          #cloud-config
+          users:
+            - default
+            - name: centos
+              ssh_authorized_keys:
+                - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKxwVW3koSJlJGaC/fMjom+PmU42BZr6DVoCQXpXQcWlu5gdMe4cxOrlBxb738SiDFE+7W3TfXuKtW3nPaobYPej0zdSVXJzQviDUXoO2cNCH5wVQrsb9NraRJkgEIE8dqXVb3deriM3TWml9GjK3rC3QhutSZgPpvXca9T36co6Nn69Bn2nPLoiH+BLdG+44ZPPSjE5O38Qzsc2KteRM/6DWn3+1YAYx6i855WsG8ZZnVk6eiRTyZpFvsVenpBCj5ec3UvDswVtikm65Wq9Bg9A6ZoJ6MbGcBbe6cMP+Qs4p0flqJIjNULhvZmu4XoTmFMTWagousJm5tffA/E3jf thomas@ThinkPad
+                - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHwr4zWwmiP2ObS5PrZFrGAQBFcHazUop4zk1H5pUves8LCq/P0fwOodh6EOD1R6B3VJftrjmJDPiZrewcbTKcXoaQvuZNThimg0rNadQkVOfwy/58ush7NUgQIA2ck4zHuqf0wuJ4rumRASxACYKeNOm8zeJDXkAOsY7OK1Fhma4ALTOcZi6pb+L7AoP2BVcfdpBBnYYe4HAv/PZjP/WBgv6BxRNNVSRhJ1TuqrNcYjwmIlRImjEgdKyO5+JJ4CvZy5hQdeUEmiUxk1+z6aPSvtl5gm3ZmsOlrT5TVSENNknUNHF4zoc91o/n3u8b5cIJzjmLel0IT0caihnFCEcn ds@skull-island
+        security_groups: ['default']
+        network: private
+        auto_ip: no
+        terminate_volume: true
+        boot_from_volume: true
+      with_items: '{{ instances }}'
+      register: vms
+
+    - name: Add vms to ansible inventory
+      add_host:
+        name: '{{ item.item.name }}'
+        group: 'openshift'
+        ansible_host: '{{ item.openstack.private_v4 }}'
+        ansible_user: 'centos'
+      with_items: '{{ vms.results }}'
+
+    - name: Update hosts file for openshift-ansible installer
+      lineinfile:
+        dest: /home/centos/dci-openshift/hosts
+        insertbefore: BOF
+        line: '{{ item.item.name }} ansible_host={{ item.openstack.private_v4 }} ansible_fqdn={{ item.item.name }}.{{ domain }}'
+      with_items: '{{ vms.results }}'
+
+    - git:
+        repo: 'https://github.com/openshift/openshift-ansible.git'
+        dest: /home/centos/dci-openshift/openshift-ansible/
+        version: release-3.10
+
+    - name: Wait for ssh on vms
+      wait_for:
+        host: '{{ item.openstack.private_v4 }}'
+        port: 22
+        search_regex: OpenSSH
+        delay: 15
+      with_items: '{{ vms.results }}'
+
+- name: Update /etc/hosts on openshift servers
+  hosts: openshift
+  tasks:
+    - name: Generate /etc/hosts
+      lineinfile:
+        dest: /etc/hosts
+        line: '{{ item.openstack.private_v4 }} {{ item.item.name }}.{{ domain }} {{ item.item.name }}'
+      become: true
+      with_items: "{{ hostvars.localhost.vms.results }}"
+
+# next step :
+# ansible-playbook -i hosts ./openshift-ansible/playbooks/prerequisites.yml
+# ansible-playbook -i hosts ./openshift-ansible/playbooks/deploy_cluster.yml
