@@ -1,0 +1,14 @@
+---
+#
+# This is a sample hook to download Openshift Ansible
+#
+#
+- name: download openshift ansible
+  hosts: localhost
+  tasks:
+    - git:
+        repo: 'https://github.com/openshift/openshift-ansible.git'
+        dest: /home/centos/dci-openshift/openshift-ansible/
+        version: release-3.10
+
+# Installer should be configured to use jumbox as mirror
