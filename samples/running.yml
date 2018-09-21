@@ -1,0 +1,66 @@
+---
+# Example 1 : his is a sample hook to download Openshift Ansible
+#- name: download openshift ansible
+#  hosts: localhost
+#  tasks:
+#    - git:
+#        repo: 'https://github.com/openshift/openshift-ansible.git'
+#        dest: /home/centos/dci-openshift/openshift-ansible/
+#        version: release-3.10
+
+# Example 2 : This is a sample to launch installer from controller
+- hosts: controller
+  tasks:
+    - name: Install openshift-ansible
+      package:
+        name: openshift-ansible
+      become: true
+
+    - name: Configure openshift-ansible
+      copy:
+        dest: /tmp/hosts.openshift-ansible
+        content: |
+
+          [OSEv3:children]
+          masters
+          nodes
+          etcd
+
+          [OSEv3:vars]
+          ansible_ssh_user=cloud-user
+          ansible_become=true
+          openshift_deployment_type=openshift-enterprise
+          os_firewall_use_firewalld=False
+          openshift_clock_enabled=true
+          openshift_release="3.10"
+          openshift_image_tag="v3.10"
+          docker_version=1.13.1
+          [masters]
+          master
+
+          [etcd]
+          master
+
+          [nodes]
+          master openshift_node_group_name='node-config-master'
+          node1 openshift_node_group_name='node-config-compute'
+          node2 openshift_node_group_name='node-config-compute'
+
+    - name: Add node definition in openshift-ansible inventory
+      lineinfile:
+        dest: /tmp/hosts.openshift-ansible
+        insertbefore: BOF
+        line: '{{ item.item.name }} ansible_host={{ item.openstack.private_v4 }} ansible_fqdn={{ item.item.name }}.{{ domain }}'
+      with_items: '{{ vms.results }}'
+
+    - name: Run the prerequisites playbook
+      shell: |
+        ansible-playbook -i /tmp/hosts.openshift-ansible playbooks/prerequisites.yml
+      args:
+        chdir: /usr/share/ansible/openshift-ansible/
+
+    - name: Run the deploy_cluster playbook
+      shell: |
+        ansible-playbook -i /tmp/hosts.openshift-ansible playbooks/deploy_cluster.yml
+      args:
+        chdir: /usr/share/ansible/openshift-ansible/
