@@ -1,0 +1,95 @@
+---
+# Step 1 : state "New job"
+- name: Prepare host
+  hosts: localhost
+  vars:
+    dci_status: 'new'
+  tasks:
+    - block:
+        # Prepare host
+        - name: Configure jumpbox
+          include_tasks: plays/configure.yml
+
+        # Download Openshift
+        - name: Import Openshift files from DCI
+          include_tasks: plays/fetch_bits.yml
+      rescue:
+        - name: Run the teardown process
+          include_tasks: plays/failure.yml
+          when: dci_teardown_on_failure|default('true')|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+  tags:
+      - configure
+
+# Step 2 : state "Pre-run"
+- name: 'Launch pre-run to deploy installer'
+  hosts: localhost
+  tags:
+    - pre-run
+  vars:
+    dci_status: 'pre-run'
+  tasks:
+    - block:
+        # Deploy infrastructure
+        - name: Run the pre-run hook
+          include_tasks: '{{ dci_config_dir }}/hooks/pre-run.yml'
+
+        # Download installer
+        - name: Download Openshift installer
+          include_tasks: '{{ dci_config_dir }}/hooks/pre-run-installer.yml'
+
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|default('true')|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+
+# Step 3 : state "running"
+- name: 'Launch install'
+  hosts: localhost
+  tags:
+    - running
+  vars:
+    dci_status: 'running'
+  tasks:
+    - block:
+        # Launch installer
+        - name: Launch installer
+          include_tasks: '{{ dci_config_dir }}/hooks/install-openshift.yml'
+
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|default('true')|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+
+# Step 3 : state "post-run"
+- name: 'Launch post-run tests'
+  hosts: localhost
+  tags:
+    - post-run
+  vars:
+    dci_status: 'post-run'
+  tasks:
+    - block:
+        # Launch DCI tests
+        - name: Run the post-run tests
+          include_tasks: '{{ dci_config_dir }}/plays/openshift-dci-tests.yml'
+
+        # Launch user tests
+        - name: Run the post-run hook
+          include_tasks: '{{ dci_config_dir }}/hooks/openshift-user-tests.yml'
+
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|default('true')|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
