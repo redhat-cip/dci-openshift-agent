@@ -1,0 +1,100 @@
+---
+- name: check
+  hosts: localhost
+  tasks:
+    - name: stat openrc.sh file
+      stat:
+        path: openrc.sh
+      register: openrc
+
+    - name: ensure openrc file is defined
+      fail:
+        msg: "dcirc.sh file or openrc.sh are required. See README.md"
+      when: openrc.stat.exists == False
+
+- name: Create Jumpbox
+  hosts: localhost
+  tasks:
+    - name: create ssh security group
+      os_security_group:
+        state: present
+        name: ssh
+
+    - name: edit ssh security group
+      os_security_group_rule:
+        protocol: tcp
+        security_group: ssh
+        port_range_min: 22
+        port_range_max: 22
+        remote_ip_prefix: 0.0.0.0/0
+
+    - name: create jumpbox
+      os_server:
+        state: present
+        name: jumpbox
+        image: CentOS-7-x86_64-GenericCloud-1808
+        timeout: 200
+        flavor: m1.small
+        volume_size: 20
+        userdata: |
+          #cloud-config
+          users:
+            - default
+            - name: centos
+              ssh_authorized_keys:
+                - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKxwVW3koSJlJGaC/fMjom+PmU42BZr6DVoCQXpXQcWlu5gdMe4cxOrlBxb738SiDFE+7W3TfXuKtW3nPaobYPej0zdSVXJzQviDUXoO2cNCH5wVQrsb9NraRJkgEIE8dqXVb3deriM3TWml9GjK3rC3QhutSZgPpvXca9T36co6Nn69Bn2nPLoiH+BLdG+44ZPPSjE5O38Qzsc2KteRM/6DWn3+1YAYx6i855WsG8ZZnVk6eiRTyZpFvsVenpBCj5ec3UvDswVtikm65Wq9Bg9A6ZoJ6MbGcBbe6cMP+Qs4p0flqJIjNULhvZmu4XoTmFMTWagousJm5tffA/E3jf thomas@ThinkPad
+                - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHwr4zWwmiP2ObS5PrZFrGAQBFcHazUop4zk1H5pUves8LCq/P0fwOodh6EOD1R6B3VJftrjmJDPiZrewcbTKcXoaQvuZNThimg0rNadQkVOfwy/58ush7NUgQIA2ck4zHuqf0wuJ4rumRASxACYKeNOm8zeJDXkAOsY7OK1Fhma4ALTOcZi6pb+L7AoP2BVcfdpBBnYYe4HAv/PZjP/WBgv6BxRNNVSRhJ1TuqrNcYjwmIlRImjEgdKyO5+JJ4CvZy5hQdeUEmiUxk1+z6aPSvtl5gm3ZmsOlrT5TVSENNknUNHF4zoc91o/n3u8b5cIJzjmLel0IT0caihnFCEcn ds@skull-island
+        security_groups: ['ssh','default']
+        network: private
+
+    - name: Get fact from jumpbox
+      os_server_facts:
+        server: jumpbox
+
+    - name: Add vms to ansible inventory
+      add_host:
+        name: jumpbox
+        ansible_host: '{{ openstack_servers[0].accessIPv4 }}'
+        ansible_user: 'centos'
+
+- name: Configure jumpbox
+  hosts: jumpbox
+  tasks:
+    - name: Install repos
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - epel-release
+        - centos-release-openstack-rocky
+      become: yes
+
+    - name: Upgrade all packages
+      yum:
+        name: "*"
+        state: latest
+      become: yes
+
+    - name: Install packages
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - git
+        - ansible
+        - python2-openstacksdk
+      become: yes
+
+# Will be replaced with a dci-openshift RPM
+    - name: Copy Ansible jobs to jumpbox
+      copy:
+        src: dci-openshift-job/
+        dest: /home/centos/dci-openshift/
+        mode: 0644
+
+# From Ansible controller
+# > ansible-playbook -i localhost create-jumpbox.yml
+#
+# From jumpbox :
+# > ansible-playbook -i host ~/work/openshift-ansible/playbooks/prerequisites.yml
+# > ansible-playbook -i host ~/work/openshift-ansible/playbooks/deploy_cluster.yml
