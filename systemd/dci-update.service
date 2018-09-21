@@ -1,0 +1,10 @@
+[Unit]
+Description=Update the DCI packages
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/yum update -y dci-ansible python-dciclient dci-openshift-agent ansible-role-dci-import-keys ansible-role-dci-retrieve-component
+SuccessExitStatus=0
+
+[Install]
+WantedBy=default.target
