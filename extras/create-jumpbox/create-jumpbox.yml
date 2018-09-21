@@ -1,0 +1,81 @@
+---
+- name: check
+  hosts: localhost
+  tasks:
+    - name: create jumpbox
+      os_server:
+        state: present
+        name: jumpbox
+        image: RHEL 7.6 x86_64
+        timeout: 200
+        flavor: m1.small
+        volume_size: 20
+        userdata: |
+          #cloud-config
+          users:
+            - default
+            - name: cloud-user
+              ssh_authorized_keys:
+                - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKxwVW3koSJlJGaC/fMjom+PmU42BZr6DVoCQXpXQcWlu5gdMe4cxOrlBxb738SiDFE+7W3TfXuKtW3nPaobYPej0zdSVXJzQviDUXoO2cNCH5wVQrsb9NraRJkgEIE8dqXVb3deriM3TWml9GjK3rC3QhutSZgPpvXca9T36co6Nn69Bn2nPLoiH+BLdG+44ZPPSjE5O38Qzsc2KteRM/6DWn3+1YAYx6i855WsG8ZZnVk6eiRTyZpFvsVenpBCj5ec3UvDswVtikm65Wq9Bg9A6ZoJ6MbGcBbe6cMP+Qs4p0flqJIjNULhvZmu4XoTmFMTWagousJm5tffA/E3jf thomas@ThinkPad
+                - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHwr4zWwmiP2ObS5PrZFrGAQBFcHazUop4zk1H5pUves8LCq/P0fwOodh6EOD1R6B3VJftrjmJDPiZrewcbTKcXoaQvuZNThimg0rNadQkVOfwy/58ush7NUgQIA2ck4zHuqf0wuJ4rumRASxACYKeNOm8zeJDXkAOsY7OK1Fhma4ALTOcZi6pb+L7AoP2BVcfdpBBnYYe4HAv/PZjP/WBgv6BxRNNVSRhJ1TuqrNcYjwmIlRImjEgdKyO5+JJ4CvZy5hQdeUEmiUxk1+z6aPSvtl5gm3ZmsOlrT5TVSENNknUNHF4zoc91o/n3u8b5cIJzjmLel0IT0caihnFCEcn ds@skull-island
+        security_groups: ['default']
+        network: private
+
+    - name: Get fact from jumpbox
+      os_server_facts:
+        server: jumpbox
+
+    - name: Add jumpbox to ansible inventory
+      add_host:
+        hostname: '{{ openstack_servers[0].accessIPv4 }}'
+        name: jumpbox
+        ansible_host: '{{ openstack_servers[0].accessIPv4 }}'
+        ansible_user: 'cloud-user'
+
+    - name: Wait for Jumpbox to be online
+      wait_for:
+        host: '{{ openstack_servers[0].accessIPv4 }}'
+        port: 22
+        search_regex: OpenSSH
+        delay: 15
+
+- hosts: jumpbox
+  tasks:
+    - name: Register the node
+      redhat_subscription:
+        username: dci-ocp-test
+        password: dci-ocp-test
+        autosubscribe: true
+        server_hostname: 'subscription.rhsm.stage.redhat.com:443/subscription'
+        rhsm_baseurl: https://cdn.redhat.com 
+      become: true
+
+    - name: Disable all repositories
+      rhsm_repository:
+        name: '*'
+        state: disabled
+      become: true
+
+    - name: Enable RHEL repositories
+      rhsm_repository:
+        name:
+          - rhel-7-server-rpms
+          - rhel-7-server-extras-rpms
+          - rhel-7-server-ansible-2.5-rpms
+          - rhel-7-server-openstack-13-tools-rpms
+        state: enabled
+      become: true
+
+    - name: Ensure packages are updated
+      yum:
+        name: '*'
+        state: latest
+      become: true
+
+    - name: Reboot the node
+      shell: |
+        sleep 3
+        reboot
+      become: true
+      async: 1
+      poll: 0
