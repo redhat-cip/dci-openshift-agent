@@ -5,3 +5,7 @@ dci_mirror_location: /var/www/html
 dci_config_dir: /etc/dci-openshift-agent
 dci_cache_dir: /var/lib/dci-openshift-agent
 dci_teardown_on_failure: true
+# DCI SSL repository parameters
+dci_openshift_agent_sslverify: yes
+dci_openshift_agent_sslclientcert: /etc/ssl/repo/dci.crt
+dci_openshift_agent_sslclientkey: /etc/ssl/repo/dci.key
