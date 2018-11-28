@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9b83d99_cbcd452e",
+        "filename": "plays/fetch_bits.yml",
+        "patchSetId": 37
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 405
+      },
+      "writtenOn": "2018-11-28T15:40:19Z",
+      "side": 1,
+      "message": "remove this",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 14
+      },
+      "revId": "63f069ca278d4b186474dcfc8cb4a4b4188dabdb",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
