@@ -11,6 +11,8 @@ BuildRequires: systemd
 BuildRequires: systemd-units
 Requires: sudo
 Requires: dci-ansible
+Requires: ansible-role-dci-import-keys
+Requires: ansible-role-dci-retrieve-component
 Requires: ansible-role-dci-sync-registry
 Requires(pre): shadow-utils
 Requires(post): systemd
