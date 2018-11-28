@@ -40,6 +40,7 @@ install -p -D -m 644 plays/dci-tests.yml %{buildroot}%{_datadir}/dci-openshift-a
 install -p -D -m 644 plays/failure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/failure.yml
 install -p -D -m 644 plays/fetch_bits.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 install -p -D -m 644 plays/upload_logs.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/upload_logs.yml
+install -p -D -m 644 group_vars/all {buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 
 install -p -D -m 644 settings.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/settings.yml
 install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.service
@@ -73,6 +74,7 @@ install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.tim
 %{_datadir}/dci-openshift-agent/plays/dci-tests.yml
 %{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 %{_datadir}/dci-openshift-agent/plays/upload_logs.yml
+%{_datadir}/dci-openshift-agent/group_vars/all
 
 %{_unitdir}/*
 

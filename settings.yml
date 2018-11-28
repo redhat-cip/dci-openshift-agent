@@ -1,8 +1,1 @@
-#dci_teardown_on_failure: false
-
-
-dci_mirror_location: "/var/www/html"
-dci_config_dir: "/etc/dci-openshift-agent"
-dci_cache_dir: "/var/lib/dci-openshift-agent"
-
-dci_metadata: {}
+dci_topic: OCP-3.11
