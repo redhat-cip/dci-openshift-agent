@@ -12,6 +12,7 @@ BuildRequires: systemd-units
 Requires: sudo
 Requires: dci-ansible
 Requires: ansible-role-dci-sync-registry
+Requires(pre): shadow-utils
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
@@ -45,6 +46,15 @@ install -p -D -m 644 settings.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent
 install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.service
 install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.timer
 
+install -p -D -m 440 dci-openshift-agent.sudo %{buildroot}%{_sysconfdir}/sudoers.d/%{name}
+install -p -d -m 755 %{buildroot}/%{_sharedstatedir}/%{name}
+
+%pre
+getent group dci-openshift-agent >/dev/null || groupadd -r dci-openshift-agent
+getent passwd dci-openshift-agent >/dev/null || \
+    useradd -r -m -g dci-openshift-agent -d %{_sharedstatedir}/dci-openshift-agent -s /bin/bash \
+            -c "DCI OpenShift Agent service" dci-openshift-agent
+exit 0
 
 %post
 %systemd_post %{name}.service
@@ -78,6 +88,10 @@ install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.tim
 
 %exclude /%{_datadir}/dci-openshift-agent/*.pyc
 %exclude /%{_datadir}/dci-openshift-agent/*.pyo
+
+%dir %{_sharedstatedir}/dci-openshift-agent
+%attr(0755, dci-openshift-agent, dci-openshift-agent) %{_sharedstatedir}/dci-openshift-agent
+%{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
 * Mon Oct 15 2018 Thomas Vassilian <tvassili@redhat.com> - 0.0.1
