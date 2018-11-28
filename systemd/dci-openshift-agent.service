@@ -7,7 +7,7 @@ WorkingDirectory=/usr/share/dci-openshift-agent
 EnvironmentFile=/etc/dci-openshift-agent/dcirc.sh
 ExecStart=/usr/bin/ansible-playbook -vv /usr/share/dci-openshift-agent/dci-openshift-agent.yml -e @/etc/dci-openshift-agent/settings.yml
 SuccessExitStatus=0
-User=root
+User=dci-openshift-agent
 
 [Install]
 WantedBy=default.target
