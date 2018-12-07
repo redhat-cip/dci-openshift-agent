@@ -61,6 +61,26 @@
           include_tasks: plays/failure.yml
 
 # Step 3 : state "running"
+- name: 'Launch configure'
+  hosts: openshift
+  tags:
+    - running
+  vars:
+    dci_status: 'running'
+  tasks:
+    - block:
+        - name: Launch configure
+          include_tasks: '{{ dci_config_dir }}/hooks/configure.yml'
+
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+
+# Step 3 : state "running"
 - name: 'Launch install'
   hosts: localhost
   tags:
@@ -81,7 +101,7 @@
         - name: Run the failure process
           include_tasks: plays/failure.yml
 
-# Step 3 : state "post-run"
+# Step 4 : state "post-run"
 - name: 'Launch post-run tests'
   hosts: localhost
   tags:
