@@ -12,6 +12,7 @@ Step 2 : State “Pre-run”
 - Deploy infrastructure: /hooks/pre-run.yml
 
 Step 3 : State “running”
+- Configure openshift nodes [1]: /hooks/configure.yml
 - Download and launch Openshift installer: /hooks/running.yml
 
 Step 4 : State “post-run”
@@ -26,3 +27,17 @@ Exit playbooks:
 Teardown: /hooks/teardown.yml
 Failure: /plays/failure.yml
 
+[1] You need to add your nodes to the openshift ansible group via the
+add_host module in order to execute commands (rhsm registration,
+package update, etc...) on them before executing the installer.
+
+```yaml
+  - name: Add openshift nodes to ansible inventory
+    add_host:
+      name: '{{ item }}'
+      group: openshift
+    with_items:
+      - master.example.net
+      - node1.example.net
+      - node2.example.net
+```
