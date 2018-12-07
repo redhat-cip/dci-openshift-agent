@@ -1,0 +1,57 @@
+- name: Generate /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: '{{ item.openstack.private_v4 }} {{ item.item.name }}.{{ domain }} {{ item.item.name }}'
+  become: true
+  with_items: "{{ hostvars.localhost.vms.results }}"
+
+- name: Register the node
+  redhat_subscription:
+    state: present
+    username: '{{ rhsm_username }}'
+    password: '{{ rhsm_password }}'
+    autosubscribe: true
+  become: true
+
+- name: Disable all repositories
+  rhsm_repository:
+    name: '*'
+    state: disabled
+  become: true
+
+- name: Enable RHEL repositories
+  rhsm_repository:
+    name:
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-ansible-{% if dci_topic.split('-')[1]|float > 3.10 %}2.6{% else %}2.4{% endif %}-rpms
+    state: enabled
+  become: true
+
+- name: Ensure packages are updated
+  yum:
+    name: '*'
+    state: latest
+  become: true
+
+- name: Enable DCI Openshift repository
+  get_url:
+    url: '{{ dci_baseurl }}/dci_repo/dci_repo.repo'
+    dest: /etc/yum.repos.d/dci_repo.repo
+  become: true
+
+- name: Reboot the node
+  shell: |
+    sleep 3
+    reboot
+  become: true
+  async: 1
+  poll: 0
+
+- name: Wait for the nodes to be back online
+  wait_for:
+    host: '{{ ansible_host }}'
+    port: 22
+    search_regex: OpenSSH
+    delay: 15
+  delegate_to: localhost
