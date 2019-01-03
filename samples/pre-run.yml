@@ -1,0 +1,70 @@
+- name: Ensure .config/openstack directory exist
+  file:
+    path: '{{ config_cloud_path }}'
+    state: directory
+
+- name: Configure cloud provider config
+  blockinfile:
+    content: |
+      clouds:
+      {{'  '}}{{ config_cloud_name }}:
+          auth:
+            username: {{ config_cloud_user }}
+            password: {{ config_cloud_pass }}
+            project_name: {{ config_cloud_project }}
+            auth_url: {{ config_cloud_auth }}
+          region_name: {{ config_cloud_region }}
+    path: '{{ config_cloud_path }}/clouds.yaml'
+    create: true
+
+- name: Ensure a ssh key is present
+  user:
+    name: dci-openshift-agent
+    generate_ssh_key: true
+
+- name: Ensure keypair is present
+  os_keypair:
+    cloud: '{{ config_cloud_name }}'
+    name: dci-openshift-agent
+    public_key_file: "{{ lookup('env', 'HOME') }}/.ssh/id_rsa.pub"
+
+- name: Ensure the vms are absent
+  os_server:
+    cloud: '{{ config_cloud_name }}'
+    name: '{{ item.name }}'
+    state: absent
+  with_items: '{{ instances }}'
+
+- name: Create vms
+  os_server:
+    cloud: '{{ config_cloud_name }}'
+    state: present
+    name: '{{ item.name }}'
+    image: '{{ item.image }}'
+    timeout: 200
+    flavor: "{{ item.flavor }}"
+    key_name: dci-openshift-agent
+    volume_size: 50
+    security_groups: ['default']
+    network: '{{ networking.network.name }}'
+    auto_ip: no
+    terminate_volume: true
+    boot_from_volume: true
+  with_items: '{{ instances }}'
+  register: vms
+
+- name: Add vms to ansible inventory
+  add_host:
+    name: '{{ item.item.name }}'
+    group: 'openshift'
+    ansible_host: '{{ item.openstack.private_v4 }}'
+    ansible_user: 'cloud-user'
+  with_items: '{{ vms.results }}'
+
+- name: Wait for hosts to be online
+  wait_for:
+    host: '{{ item.openstack.private_v4 }}'
+    port: 22
+    search_regex: OpenSSH
+    delay: 15
+  with_items: '{{ vms.results }}'
