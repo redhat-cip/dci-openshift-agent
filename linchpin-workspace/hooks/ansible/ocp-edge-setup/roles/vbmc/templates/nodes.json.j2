@@ -1,0 +1,30 @@
+{
+  "nodes": [
+{% for host_string in nodes_info.results|map(attribute='stdout')|list %}
+{% set host_data = host_string|from_yaml %}
+    {
+      "name": "openshift-{{ host_data.name.split('-')[0] }}-{{ host_data.name.split('-')[1] }}",
+      "driver": "ipmi",
+      "resource_class": "baremetal",
+      "driver_info": {
+        "username": "{{ vbmc_user }}",
+        "password": "{{ vbmc_pass  }}",
+        "address": "ipmi://{{ vbmc_management_address }}:{{ vbmc_ports[host_data.name] }}",
+        "deploy_kernel": "http://172.22.0.1/images/ironic-python-agent.kernel",
+        "deploy_ramdisk": "http://172.22.0.1/images/ironic-python-agent.initramfs"
+      },
+      "ports": [{
+        "address": "{{ host_data.mac }}",
+        "pxe_enabled": true
+      }],
+      "properties": {
+        "local_gb": "{{ (host_data.disk_bytes|int / 1073741824)|round|int }}",
+        "cpu_arch": "{{ host_data.arch }}"
+      }
+    }
+    {% if not loop.last %}
+    ,
+    {% endif %}
+  {% endfor %}
+  ]
+}

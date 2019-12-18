@@ -1,0 +1,146 @@
+---
+- name: Install helper tools
+  become: true
+  package:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - 'git'
+    - 'patch'
+    - 'ipmitool'
+    - 'make'
+    - 'firewalld'
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1725287
+# oc cmd segfaults when running oc adm release new
+- name: remove pigz
+  become: true
+  package:
+    name: pigz
+    state: absent
+
+- name: Start firewalld service
+  become: true
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: Clone dev-scripts
+  git:
+    repo: "{{ dev_scripts_repo }}"
+    dest: "~/dev-scripts"
+    version: "{{ dev_scripts_branch }}"
+  # On RHEL8 git clone can sporadically fail with OpenSSL SSL_read:
+  # SSL_ERROR_SYSCALL, errno 104. This is a workaround to try cloning the repo
+  # multiple times.
+  register: dev_scripts_clone
+  retries: 3
+  delay: 10
+  until: not dev_scripts_clone.failed
+
+- name: Copy config
+  shell: "cp config_example.sh config_{{ ansible_user }}.sh"
+  args:
+    chdir: "~/dev-scripts"
+
+- name: Configure secret
+  replace:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    regexp: "PULL_SECRET=''"
+    replace: "PULL_SECRET='{{ openshift_secret }}'"
+
+- name: Set BOOTSTRAP_SSH_READY
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "BOOTSTRAP_SSH_READY=2500"
+
+- name: Set NODES_PLATFORM
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "NODES_PLATFORM=baremetal"
+  tags: BM
+
+- name: Set INT_IF
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "INT_IF={{ int_if }}"
+  tags: BM
+
+- name: Set PRO_IF
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "PRO_IF={{ pro_if }}"
+  tags: BM
+
+- name: Set CLUSTER_PRO_IF
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "CLUSTER_PRO_IF={{ cluster_pro_if }}"
+  tags: BM
+
+- name: Set EXT_IF
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "EXT_IF={{ ext_if }}"
+  tags: BM
+
+- name: Set ROOT_DISK
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "ROOT_DISK={{ root_disk }}"
+  tags: BM
+
+- name: Set NODES_FILE
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "NODES_FILE=/home/{{ansible_user}}/instackenv.json"
+  tags: BM
+
+- name: Set MANAGE_BR_BRIDGE
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "MANAGE_BR_BRIDGE={{ manage_baremetal_bridge }}"
+  when: manage_baremetal_bridge|default('')
+  tags: BM
+
+- name: Set NUM_WORKERS
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "NUM_WORKERS={{ worker_count|int - 1 }}"
+  tags: BM
+
+- name: Set CLUSTER_NAME
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "CLUSTER_NAME={{ cluster_name }}"
+
+- name: Set BASE_DOMAIN
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "BASE_DOMAIN={{ base_domain }}"
+
+- name: Set OPENSHIFT_RELEASE_IMAGE
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: 'export OPENSHIFT_RELEASE_IMAGE={{ openshift_release_image }}'
+  when:
+    - openshift_release_image is defined and openshift_release_image != ''
+
+- name: set DNS_VIP
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "DNS_VIP={{ dns_vip }}"
+
+- name: set EXTERNAL_SUBNET
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "EXTERNAL_SUBNET={{ external_subnet }}"
+  vars:
+    ip: "{{ ansible_default_ipv4.address }}/{{ansible_default_ipv4.netmask }}"
+    external_subnet: "{{ ip | ipaddr('network') }}/{{ ip | ipaddr('prefix') }}"
+
+- name: set NETWORK_TYPE
+  lineinfile:
+    path: "~/dev-scripts/config_{{ansible_user}}.sh"
+    line: "export NETWORK_TYPE={{ network_type }}"

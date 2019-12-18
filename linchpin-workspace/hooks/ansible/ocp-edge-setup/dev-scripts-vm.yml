@@ -1,0 +1,14 @@
+- name: Run dev-scripts on virtual environment
+  hosts: worker[-1]
+  any_errors_fatal: true
+  tasks:
+    - name: Configure dev-scripts
+      include_tasks: dev-scripts-config.yml
+
+    - name: Copy ironic definition
+      copy:
+        src: instackenv.json
+        dest: "/home/{{ansible_user}}/instackenv.json"
+
+    - name: Run dev-scripts
+      include_tasks: dev-scripts-run.yml
