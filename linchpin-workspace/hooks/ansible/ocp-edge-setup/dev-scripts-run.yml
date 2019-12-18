@@ -1,0 +1,22 @@
+- name: Run make
+  shell: |
+    set -o pipefail
+    export PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin
+    make | awk '{ print strftime("%Y-%m-%d %H:%M:%S |"), $0; fflush(); }' &> make.log
+  ignore_errors: true
+  register: make_status
+  args:
+    chdir: "~/dev-scripts"
+
+- block:
+    - name: register last make output lines
+      shell: "tail -20 make.log"
+      register: make_log
+      args:
+        chdir: "~/dev-scripts"
+
+    - name: print last make output lines
+      debug: msg="{{ make_log.stdout_lines }}"
+
+    - fail: msg="make failed ... :("
+  when: make_status is failed
