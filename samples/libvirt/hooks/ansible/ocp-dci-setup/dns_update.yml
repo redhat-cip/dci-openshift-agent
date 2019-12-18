@@ -1,0 +1,32 @@
+- name: Set up local dnsmasq for ingress domain forwarding
+  hosts: localhost
+  any_errors_fatal: true
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Use local dnsmasq for name resolution
+      ini_file:
+        path: /etc/NetworkManager/conf.d/dnsmasq.conf
+        section: main
+        option: dns
+        value: dnsmasq
+
+    - name: Set up local dnsmasq for apps and api name resolution
+      copy:
+        content: |
+           address=/.apps.{{ cluster_domain }}/192.168.123.10
+           address=/api.{{ cluster_domain }}/192.168.123.5
+        dest: /etc/NetworkManager/dnsmasq.d/openshift.conf
+
+    - name: Restart NetworkManager
+      service:
+        name: NetworkManager
+        state: restarted
+
+    - name: Add provisionhost to /etc/hosts
+      lineinfile:
+          dest: /etc/hosts
+          line: "{{ hostvars[item].ansible_ssh_host }} provisionhost"
+          regexp: ".*provisionhost$"
+          state: present
+      with_items: "{{ groups['worker'][-1] }}"
