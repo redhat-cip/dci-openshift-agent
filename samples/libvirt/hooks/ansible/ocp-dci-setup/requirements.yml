@@ -1,0 +1,100 @@
+- name: Install requirements
+  hosts: localhost
+  become: true
+  any_errors_fatal: true
+  vars:
+    ansible_python_interpreter: /usr/libexec/platform-python
+  tasks:
+    - name: Install requirement packages
+      package:
+        name:
+          - "git"
+          - "gcc"
+          - "libvirt"
+          - "libvirt-devel"
+          - "genisoimage"
+          - "virt-install"
+          - "net-tools"
+          - "qemu-kvm"
+          - "python3-lxml"
+          - "psmisc"
+          - "sshpass"
+        state: installed
+
+    - name: enable nested KVM support for Intel
+      lineinfile:
+          dest: "/etc/modprobe.d/kvm.conf"
+          line: "options kvm_intel nested=1"
+          state: present
+          create: yes
+
+    - name: unload KVM module
+      modprobe:
+          name: "kvm_intel"
+          state: absent
+      failed_when: False
+
+    - name: load KVM module
+      modprobe:
+          name: "kvm_intel"
+          params: "nested=1"
+          state: present
+
+    - name: unload vhost-net module
+      modprobe:
+          name: "vhost-net"
+          state: absent
+      failed_when: False
+
+    - name: load KVM module
+      modprobe:
+          name: "vhost-net"
+          state: present
+
+    - name: Stop and disable firewalld
+      service:
+        name: firewalld
+        state: stopped
+        enabled: no
+
+    - name: Restart libvirt service
+      service:
+        name: libvirtd
+        state: restarted
+
+    - name: Register running VMs
+      virt:
+        command: list_vms
+        state: running
+      register: running_vms
+
+    - name: Power off running VMs
+      virt:
+        state: destroyed
+        name: "{{ item }}"
+      with_items: "{{ running_vms.list_vms }}"
+      ignore_errors: true
+
+    - name: Register existing libvirt networks
+      virt_net:
+        command: list_nets
+      register: active_nets
+
+    - name: Clean up required networsk for OCP Edge deployment
+      virt_net:
+        name: "{{ item }}"
+        state: absent
+      when: item == 'baremetal' or item == 'provisioning'
+      with_items:
+        - "{{ active_nets.list_nets }}"
+
+    - name: assert virtualenv is present
+      command: command -v virtualenv
+      register: venv_exists
+      failed_when: false
+
+    - name: install virtualenv from rpm
+      package:
+        name: "python3-virtualenv"
+        state: installed
+      when: venv_exists.rc != 0

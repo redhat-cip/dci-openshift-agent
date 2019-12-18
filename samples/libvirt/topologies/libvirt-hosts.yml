@@ -1,0 +1,59 @@
+---
+topology_name: ocp-dci
+resource_groups:
+  - resource_group_name: ocp-dci-master
+    resource_group_type: libvirt
+    resource_definitions:
+      - role: libvirt_node
+        name: master
+        uri: qemu:///system
+        count: {{ master_count }}
+        image_src: {{ provisionhost_imagesrc }}
+        cpu_mode: host-passthrough
+        memory: {{ master_memory }}
+        vcpus: {{ master_vcpus }}
+        arch: x86_64
+        ssh_key: id_rsa
+        additional_storage: 42G
+        disk_type: virtio_scsi
+        disk_cache: unsafe
+        name_separator: '-'
+        cloud_config:
+          users:
+            - name: {{ provisionhost_user }}
+              gecos: Admin User
+              groups: wheel
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              lock_passwd: false
+        networks:
+          - name: baremetal
+          - name: provisioning
+            dhcp: false
+  - resource_group_name: ocp-dci-worker
+    resource_group_type: libvirt
+    resource_definitions:
+      - role: libvirt_node
+        name: worker
+        uri: qemu:///system
+        count: {{ worker_count }}
+        memory: {{ worker_memory }}
+        vcpus: {{ worker_vcpus }}
+        image_src: {{ provisionhost_imagesrc }}
+        cpu_mode: host-passthrough
+        arch: x86_64
+        ssh_key: id_rsa
+        additional_storage: 42G
+        disk_type: virtio_scsi
+        disk_cache: unsafe
+        name_separator: '-'
+        cloud_config:
+          users:
+            - name: {{ provisionhost_user }}
+              gecos: Admin User
+              groups: wheel
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              lock_passwd: false
+        networks:
+          - name: baremetal
+          - name: provisioning
+            dhcp: false
