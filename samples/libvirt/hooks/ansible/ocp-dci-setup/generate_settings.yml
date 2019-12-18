@@ -1,0 +1,17 @@
+- name: settings.yml file for agent
+  hosts: localhost
+  any_errors_fatal: true
+  gather_facts: false
+  tasks:
+    - include_vars:
+        file: ipmi_nodes.json
+        name: ironic_nodes
+    - name: Snapshot Provision VM
+      become: true
+      command: |
+          virsh snapshot-create-as --domain {{ groups['worker'][-1] }} \
+                                   --name {{ groups['worker'][-1] }}-before-provision
+    - name: Generating settings.yml
+      template:
+        src: settings.yml.j2
+        dest: ../../../settings.yml

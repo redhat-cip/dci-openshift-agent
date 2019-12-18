@@ -1,0 +1,13 @@
+dci_topic: OCP-4.3
+cluster_name: dciokd
+base_domain: metalkube.org
+ironic_nodes: {u'openshift-master-2': {u'ipmi_user': u'admin', u'ipmi_pass': u'password', u'ipmi_address': u'192.168.123.1:6232', u'mac_address': u'52:54:00:b7:ee:66'}, u'openshift-master-0': {u'ipmi_user': u'admin', u'ipmi_pass': u'password', u'ipmi_address': u'192.168.123.1:6230', u'mac_address': u'52:54:00:ba:44:bb'}, u'openshift-master-1': {u'ipmi_user': u'admin', u'ipmi_pass': u'password', u'ipmi_address': u'192.168.123.1:6231', u'mac_address': u'52:54:00:77:e0:25'}}
+openshift_secret: 
+cluster_pro_if: ens3
+pro_if: eth0
+int_if: eth1
+dns_vip: 192.168.123.6
+provisionhost_name: worker-0
+provisionhost_ip: 192.168.123.109
+provisionhost_user: dci
+provisionhost_password: redhat
