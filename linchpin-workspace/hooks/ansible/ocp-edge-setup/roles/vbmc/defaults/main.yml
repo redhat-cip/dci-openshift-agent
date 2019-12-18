@@ -1,0 +1,13 @@
+# choice from hypervisor or undercloud
+vbmc_host: "hypervisor"
+vbmc_start_port: 6230
+action: install
+vbmc_virtualenv: "/root/.virtualenvs/vbmc"
+vbmc_home: "/root"
+vbmc_config_dir: "{{ vbmc_home }}/.vbmc"
+vbmc_version: '1.4.0'
+vbmc_bin: "{{ vbmc_virtualenv }}/bin/vbmc"
+vbmcd_bin: "{{ vbmc_virtualenv }}/bin/vbmcd"
+vbmc_user: "admin"
+vbmc_pass: "password"
+ipmi_net: "baremetal"
