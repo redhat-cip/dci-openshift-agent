@@ -1,0 +1,141 @@
+- name: Set up dnat to be able to reach the console
+  hosts: localhost
+  become: true
+  any_errors_fatal: true
+  tasks:
+      - name: register 443 dnat ip address
+        shell: |
+            iptables-save -t nat | grep ':443' | grep -oP '[0-9.]+:' | sed s/\://
+        register: router_dnat_ip
+
+      - name: remove existing router dnat rules
+        iptables:
+          table: nat
+          chain: PREROUTING
+          protocol: tcp
+          destination: "{{ ansible_default_ipv4.address }}"
+          to_destination: "{{ item }}:443"
+          destination_port: 443
+          match: tcp
+          jump: DNAT
+          state: absent
+        with_items: "{{ router_dnat_ip.stdout_lines }}"
+
+      - name: register 6443 dnat ip address
+        shell: |
+            iptables-save -t nat | grep ':6443' | grep -oP '[0-9.]+:' | sed s/\://
+        register: api_dnat_ip
+
+      - name: remove existing api dnat rules
+        iptables:
+          table: nat
+          chain: PREROUTING
+          protocol: tcp
+          destination: "{{ ansible_default_ipv4.address }}"
+          to_destination: "{{ item }}:6443"
+          destination_port: 6443
+          match: tcp
+          jump: DNAT
+          state: absent
+        with_items: "{{ api_dnat_ip.stdout_lines }}"
+
+      - name: remove existing router port 80 dnat rules
+        iptables:
+          table: nat
+          chain: PREROUTING
+          protocol: tcp
+          destination: "{{ ansible_default_ipv4.address }}"
+          to_destination: "{{ item }}:80"
+          destination_port: 80
+          match: tcp
+          jump: DNAT
+          state: absent
+        with_items: "{{ router_dnat_ip.stdout_lines }}"
+
+      - name: remove existing baremetal rules
+        iptables:
+          chain: FORWARD
+          in_interface: baremetal
+          state: absent
+          reject_with: icmp-port-unreachable
+
+      - name: remove existing baremetal rules
+        iptables:
+          chain: FORWARD
+          out_interface: baremetal
+          state: absent
+          reject_with: icmp-port-unreachable
+
+      - name: add dnat rules for API
+        iptables:
+          table: nat
+          chain: PREROUTING
+          protocol: tcp
+          destination: "{{ ansible_default_ipv4.address }}"
+          to_destination: "192.168.123.5:{{ item }}"
+          destination_port: "{{ item }}"
+          match: tcp
+          jump: DNAT
+          state: present
+        with_items:
+          - '6443'
+
+      - name: add dnat rules for ingress
+        iptables:
+          table: nat
+          chain: PREROUTING
+          protocol: tcp
+          destination: "{{ ansible_default_ipv4.address }}"
+          to_destination: "192.168.123.10:{{ item }}"
+          destination_port: "{{ item }}"
+          match: tcp
+          jump: DNAT
+          state: present
+        with_items:
+          - '443'
+          - '80'
+
+      - name: allow traffic to api and router ports on the INPUT chain
+        iptables:
+          action: insert
+          chain: INPUT
+          protocol: tcp
+          destination_port: "{{ item }}"
+          ctstate: NEW,RELATED,ESTABLISHED
+          jump: ACCEPT
+          state: present
+        with_items:
+          - '443'
+          - '6443'
+          - '80'
+
+      - name: allow traffic to api and router ports on the FORWARD chain
+        iptables:
+          action: insert
+          chain: FORWARD
+          protocol: tcp
+          destination_port: "{{ item }}"
+          ctstate: NEW,RELATED,ESTABLISHED
+          jump: ACCEPT
+          state: present
+        with_items:
+          - '443'
+          - '6443'
+          - '80'
+
+      - name: register kubeadmin pass
+        shell: "cat /home/{{ provisionhost_user }}/clusterconfigs/auth/kubeadmin-password"
+        register: kubepass
+        delegate_to: "{{ groups['worker'][-1] }}"
+
+      - name: print connection details
+        debug:
+          msg:
+            - "Installation complete."
+            - "To log in to the console add on your laptop's /etc/hosts the entry below (make sure it's copy/pasted as a single line):"
+            - "{{ ansible_default_ipv4.address }} console-openshift-console.apps.{{ cluster_domain }} openshift-authentication-openshift-authentication.apps.{{ cluster_domain }} grafana-openshift-monitoring.apps.{{ cluster_domain }} prometheus-k8s-openshift-monitoring.apps.{{ cluster_domain }} api.{{ cluster_domain }} oauth-openshift.apps.{{ cluster_domain }}"
+            - "and open in your browser:"
+            - "OpenShift Console: https://console-openshift-console.apps.{{ cluster_domain }}"
+            - "To log in via cli:"
+            - "oc login -s api.{{ cluster_domain }}:6443"
+            - "Username: kubeadmin / Password: {{ kubepass.stdout }}"

@@ -1,0 +1,287 @@
+---
+- name: Install helper tools
+  become: true
+  package:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - 'git'
+    - 'patch'
+    - 'make'
+    - 'firewalld'
+    - 'libvirt' 
+    - 'qemu-kvm' 
+    - 'mkisofs'
+    - 'python3-devel' 
+    - 'python3-pip' 
+    - 'gcc' 
+    - 'ipmitool'
+    - 'bind-utils'
+    - 'podman'
+
+- name: Clone baremetal-deploy
+  git:
+    repo: "{{ baremetal_deploy_repo }}"
+    dest: "~/baremetal-deploy"
+  # On RHEL8 git clone can sporadically fail with OpenSSL SSL_read:
+  # SSL_ERROR_SYSCALL, errno 104. This is a workaround to try cloning the repo
+  # multiple times.
+  register: baremetal_deploy_clone
+  retries: 3
+  delay: 10
+  until: not baremetal_deploy_clone.failed
+
+- name: Start firewalld service
+  become: true
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: Add user to libvirt group
+  become: true
+  user:
+    name: "{{ ansible_user }}"
+    groups: libvirt
+    append: yes
+  register: libvirt_group
+
+- name: Start libvirtd service
+  become: true
+  service:
+    name: libvirtd
+    state: started
+    enabled: yes
+
+- name: Enable http service in public firewalld zone
+  become: true
+  firewalld:
+    zone: public
+    service: http
+    permanent: yes
+    state: enabled
+
+- name: Enable tcp port 5000 in public firewalld zone
+  become: true
+  firewalld:
+    zone: public
+    port: 5000/tcp
+    permanent: yes
+    state: enabled
+
+- name: Enable tcp port 5000 in libvirt firewalld zone
+  become: true
+  firewalld:
+    zone: libvirt
+    port: 5000/tcp
+    permanent: yes
+    state: enabled
+
+- name: Reload firewalld service
+  become: true
+  service:
+    name: firewalld
+    state: reloaded
+
+- name: Check if default storage pool exists
+  become: true
+  shell: |
+    virsh pool-list | grep default
+  ignore_errors: true
+  register: default_image_pool
+
+- name: Create the default storage pool and start it
+  become: true
+  shell: |
+    virsh pool-define-as --name default --type dir --target /var/lib/libvirt/images
+    virsh pool-start default
+    virsh pool-autostart default
+  when: default_image_pool is failed
+
+- name: Configure networking
+  become: true
+  shell: |
+    ## This is based on the connection names on VM env. TODO see how it looks on BM.
+    PUB_CONN=$(nmcli con | awk '/{{ int_if }}/ {print $1, $2}')
+    nmcli con delete "$PUB_CONN"
+    nmcli con add type bridge ifname baremetal autoconnect yes con-name baremetal stp off
+    PUB_CONN=$(nmcli con | awk '/{{ int_if }}/ {print $1, $2, $3}')
+    nmcli con delete "$PUB_CONN" && nmcli con add type bridge-slave autoconnect yes con-name {{ int_if }} ifname {{ int_if }} master baremetal
+    PROV_CONN=$(nmcli con | awk '/{{ pro_if }}/ {print $1, $2, $3}')
+    nmcli con delete "$PROV_CONN"
+    nmcli con add type bridge ifname provisioning autoconnect yes con-name provisioning stp off
+    nmcli con modify provisioning ipv4.addresses 172.22.0.1/24 ipv4.method manual
+    nmcli con add type bridge-slave autoconnect yes con-name {{ pro_if }} ifname {{ pro_if }} master provisioning
+    ifup provisioning
+    systemctl restart NetworkManager
+    systemctl restart libvirtd
+
+- name: set EXTERNAL_SUBNET
+  set_fact:
+    external_subnet: "{{ ip | ipaddr('network') }}/{{ ip | ipaddr('prefix') }}"
+  vars:
+    ip: "{{ ansible_default_ipv4.address }}/{{ansible_default_ipv4.netmask }}"
+
+- name: check existing keypair
+  stat:
+    path: "~/.ssh/id_rsa.pub"
+  register: keypair_result
+
+- name: generate keypair if not present
+  shell: "ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''"
+  when: keypair_result.stat.exists == False
+
+- name: Register pub ssh key
+  shell: "cat ~/.ssh/id_rsa.pub"
+  register: client_ssh_key
+
+- name: Register api VIP
+  shell: "dig +short api.{{ cluster_domain }}"
+  register: api_vip
+
+- name: Register ingress VIP
+  shell: "dig +short test.apps.{{ cluster_domain }}"
+  register: ingress_vip
+
+- set_fact:
+    openshift_version: "{{ openshift_release_image.split(':')[1] }}"
+  when: openshift_release_image is defined and openshift_release_image != ''
+
+- name: Create pull-secret.txt
+  copy:
+    content: "{{ openshift_secret }}"
+    dest: ~/pull-secret.txt
+
+- block:
+    - name: Register release.txt
+      uri:
+        url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/latest/release.txt
+        return_content: yes
+      register: ocp_release_txt
+
+    - set_fact:
+        openshift_version: "{{ (ocp_release_txt.content | regex_search('Name:\ .*')).split()[1] }}"
+  when: openshift_release_image == ''
+
+- name: Get the archived oc binary
+  get_url:
+    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/{{ openshift_version }}/openshift-client-linux-{{ openshift_version }}.tar.gz
+    dest: ~/openshift-client-linux-{{ openshift_version }}.tar.gz
+
+- name: Unarchive oc binary
+  become: true
+  unarchive:
+    src: /home/{{ provisionhost_user }}/openshift-client-linux-{{ openshift_version }}.tar.gz
+    dest: /usr/local/bin
+    remote_src: yes
+
+- name: Extract the baremetal installer
+  shell: |
+    oc adm release extract --registry-config ~/pull-secret.txt --command=openshift-baremetal-install --to ~ registry.svc.ci.openshift.org/ocp/release:{{ openshift_version }}
+
+- name: Create clusterconfigs directory
+  file:
+    path: ~/clusterconfigs
+    state: directory
+
+- name: Register openshift-baremetal-install built from commit
+  shell: |
+    ~/openshift-baremetal-install version | awk '/built from commit/ {print $4}'
+  register: installer_built_from_commit
+
+- name: Get rhcos.json
+  uri:
+    url: https://raw.githubusercontent.com/openshift/installer/{{ installer_built_from_commit.stdout }}/data/data/rhcos.json
+  register: ocp_metadata
+
+- set_fact:
+    machine_os_image_url: "{{ ocp_metadata.json.baseURI }}{{ ocp_metadata.json.images.openstack.path }}"
+    machine_os_image_sha256: "{{ ocp_metadata.json.images.openstack.sha256 }}"
+    machine_os_bootstrap_image_url: "{{ ocp_metadata.json.baseURI }}{{ ocp_metadata.json.images.qemu.path }}"
+    machine_os_bootstrap_image_sha256: "{{ ocp_metadata.json.images.qemu.sha256 }}"
+    machine_os_bootstrap_image_uncompressed_sha256: "{{ ocp_metadata.json.images.qemu['uncompressed-sha256'] }}"
+    ironic_data_dir: "/opt/ocp/ironic"
+    ironic_image: "quay.io/metal3-io/ironic:master"
+
+- set_fact:
+    machine_os_image_name: "{{ machine_os_image_url | basename }}"
+    machine_os_bootstrap_image_name: "{{ machine_os_bootstrap_image_url | basename }}"
+    ironic_images_dir: "{{ ironic_data_dir }}/html/images"
+
+- set_fact:
+    mirrored_bootstrapOSImage_url: "http://172.22.0.1/images/{{ machine_os_bootstrap_image_name }}?sha256={{ machine_os_bootstrap_image_uncompressed_sha256 }}"
+    mirrored_clusterOSImage_url: "http://172.22.0.1/images/{{ machine_os_image_name }}?sha256={{ machine_os_image_sha256 }}"
+    cached_machine_os_image: "{{ ironic_data_dir }}/html/images/{{ machine_os_image_name }}"
+    cached_machine_os_bootstrap_image: "{{ ironic_data_dir }}/html/images/{{ machine_os_bootstrap_image_name }}"
+
+- name: Create Ironic Images Dir
+  become: true
+  file:
+      path: "{{ ironic_images_dir }}"
+      state: directory
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: '0755'
+      recurse: true
+
+- name: Create ironic-pod to serve mirror images
+  become: true
+  shell: |
+      podman pod create -n ironic-pod
+      podman run -d --net host --privileged --name httpd --pod ironic-pod -v {{ ironic_data_dir }}:/shared --entrypoint /bin/runhttpd {{ ironic_image }}
+
+- name: Download Machine OS Image
+  get_url:
+      url: "{{ machine_os_image_url }}"
+      dest: "{{ cached_machine_os_image }}"
+      checksum: "sha256:{{ machine_os_image_sha256 }}"
+
+- name: Download Machine OS Bootstrap Image
+  get_url:
+      url: "{{ machine_os_bootstrap_image_url }}"
+      dest: "{{ cached_machine_os_bootstrap_image }}"
+      checksum: "sha256:{{ machine_os_bootstrap_image_sha256 }}"
+
+- name: "wait for mirrored bootstrap OS image to come up"
+  uri:
+    url: "{{ mirrored_bootstrapOSImage_url }}"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 1
+
+- name: "wait for mirrored cluster OS image to come up"
+  uri:
+    url: "{{ mirrored_clusterOSImage_url }}"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 1
+
+- name: Generate install-config.yaml
+  template:
+    src: install-config.yaml.j2
+    dest: ~/install-config.yaml
+
+- name: Generate metal3-config.yaml
+  template:
+    src: metal3-config.yaml.j2
+    dest: ~/metal3-config.yaml
+
+- name: Copy install-config.yaml to clusterconfigs
+  copy:
+    src: ~/install-config.yaml
+    dest: ~/clusterconfigs/install-config.yaml
+    remote_src: yes
+
+- name: Create the OpenShift manifests
+  shell: |
+    ~/openshift-baremetal-install --dir ~/clusterconfigs create manifests
+
+- name: Copy metal3-config.yaml to the clusterconfigs/openshift directory
+  copy:
+    src: ~/metal3-config.yaml
+    dest: ~/clusterconfigs/openshift/99_metal3-config.yaml
+    remote_src: yes
