@@ -1,0 +1,21 @@
+- name: assert free disk space
+  hosts: localhost
+  become: true
+  any_errors_fatal: true
+  vars:
+    ansible_python_interpreter: /usr/libexec/platform-python
+  tasks:
+    - name: Determine mount point for /var/lib/libvirt/images
+      command: stat -c '%m' /var/lib/libvirt/images
+      register: mount_point
+
+    - name: Set free_disk_space fact
+      set_fact:
+        free_root_disk_space: "{{ (item.size_available/1024|pow(3))|round|float }}"
+      with_items: "{{ ansible_mounts }}"
+      when: item.mount == mount_point.stdout
+
+    - name: Assert enough disk space
+      assert:
+        that:
+          - "free_root_disk_space|float >= eta_disk_size|default(100)|float"

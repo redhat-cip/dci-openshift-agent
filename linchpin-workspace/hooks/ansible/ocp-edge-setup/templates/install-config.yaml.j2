@@ -1,0 +1,63 @@
+apiVersion: v1
+baseDomain: {{ base_domain }}
+networking:
+  machineCIDR: {{ external_subnet }}
+metadata:
+  name: {{ cluster_name }}
+compute:
+- name: worker
+{% if ironic_nodes == '' %}
+  replicas: {{ ironic_nodes_vm | dict2items | selectattr("key", "search", "worker") | list | length }}
+{% else %}
+  replicas: {{ ironic_nodes | from_json | dict2items | selectattr("key", "search", "worker") | list | length }}
+{% endif %}
+controlPlane:
+  name: master
+  replicas: 3
+  platform:
+    baremetal: {}
+platform:
+  baremetal:
+    apiVIP: {{ api_vip.stdout }}
+    dnsVIP: {{ dns_vip }}
+    ingressVIP: {{ ingress_vip.stdout }}
+    hosts:
+{% if ironic_nodes == '' %}
+{% for key, value in ironic_nodes_vm.items()|sort %}
+      - name: {{ key }}
+{% if 'master' in key %}
+        role: master
+{% else %}
+        role: worker
+{% endif %}
+        bmc:
+          address: ipmi://{{ value.ipmi_address }}
+          username: {{ value.ipmi_user }}
+          password: {{ value.ipmi_pass }}
+        bootMACAddress: {{ value.mac_address }}
+{% if 'master' in key %}
+        hardwareProfile: default
+{% else %}
+        hardwareProfile: unknown
+{% endif %}
+{% endfor %}
+{% else %}
+{% for key, value in ironic_nodes.items() %}
+      - name: {{ key }}
+        role: master
+        bmc:
+          address: ipmi://{{ value.ipmi_address }}
+          username: {{ value.ipmi_user }}
+          password: {{ value.ipmi_pass }}
+        bootMACAddress: {{ value.mac_address }}
+{% if 'master' in key %}
+        hardwareProfile: default
+{% else %}
+        hardwareProfile: unknown
+{% endif %}
+{% endfor %}
+{% endif %}
+pullSecret: |
+  {{ openshift_secret }}
+sshKey: |
+  {{ client_ssh_key.stdout }}

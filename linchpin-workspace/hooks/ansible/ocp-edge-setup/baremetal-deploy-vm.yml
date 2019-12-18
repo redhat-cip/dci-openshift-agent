@@ -1,0 +1,19 @@
+- name: Run baremetal-deploy on virtual environment
+  hosts: worker[-1]
+  any_errors_fatal: true
+  tasks:
+    - include_vars:
+        file: ipmi_nodes.json
+        name: ironic_nodes_vm
+
+    - name: Configure baremetal-deploy
+      include_tasks: baremetal-deploy-config.yml
+
+    - name: Run baremetal-deploy
+      include_tasks: baremetal-deploy-run.yml
+
+    - name: configure HTPasswd identity provider
+      include_tasks: configure-htpasswd-identity.yml
+
+- name: Set up console iptables rules
+  import_playbook: iptables_console.yml
