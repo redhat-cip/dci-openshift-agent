@@ -51,7 +51,6 @@
         # Deploy infrastructure
         - name: Run the pre-run hook
           include_tasks: '{{ dci_config_dir }}/hooks/pre-run.yml'
-
       rescue:
         - name: Run the teardown process
           include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
@@ -60,9 +59,9 @@
         - name: Run the failure process
           include_tasks: plays/failure.yml
 
-# Step 3 : state "running"
+# Step 3 : state "configure"
 - name: 'Launch configure'
-  hosts: openshift
+  hosts: worker
   tags:
     - running
   vars:
@@ -80,9 +79,9 @@
         - name: Run the failure process
           include_tasks: plays/failure.yml
 
-# Step 3 : state "running"
+# Step 4 : state "running"
 - name: 'Launch install'
-  hosts: localhost
+  hosts: worker
   tags:
     - running
   vars:
@@ -101,7 +100,7 @@
         - name: Run the failure process
           include_tasks: plays/failure.yml
 
-# Step 4 : state "post-run"
+# Step 5 : state "post-run"
 - name: 'Launch post-run tests'
   hosts: localhost
   tags:
@@ -121,7 +120,7 @@
         - name: Run the failure process
           include_tasks: plays/failure.yml
 
-# Step 4 : state "post-run"
+# Step 6 : state "post-run"
 - name: 'Launch post-run tests'
   hosts: localhost
   tags:
@@ -142,7 +141,7 @@
         - name: Run the failure process
           include_tasks: plays/failure.yml
 
-# Step 5 : state "success"
+# Step 7 : state "success"
 - name: 'Success'
   hosts: localhost
   tags:

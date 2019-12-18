@@ -1,0 +1,14 @@
+dci_topic: OCP-4.3
+cluster_name: dciokd
+base_domain: metalkube.org
+cluster_domain: dciokd.metalkube.org
+dns_vip: 192.168.123.6
+provisionhost_user: dci
+provisionhost_password: redhat
+provisionhost_imagesrc: http://192.168.1.40/centos8_x86_64.qcow2
+master_count: 3
+master_memory: 32768
+master_vcpus: 16
+worker_count: 1
+worker_memory: 16384
+worker_vcpus: 8
