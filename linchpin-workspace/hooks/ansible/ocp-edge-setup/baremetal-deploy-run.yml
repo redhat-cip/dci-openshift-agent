@@ -1,0 +1,16 @@
+- name: Run the OpenShift Installer
+  shell: |
+    ~/openshift-baremetal-install --dir ~/clusterconfigs --log-level debug create cluster
+  ignore_errors: true
+  register: openshift_install_status
+
+- block:
+    - name: Register last openshift installer output lines
+      shell: "tail -20 ~/clusterconfigs/.openshift_install.log"
+      register: openshift_install_log
+
+    - name: Print last output lines
+      debug: msg="{{ openshift_install_log.stdout_lines }}"
+
+    - fail: msg="OpenShift Installer failed ... :("
+  when: openshift_install_status is failed

@@ -1,0 +1,45 @@
+---
+libvirt-network:
+  topology: libvirt-network.yml
+  hooks:
+    predestroy:
+      - name: ocp-edge-setup
+        type: ansible
+        context: True
+        actions:
+          - playbook: requirements.yml
+
+cfgs:
+  libvirt:
+    __IP__: name
+    __ADDRESS__: ip
+
+libvirt-hosts:
+  topology: libvirt-hosts.yml
+  layout: libvirt-hosts.yml
+  hooks:
+    preup:
+      - name: ocp-edge-setup
+        type: ansible
+        context: True
+        actions:
+          - playbook: assert-disk-space.yml
+    postdestroy:
+      - name: ocp-edge-setup
+        type: ansible
+        context: True
+        actions:
+          - playbook: vbmc.yml
+            extra_vars: { "hook_action": "cleanup" }
+    postup:
+      - name: ocp-edge-setup
+        type: ansible
+        context: True
+        actions:
+          - playbook: dns_update.yml
+            vars: libvirt_settings.yml
+          - playbook: nic_adjust.yml
+            vars: libvirt_settings.yml
+          - playbook: vbmc.yml
+            extra_vars: { "hook_action": "install" }
+

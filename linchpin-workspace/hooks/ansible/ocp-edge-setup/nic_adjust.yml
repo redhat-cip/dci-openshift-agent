@@ -1,0 +1,99 @@
+- name: Adjust VMs nic configuration
+  hosts: localhost
+  any_errors_fatal: true
+  become: true
+  gather_facts: false
+  vars:
+    net: baremetal
+  tasks:
+    - name: adjust sysconfig network scripts
+      shell: |
+        mv /etc/sysconfig/network-scripts/ifcfg-eth0 /etc/sysconfig/network-scripts/ifcfg-eth1
+        sed -i s/eth0/eth1/ /etc/sysconfig/network-scripts/ifcfg-eth1
+        sed -i /HWADDR/d /etc/sysconfig/network-scripts/ifcfg-eth1
+        sync
+      delegate_to: "{{ item }}"
+      with_items: "{{ groups.get('openshift', []) }}"
+ 
+    - name: register mac addresses
+      shell: |
+          virsh domiflist {{ item }} | awk '/{{ net }}/ {print $5}'
+      with_items: "{{ groups.get('openshift', []) }}"
+      register: mac_list
+
+    - name: set vm_inv_info fact
+      set_fact:
+         vm_inv_info: "{{ vm_inv_info | default({})|combine({ item.cmd.split()[2]: { 'mac': item.stdout}}) }}"
+      with_items: "{{ mac_list.results }}"
+
+    - name: wait for VMs IPs
+      shell: |
+          virsh net-dhcp-leases {{ net }} | awk '($4 == "ipv4")  && ($3 == "{{ item.value.mac }}") {print $5}'
+      register: ip_list
+      until: "ip_list.stdout != ''"
+      retries: 40
+      delay: 5
+      with_dict: "{{ vm_inv_info }}"
+    
+    - name: construct dict with node name as key and with ip as value
+      set_fact:
+          vm_ip_dict: "{{ vm_ip_dict | default({}) | combine({ item.item.key: { 'ip': item.stdout|ipaddr('address') }}) }}"
+      when: item.stdout|default(False)
+      with_items: "{{ ip_list.results }}"
+    
+    - name: merge ip addresses to the vm_inv_info dict
+      set_fact:
+          vm_inv_info: "{{ vm_inv_info | default({}) | combine(vm_ip_dict|default({}), recursive=True) }}"
+
+    - name: make IPs persistent
+      shell: "virsh net-update {{ net }} add ip-dhcp-host \"<host mac='{{ item.value.mac }}' name='{{ item.key }}.{{ cluster_domain }}' ip='{{ item.value.ip }}' />\" --live --config"
+      when: item.value.ip is defined
+      with_dict: "{{ vm_inv_info }}"
+
+    - name: remove nic interfaces
+      shell: "virt-xml --remove-device --network all --update {{ item.key }}"
+      when: item.value.ip is defined
+      with_dict: "{{ vm_inv_info }}"
+
+    - name: add nic interfaces back
+      shell: |
+          virt-xml --add-device --network network=provisioning,model=virtio --update {{ item.key }}
+          virt-xml --add-device --network network=baremetal,model=virtio,mac={{ item.value.mac }} --update {{ item.key }}
+      when: item.value.ip is defined
+      with_dict: "{{ vm_inv_info }}"
+
+    - name: power off VMs
+      shell: |
+          virsh destroy {{ item.key }}
+      when: item.value.ip is defined
+      with_dict: "{{ vm_inv_info }}"
+
+    - name: Make sure /etc/NetworkManager/dnsmasq.d/openshift.conf exists
+      file:
+        path: /etc/NetworkManager/dnsmasq.d/openshift.conf
+        state: touch
+
+    - name: Add nodes name resolution to local dnsmasq
+      lineinfile:
+        path: /etc/NetworkManager/dnsmasq.d/openshift.conf
+        line: "address=/{{ item.key }}/{{ item.value.ip }}"
+      with_dict: "{{ vm_inv_info }}"
+
+    - name: Restart NetworkManager
+      service:
+        name: NetworkManager
+        state: restarted
+
+    - block:
+      - name: power on {{ groups['worker'][-1] }}
+        virt:
+          command: start
+          name: "{{ groups['worker'][-1] }}"
+
+      - name: waiting for the provisionhost to be ssh-able
+        wait_for:
+          port: 22
+          host: provisionhost
+          search_regex: OpenSSH
+          delay: 10
+        connection: local
