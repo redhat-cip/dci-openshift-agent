@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "39d518c7_61ec3cfa",
+        "filename": "hooks/configure.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-01-21T14:11:33Z",
+      "side": 1,
+      "message": "Let\u0027s allow this to be overridden by openshift_secret in settings.yml",
+      "revId": "f0b31db19227cb687b0bfeb0f6e509e9c91ba1dc",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
