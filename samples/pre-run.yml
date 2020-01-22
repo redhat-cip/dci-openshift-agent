@@ -7,7 +7,7 @@
 - name: Shutdown masters and workers
   virt:
     name: "{{ item }}"
-    state: shutdown
+    state: destroyed
   with_items: "{{ all_vms.list_vms | select('match', '^(master|worker)-[0-9]+') | list }}"
 
 - name: Revert provisionhost to before OCP install

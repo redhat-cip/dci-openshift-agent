@@ -26,9 +26,6 @@
         - name: Configure jumpbox
           include_tasks: plays/configure.yml
 
-        # Download Openshift from DCI
-        - name: Import Openshift files from DCI
-          include_tasks: plays/fetch_bits.yml
       rescue:
         - name: Run the teardown process
           include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"

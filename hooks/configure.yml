@@ -135,10 +135,10 @@
     openshift_version: "{{ openshift_release_image.split(':')[1] }}"
   when: openshift_release_image is defined and openshift_release_image != ''
 
-- name: Get openshift_version from job.components when openshift_release_image is not setted
+- name: Get openshift_version from job.components when openshift_release_image is not set
   set_fact:
     openshift_version: "{{ item['name'] }}"
-  with_items: "{{ job_info.job.components }}"
+  with_items: "{{ hostvars.localhost.job_info.job.components }}"
   when: item["type"] == "metadata" and openshift_release_image == ''
 
 - name: Create pull-secret.txt
