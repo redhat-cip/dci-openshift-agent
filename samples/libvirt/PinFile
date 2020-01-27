@@ -18,12 +18,6 @@ libvirt-hosts:
   topology: libvirt-hosts.yml
   layout: libvirt-hosts.yml
   hooks:
-    predestroy:
-      - name: ocp-dci-setup
-        type: ansible
-        context: True
-        actions:
-          - playbook: remove_snapshot.yml
     postdestroy:
       - name: ocp-dci-setup
         type: ansible
