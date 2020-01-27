@@ -27,6 +27,7 @@ platform:
         role: master
 {% else %}
         role: worker
+{% endif %}
         bmc:
           address: ipmi://{{ value.ipmi_address }}
           username: {{ value.ipmi_user }}

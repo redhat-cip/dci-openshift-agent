@@ -11,7 +11,13 @@
       command: |
           virsh snapshot-create-as --domain {{ groups['worker'][-1] }} \
                                    --name {{ groups['worker'][-1] }}-before-provision
+    - name: Autostart provisioning net
+      become: true
+      command: |
           virsh net-autostart provisioning
+    - name: Autostart baremetal net
+      become: true
+      command: |
           virsh net-autostart baremetal
     - name: Generating settings.yml
       template:

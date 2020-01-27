@@ -5,7 +5,8 @@ Description=DCI Agent for Openshift
 Type=oneshot
 WorkingDirectory=/usr/share/dci-openshift-agent
 EnvironmentFile=/etc/dci-openshift-agent/dcirc.sh
-ExecStart=/usr/bin/ansible-playbook -vv /usr/share/dci-openshift-agent/dci-openshift-agent.yml -e @/etc/dci-openshift-agent/settings.yml
+ExecStart=-/usr/bin/ansible-playbook -vv /usr/share/dci-openshift-agent/dci-openshift-agent.yml -e @/etc/dci-openshift-agent/settings.yml -e dci_topic=OCP-4.3
+ExecStart=-/usr/bin/ansible-playbook -vv /usr/share/dci-openshift-agent/dci-openshift-agent.yml -e @/etc/dci-openshift-agent/settings.yml -e dci_topic=OCP-4.4
 SuccessExitStatus=0
 User=dci-openshift-agent
 

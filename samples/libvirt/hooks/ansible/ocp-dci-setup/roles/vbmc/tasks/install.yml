@@ -38,6 +38,7 @@
     name:
       - pip
       - dateutils
+      - libvirt-python==4.5.0
     state: latest
 
 - name: Install python-virtualbmc with pip
