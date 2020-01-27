@@ -148,7 +148,7 @@
 
 - name: Get the archived oc binary
   get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/{{ openshift_version }}/openshift-client-linux-{{ openshift_version }}.tar.gz
+    url: https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp-dev-preview/{{ openshift_version }}/openshift-client-linux-{{ openshift_version }}.tar.gz
     dest: ~/openshift-client-linux-{{ openshift_version }}.tar.gz
 
 - name: Unarchive oc binary
@@ -160,7 +160,8 @@
 
 - name: Extract the baremetal installer
   shell: |
-    oc adm release extract --registry-config ~/pull-secret.txt --command=openshift-baremetal-install --to ~ registry.svc.ci.openshift.org/ocp/release:{{ openshift_version }}
+    RELEASE_IMAGE=$(curl -s https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp-dev-preview/{{ openshift_version }}/release.txt | awk '/Pull From: quay.io/ {print $3}')
+    oc adm release extract --registry-config ~/pull-secret.txt --command=openshift-baremetal-install --to ~ ${RELEASE_IMAGE}
 
 - name: Create clusterconfigs directory
   file:
