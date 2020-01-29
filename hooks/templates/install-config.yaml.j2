@@ -40,6 +40,6 @@ platform:
 {% endif %}
 {% endfor %}
 pullSecret: |
-  {{ openshift_secret }}
+  {{ pull_secret | to_json }}
 sshKey: |
   {{ client_ssh_key.stdout }}

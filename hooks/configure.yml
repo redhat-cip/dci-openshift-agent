@@ -141,9 +141,12 @@
   with_items: "{{ hostvars.localhost.job_info.job.components }}"
   when: item["type"] == "metadata" and openshift_release_image == ''
 
+- set_fact:
+    pull_secret: "{{ openshift_secret | default(hostvars.localhost.job_info.job.topic.data.pull_secret) }}"
+
 - name: Create pull-secret.txt
   copy:
-    content: "{{ openshift_secret }}"
+    content: "{{ pull_secret }}"
     dest: ~/pull-secret.txt
 
 - name: Get the archived oc binary
@@ -160,8 +163,10 @@
 
 - name: Extract the baremetal installer
   shell: |
-    RELEASE_IMAGE=$(curl -s https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp-dev-preview/{{ openshift_version }}/release.txt | awk '/Pull From: quay.io/ {print $3}')
+    RELEASE_IMAGE={{ item.data['url'] }}
     oc adm release extract --registry-config ~/pull-secret.txt --command=openshift-baremetal-install --to ~ ${RELEASE_IMAGE}
+  with_items: "{{ hostvars.localhost.job_info.job.components }}"
+  when: item["type"] == "metadata"
 
 - name: Create clusterconfigs directory
   file:

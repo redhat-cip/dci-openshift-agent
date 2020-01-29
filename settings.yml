@@ -3,7 +3,6 @@ cluster_name: dciokd
 base_domain: metalkube.org
 ironic_nodes: {"openshift-master-2": {"ipmi_user": "admin", "ipmi_pass": "password", "ipmi_address": "192.168.123.1:6232", "mac_address": "52:54:00:2e:06:a4"}, "openshift-master-0": {"ipmi_user": "admin", "ipmi_pass": "password", "ipmi_address": "192.168.123.1:6230", "mac_address": "52:54:00:fd:c9:39"}, "openshift-master-1": {"ipmi_user": "admin", "ipmi_pass": "password", "ipmi_address": "192.168.123.1:6231", "mac_address": "52:54:00:e5:52:7d"}}
 cluster_domain: "dciokd.metalkube.org"
-openshift_secret: '' #FIXME
 cluster_pro_if: ens3
 pro_if: eth0
 int_if: eth1
