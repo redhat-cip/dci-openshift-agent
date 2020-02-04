@@ -6,6 +6,10 @@
     - include_vars:
         file: ipmi_nodes.json
         name: ironic_nodes
+    - name: "halt provisionhost"
+      virt:
+        name: "{{ groups['worker'][-1] }}"
+        state: destroyed
     - name: Snapshot Provision VM
       become: true
       command: |
