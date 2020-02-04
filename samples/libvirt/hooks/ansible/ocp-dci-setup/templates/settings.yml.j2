@@ -3,7 +3,6 @@ cluster_name: {{ cluster_name }}
 base_domain: {{ base_domain }}
 ironic_nodes: {{ ironic_nodes | to_json }}
 cluster_domain: "{{ cluster_domain }}"
-openshift_secret: '{{ openshift_secret | default(omit) }}'
 cluster_pro_if: {{ cluster_pro_if | default('ens3', true) }}
 pro_if: eth0
 int_if: eth1

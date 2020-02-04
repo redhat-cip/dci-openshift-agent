@@ -23,6 +23,11 @@
     ansible_host: '{{ provisionhost_ip }}'
     ansible_user: '{{ provisionhost_user }}'
 
+- name: Startup provisionhost
+  virt:
+    name: "{{ provisionhost_name }}"
+    state: running
+
 - name: Wait for hosts to be online
   wait_for:
     host: '{{ provisionhost_ip }}'
