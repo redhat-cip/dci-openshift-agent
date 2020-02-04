@@ -7,9 +7,25 @@
       package:
         name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
+    - name: Install packages required for libvirt and linchpin
+      become: true
+      package:
+        name:
+          - python-netaddr
+          - libvirt-python
+          - libvirt-daemon-kvm
+          - python-lxml
+          - python-pip
+          - python-virtualenv
+          - git
+          - genisoimage
+          - libvirt
+          - libvirt-daemon-kvm
+
     - name: Check on nested KVM status
       command: |
         cat /sys/module/kvm_intel/parameters/nested
+      ignore_errors: true
       register: nested_kvm
 
     - name: Enable nested Virt
@@ -21,14 +37,14 @@
           options kvm-intel enable_apicv=1
           options kvm-intel ept=1
         dest: /etc/modprobe.d/kvm_nested.conf
-      when: nested_kvm.stdout == 'N'
+      when: nested_kvm.stdout != 'Y'
 
     - name: Reload KVM module
       become: true
       shell: |
         modprobe -r kvm_intel
         modprobe -a kvm_intel
-      when: nested_kvm.stdout == 'N'
+      when: nested_kvm.stdout != 'Y'
 
     - name: Add dci-openshift-agent user to libvirt and qemu groups
       become: true
@@ -41,18 +57,6 @@
 
     - name: reset ssh connection to allow user changes to affect 'current login user'
       meta: reset_connection
-
-    - name: Install packages required for libvirt and linchpin
-      become: true
-      package:
-        name:
-          - python-netaddr
-          - libvirt-python
-          - libvirt-daemon-kvm
-          - python-lxml
-          - python-pip
-          - python-virtualenv
-          - git
 
     - name: Enable and Start libvirtd
       become: true
