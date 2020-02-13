@@ -9,4 +9,4 @@ for vm in $($virsh_cmd list --all --name| awk '/worker-|master/ {print $1}'); do
     done
 done
 
-linchpin --template-data @libvirt_settings.yml -v destroy libvirt-network libvirt-hosts
+/var/lib/dci-openshift-agent/linchpin/bin/linchpin --template-data @libvirt_settings.yml -v destroy libvirt-network libvirt-hosts

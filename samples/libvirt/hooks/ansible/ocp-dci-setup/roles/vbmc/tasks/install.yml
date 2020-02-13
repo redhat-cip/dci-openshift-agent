@@ -1,5 +1,6 @@
 ---
-- block:
+- name: Get pip on python 2.7
+  block:
   - name: Install packages required for python-virtualbmc pip package
     package:
         name:
@@ -15,6 +16,21 @@
   - name: install pip
     easy_install:
         name: pip
+  when: ansible_python_version.startswith('2.7')
+
+- name: Get pip on python 3
+  package:
+      name:
+        - gcc
+        - libvirt
+        - libvirt-devel
+        - python3-devel
+        - python3-setuptools
+        - ipmitool
+        - python3-pip
+      state: latest
+      disable_gpg_check: yes
+  when: ansible_python_version.startswith('3')
 
   - name: "check if there's a virtualenv already installed (i.e.: a system-wide RPM package)"
     command: virtualenv --version
