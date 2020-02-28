@@ -1,0 +1,18 @@
+localhost ansible_connection=local prov_ipv4=172.22.0.100/24 prov_nic=ens3 pub_nic=eno1
+
+# Master nodes
+# The hardware_profile is used by the baremetal operator to match the hardware discovered on the host
+# See https://github.com/metal3-io/baremetal-operator/blob/master/docs/api.md#baremetalhost-status
+[masters]
+master-0 name=master-0 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_address=192.168.1.60 provision_mac=ac:1f:6b::: hardware_profile=default
+master-1 name=master-1 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_address=192.168.1.61 provision_mac=ac:1f:6b::: hardware_profile=default
+master-2 name=master-2 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_address=192.168.1.62 provision_mac=ac:1f:6b::: hardware_profile=default
+
+# Worker nodes
+[workers]
+#worker-0 name=worker-0 role=worker ipmi_user=admin ipmi_password=password ipmi_address=192.168.1.4 provision_mac=ec:f4:bb:da:0c:18 hardware_profile=unknown
+#worker-1 name=worker-1 role=worker ipmi_user=admin ipmi_password=password ipmi_address=192.168.1.5 provision_mac=ec:f4:bb:da:32:28 hardware_profile=unknown
+
+# Provision Host
+[provisioner]
+provisionhost ansible_user=dci prov_nic=eth1 pub_nic=eth0 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"

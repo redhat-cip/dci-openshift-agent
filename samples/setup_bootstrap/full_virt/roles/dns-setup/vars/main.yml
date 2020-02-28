@@ -1,0 +1,3 @@
+---
+net: baremetal
+libvirt_become: yes

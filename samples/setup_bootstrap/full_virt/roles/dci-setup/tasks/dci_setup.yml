@@ -1,0 +1,8 @@
+---
+- include_vars:
+    file: ipmi_nodes.json
+    name: ironic_nodes
+- name: Generating settings.yml
+  template:
+    src: settings.yml.j2
+    dest: settings.yml

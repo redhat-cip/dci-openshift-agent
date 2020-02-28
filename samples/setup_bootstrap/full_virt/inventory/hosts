@@ -1,0 +1,1 @@
+localhost ansible_connection=local prov_nic=eth1 pub_nic=eth0

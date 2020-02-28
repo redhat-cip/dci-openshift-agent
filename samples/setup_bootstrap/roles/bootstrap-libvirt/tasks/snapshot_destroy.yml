@@ -1,0 +1,7 @@
+---
+- name: "Destroy Snapshot"
+  ignore_errors: yes
+  become: "{{ libvirt_become }}"
+  command: |
+    virsh snapshot-delete provisionhost \
+                          provisionhost-before-oc-install

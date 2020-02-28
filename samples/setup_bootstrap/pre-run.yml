@@ -1,0 +1,35 @@
+---
+- name: Get list of VM's
+  virt:
+    command: list_vms
+  register: all_vms
+
+- name: Shutdown masters and workers
+  virt:
+    name: "{{ item }}"
+    state: destroyed
+  with_items: "{{ all_vms.list_vms | select('match', '^(master|worker)-[0-9]+') | list }}"
+
+- name: Revert provisionhost to before OCP install
+  become: true
+  command: |
+    virsh snapshot-revert {{ provisionhost }} \
+                          {{ provisionhost }}-before-oc-install
+
+- name: Add vms to ansible inventory
+  add_host:
+    name: '{{ provisionhost_name }}'
+    group: 'worker'
+    ansible_user: '{{ provisionhost_user }}'
+
+- name: Startup provisionhost
+  virt:
+    name: "{{ provisionhost }}"
+    state: running
+
+- name: Wait for hosts to be online
+  wait_for:
+    host: '{{ provisionhost }}'
+    port: 22
+    search_regex: OpenSSH
+    delay: 15

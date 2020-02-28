@@ -1,0 +1,44 @@
+all:
+  vars:
+    provisionhost_user: dci
+    cluster_name: dciokd
+    base_domain: metalkube.org
+    cluster_domain: "{{ cluster_name }}.{{ base_domain }}"
+    cluster_pro_if: ens3
+    networks:
+      - name: baremetal
+        bridge: baremetal
+        forward_mode: bridge
+      - name: provisioning
+        bridge: provisioning
+        forward_mode: bridge
+    hosts:
+      - name: provisionhost
+        domain: "{{ base_domain }}"
+        users:
+          - name: "{{ provisionhost_user }}"
+            gecos: Admin User
+            groups: wheel
+            sudo: ALL=(ALL) NOPASSWD:ALL
+            lock_passwd: false
+        run_commands: []
+        driver: kvm
+        memory: 16384
+        vcpus: 8
+        arch: x86_64
+        boot_dev: hd
+        cpu_mode: host-passthrough
+        image_src: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+        disk_size: 42G
+        disk_cache: unsafe
+        disk_bus: virtio_scsi
+        networks:
+          - name: baremetal
+            address: 192.168.1.70 # If address is not specified dhcp will be assumed
+            network: 192.168.1.0
+            netmask: 255.255.255.0
+            broadcast: 192.168.1.255
+            gateway: 192.168.1.1
+            mac: 52:54:00:e5:57:25 # Optional, will generate random mac if not specified
+          - name: provisioning
+            mac: 52:54:00:1b:ab:af # Optional, will generate random mac if not specified

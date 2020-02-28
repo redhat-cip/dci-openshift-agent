@@ -1,0 +1,13 @@
+---
+- name: "Halt Nodes"
+  become: "{{ libvirt_become }}"
+  virt:
+    name: "{{ item['name'] }}"
+    command: destroy
+  with_items: "{{ hosts }}"
+
+- name: "Generate Snapshot"
+  become: "{{ libvirt_become }}"
+  command: |
+    virsh snapshot-create-as --domain provisionhost \
+                                   --name provisionhost-before-oc-install

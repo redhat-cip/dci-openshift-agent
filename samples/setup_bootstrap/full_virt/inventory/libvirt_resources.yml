@@ -1,0 +1,99 @@
+all:
+  vars:
+    provisionhost_user: dci
+    cluster_name: dciokd
+    base_domain: metalkube.org
+    cluster_domain: "{{ cluster_name }}.{{ base_domain }}"
+    cluster_pro_if: ens3
+    networks:
+      - name: baremetal
+        ip: 192.168.123.1
+        dhcp_start: 192.168.123.100
+        dhcp_end: 192.168.123.150
+        domain: "{{ cluster_domain }}"
+        bridge: baremetal
+        forward_mode: nat
+        dns:
+          forwarders:
+            - domain: "apps.{{ cluster_domain }}"
+              addr: 127.0.0.1
+          hosts:
+            - ip: 192.168.123.5
+              hostnames:
+                - api
+      - name: provisioning
+        bridge: provisioning
+    hosts:
+      - name: provisionhost
+        domain: "{{ base_domain }}"
+        users:
+          - name: "{{ provisionhost_user }}"
+            gecos: Admin User
+            groups: wheel
+            sudo: ALL=(ALL) NOPASSWD:ALL
+            lock_passwd: false
+        run_commands: []
+        driver: kvm
+        memory: 16384
+        vcpus: 8
+        arch: x86_64
+        boot_dev: hd
+        cpu_mode: host-passthrough
+        image_src: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+        disk_size: 42G
+        disk_cache: unsafe
+        disk_bus: virtio_scsi
+        networks:
+          - name: baremetal
+          - name: provisioning
+      - name: master-0
+        domain: localhost
+        users: []
+        run_commands: []
+        driver: kvm
+        memory: 16384
+        vcpus: 8
+        arch: x86_64
+        boot_dev: hd
+        cpu_mode: host-passthrough
+        image_src: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+        disk_size: 42G
+        disk_cache: unsafe
+        disk_bus: virtio_scsi
+        networks:
+          - name: baremetal
+          - name: provisioning
+      - name: master-1
+        domain: localhost
+        users: []
+        run_commands: []
+        driver: kvm
+        memory: 16384
+        vcpus: 8
+        arch: x86_64
+        boot_dev: hd
+        cpu_mode: host-passthrough
+        image_src: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+        disk_size: 42G
+        disk_cache: unsafe
+        disk_bus: virtio_scsi
+        networks:
+          - name: baremetal
+          - name: provisioning
+      - name: master-2
+        domain: localhost
+        users: []
+        run_commands: []
+        driver: kvm
+        memory: 16384
+        vcpus: 8
+        arch: x86_64
+        boot_dev: hd
+        cpu_mode: host-passthrough
+        image_src: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+        disk_size: 42G
+        disk_cache: unsafe
+        disk_bus: virtio_scsi
+        networks:
+          - name: baremetal
+          - name: provisioning

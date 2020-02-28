@@ -1,0 +1,26 @@
+---
+- name: Up bootstrap VM
+  hosts: localhost
+  tasks:
+    - set_fact:
+        resources: "{{ resources|default([])|union([item.name]) }}"
+      with_items:
+        - "{{ hosts }}"
+    - include_role:
+        name: bootstrap-libvirt
+      vars:
+        hook_action: install
+    - include_role:
+        name:  dns-setup
+      vars:
+        hook_action: install
+    - include_role:
+        name: vbmc
+      vars:
+        vbmc_host: localhost
+        vbmc_nodes: "{{ resources }}"
+        hook_action: install
+    - include_role:
+        name:  dci-setup
+      vars:
+        hook_action: install
