@@ -4,7 +4,7 @@ all:
     cluster_name: dciokd
     base_domain: metalkube.org
     cluster_domain: "{{ cluster_name }}.{{ base_domain }}"
-    cluster_pro_if: ens3
+    cluster_pro_if: ens4
     networks:
       - name: baremetal
         ip: 192.168.123.1
@@ -44,8 +44,8 @@ all:
         disk_cache: unsafe
         disk_bus: virtio_scsi
         networks:
-          - name: baremetal
           - name: provisioning
+          - name: baremetal
       - name: master-0
         domain: localhost
         users: []
@@ -61,8 +61,8 @@ all:
         disk_cache: unsafe
         disk_bus: virtio_scsi
         networks:
-          - name: baremetal
           - name: provisioning
+          - name: baremetal
       - name: master-1
         domain: localhost
         users: []
@@ -78,8 +78,8 @@ all:
         disk_cache: unsafe
         disk_bus: virtio_scsi
         networks:
-          - name: baremetal
           - name: provisioning
+          - name: baremetal
       - name: master-2
         domain: localhost
         users: []
@@ -95,5 +95,5 @@ all:
         disk_cache: unsafe
         disk_bus: virtio_scsi
         networks:
-          - name: baremetal
           - name: provisioning
+          - name: baremetal

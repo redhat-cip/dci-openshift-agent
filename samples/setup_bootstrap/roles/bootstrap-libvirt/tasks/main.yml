@@ -1,5 +1,4 @@
 ---
-- include_tasks: requirements.yml
 - block:
     - include_tasks: setup.yml
     - include_tasks: ssh_keygen.yml
