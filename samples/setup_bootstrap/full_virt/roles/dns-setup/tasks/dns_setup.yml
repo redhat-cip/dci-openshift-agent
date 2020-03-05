@@ -36,20 +36,6 @@
   with_dict: "{{ vm_inv_info }}"
   become: "{{ libvirt_become }}"
 
-- name: remove nic interfaces
-  shell: "virt-xml --remove-device --network all --update {{ item.key }}"
-  when: item.value.ip is defined
-  with_dict: "{{ vm_inv_info }}"
-  become: "{{ libvirt_become }}"
-
-- name: add nic interfaces back
-  shell: |
-      virt-xml --add-device --network network=baremetal,model=virtio,mac={{ item.value.mac }} --update {{ item.key }}
-      virt-xml --add-device --network network=provisioning,model=virtio --update {{ item.key }}
-  when: item.value.ip is defined
-  with_dict: "{{ vm_inv_info }}"
-  become: "{{ libvirt_become }}"
-
 - name: Use local dnsmasq for name resolution
   ini_file:
     path: /etc/NetworkManager/conf.d/dnsmasq.conf
