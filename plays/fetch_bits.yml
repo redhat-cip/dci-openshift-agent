@@ -18,29 +18,13 @@
   include_role:
     name: dci-import-keys
 
-- name: Retrieve component
-  vars:
-    dci_retrieve_component_local_repo: '{{ dci_mirror_location }}/dci_repo'
-    dci_retrieve_component_component_name: '{{ item["canonical_project_name"] }}'
-    dci_retrieve_component_component_id: '{{ item["id"] }}'
-  include_role:
-    name: dci-retrieve-component
-  with_items: "{{ components }}"
-
-- name: Prepare the global Yum .repo file with all the components
-  yum_repository:
-    name: '{{ item["canonical_project_name"] }}'
-    description: '{{ item["canonical_project_name"] }}'
-    baseurl: '{{ dci_baseurl }}/dci_repo/{{ item["canonical_project_name"] }}/'
-    gpgcheck: no
-    file: '{{ dci_mirror_location }}/dci_repo/dci_repo'
-  with_items: "{{ components }}"
-
-- name: Prepare a Yum .repo file per component
-  yum_repository:
-    name: '{{ item["canonical_project_name"] }}'
-    description: '{{ item["canonical_project_name"] }}'
-    baseurl: '{{ dci_baseurl }}/dci_repo/{{ item["canonical_project_name"] }}/'
-    gpgcheck: no
-    file: '{{ dci_mirror_location }}/dci_repo/dci_repo_{{ item["canonical_project_name"] }}'
-  with_items: "{{ components }}"
+- name: Clone baremetal-deploy
+  git:
+    repo: "{{ baremetal_deploy_repo }}"
+    dest: "{{ dci_mirror_location }}/baremetal_deploy_repo"
+  # On RHEL8 git clone can sporadically fail with OpenSSL SSL_read:
+  # SSL_ERROR_SYSCALL, errno 104. This is a workaround to try cloning the repo
+  # multiple times.
+  register: baremetal_deploy_clone
+  retries: 3
+  delay: 10
