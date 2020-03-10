@@ -8,13 +8,25 @@
           - libvirt-devel
           - python-devel
           - python-setuptools
+          - python2-pip
           - ipmitool
         state: latest
         disable_gpg_check: yes
+    when: ansible_python_version.startswith('2.7')
 
-  - name: install pip
-    easy_install:
-        name: pip
+  - name: Get pip on python 3
+    package:
+        name:
+          - gcc
+          - libvirt
+          - libvirt-devel
+          - python3-devel
+          - python3-setuptools
+          - ipmitool
+          - python3-pip
+        state: latest
+        disable_gpg_check: yes
+    when: ansible_python_version.startswith('3')
 
   - name: "check if there's a virtualenv already installed (i.e.: a system-wide RPM package)"
     command: virtualenv --version
