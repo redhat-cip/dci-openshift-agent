@@ -2,7 +2,7 @@
 - include_vars:
     file: ipmi_nodes.json
     name: ironic_nodes
-- name: Generating settings.yml
+- name: Generating hosts inventory file
   template:
-    src: settings.yml.j2
-    dest: settings.yml
+    src: hosts.j2
+    dest: hosts

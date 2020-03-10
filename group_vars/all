@@ -5,3 +5,4 @@ dci_mirror_location: /var/www/html
 dci_config_dir: /etc/dci-openshift-agent
 dci_cache_dir: /var/lib/dci-openshift-agent
 dci_teardown_on_failure: true
+baremetal_deploy_repo: https://github.com/openshift-kni/baremetal-deploy
