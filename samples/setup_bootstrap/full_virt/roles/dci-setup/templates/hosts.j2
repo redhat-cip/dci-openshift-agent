@@ -1,0 +1,30 @@
+[all:vars]
+prov_nic=eth0
+pub_nic=eth1
+domain=metalkube.org
+cluster=dciokd
+dnsvip=192.168.123.6
+cluster_pro_if=ens3
+prov_ip=172.22.0.3
+dir="{{ '{{' }} ansible_user_dir {{ '}}' }}/clusterconfigs"
+
+# Master nodes
+[masters]
+{% for key, value in ironic_nodes.items() %}
+{% if 'master' in key %}
+{{ key }} name={{ key }} role=master ipmi_user={{ value.ipmi_user }} ipmi_password={{ value.ipmi_pass }} ipmi_address={{ value.ipmi_address }} ipmi_port={{ value.ipmi_port }} provision_mac={{ value.mac_address }} hardware_profile=default
+{% endif %}
+{% endfor %}
+
+# Worker nodes
+[workers]
+{% for key, value in ironic_nodes.items() %}
+{% if 'worker' in key %}
+{{ key }} name={{ key }} role=worker ipmi_user={{ value.ipmi_user }} ipmi_password={{ value.ipmi_pass }} ipmi_address={{ value.ipmi_address }} ipmi_port={{ value.ipmi_port }} provision_mac={{ value.mac_address }} hardware_profile=unknown
+{% endif %}
+{% endfor %}
+
+# Provision Host
+[provisioner]
+provisionhost ansible_user=dci prov_nic=eth0 pub_nic=eth1 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
