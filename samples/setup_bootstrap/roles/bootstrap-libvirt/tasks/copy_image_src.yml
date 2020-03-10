@@ -20,7 +20,6 @@
 
 
 - name: "does a local copy of image_src exist?"
-  # find the image_src, copy it to /var/lib/libvirt/linchpin/<res_name>
   stat:
     path: "{{ local_image_src }}"
   register: lis
