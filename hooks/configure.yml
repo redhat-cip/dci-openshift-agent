@@ -22,5 +22,5 @@
   when: item["type"] == "metadata"
 
 - set_fact:
-    build: dev
+    build: "{{ hostvars.localhost.job_info.job.topic.data.build }}"
     pullsecret: "{{ openshift_secret | default(hostvars.localhost.job_info.job.topic.data.pull_secret)| to_json }}"
