@@ -34,7 +34,3 @@ Initial Setup
   % ansible-playbook -v libvirt_up.yml
 - Copy the newly created hosts to /etc/dci-openshift-agent
   % sudo cp hosts /etc/dci-openshift-agent/
-- Copy the libvirt pre-run.yml hook
-  % sudo cp ../pre-run.yml /etc/dci-openshift-agent/hooks/
-
-

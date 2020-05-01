@@ -48,7 +48,6 @@ install -p -D -m 644 plays/fetch_bits.yml %{buildroot}%{_datadir}/dci-openshift-
 install -p -D -m 644 plays/upload_logs.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/upload_logs.yml
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 
-install -p -D -m 644 settings.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/settings.yml
 install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.service
 install -p -D -m 644 systemd/%{name}.timer %{buildroot}%{_unitdir}/%{name}.timer
 
@@ -75,7 +74,6 @@ exit 0
 %systemd_postun %{name}.timer
 
 %files
-%config(noreplace) %{_sysconfdir}/dci-openshift-agent/settings.yml
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/pre-run.yml
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/configure.yml
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/running.yml
