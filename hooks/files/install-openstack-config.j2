@@ -1,0 +1,40 @@
+apiVersion: v1
+baseDomain: {{ domain }}
+compute:
+- architecture: amd64
+  hyperthreading: Enabled
+  name: worker
+  platform:
+    openstack:
+      type: {{ osp_worker_flavor | default (osp_master_flavor) }}
+  replicas: {{ numworkers }}
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: {{ nummasters }}
+metadata:
+  name: {{ cluster }}
+networking:
+  clusterNetwork:
+  - cidr: {{ clusterNetwork }}
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: {{ machineNetwork }}
+  networkType: {{ network_type }}
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  openstack:
+    cloud: standalone
+    computeFlavor: {{ osp_master_flavor }}
+    externalDNS: null
+    externalNetwork: {{ osp_external_network }}
+    lbFloatingIP: {{ lbFloatingIP }}
+    octaviaSupport: "1"
+    region: ""
+    trunkSupport: "1"
+publish: External
+pullSecret: '{{ pullsecret }}'
+sshKey: '{{ key }}'

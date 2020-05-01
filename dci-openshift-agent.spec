@@ -38,8 +38,7 @@ install -p -D -m 644 hooks/running.yml %{buildroot}%{_sysconfdir}/dci-openshift-
 install -p -D -m 644 hooks/success.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/success.yml
 install -p -D -m 644 hooks/user-tests.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/user-tests.yml
 install -p -D -m 644 hooks/teardown.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/teardown.yml
-install -p -D -m 644 hooks/templates/install-config.yaml.j2 %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/templates/install-config.yaml.j2
-install -p -D -m 644 hooks/templates/metal3-config.yaml.j2 %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/templates/metal3-config.yaml.j2
+install -p -D -m 644 hooks/files/install-openstack-config.j2 %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/files/install-openstack-config.j2
 
 install -p -D -m 644 plays/configure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/configure.yml
 install -p -D -m 644 plays/dci-tests.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/dci-tests.yml
@@ -81,8 +80,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/success.yml
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/teardown.yml
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/user-tests.yml
-%config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/templates/install-config.yaml.j2
-%config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/templates/metal3-config.yaml.j2
+%config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/files/install-openstack-config.j2
 
 %{_datadir}/dci-openshift-agent/ansible.cfg
 %{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
