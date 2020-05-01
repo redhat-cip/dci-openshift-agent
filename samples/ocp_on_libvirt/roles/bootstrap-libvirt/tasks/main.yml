@@ -10,11 +10,9 @@
       loop: "{{ hosts }}"
       loop_control:
         loop_var: host
-    - include_tasks: snapshot_generate.yml
   when: hook_action == 'install'
 
 - block:
-    - include_tasks: snapshot_destroy.yml
     - include_tasks: libvirt_host_destroy.yml
       loop: "{{ hosts }}"
       loop_control:

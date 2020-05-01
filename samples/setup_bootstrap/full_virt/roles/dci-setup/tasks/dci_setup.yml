@@ -1,8 +1,0 @@
----
-- include_vars:
-    file: ipmi_nodes.json
-    name: ironic_nodes
-- name: Generating hosts inventory file
-  template:
-    src: hosts.j2
-    dest: hosts

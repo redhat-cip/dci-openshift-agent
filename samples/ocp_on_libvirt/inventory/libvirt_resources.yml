@@ -1,10 +1,13 @@
 all:
   vars:
+    dci_topic: OCP-4.3
+    prov_nic: eth0
+    pub_nic: eth1
     provisionhost_user: dci
-    cluster_name: dciokd
-    base_domain: metalkube.org
-    cluster_domain: "{{ cluster_name }}.{{ base_domain }}"
-    cluster_pro_if: ens4
+    cluster: dciokd
+    domain: metalkube.org
+    masters_prov_nic: ens3
+    cluster_domain: "{{ cluster }}.{{ domain }}"
     networks:
       - name: baremetal
         ip: 192.168.123.1
@@ -25,7 +28,7 @@ all:
         bridge: provisioning
     hosts:
       - name: provisionhost
-        domain: "{{ base_domain }}"
+        domain: "{{ domain }}"
         users:
           - name: "{{ provisionhost_user }}"
             gecos: Admin User

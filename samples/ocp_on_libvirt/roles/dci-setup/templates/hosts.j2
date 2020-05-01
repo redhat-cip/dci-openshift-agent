@@ -1,10 +1,11 @@
 [all:vars]
-prov_nic=eth0
-pub_nic=eth1
-domain=metalkube.org
-cluster=dciokd
+dci_topic={{ dci_topic }}
+prov_nic={{ prov_nic }}
+pub_nic={{ pub_nic }}
+domain={{ domain }}
+cluster={{ cluster }}
 dnsvip=192.168.123.6
-cluster_pro_if=ens3
+masters_prov_nic={{ masters_prov_nic }}
 prov_ip=172.22.0.3
 dir="{{ '{{' }} ansible_user_dir {{ '}}' }}/clusterconfigs"
 
@@ -26,5 +27,8 @@ dir="{{ '{{' }} ansible_user_dir {{ '}}' }}/clusterconfigs"
 
 # Provision Host
 [provisioner]
-provisionhost ansible_user=dci prov_nic=eth0 pub_nic=eth1 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-
+{% for key, value in ironic_nodes.items() %}
+{% if 'provision' in key %}
+{{ key }} name={{ key }} ansible_user={{ provisionhost_user }} prov_nic=eth0 pub_nic=eth1 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+{% endif %}
+{% endfor %}
