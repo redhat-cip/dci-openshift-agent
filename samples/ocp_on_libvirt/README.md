@@ -27,14 +27,8 @@ Initial Setup
 
 - Become user dci-openshift-agent
   # su - dci-openshift-agent
-- For libvirt example setup:
-  % cp -rp /usr/share/doc/dci-openshift-agent-*/samples/setup_bootstrap ~
 - Run libvirt_create playbook to configure libvirt nodes
-  % cd ~/setup_bootstrap/full_virt
+  % cd ~/samples/ocp_on_libvirt/setup_virt_hosts
   % ansible-playbook -v libvirt_up.yml
 - Copy the newly created hosts to /etc/dci-openshift-agent
   % sudo cp hosts /etc/dci-openshift-agent/
-- Copy the libvirt pre-run.yml hook
-  % sudo cp ../pre-run.yml /etc/dci-openshift-agent/hooks/
-
-
