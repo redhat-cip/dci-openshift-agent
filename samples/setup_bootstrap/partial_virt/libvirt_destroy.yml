@@ -1,8 +1,0 @@
----
-- name: Destroy bootstrap VM
-  hosts: localhost
-  tasks:
-    - include_role:
-        name: bootstrap-libvirt
-      vars:
-        hook_action: cleanup
