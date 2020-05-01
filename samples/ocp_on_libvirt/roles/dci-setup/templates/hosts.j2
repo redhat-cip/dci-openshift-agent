@@ -1,10 +1,11 @@
 [all:vars]
+dci_topic=OCP-4.3
 prov_nic=eth0
 pub_nic=eth1
 domain=metalkube.org
 cluster=dciokd
 dnsvip=192.168.123.6
-cluster_pro_if=ens3
+masters_prov_nic=ens3
 prov_ip=172.22.0.3
 dir="{{ '{{' }} ansible_user_dir {{ '}}' }}/clusterconfigs"
 

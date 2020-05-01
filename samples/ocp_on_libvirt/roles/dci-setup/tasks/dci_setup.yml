@@ -6,3 +6,8 @@
   template:
     src: hosts.j2
     dest: hosts
+- name: Startup provisionhost
+  virt:
+    name: "{{ item }}"
+    state: running
+  with_items: "{{ groups['provisioner'] }}"

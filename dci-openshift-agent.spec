@@ -48,12 +48,12 @@ install -p -D -m 644 plays/fetch_bits.yml %{buildroot}%{_datadir}/dci-openshift-
 install -p -D -m 644 plays/upload_logs.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/upload_logs.yml
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 
-install -p -D -m 644 settings.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/settings.yml
 install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.service
 install -p -D -m 644 systemd/%{name}.timer %{buildroot}%{_unitdir}/%{name}.timer
 
 install -p -D -m 440 dci-openshift-agent.sudo %{buildroot}%{_sysconfdir}/sudoers.d/%{name}
 install -p -d -m 755 %{buildroot}/%{_sharedstatedir}/%{name}
+find samples -type f -exec install -Dm 755 "{}" "%{buildroot}%{_sharedstatedir}/dci-openshift-agent/{}" \;
 
 %pre
 getent group dci-openshift-agent >/dev/null || groupadd -r dci-openshift-agent
@@ -75,7 +75,6 @@ exit 0
 %systemd_postun %{name}.timer
 
 %files
-%config(noreplace) %{_sysconfdir}/dci-openshift-agent/settings.yml
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/pre-run.yml
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/configure.yml
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/running.yml
@@ -103,7 +102,6 @@ exit 0
 %dir %{_sharedstatedir}/dci-openshift-agent
 %attr(0755, dci-openshift-agent, dci-openshift-agent) %{_sharedstatedir}/dci-openshift-agent
 %{_sysconfdir}/sudoers.d/%{name}
-%doc samples
 
 %changelog
 * Mon Oct 15 2018 Thomas Vassilian <tvassili@redhat.com> - 0.0.1
