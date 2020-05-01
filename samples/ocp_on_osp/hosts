@@ -1,0 +1,21 @@
+[all:vars]
+dci_topic=OCP-4.3
+cmd=openshift-install
+override_install_config=install-openstack-config.j2
+domain=example.com
+cluster=dciokd
+dir="{{ ansible_user_dir }}/clusterconfigs"
+ipv6_enabled=false
+cache_enabled=false
+networkType=OpenShiftSDN
+machineNetwork=172.31.0.0/16
+clusterNetwork=172.24.0.0/14
+lbFloatingIP=10.48.50.163
+nummasters=3
+numworkers=3
+osp_external_network=public
+osp_master_flavor=ocp.master
+osp_worker_flavoc=ocp.master
+
+[provisioner]
+localhost

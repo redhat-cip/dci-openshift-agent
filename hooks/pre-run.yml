@@ -1,1 +1,6 @@
 ---
+- name: Override upstream install-config template
+  copy:
+    src: "{{ override_install_config }}"
+    dest: "{{ dci_cache_dir }}/baremetal_deploy_repo/ansible-ipi-install/roles/installer/templates/install-config.j2"
+  when: override_install_config is defined
