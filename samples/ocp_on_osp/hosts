@@ -1,0 +1,39 @@
+[all:vars]
+dci_topic=OCP-4.3
+cmd=openshift-install
+override_install_config=install-openstack-config.j2
+domain=example.com
+cluster=dciokd
+dir="{{ ansible_user_dir }}/clusterconfigs"
+ipv6_enabled=false
+cache_enabled=false
+network_type=OpenShiftSDN
+machineNetwork=172.31.0.0/16
+clusterNetwork=172.24.0.0/14
+lbFloatingIP=10.48.50.163
+osp_external_network=public
+osp_master_flavor=ocp.master
+osp_worker_flavoc=ocp.master
+
+# Variables below here are not needed. they are set only to satisfy the upstream
+# ipi playbooks which were developed for baremetal.
+dnsvip=192.168.123.6 # this isn't used, it's to keep the validation playbook happy
+apivip=192.168.123.7
+ingressvip=10.48.50.163
+prov_nic=foo
+prov_ip=foo
+
+# Define the number of masters you want by putting dummy entries here
+[masters]
+ocp-master-0
+ocp-master-1
+ocp-master-2
+
+# Define the number of workers you want by putting dummy entries here
+[workers]
+ocp-worker-0
+ocp-worker-1
+ocp-worker-2
+
+[provisioner]
+localhost ansible_connection=local

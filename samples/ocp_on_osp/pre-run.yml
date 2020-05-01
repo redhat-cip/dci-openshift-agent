@@ -1,0 +1,19 @@
+---
+- name: Override upstream install-config template
+  copy:
+    src: "{{ override_install_config }}"
+    dest: "{{ dci_cache_dir }}/baremetal_deploy_repo/ansible-ipi-install/roles/installer/templates/install-config.j2"
+  when: override_install_config is defined
+- name: Check if metadata.json exists
+  state:
+    path: "{{ dir }}/metadata.json"
+  register: metadata_json
+- name: Destroy OpenShift Cluster
+  shell: |
+    /usr/local/bin/openshift-baremetal-install --dir {{ dir }} --log-level debug destroy cluster
+  when: metadata_json.state.exists == true
+- name: Verify ~/.bashrc exists
+  file:
+    path: "{{ lookup('env','HOME') }}/.bashrc"
+    state: touch
+    mode: u=rw,g=r,o=r
