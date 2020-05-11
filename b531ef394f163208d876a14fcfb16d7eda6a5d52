@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5292750d_8bf28f18",
+        "filename": "README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-05-11T18:36:46Z",
+      "side": 1,
+      "message": "This isn\u0027t a yaml anymore.. It\u0027s an ansible ini inventory file.",
+      "revId": "b531ef394f163208d876a14fcfb16d7eda6a5d52",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2532627f_e8256ff9",
+        "filename": "README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-05-11T18:36:46Z",
+      "side": 1,
+      "message": "we should drop the -e dci_topic\u003dOCP-4.3 unless we call out that it\u0027s overriding the setting in /etc/dci-openshift-agent/hosts",
+      "revId": "b531ef394f163208d876a14fcfb16d7eda6a5d52",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "96035eed_34d761ce",
+        "filename": "samples/setup_bootstrap/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-05-11T18:36:46Z",
+      "side": 1,
+      "message": "We can drop the cp now.  I install it directly in the home directory of dci-openshift-agent now.",
+      "revId": "b531ef394f163208d876a14fcfb16d7eda6a5d52",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "78eef92b_627ec2a7",
+        "filename": "samples/setup_bootstrap/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-05-11T18:36:46Z",
+      "side": 1,
+      "message": "minor edit here:\n\n$ cd ~/samples/ocp_on_libvirt/",
+      "revId": "b531ef394f163208d876a14fcfb16d7eda6a5d52",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "51597be2_e4079d7c",
+        "filename": "samples/setup_bootstrap/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-05-11T18:36:46Z",
+      "side": 1,
+      "message": "We no longer need a custom pre-run hook for fullvirt/ocp_on_libvirt\n\nYou can remove that.",
+      "revId": "b531ef394f163208d876a14fcfb16d7eda6a5d52",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "15649c89_213d0f94",
+        "filename": "samples/setup_bootstrap/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-05-11T18:36:46Z",
+      "side": 1,
+      "message": "Show only the provisionhost as running.. after running the above playbook all masters will be off.",
+      "revId": "b531ef394f163208d876a14fcfb16d7eda6a5d52",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "95417317_13d48120",
+        "filename": "samples/setup_bootstrap/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-05-11T18:36:46Z",
+      "side": 1,
+      "message": "We seem to have jumped to interacting with the cluster when we haven\u0027t installed the cluster yet.. Only setup the virt machines to be able to install.\n\nCan we list the commands from the parent README which shows cd /usr/share/dci-openshift-agent \u0026\u0026 (source /etc/dci-openshift-agent/dcirc.sh; ansible-playbook .....",
+      "revId": "b531ef394f163208d876a14fcfb16d7eda6a5d52",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "99c1bb58_bc343c38",
+        "filename": "samples/setup_bootstrap/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-05-11T18:36:46Z",
+      "side": 1,
+      "message": "update the path to the one from above.",
+      "revId": "b531ef394f163208d876a14fcfb16d7eda6a5d52",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
