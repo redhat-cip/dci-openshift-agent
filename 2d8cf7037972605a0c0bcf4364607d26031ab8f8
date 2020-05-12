@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "364516e9_41025c08",
+        "filename": "samples/ocp_on_libvirt/README.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-05-12T16:53:27Z",
+      "side": 1,
+      "message": "this path is wrong..  you should still be in ~/samples/ocp_on_libvirt",
+      "revId": "2d8cf7037972605a0c0bcf4364607d26031ab8f8",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
