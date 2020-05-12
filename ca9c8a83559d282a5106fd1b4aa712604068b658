@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ca380141_76ab83cd",
+        "filename": "hooks/files/install-openstack-config.j2",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 28
+      },
+      "writtenOn": "2020-05-12T18:18:13Z",
+      "side": 1,
+      "message": "should be a variable: e.g. {{ osp_worker_flavor | default (osp_master_flavor) }}",
+      "range": {
+        "startLine": 9,
+        "startChar": 12,
+        "endLine": 9,
+        "endChar": 22
+      },
+      "revId": "ca9c8a83559d282a5106fd1b4aa712604068b658",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7b8839e9_6cfd5834",
+        "filename": "hooks/files/install-openstack-config.j2",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 28
+      },
+      "writtenOn": "2020-05-12T18:18:13Z",
+      "side": 1,
+      "message": "should be a variable: e.g. {{ osp_master_flavor }}",
+      "range": {
+        "startLine": 31,
+        "startChar": 19,
+        "endLine": 31,
+        "endChar": 29
+      },
+      "revId": "ca9c8a83559d282a5106fd1b4aa712604068b658",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ba79c48_40cacaa7",
+        "filename": "hooks/files/install-openstack-config.j2",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 28
+      },
+      "writtenOn": "2020-05-12T18:18:13Z",
+      "side": 1,
+      "message": "should be a variable also. e.g. {{ osp_external_network }}",
+      "range": {
+        "startLine": 33,
+        "startChar": 21,
+        "endLine": 33,
+        "endChar": 27
+      },
+      "revId": "ca9c8a83559d282a5106fd1b4aa712604068b658",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
