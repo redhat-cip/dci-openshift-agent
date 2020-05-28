@@ -1,0 +1,9 @@
+Code-Review+2: Guillaume Vincent <gvincent@redhat.com>
+Workflow+1: Thomas Vassilian <tvassili@redhat.com>
+Code-Review+1: Thomas Vassilian <tvassili@redhat.com>
+Verified+2: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-by: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-at: Thu, 28 May 2020 15:20:20 +0000
+Reviewed-on: https://softwarefactory-project.io/r/18470
+Project: dci-openshift-agent
+Branch: refs/heads/master
