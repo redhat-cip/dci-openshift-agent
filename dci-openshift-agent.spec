@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
 Version:       0.0.VERS
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -8,16 +8,15 @@ BuildArch:     noarch
 Source0:       dci-openshift-agent-%{version}.tar.gz
 
 BuildRequires: systemd
-BuildRequires: systemd-units
-Requires: sudo
+BuildRequires:  /usr/bin/pathfix.py
+Requires: /usr/bin/sudo
 Requires: dci-ansible
 Requires: ansible-role-dci-import-keys
 Requires: ansible-role-dci-retrieve-component
 Requires: ansible-role-dci-sync-registry
+
+%{?systemd_requires}
 Requires(pre): shadow-utils
-Requires(post): systemd
-Requires(preun): systemd
-Requires(postun): systemd
 
 %description
 DCI Openshift Agent
@@ -26,8 +25,6 @@ DCI Openshift Agent
 %setup -qc
 
 %build
-
-%clean
 
 %install
 install -p -D -m 644 ansible.cfg %{buildroot}%{_datadir}/dci-openshift-agent/ansible.cfg
@@ -53,7 +50,13 @@ install -p -D -m 644 systemd/%{name}.timer %{buildroot}%{_unitdir}/%{name}.timer
 
 install -p -D -m 440 dci-openshift-agent.sudo %{buildroot}%{_sysconfdir}/sudoers.d/%{name}
 install -p -d -m 755 %{buildroot}/%{_sharedstatedir}/%{name}
-find samples -type f -exec install -Dm 755 "{}" "%{buildroot}%{_sharedstatedir}/dci-openshift-agent/{}" \;
+find samples -type f -exec install -Dm 644 "{}" "%{buildroot}%{_sharedstatedir}/dci-openshift-agent/{}" \;
+
+%if 0%{?rhel} && 0%{?rhel} < 8
+pathfix.py -pni "%{__python2}" %{buildroot}%{_sharedstatedir}/dci-openshift-agent/samples/ocp_on_libvirt/roles/bridge-setup/library/nmcli.py
+%else
+pathfix.py -pni "%{__python3}" %{buildroot}%{_sharedstatedir}/dci-openshift-agent/samples/ocp_on_libvirt/roles/bridge-setup/library/nmcli.py
+%endif
 
 %pre
 getent group dci-openshift-agent >/dev/null || groupadd -r dci-openshift-agent
@@ -104,5 +107,8 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Tue Jun  2 2020 Haïkel Guémar <hguemar@fedoraproject.org> - 0.0.1-2
+- Add RHEL8 support
+
 * Mon Oct 15 2018 Thomas Vassilian <tvassili@redhat.com> - 0.0.1
 - Initial release.
