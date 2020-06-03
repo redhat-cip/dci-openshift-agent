@@ -35,10 +35,10 @@ uid=990(dci-openshift-agent) gid=987(dci-openshift-agent) groups=987(dci-openshi
 Run `libvirt_up` playbook to configure libvirt nodes.
 This playbook will:
 
-* Create 3 local virtual machines to be used as `System Under Test`
-* Create 1 local virtual machine to be used as a `Provisioning node`
-* Generate the relative `hosts` file (ready to be used as an inventory for the `dci-openshift-agent`).
-* Provide a `pre-run.yml` hook file to be used by the agent.
+- Create 3 local virtual machines to be used as `System Under Test`
+- Create 1 local virtual machine to be used as a `Provisioning node`
+- Generate the relative `hosts` file (ready to be used as an inventory for the `dci-openshift-agent`).
+- Provide a `pre-run.yml` hook file to be used by the agent.
 
 ```
 cd ~/samples/ocp_on_libvirt/
@@ -53,7 +53,7 @@ $ pwd
 $ sudo cp hosts /etc/dci-openshift-agent/
 ```
 
-*The `dci-openshift-agent` is now ready to run the “all-in-one” virtualized workflow.*
+_The `dci-openshift-agent` is now ready to run the “all-in-one” virtualized workflow._
 
 You can check the virtual machines status by using `virsh` command:
 
@@ -83,11 +83,14 @@ $ ansible-playbook -v libvirt_destroy.yml
 ```
 
 ### Additional resources
+
 We have provided dnsmasq config templates in the samples directory to serve dhcp/dns from the dci jumpbox if you don’t already have a dns/dhcp server on your bare metal network.
 
 ## License
+
 Apache License, Version 2.0 (see [LICENSE](LICENSE) file)
 
 ## Contact
-Email: Distributed-CI Team  <distributed-ci@redhat.com>
+
+Email: Distributed-CI Team <distributed-ci@redhat.com>
 IRC: #distributed-ci on Freenode
