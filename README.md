@@ -1,4 +1,4 @@
-# DCI Openshift Agent
+# DCI OpenShift Agent
 
 `dci-openshift-agent` provides Red Hat OpenShift Container Platform (RHOCP) in Red Hat Distributed CI service.
 
@@ -15,19 +15,19 @@
 
 ### Systems requirements
 
-`DCI Openshift Agent` needs a dedicated system to act as a `controller node`. It is identified as the `DCI Jumpbox` in this document. This system will be added to a standard OCP topology by being connected to the OCP `baremetal network`. The `DCI Openshift Agent` will drive the RHOCP installation workflow from there.
+`DCI OpenShift Agent` needs a dedicated system to act as a `controller node`. It is identified as the `DCI Jumpbox` in this document. This system will be added to a standard OCP topology by being connected to the OCP `baremetal network`. The `DCI OpenShift Agent` will drive the RHOCP installation workflow from there.
 
 Therefore, the simplest working setup must be composed of at least **5** systems (1 system for DCI and 4 systems to match OCP minimum requirements).
 
-Please follow the [Openshift Baremetal Deploy Guide (a.k.a. `openshift-kni`)](https://openshift-kni.github.io/baremetal-deploy/) for how to properly configure the OCP networks and systems.
+Please follow the [OpenShift Baremetal Deploy Guide (a.k.a. `openshift-kni`)](https://openshift-kni.github.io/baremetal-deploy/) for how to properly configure the OCP networks and systems.
 
 Choose either `4.3` or `4.4` and follow steps 1 to 4 to configure the networks and install RHEL 8 on the provisioning host.
 
 Steps from 5 on will be handled by the `dci-openshift-agent`.
 
-As mentioned before, the **DCI Jumpbox** is NOT part of the RHOCP cluster. It is only dedicated to download `RHOCP` artifacts from `DCI` public infrastructure and to schedule the RHOCP cluster deployment across all systems under test (1x Openshift Provisioning node and several OCP nodes).
+As mentioned before, the **DCI Jumpbox** is NOT part of the RHOCP cluster. It is only dedicated to download `RHOCP` artifacts from `DCI` public infrastructure and to schedule the RHOCP cluster deployment across all systems under test (1x OpenShift Provisioning node and several OCP nodes).
 
-The **Openshift Provisioning node** is used by the Openshift installer to provision the OpenShift cluster nodes.
+The **OpenShift Provisioning node** is used by the OpenShift installer to provision the OpenShift cluster nodes.
 
 The 3 remaining systems will run the freshly installed OCP Cluster. “3” is the minimum required number of nodes to run RHOCP but it can be more if you need to.
 
@@ -163,7 +163,7 @@ provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_arg
 
 ### Starting the DCI OCP Agent
 
-Now that you have configured the `DCI Openshift Agent`, you can start the service.
+Now that you have configured the `DCI OpenShift Agent`, you can start the service.
 
 Please note that the service is a systemd `Type=oneshot`. This means that if you need to run a DCI job periodically, you have to configure a `systemd timer` or a `crontab`.
 
@@ -183,7 +183,7 @@ $ cd /usr/share/dci-openshift-agent && source /etc/dci-openshift-agent/dcirc.sh 
 _Step 1 :_ State “New job”
 
 - Prepare the `Jumpbox`: `/plays/configure.yml`
-- Download Openshift from DCI: `/plays/fetch_bits.yml`
+- Download OpenShift from DCI: `/plays/fetch_bits.yml`
 
 _Step 2 :_ State “Pre-run”
 
@@ -191,8 +191,8 @@ _Step 2 :_ State “Pre-run”
 
 _Step 3 :_ State “Running”
 
-- Configure Openshift nodes: `/hooks/configure.yml`
-- Start Openshift installer: `/hooks/running.yml`
+- Configure OpenShift nodes: `/hooks/configure.yml`
+- Start OpenShift installer: `/hooks/running.yml`
 
 _Step 4 :_ State “Post-run”
 
