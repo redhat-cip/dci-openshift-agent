@@ -11,8 +11,8 @@
 - [License](#license)
 - [Contact](#contact)
 
-
 ## Requirements
+
 ### Systems requirements
 
 `DCI Openshift Agent` needs a dedicated system to act as a `controller node`. It is identified as the `DCI Jumpbox` in this document. This system will be added to a standard OCP topology by being connected to the OCP `baremetal network`. The `DCI Openshift Agent` will drive the RHOCP installation workflow from there.
@@ -36,24 +36,24 @@ The 3 remaining systems will run the freshly installed OCP Cluster. “3” is t
 The `Jumpbox` can be a physical server or a virtual machine.
 In any case, it must:
 
-* Be running the latest stable RHEL release (**7.6 or higher**) and registered via RHSM.
-* Have at least 160GB of free space available in `/var`
-* Have access to Internet
-* Be able to connect the following Web urls:
-  * DCI API, https://api.distributed-ci.io
-  * DCI Packages, https://packages.distributed-ci.io
-  * DCI Repository, https://repo.distributed-ci.io
-  * EPEL, https://dl.fedoraproject.org/pub/epel/
-  * QUAY.IO, https://quay.io
-* Have a static internal (network lab) IP
-* Be able to reach all systems under test (SUT) using (mandatory, but not limited to):
-  * SSH
-  * IPMI
-  * Serial-Over-LAN or other remote consoles (details & software to be provided by the partner)
-* Be reachable by the Systems Under Test by using:
-  * DHCP
-  * PXE
-  * HTTP/HTTPS
+- Be running the latest stable RHEL release (**7.6 or higher**) and registered via RHSM.
+- Have at least 160GB of free space available in `/var`
+- Have access to Internet
+- Be able to connect the following Web urls:
+  - DCI API, https://api.distributed-ci.io
+  - DCI Packages, https://packages.distributed-ci.io
+  - DCI Repository, https://repo.distributed-ci.io
+  - EPEL, https://dl.fedoraproject.org/pub/epel/
+  - QUAY.IO, https://quay.io
+- Have a static internal (network lab) IP
+- Be able to reach all systems under test (SUT) using (mandatory, but not limited to):
+  - SSH
+  - IPMI
+  - Serial-Over-LAN or other remote consoles (details & software to be provided by the partner)
+- Be reachable by the Systems Under Test by using:
+  - DHCP
+  - PXE
+  - HTTP/HTTPS
 
 #### Systems under test
 
@@ -61,12 +61,11 @@ In any case, it must:
 
 All files on these systems are NOT persistent between each `dci-openshift-agent` job as the RHOCP cluster is reinstalled at each time. Therefore, every expected customization and tests have to be automated from the DCI Jumpbox (by using hooks) and will therefore be applied after each deployment (More info at #Configuration and #Usage).
 
-
 #### Optional
 
-* We strongly advise the partners to provide the Red Hat DCI team with access to their jumpbox. This way, Red Hat engineers can help with initial setup and troubleshooting.
+- We strongly advise the partners to provide the Red Hat DCI team with access to their jumpbox. This way, Red Hat engineers can help with initial setup and troubleshooting.
 
-* We suggest to run the `full virtualized` provided example first to understand how the `dci-openshift-agent` works before going to production with a real lab.
+- We suggest to run the `full virtualized` provided example first to understand how the `dci-openshift-agent` works before going to production with a real lab.
 
 ## Installation of DCI Jumpbox
 
@@ -89,7 +88,7 @@ However,`dci-release` and `epel-release` must be installed first:
 
 There are two configuration files for `dci-openshift-agent`: `/etc/dci-openshift-agent/dcirc.sh` and `/etc/dci-openshift-agent/hosts`.
 
-  * `/etc/dci-openshift-agent/dcirc.sh`
+- `/etc/dci-openshift-agent/dcirc.sh`
 
 Note: The initial copy of `dcirc.sh` is shipped as `/etc/dci-rhel-agent/dcirc.sh.dist`.
 
@@ -111,17 +110,17 @@ export DCI_API_SECRET
 export DCI_CS_URL
 ```
 
-* `/etc/dci-openshift-agent/hosts`
+- `/etc/dci-openshift-agent/hosts`
 
 This file is an Ansible inventory file (format is `.ini`). It includes the configuration for the `dci-openshift-agent` job and the inventory for the masters, workers (if any) and the provisionhost.
 The possible values are:
 
-| Variable | Required | Type | Description |
-|----------|----------|------|-------------|
-| topic | True | String | Name of the topic. It can be `OCP-4.3` or `OCP-4.4`.|
-| cluster_name | True | String | RHCP cluster name.|
-| base_domain | True | String | Domain |
-| ironic_nodes | True | String (JSON) | tbd|
+| Variable     | Required | Type          | Description                                          |
+| ------------ | -------- | ------------- | ---------------------------------------------------- |
+| topic        | True     | String        | Name of the topic. It can be `OCP-4.3` or `OCP-4.4`. |
+| cluster_name | True     | String        | RHCP cluster name.                                   |
+| base_domain  | True     | String        | Domain                                               |
+| ironic_nodes | True     | String (JSON) | tbd                                                  |
 
 Example:
 
@@ -181,41 +180,48 @@ $ cd /usr/share/dci-openshift-agent && source /etc/dci-openshift-agent/dcirc.sh 
 
 ### dci-openshift-agent workflow
 
-*Step 1 :* State “New job”
+_Step 1 :_ State “New job”
+
 - Prepare the `Jumpbox`: `/plays/configure.yml`
 - Download Openshift from DCI: `/plays/fetch_bits.yml`
 
-*Step 2 :* State “Pre-run”
+_Step 2 :_ State “Pre-run”
+
 - Deploy infrastructure: `/hooks/pre-run.yml`
 
-*Step 3 :* State “Running”
+_Step 3 :_ State “Running”
+
 - Configure Openshift nodes: `/hooks/configure.yml`
 - Start Openshift installer: `/hooks/running.yml`
 
-*Step 4 :* State “Post-run”
+_Step 4 :_ State “Post-run”
+
 - Start DCI tests (This is empty for now): `/plays/dci-tests.yml`
 - Start user specific tests: `/hooks/user-tests.yml`
 
-*Step 5 :* State “Success”
+_Step 5 :_ State “Success”
+
 - Launch additional tasks when the job is successful: /hooks/success.yml
 
-*Exit playbooks:*
+_Exit playbooks:_
 The 2 following playbooks are executed sequentially at any step that fail:
 
 - Teardown: /hooks/teardown.yml
 - Failure: /plays/failure.yml
 
-*All playbooks located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized by the user.*
-
+_All playbooks located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized by the user._
 
 ## Create your DCI account on distributed-ci.io
+
 Every user needs to create his personal account by connecting to `https://www.distributed-ci.io` by using a Red Hat SSO account.
 
 The account will be created in the DCI database at the first connection with the SSO account. For now, there is no reliable way to know your team automatically. Please contact the DCI team when this step has been reached, to be assigned in the correct organisation.
 
 ## License
+
 Apache License, Version 2.0 (see [LICENSE](LICENSE) file)
 
 ## Contact
-Email: Distributed-CI Team  <distributed-ci@redhat.com>
+
+Email: Distributed-CI Team <distributed-ci@redhat.com>
 IRC: #distributed-ci on Freenode
