@@ -6,3 +6,4 @@ dci_config_dir: /etc/dci-openshift-agent
 dci_cache_dir: /var/lib/dci-openshift-agent
 dci_teardown_on_failure: true
 baremetal_deploy_repo: https://github.com/openshift-kni/baremetal-deploy
+dci_openshift_agent_conformance: openshift-conformance-minimal

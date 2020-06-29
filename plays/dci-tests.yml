@@ -1,0 +1,167 @@
+---
+- block:
+  - name: Generate temp dir
+    tempfile:
+      state: directory
+      suffix: outputdir
+    register: outputdir
+
+  - name: Get oc command and KUBECONFIG from provisioner
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    fetch:
+      src: "{{ item }}"
+      dest: "{{ outputdir.path }}/"
+      flat: true
+    loop:
+      - /usr/local/bin/oc
+      - "~/clusterconfigs/auth/kubeconfig"
+
+  - name: Setup htpasswd auth backend
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      cat << EOF | {{ outputdir.path }}/oc apply -f -
+      apiVersion: config.openshift.io/v1
+      kind: OAuth
+      metadata:
+        name: cluster
+      spec:
+        identityProviders:
+        - name: htpassidp
+          challenge: true
+          login: true
+          mappingMethod: claim
+          type: HTPasswd
+          htpasswd:
+            fileData:
+              name: htpass-secret
+      EOF
+
+  - name: Install packages needed for testing
+    package:
+      name: "{{ item }}"
+      state: present
+    become: true
+    with_items:
+      - httpd-tools
+      - podman
+
+  - name: Create admin user with cluster admin permissions
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      # Using htpasswd provided by the httpd-tools package
+      ADMINPASS=$(htpasswd -b -n admin admin | base64)
+      cat << EOF | {{ outputdir.path }}/oc apply -f -
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: htpass-secret
+        namespace: openshift-config
+      data:
+      htpasswd: ${ADMINPASS}
+      EOF
+      # It can take a few moments for the user to be created...
+      {{ outputdir.path }}/oc adm policy add-cluster-role-to-user cluster-admin admin
+
+  - name: Create non-admin user
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      # Extract the already created secret from the cluster
+      {{ outputdir.path }}/oc get secret htpass-secret -ojsonpath={.data.htpasswd} -n openshift-config | base64 -d > {{ outputdir.path }}/users.htpasswd
+
+      # Append the nonadmin user
+      htpasswd -bB {{ outputdir.path }}/users.htpasswd nonadmin nonadmin
+
+      # Verify the file {{ outputdir.path }}/users.htpasswd contains at least the admin and nonadmin lines
+
+      # Instead creating the secret with the here-doc syntax, you can use create secret instead
+      {{ outputdir.path }}/oc create secret generic htpass-secret --from-file=htpasswd={{ outputdir.path }}/users.htpasswd --dry-run -o yaml -n openshift-config | {{ outputdir.path }}/oc replace -f - secret/htpass-secret replaced
+
+  - name: Login with non-admin user
+    shell: |
+      # This will generate a {{ outputdir.path }}/kubeconfig file
+      export KUBECONFIG={{ outputdir.path }}/nonadmin_kubeconfig
+
+      # It can take a few moments for the user to be created...
+      {{ outputdir.path }}/oc login --insecure-skip-tls-verify=true -u nonadmin -p nonadmin https://api.{{ cluster }}.{{ domain }}:6443
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Create a self-provisioner-namespace cluster role
+    shell: |
+      # As a cluster-admin user:
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      cat <<EOF | {{ outputdir.path }}/oc apply -f -
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        annotations:
+          openshift.io/description: A user that can create and delete namespaces
+        name: self-provisioner-namespaces
+      rules:
+      - apiGroups:
+        - ""
+        resources:
+        - namespaces
+        verbs:
+        - "*"
+      EOF
+
+      {{ outputdir.path }}/oc adm policy add-cluster-role-to-user admin nonadmin
+      {{ outputdir.path }}/oc adm policy add-cluster-role-to-user cluster-reader nonadmin
+      {{ outputdir.path }}/oc adm policy add-cluster-role-to-user self-provisioner-namespaces nonadmin
+      # It can take a while for the user to be given the permissions
+
+    # replace this with a loop to check for perms
+  - name: Pause for a while..
+    pause:
+      minutes: 2
+
+  - name: openshift conformance minimal tests
+    command: |
+      podman run --rm -e TESTS="{{ dci_openshift_agent_conformance }}" -v {{ outputdir.path }}:/tests:Z quay.io/eminguez/ose-tests-full:latest
+
+  - name: Find test logs
+    find:
+      paths: "{{ outputdir.path }}"
+      recurse: yes
+      patterns: "*.txt,*.html"
+    register: logs_matched
+
+  - name: Find test Junit files
+    find:
+      paths: "{{ outputdir.path }}"
+      recurse: yes
+      patterns: "junit_*.xml"
+    register: junit_matched
+
+  - name: Upload logs directory to DCI Control Server
+    environment:
+      - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
+      - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
+      - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
+    dci_file:
+      path: "{{ item.path }}"
+      name: "{{ item.path | basename }}"
+      job_id: "{{ hostvars.localhost.job_id }}"
+    with_items: "{{ logs_matched.files }}"
+
+  - name: Upload Junit files to DCI Control Server
+    environment:
+      - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
+      - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
+      - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
+    dci_file:
+      path: "{{ item.path }}"
+      name: "{{ item.path | basename | regex_replace('^(.*).xml$','\\1') }}"
+      job_id: "{{ hostvars.localhost.job_id }}"
+      mime: "application/junit"
+    with_items: "{{ junit_matched.files }}"
+
+  - name: Clean up Temp dir
+    file:
+      path: "{{ outputdir.path }}"
+      state: absent
+  when:
+    - dci_openshift_agent_conformance is defined and dci_openshift_agent_conformance != ""

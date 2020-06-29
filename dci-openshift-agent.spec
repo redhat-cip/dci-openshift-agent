@@ -61,7 +61,7 @@ pathfix.py -pni "%{__python3}" %{buildroot}%{_sharedstatedir}/dci-openshift-agen
 %pre
 getent group dci-openshift-agent >/dev/null || groupadd -r dci-openshift-agent
 getent passwd dci-openshift-agent >/dev/null || \
-    useradd -r -m -g dci-openshift-agent -d %{_sharedstatedir}/dci-openshift-agent -s /bin/bash \
+    useradd -m -g dci-openshift-agent -d %{_sharedstatedir}/dci-openshift-agent -s /bin/bash \
             -c "DCI OpenShift Agent service" dci-openshift-agent
 exit 0
 
