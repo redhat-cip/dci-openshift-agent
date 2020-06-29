@@ -4,6 +4,13 @@
   tags:
     - job
   tasks:
+    - name: Read credentials from env vars
+      set_fact:
+        dci_client_id="{{ lookup('env','DCI_CLIENT_ID') }}"
+        dci_api_secret="{{ lookup('env','DCI_API_SECRET') }}"
+        dci_cs_url="{{ lookup('env','DCI_CS_URL') }}"
+      no_log: true
+
     - name: Schedule a new job
       dci_job:
         components: '{{ dci_components }}'
@@ -141,7 +148,25 @@
         - name: Run the failure process
           include_tasks: plays/failure.yml
 
-# Step 7 : state "success"
+# Step 7 : Upload logs
+- name: Upload logs to DCI Control server
+  hosts: localhost
+  tags:
+    - post-run
+  vars:
+    dci_status: 'post-run'
+  tasks:
+    - block:
+        - include_tasks: plays/upload_logs.yml
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+
+# Step 8 : state "success"
 - name: 'Success'
   hosts: localhost
   tags:
