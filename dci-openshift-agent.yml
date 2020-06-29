@@ -4,6 +4,13 @@
   tags:
     - job
   tasks:
+    - name: Read credentials from env vars
+      set_fact:
+        dci_client_id="{{ lookup('env','DCI_CLIENT_ID') }}"
+        dci_api_secret="{{ lookup('env','DCI_API_SECRET') }}"
+        dci_cs_url="{{ lookup('env','DCI_CS_URL') }}"
+      no_log: true
+
     - name: Schedule a new job
       dci_job:
         components: '{{ dci_components }}'
