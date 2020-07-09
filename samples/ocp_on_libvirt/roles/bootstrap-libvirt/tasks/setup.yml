@@ -18,28 +18,11 @@
       - libvirt
       - libvirt-daemon-kvm
       - virt-install
-
-- name: Install python2.7 packages required for libvirt and linchpin
-  become: true
-  package:
-    name:
-      - libvirt-python
-      - python-netaddr
-      - python-lxml
-      - python2-pip
-      - python-virtualenv
-  when: ansible_python_version.startswith('2.7')
-
-- name: Install python3 packages required for libvirt and linchpin
-  become: true
-  package:
-    name:
-      - libvirt-python3
-      - python3-netaddr
-      - python3-lxml
-      - python3-pip
-      - python3-virtualenv
-  when: ansible_python_version.startswith('3')
+      - "libvirt-python{% if ansible_python.version.major == 3 %}3{% endif %}"
+      - "python{% if ansible_python.version.major == 3 %}3{% endif %}-netaddr"
+      - "python{% if ansible_python.version.major == 3 %}3{% endif %}-lxml"
+      - "python{{ ansible_python.version.major }}-pip"
+      - "python{% if ansible_python.version.major == 3 %}3{% endif %}-virtualenv"
 
 - name: Check on nested KVM status
   command: |
