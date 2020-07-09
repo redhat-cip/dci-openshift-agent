@@ -1,14 +1,4 @@
 ---
-- name: Install helper tools
-  delegate_to: localhost
-  become: true
-  package:
-    name: "{{ item }}"
-    state: installed
-  with_items:
-    - 'python-dns'
-    - 'python-netaddr'
-
 - name: set EXTERNAL_SUBNET
   set_fact:
     extcidrnet: "{{ ip | ipaddr('network') }}/{{ ip | ipaddr('prefix') }}"
