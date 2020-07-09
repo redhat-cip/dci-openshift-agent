@@ -12,11 +12,15 @@
     name: 'httpd'
     state: 'started'
   become: true
-- name: Ensure python-firewall is installed
-  package:
-    name: 'python-firewall'
-    state: 'present'
+- name: Install helper tools
   become: true
+  package:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - "python{% if ansible_python.version.major == 3 %}3{% endif %}-firewall"
+    - "python{% if ansible_python.version.major == 3 %}3{% endif %}-dns"
+    - "python{% if ansible_python.version.major == 3 %}3{% endif %}-netaddr"
 - name: Open port 80 on the firewall
   firewalld:
     zone: public

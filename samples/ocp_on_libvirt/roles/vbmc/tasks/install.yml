@@ -1,34 +1,16 @@
 ---
 - block:
-  - name: Install packages required for python-virtualbmc pip package
+  - name: Install packages required for virtualbmc pip package
     package:
         name:
           - gcc
           - libvirt
           - libvirt-devel
+          - "python{% if ansible_python.version.major == 3 %}3{% endif %}-setuptools"
+          - "python{% if ansible_python.version.major == 3 %}3{% endif %}-pip"
           - ipmitool
         state: latest
         disable_gpg_check: yes
-
-  - name: Install packages required for python-virtualbmc pip package
-    package:
-        name:
-          - python2-pip
-          - python-devel
-          - python-setuptools
-        state: latest
-        disable_gpg_check: yes
-    when: ansible_python_version.startswith('2.7')
-
-  - name: Get pip on python 3
-    package:
-        name:
-          - python3-devel
-          - python3-setuptools
-          - python3-pip
-        state: latest
-        disable_gpg_check: yes
-    when: ansible_python_version.startswith('3')
 
   - name: "check if there's a virtualenv already installed (i.e.: a system-wide RPM package)"
     command: virtualenv --version
@@ -49,21 +31,22 @@
 - name: Prepare venv for vbmc
   pip:
     virtualenv: "{{ vbmc_virtualenv }}"
+    virtualenv_command: "virtualenv-{{ ansible_python.version.major }}"
     name:
       - pip
       - dateutils
       - libvirt-python==4.5.0
+      - pyghmi==1.5.13
     state: latest
-  become: yes
 
 - name: Install python-virtualbmc with pip
   pip:
-      virtualenv: "{{ vbmc_virtualenv }}"
-      name: virtualbmc
-      version: "{{ vbmc_version }}"
+    virtualenv: "{{ vbmc_virtualenv }}"
+    virtualenv_command: "virtualenv-{{ ansible_python.version.major }}"
+    name: virtualbmc
+    version: "{{ vbmc_version }}"
   environment:
       PATH: "{{ vbmc_home }}/.local/bin:{{ ansible_env.PATH }}" # to find 'virtualenv' command if available in user's ~/.local/bin, otherwise will find a system-wide one
-  become: yes
 
 - block:
     - name: adds VirtualBMC as systemd service
