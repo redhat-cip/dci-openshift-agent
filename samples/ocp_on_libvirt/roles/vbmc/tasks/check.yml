@@ -13,5 +13,5 @@
       vbmc_ports: "{{ vbmc_ports|default({})|combine({ item.item: item.stdout.split()[1]}) }}"
   with_items: "{{ vbmc_status.results }}"
 
-- name: include iptables rules chcek
-  include_tasks: iptables.yml
+- name: include firewalld rules check
+  include_tasks: firewalld.yml
