@@ -6,29 +6,11 @@
           - gcc
           - libvirt
           - libvirt-devel
+          - python3-setuptools
+          - python3-pip
           - ipmitool
         state: latest
         disable_gpg_check: yes
-
-  - name: Install packages required for python-virtualbmc pip package
-    package:
-        name:
-          - python2-pip
-          - python-devel
-          - python-setuptools
-        state: latest
-        disable_gpg_check: yes
-    when: ansible_python_version.startswith('2.7')
-
-  - name: Get pip on python 3
-    package:
-        name:
-          - python3-devel
-          - python3-setuptools
-          - python3-pip
-        state: latest
-        disable_gpg_check: yes
-    when: ansible_python_version.startswith('3')
 
   - name: "check if there's a virtualenv already installed (i.e.: a system-wide RPM package)"
     command: virtualenv --version
@@ -52,9 +34,8 @@
     name:
       - pip
       - dateutils
-      - libvirt-python==4.5.0
+      - pyghmi==1.5.13
     state: latest
-  become: yes
 
 - name: Install python-virtualbmc with pip
   pip:
@@ -63,7 +44,6 @@
       version: "{{ vbmc_version }}"
   environment:
       PATH: "{{ vbmc_home }}/.local/bin:{{ ansible_env.PATH }}" # to find 'virtualenv' command if available in user's ~/.local/bin, otherwise will find a system-wide one
-  become: yes
 
 - block:
     - name: adds VirtualBMC as systemd service
