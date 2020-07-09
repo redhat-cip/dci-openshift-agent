@@ -1,6 +1,6 @@
 all:
   vars:
-    dci_topic: OCP-4.3
+    dci_topic: OCP-4.4
     prov_nic: eth0
     pub_nic: eth1
     provisionhost_user: dci
@@ -8,6 +8,7 @@ all:
     domain: metalkube.org
     masters_prov_nic: ens3
     cluster_domain: "{{ cluster }}.{{ domain }}"
+    baremetal_net_ipv6: false
     networks:
       - name: baremetal
         ip: 192.168.123.1

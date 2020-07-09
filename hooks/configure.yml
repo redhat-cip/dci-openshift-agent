@@ -6,8 +6,8 @@
     name: "{{ item }}"
     state: installed
   with_items:
-    - 'python-dns'
-    - 'python-netaddr'
+    - 'python3-dns'
+    - 'python3-netaddr'
 
 - name: set EXTERNAL_SUBNET
   set_fact:

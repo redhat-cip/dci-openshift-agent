@@ -17,21 +17,25 @@
   vars:
       vbmc_start_port: 6230
 
-- name: Set management bmc address
+- name: Set ipv4 management bmc address
   set_fact:
       vbmc_management_address: "{{ hostvars[vbmc_host]['ansible_'+ipmi_net].ipv4.address }}"
+  when: not baremetal_net_ipv6|bool
 
-- include_tasks: iptables.yml
+- name: Set ipv6 management bmc address
+  set_fact:
+      vbmc_management_address: "{{ hostvars[vbmc_host]['ansible_'+ipmi_net].ipv6[0].address }}"
+  when: baremetal_net_ipv6|bool
+
+- include_tasks: firewalld.yml
 
 - name: Add nodes to vbmc
-  command: "{{ vbmc_bin }} add {{ item.key }} --port {{ item.value }} --username {{ vbmc_user }} --password {{ vbmc_pass }} --address ::ffff:{{ vbmc_management_address }}"
+  command: "{{ vbmc_bin }} add {{ item.key }} --port {{ item.value }} --username {{ vbmc_user }} --password {{ vbmc_pass }} --address {% if not baremetal_net_ipv6|bool %}::ffff:{% endif %}{{ vbmc_management_address }}"
   with_dict: "{{ vbmc_ports }}"
-  become: yes
 
 - name: Start nodes using vbmc
   command: "{{ vbmc_bin }} start {{ item.key }}"
   with_dict: "{{ vbmc_ports }}"
-  become: yes
 
 - name: Setting nodes power status using ipmitool
   command: "ipmitool -I lanplus -U {{ vbmc_user }} -P {{ vbmc_pass }} -H {{ vbmc_management_address }} -p {{ item.value }} chassis power on"
