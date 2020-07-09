@@ -1,6 +1,8 @@
 ---
 - name: Up bootstrap VM
   hosts: localhost
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   tasks:
     - set_fact:
         resources: "{{ resources|default([])|union([item.name]) }}"
