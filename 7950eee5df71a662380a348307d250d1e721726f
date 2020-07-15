@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf0270c5_560064aa",
+        "filename": "samples/ocp_on_libvirt/roles/vbmc/tasks/install.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-07-15T15:59:01Z",
+      "side": 1,
+      "message": "virtualenv_command: virtualenv-3",
+      "range": {
+        "startLine": 23,
+        "startChar": 8,
+        "endLine": 23,
+        "endChar": 24
+      },
+      "revId": "7950eee5df71a662380a348307d250d1e721726f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6c561c82_9542d00c",
+        "filename": "samples/ocp_on_libvirt/roles/vbmc/tasks/install.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-07-15T15:59:01Z",
+      "side": 1,
+      "message": "virtualenv_command: virtualenv-3",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 9
+      },
+      "revId": "7950eee5df71a662380a348307d250d1e721726f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "127d05dc_c0b6c235",
+        "filename": "samples/ocp_on_libvirt/roles/vbmc/tasks/install.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-07-15T15:59:01Z",
+      "side": 1,
+      "message": "virtualenv_command: virtualenv-3",
+      "range": {
+        "startLine": 43,
+        "startChar": 6,
+        "endLine": 43,
+        "endChar": 21
+      },
+      "revId": "7950eee5df71a662380a348307d250d1e721726f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
