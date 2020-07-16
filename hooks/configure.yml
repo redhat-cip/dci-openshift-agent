@@ -19,7 +19,7 @@
   set_fact:
     version: "{{ item['name'] }}"
   with_items: "{{ hostvars.localhost.job_info.job.components }}"
-  when: item["type"] == "metadata"
+  when: item["type"] == "ocp"
 
 - set_fact:
     build: "{{ hostvars.localhost.job_info.job.topic.data.build }}"
