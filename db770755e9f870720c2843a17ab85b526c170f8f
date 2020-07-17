@@ -1,0 +1,10 @@
+Code-Review+2: Bill Peck <bill@pecknet.com>
+Code-Review+2: Frederic Lepied <flepied@redhat.com>
+Code-Review+2: Haïkel Guémar <hguemar@fedoraproject.org>
+Workflow+1: Bill Peck <bill@pecknet.com>
+Verified+2: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-by: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-at: Fri, 17 Jul 2020 16:17:08 +0000
+Reviewed-on: https://softwarefactory-project.io/r/18856
+Project: dci-openshift-agent
+Branch: refs/heads/master
