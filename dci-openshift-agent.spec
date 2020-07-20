@@ -28,7 +28,7 @@ DCI Openshift Agent
 
 %install
 install -p -D -m 644 ansible.cfg %{buildroot}%{_datadir}/dci-openshift-agent/ansible.cfg
-install -p -D -m 644 dci-openshift-agent.yml  %{buildroot}%{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
+install -p -D -m 644 agent.yml  %{buildroot}%{_datadir}/dci-openshift-agent/agent.yml
 install -p -D -m 644 hooks/pre-run.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/pre-run.yml
 install -p -D -m 644 hooks/configure.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/configure.yml
 install -p -D -m 644 hooks/running.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/running.yml
@@ -88,7 +88,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/templates/metal3-config.yaml.j2
 
 %{_datadir}/dci-openshift-agent/ansible.cfg
-%{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
+%{_datadir}/dci-openshift-agent/agent.yml
 
 %{_datadir}/dci-openshift-agent/plays/failure.yml
 %{_datadir}/dci-openshift-agent/plays/configure.yml
