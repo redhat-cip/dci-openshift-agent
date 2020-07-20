@@ -175,7 +175,7 @@ If you need to run the `dci-openshift-agent` manually in foreground, you can use
 
 ```
 # su - dci-openshift-agent
-$ cd /usr/share/dci-openshift-agent && source /etc/dci-openshift-agent/dcirc.sh && /usr/bin/ansible-playbook -vv /usr/share/dci-openshift-agent/dci-openshift-agent.yml
+$ cd /usr/share/dci-openshift-agent && source /etc/dci-openshift-agent/dcirc.sh && /usr/bin/ansible-playbook -vv /usr/share/dci-openshift-agent/agent.yml
 ```
 
 ### dci-openshift-agent workflow
