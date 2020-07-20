@@ -1,0 +1,10 @@
+---
+- name: Copy outputs if defined
+  delegate_to: "{{ groups['provisioner'][0] }}"
+  fetch:
+    src: "{{ item }}"
+    dest: "{{ job_info['outputs'] }}"
+    flat: true
+  loop:
+    - "~/clusterconfigs/auth/kubeconfig"
+  when: job_info.outputs is defined and job_info.outputs != None
