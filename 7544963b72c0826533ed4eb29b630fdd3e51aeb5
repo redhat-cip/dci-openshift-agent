@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8810021d_33573528",
+        "filename": "systemd/dci-openshift-agent.service",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-07-29T18:27:06Z",
+      "side": 1,
+      "message": "It could be nice if we could override this path from the command line in case we want to use different/specific settings file (tests, debug, multiple user).",
+      "range": {
+        "startLine": 8,
+        "startChar": 98,
+        "endLine": 8,
+        "endChar": 136
+      },
+      "revId": "7544963b72c0826533ed4eb29b630fdd3e51aeb5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
