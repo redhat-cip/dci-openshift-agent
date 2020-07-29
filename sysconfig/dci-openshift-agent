@@ -1,0 +1,1 @@
+OPTIONS="-e @/etc/dci-openshift-agent/settings.yml"
