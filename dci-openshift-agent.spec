@@ -27,6 +27,7 @@ DCI Openshift Agent
 %build
 
 %install
+install -p -D -m 644 settings.yml %{buildroot}%{_datadir}/dci-openshift-agent/settings.yml
 install -p -D -m 644 ansible.cfg %{buildroot}%{_datadir}/dci-openshift-agent/ansible.cfg
 install -p -D -m 644 dci-openshift-agent.yml  %{buildroot}%{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
 install -p -D -m 644 hooks/pre-run.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/pre-run.yml
