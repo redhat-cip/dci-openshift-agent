@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5c82fff_52687e58",
+        "filename": "sysconfig/dci-openshift-agent",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-07-30T12:42:20Z",
+      "side": 1,
+      "message": "maybe a comment explaining what this file is for, and that it\u0027s not actually a script but a systemd env file",
+      "revId": "92765007c90d1455fb05104ab8fccdeda23dccd5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a40fa29_d15e7753",
+        "filename": "systemd/dci-openshift-agent.service",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-07-30T12:42:20Z",
+      "side": 1,
+      "message": "just checking this shouldn\u0027t be \"-\u003d\" to make the env file optional",
+      "revId": "92765007c90d1455fb05104ab8fccdeda23dccd5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
