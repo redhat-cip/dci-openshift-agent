@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "18e6e57e_791dcea5",
+        "filename": "sysconfig/dci-openshift-agent",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-07-30T13:30:07Z",
+      "side": 1,
+      "message": "good idea.  I\u0027ll add that.",
+      "parentUuid": "a5c82fff_52687e58",
+      "revId": "92765007c90d1455fb05104ab8fccdeda23dccd5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a40fa29_d15e7753",
         "filename": "systemd/dci-openshift-agent.service",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2020-07-30T12:42:20Z",
       "side": 1,
       "message": "just checking this shouldn\u0027t be \"-\u003d\" to make the env file optional",
+      "revId": "92765007c90d1455fb05104ab8fccdeda23dccd5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "36b3e82e_15019d6d",
+        "filename": "systemd/dci-openshift-agent.service",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-07-30T13:30:07Z",
+      "side": 1,
+      "message": "good to know but I think it should be required since we provide it in the rpm package.  It is flagged as a config file though.",
+      "parentUuid": "5a40fa29_d15e7753",
       "revId": "92765007c90d1455fb05104ab8fccdeda23dccd5",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
