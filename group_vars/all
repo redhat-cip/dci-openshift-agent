@@ -7,4 +7,5 @@ dci_cache_dir: /var/lib/dci-openshift-agent
 dci_teardown_on_failure: true
 dci_tags: ['debug']
 baremetal_deploy_repo: https://github.com/openshift-kni/baremetal-deploy
+baremetal_deploy_version: HEAD
 dci_openshift_agent_conformance: ''

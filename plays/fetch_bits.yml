@@ -20,6 +20,7 @@
 
 - name: Clone baremetal-deploy
   git:
+    version: "{{ baremetal_deploy_version }}"
     repo: "{{ baremetal_deploy_repo }}"
     dest: "{{ dci_cache_dir }}/baremetal_deploy_repo"
     force: yes
