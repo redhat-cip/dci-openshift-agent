@@ -1,0 +1,49 @@
+#!/bin/bash
+
+start=0
+config=/etc/dci-openshift-agent/settings.yml
+params="$(getopt -o hs -l help,start --name "$(basename -- "$0")" -- "$@")"
+
+function usage ()
+{
+    name=$(basename -- "$0")
+    echo "Usage:"
+    echo "    $name -h|--help       Display this help message."
+    echo "    $name -s|--start      Start the dci-openshift-agent."
+    echo "    $name -c|--config     Specify alternate config. default /etc/dci-openshift-agent/settings.yml"
+    exit 0
+}
+
+eval set -- "$params"
+unset params
+
+while true
+do
+    case $1 in
+        -h|--help)
+            usage
+            ;;
+        -s|--start)
+            start=1
+            shift
+          ;;
+        -c|--config)
+            shift
+            config=$1
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+. /etc/dci-openshift-agent/dcirc.sh
+cd /usr/share/dci-openshift-agent
+
+if [ "$start" -eq 1 ]; then
+    ansible-playbook dci-openshift-agent.yml -e @$config
+fi
