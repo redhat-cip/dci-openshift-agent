@@ -1,0 +1,44 @@
+#!/bin/bash
+
+start=0
+params="$(getopt -o hs -l help,start --name "$(basename -- "$0")" -- "$@")"
+
+function usage ()
+{
+    echo "Usage:"
+    echo "    $(basename -- "$0") -h|--help               Display this help message."
+    echo "    $(basename -- "$0") -s|--start              Start the dci-openshift-agent."
+    exit 0
+}
+
+eval set -- "$params"
+unset params
+
+while true
+do
+    case $1 in
+        -h|--help)
+            usage
+            ;;
+        -s|--start)
+            start=1
+            shift
+          ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+. /etc/dci-openshift-agent/dcirc.sh
+. /etc/sysconfig/dci-openshift-agent
+
+cd /usr/share/dci-openshift-agent
+
+if [ "$start" -eq 1 ]; then
+    ansible-playbook dci-openshift-agent.yml $OPTIONS $*
+fi

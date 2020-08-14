@@ -54,6 +54,7 @@ install -p -D -m 644 systemd/%{name}.timer %{buildroot}%{_unitdir}/%{name}.timer
 install -p -D -m 440 dci-openshift-agent.sudo %{buildroot}%{_sysconfdir}/sudoers.d/%{name}
 install -p -d -m 755 %{buildroot}/%{_sharedstatedir}/%{name}
 find samples -type f -exec install -Dm 644 "{}" "%{buildroot}%{_sharedstatedir}/dci-openshift-agent/{}" \;
+install -p -D -m 755 dci-openshift-agent-ctl %{buildroot}%{_bindir}/dci-openshift-agent-ctl
 
 %if 0%{?rhel} && 0%{?rhel} < 8
 pathfix.py -pni "%{__python2}" %{buildroot}%{_sharedstatedir}/dci-openshift-agent/samples/ocp_on_libvirt/roles/bridge-setup/library/nmcli.py
@@ -91,6 +92,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/templates/metal3-config.yaml.j2
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/settings.yml
 %config(noreplace) %{_sysconfdir}/sysconfig/dci-openshift-agent
+%{_bindir}/dci-openshift-agent-ctl
 
 %{_datadir}/dci-openshift-agent/ansible.cfg
 %{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
