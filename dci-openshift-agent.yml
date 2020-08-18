@@ -51,7 +51,7 @@
         - name: Run the failure process
           include_tasks: plays/failure.yml
   tags:
-      - configure
+    - configure
 
 # Step 2 : state "Pre-run"
 - name: 'Launch pre-run to deploy installer'
@@ -119,9 +119,39 @@
   hosts: localhost
   tags:
     - post-run
+    - conformance
   vars:
     dci_status: 'post-run'
   tasks:
+    - block:
+        - name: Setup podman on the jumphost
+          include_tasks: plays/podman-setup.yml
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+    - block:
+        - name: Side-load images prior to testing
+          include_tasks: plays/image-side-load.yml
+          vars:
+            images_to_side_load:
+              - "docker.io/library/busybox:1.29"
+              - "docker.io/library/httpd:2.4.38-alpine"
+              - "docker.io/library/nginx:1.14-alpine"
+              - "gcr.io/kubernetes-e2e-test-images/mounttest:1.0"
+              - "k8s.gcr.io/pause:3.2"
+              - "us.gcr.io/k8s-artifacts-prod/e2e-test-images/agnhost:2.12"
+              - "registry.redhat.io/rhel7/rhel-tools:latest"
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
     - block:
         # Launch DCI tests
         - name: Run the post-run tests
