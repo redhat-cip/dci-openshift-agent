@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
 Version:       0.0.VERS
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -41,6 +41,8 @@ install -p -D -m 644 hooks/templates/metal3-config.yaml.j2 %{buildroot}%{_syscon
 install -p -D -m 644 settings.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/settings.yml
 
 install -p -D -m 644 plays/configure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/configure.yml
+install -p -D -m 644 plays/oc-setup.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/oc-setup.yml
+install -p -D -m 644 plays/image-side-load.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/image-side-load.yml
 install -p -D -m 644 plays/dci-tests.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/dci-tests.yml
 install -p -D -m 644 plays/failure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/failure.yml
 install -p -D -m 644 plays/fetch_bits.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
@@ -98,6 +100,8 @@ exit 0
 
 %{_datadir}/dci-openshift-agent/plays/failure.yml
 %{_datadir}/dci-openshift-agent/plays/configure.yml
+%{_datadir}/dci-openshift-agent/plays/oc-setup.yml
+%{_datadir}/dci-openshift-agent/plays/image-side-load.yml
 %{_datadir}/dci-openshift-agent/plays/dci-tests.yml
 %{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 %{_datadir}/dci-openshift-agent/plays/upload_logs.yml
@@ -113,6 +117,10 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Aug 26 2020 Jorge A Gallegos <kad@blegh.net> - 0.0.1-3
+- Unbundled the oc setup from the dci-tests play
+- Images are now side-loaded onto the openshift cluster nodes
+
 * Tue Jun  2 2020 Haïkel Guémar <hguemar@fedoraproject.org> - 0.0.1-2
 - Add RHEL8 support
 
