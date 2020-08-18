@@ -43,45 +43,6 @@
     become: true
     with_items:
       - httpd-tools
-      - podman
-      - slirp4netns
-
-  - name: Check /proc/sys/user/max_user_namespaces is correct
-    lineinfile:
-      path: /proc/sys/user/max_user_namespaces
-      regexp: '^0'
-      state: absent
-    check_mode: yes
-    changed_when: false
-    register: out
-
-  - name: Create /etc/sysctl.d/userns.conf
-    become: true
-    copy:
-      content: |
-        user.max_user_namespaces=28633
-      dest: /etc/sysctl.d/userns.conf
-    when: out.found
-
-  - name: Run sysctl -p /etc/sysctl.d/userns.conf
-    become: true
-    command: |
-      sysctl -p /etc/sysctl.d/userns.conf
-    when: out.found
-
-  - name: Add subuid entry
-    become: true
-    lineinfile:
-      path: /etc/subuid
-      regexp: '^{{ ansible_user }}'
-      line: '{{ ansible_user }}:100000:65536'
-
-  - name: Add subgid entry
-    become: true
-    lineinfile:
-      path: /etc/subgid
-      regexp: '^{{ ansible_user }}'
-      line: '{{ ansible_user }}:100000:65536'
 
   - name: Create admin user with cluster admin permissions
     shell: |

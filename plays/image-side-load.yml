@@ -1,0 +1,89 @@
+---
+- block:
+  - name: Generate temp dir to hold the images
+    tempfile:
+      state: directory
+      suffix: podman-images
+    register: imagedir
+
+  - name: Pull all images down to local podman registry
+    podman_image:
+      name: "{{ item }}"
+    with_items: "{{ images_to_side_load }}"
+
+  - name: Create an empty tar to hold all images together
+    command:
+      cmd: "tar cvf {{ imagedir.path }}/image-files.tar --files-from /dev/null"
+      warn: false
+
+  - name: Tar all podman images
+    command: "podman save -o {{ imagedir.path }}/{{ item | regex_replace(':', '_') | basename }}.tar {{ item }}"
+    with_items: "{{ images_to_side_load }}"
+
+  - name: Append images to main tar file
+    command:
+      cmd: "tar rvf {{ imagedir.path }}/image-files.tar {{ imagedir.path }}/{{ item | regex_replace(':', '_') | basename }}.tar"
+      warn: false
+    with_items: "{{ images_to_side_load }}"
+
+  - name: Gzip resulting tar file
+    command: "gzip {{ imagedir.path }}/image-files.tar"
+
+  - name: Get provisioner SSH identity
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    fetch:
+      src: "~{{ ansible_user }}/.ssh/id_rsa"
+      dest: "~/.ssh/provisioner_rsa"
+      flat: true
+
+  - name: Set the provisioner user fact
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    set_fact:
+      provisioner_user: "{{ ansible_user }}"
+
+  - name: Write SSH config to connect to the cluster nodes directly
+    template:
+      src: templates/ssh_config.j2
+      dest: ~/.ssh/config
+      mode: 0600
+
+  - name: Create a directory to hold all the images on cluster nodes
+    delegate_to: "{{ item }}"
+    file:
+      path: "/tmp/podman-images"
+      state: directory
+    with_items: "{{ groups['masters'] + groups['workers'] }}"
+
+  - name: Untar the podman images on cluster nodes
+    delegate_to: "{{ item }}"
+    unarchive:
+      src: "{{ imagedir.path }}/image-files.tar.gz"
+      dest: "/tmp/podman-images"
+      copy: true
+    with_items: "{{ groups['masters'] + groups['workers'] }}"
+
+  - name: Podman load all images
+    delegate_to: "{{ item }}"
+    command: 'find /tmp/podman-images/ -name *.tar -exec podman load -i {} \;'
+    with_items: "{{ groups['masters'] + groups['workers'] }}"
+
+  always:
+  - name: Remove image tar files from cluster nodes
+    delegate_to: "{{ item }}"
+    ignore_errors: true
+    ignore_unreachable: true
+    file:
+      path: "/tmp/podman-images"
+      state: absent
+    with_items: "{{ groups['masters'] + groups['workers'] }}"
+
+  - name: Remove all podman images previously downloaded
+    podman_image:
+      name: "{{ item }}"
+      state: absent
+    with_items: "{{ images_to_side_load }}"
+
+  - name: Clean up temp dir
+    file:
+      path: "{{ imagedir.path }}"
+      state: absent
