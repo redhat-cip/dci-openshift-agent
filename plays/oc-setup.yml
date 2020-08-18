@@ -1,0 +1,101 @@
+---
+- block:
+  - name: Get oc command and KUBECONFIG from provisioner
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    fetch:
+      src: "{{ item }}"
+      dest: "{{ dci_cluster_config_dir }}/"
+      flat: true
+    loop:
+    - /usr/local/bin/oc
+    - "~/clusterconfigs/auth/kubeconfig"
+
+  - name: Setup htpasswd auth backend
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      cat << EOF | {{ dci_cluster_config_dir }}/oc apply -f -
+      apiVersion: config.openshift.io/v1
+      kind: OAuth
+      metadata:
+        name: cluster
+      spec:
+        identityProviders:
+        - name: htpassidp
+          challenge: true
+          login: true
+          mappingMethod: claim
+          type: HTPasswd
+          htpasswd:
+            fileData:
+              name: htpass-secret
+      EOF
+
+  - name: Install packages needed for login
+    package:
+      name: "{{ item }}"
+      state: present
+    become: true
+    with_items:
+    - httpd-tools
+
+  - name: Create users.htpasswd file with admin adn nonadmin users
+    shell: |
+      # admin user
+      htpasswd -cbB {{ dci_cluster_config_dir }}/users.htpasswd admin admin
+      # append nonadmin user
+      htpasswd -bB {{ dci_cluster_config_dir }}/users.htpasswd nonadmin nonadmin
+
+  - name: Set the htpasswd config in the cluster
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc create secret generic htpass-secret --from-file=htpasswd={{ dci_cluster_config_dir | expanduser }}/users.htpasswd --namespace openshift-config --dry-run --output yaml | {{ dci_cluster_config_dir }}/oc replace -f - secret-htpass
+
+  - name: Give cluster-admin to the admin user
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      # It can take a few moments for the user to be created...
+      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user cluster-admin admin
+
+  - name: Login with non-admin user
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/nonadmin_kubeconfig"
+    shell: |
+      # It can take a few moments for the user to be created...
+      {{ dci_cluster_config_dir }}/oc login --insecure-skip-tls-verify=true -u nonadmin -p nonadmin https://api.{{ cluster }}.{{ domain }}:6443
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Create a self-provisioner-namespace cluster role
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      cat <<EOF | {{ dci_cluster_config_dir }}/oc apply -f -
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        annotations:
+          openshift.io/description: A user that can create and delete namespaces
+        name: self-provisioner-namespaces
+      rules:
+      - apiGroups:
+        - ""
+        resources:
+        - namespaces
+        verbs:
+        - "*"
+      EOF
+
+      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user admin nonadmin
+      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user cluster-reader nonadmin
+      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user self-provisioner-namespaces nonadmin
+      # It can take a while for the user to be given the permissions
+
+    # replace this with a loop to check for perms
+  - name: Pause for a while..
+    pause:
+      minutes: 2
