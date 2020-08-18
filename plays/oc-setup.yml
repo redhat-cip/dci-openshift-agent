@@ -1,0 +1,112 @@
+---
+- block:
+  - name: Get oc command and KUBECONFIG from provisioner
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    fetch:
+      src: "{{ item }}"
+      dest: "{{ dci_cluster_config_dir }}/"
+      flat: true
+    loop:
+    - /usr/local/bin/oc
+    - "~/clusterconfigs/auth/kubeconfig"
+
+  - name: Setup htpasswd auth backend
+    shell: |
+      export KUBECONFIG={{ dci_cluster_config_dir }}/kubeconfig
+      cat << EOF | {{ dci_cluster_config_dir }}/oc apply -f -
+      apiVersion: config.openshift.io/v1
+      kind: OAuth
+      metadata:
+        name: cluster
+      spec:
+        identityProviders:
+        - name: htpassidp
+          challenge: true
+          login: true
+          mappingMethod: claim
+          type: HTPasswd
+          htpasswd:
+            fileData:
+              name: htpass-secret
+      EOF
+
+  - name: Install packages needed for login
+    package:
+      name: "{{ item }}"
+      state: present
+    become: true
+    with_items:
+    - httpd-tools
+
+  - name: Create admin user with cluster admin permissions
+    shell: |
+      export KUBECONFIG={{ dci_cluster_config_dir }}/kubeconfig
+      # Using htpasswd provided by the httpd-tools package
+      ADMINPASS=$(htpasswd -b -n admin admin | base64)
+      cat << EOF | {{ dci_cluster_config_dir }}/oc apply -f -
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: htpass-secret
+        namespace: openshift-config
+      data:
+      htpasswd: ${ADMINPASS}
+      EOF
+      # It can take a few moments for the user to be created...
+      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user cluster-admin admin
+
+  - name: Create non-admin user
+    shell: |
+      export KUBECONFIG={{ dci_cluster_config_dir }}/kubeconfig
+      # Extract the already created secret from the cluster
+      {{ dci_cluster_config_dir }}/oc get secret htpass-secret -ojsonpath={.data.htpasswd} -n openshift-config | base64 -d > {{ dci_cluster_config_dir }}/users.htpasswd
+
+      # Append the nonadmin user
+      htpasswd -bB {{ dci_cluster_config_dir }}/users.htpasswd nonadmin nonadmin
+
+      # Verify the file {{ dci_cluster_config_dir }}/users.htpasswd contains at least the admin and nonadmin lines
+
+      # Instead creating the secret with the here-doc syntax, you can use create secret instead
+      {{ dci_cluster_config_dir }}/oc create secret generic htpass-secret --from-file=htpasswd={{ dci_cluster_config_dir }}/users.htpasswd --dry-run -o yaml -n openshift-config | {{ dci_cluster_config_dir }}/oc replace -f - secret/htpass-secret replaced
+
+  - name: Login with non-admin user
+    shell: |
+      # This will generate a {{ dci_cluster_config_dir }}/kubeconfig file
+      export KUBECONFIG={{ dci_cluster_config_dir }}/nonadmin_kubeconfig
+
+      # It can take a few moments for the user to be created...
+      {{ dci_cluster_config_dir }}/oc login --insecure-skip-tls-verify=true -u nonadmin -p nonadmin https://api.{{ cluster }}.{{ domain }}:6443
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Create a self-provisioner-namespace cluster role
+    shell: |
+      # As a cluster-admin user:
+      export KUBECONFIG={{ dci_cluster_config_dir }}/kubeconfig
+      cat <<EOF | {{ dci_cluster_config_dir }}/oc apply -f -
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        annotations:
+          openshift.io/description: A user that can create and delete namespaces
+        name: self-provisioner-namespaces
+      rules:
+      - apiGroups:
+        - ""
+        resources:
+        - namespaces
+        verbs:
+        - "*"
+      EOF
+
+      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user admin nonadmin
+      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user cluster-reader nonadmin
+      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user self-provisioner-namespaces nonadmin
+      # It can take a while for the user to be given the permissions
+
+    # replace this with a loop to check for perms
+  - name: Pause for a while..
+    pause:
+      minutes: 2
