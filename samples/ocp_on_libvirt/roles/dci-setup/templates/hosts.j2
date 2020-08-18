@@ -16,6 +16,9 @@ dir="{{ '{{' }} ansible_user_dir {{ '}}' }}/clusterconfigs"
 {% endif %}
 {% endfor %}
 
+[masters:vars]
+ansible_user=core
+
 # Worker nodes
 [workers]
 {% for key, value in ironic_nodes.items() %}
@@ -23,6 +26,9 @@ dir="{{ '{{' }} ansible_user_dir {{ '}}' }}/clusterconfigs"
 {{ key }} name={{ key }} role=worker ipmi_user={{ value.ipmi_user }} ipmi_password={{ value.ipmi_pass }} ipmi_address={{ value.ipmi_address }} ipmi_port={{ value.ipmi_port }} provision_mac={{ value.mac_address }} hardware_profile=unknown
 {% endif %}
 {% endfor %}
+
+[workers:vars]
+ansible_user=core
 
 # Provision Host
 [provisioner]
