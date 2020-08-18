@@ -51,7 +51,7 @@
         - name: Run the failure process
           include_tasks: plays/failure.yml
   tags:
-      - configure
+    - configure
 
 # Step 2 : state "Pre-run"
 - name: 'Launch pre-run to deploy installer'
@@ -119,13 +119,45 @@
   hosts: localhost
   tags:
     - post-run
+    - conformance
   vars:
     dci_status: 'post-run'
   tasks:
     - block:
+        - name: Login to the openshift cluster
+          include_tasks: plays/oc-setup.yml
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+    - block:
+        - name: Setup podman on the jumphost
+          include_tasks: plays/podman-setup.yml
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+    - block:
+        - name: Side-load images prior to testing
+          include_tasks: plays/image-side-load.yml
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+    - block:
         # Launch DCI tests
         - name: Run the post-run tests
           include_tasks: plays/dci-tests.yml
+          when: dci_openshift_agent_conformance is defined and dci_openshift_agent_conformance != ""
       rescue:
         - name: Run the teardown process
           include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
