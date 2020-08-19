@@ -1,4 +1,5 @@
 dci_components: []
+dci_components_by_query: []
 dci_base_ip: "{{ ansible_default_ipv4.address }}"
 dci_baseurl: "http://{{ dci_base_ip }}"
 dci_mirror_location: /var/www/html
