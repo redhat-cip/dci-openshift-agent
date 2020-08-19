@@ -15,6 +15,7 @@
     - name: Schedule a new job
       dci_job:
         components: "{{ dci_components }}"
+        components_by_query: "{{ dci_components_by_query }}"
         topic: "{{ dci_topic }}"
       register: job_info
       when: job_info is not defined
