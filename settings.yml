@@ -1,6 +1,7 @@
 ---
 dci_topic: OCP-4.4
-#dci_components: ['a8b8b5c3-b07f-4c63-b0e8-4b31fefc4f92']
+#dci_components: ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']
+#dci_components_by_query: ['name:4.4.5']
 # By default we don't run the conformance tests
 #dci_openshift_agent_conformance: openshift-conformance-minimal
 # Specify version of baremetal deploy repo, default is HEAD
