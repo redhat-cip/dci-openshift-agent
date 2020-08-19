@@ -1,7 +1,19 @@
 ---
 dci_topic: OCP-4.4
-#dci_components: ['a8b8b5c3-b07f-4c63-b0e8-4b31fefc4f92']
+
+# -- Components --
+# If you don't spcecify dci_components or dci_components_by_query 
+# you will get the latest components associated with that tpoic.
+#
+# You can specify components via the ID found from dcictl component-list
+#dci_components: ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']
+# Or you can query by name and/or tag
+#dci_components_by_query: ['name:4.4.5']
+#dci_components_by_query: ['name:4.4.5,type:ocp,tag:ocp-vanilla-4.4-simple-ok']
+#If you specify both the components list will be combined.
+
 # By default we don't run the conformance tests
 #dci_openshift_agent_conformance: openshift-conformance-minimal
+
 # Specify version of baremetal deploy repo, default is HEAD
 #baremetal_deploy_version: HEAD
