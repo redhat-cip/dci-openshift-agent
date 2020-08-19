@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7f0e9e80_5d5ee5e2",
+        "filename": "settings.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-08-19T16:37:02Z",
+      "side": 1,
+      "message": "\"specify\" typo",
+      "revId": "f312abcea010c8c59eb42bcc7f6b5c7b4ca05352",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
