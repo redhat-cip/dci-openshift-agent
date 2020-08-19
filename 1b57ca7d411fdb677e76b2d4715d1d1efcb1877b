@@ -16,6 +16,24 @@
       "revId": "1b57ca7d411fdb677e76b2d4715d1d1efcb1877b",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f5084739_4315d3ba",
+        "filename": "settings.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-08-19T15:02:36Z",
+      "side": 1,
+      "message": "it\u0027s backward compatible and will combine them.  I will add some comments about that.",
+      "parentUuid": "08237ece_b5e26816",
+      "revId": "1b57ca7d411fdb677e76b2d4715d1d1efcb1877b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
