@@ -48,6 +48,11 @@ do
     esac
 done
 
+if [ $( id -u dci-openshift-agent ) -ne $( id -u ) ]; then
+  echo "must be run as the dci-openshift-agent user"
+  usage
+fi
+
 if [ "$start" -eq 1 ]; then
     [ -e /etc/dci-openshift-agent/dcirc.sh ] && . /etc/dci-openshift-agent/dcirc.sh
     [ -d /usr/share/dci-openshift-agent ] && cd /usr/share/dci-openshift-agent
