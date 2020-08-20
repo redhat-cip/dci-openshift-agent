@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9f88211d_b314ce9d",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-08-20T20:45:24Z",
+      "side": 1,
+      "message": "it\u0027s already a variable, or do you mean like a settings.yml variable?",
+      "parentUuid": "c8ab6c0f_4dece259",
+      "revId": "c288a6269e2443d469f3a1c83d31529106db2db0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f645488_996ec40a",
         "filename": "plays/image-side-load.yml",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2020-08-20T13:04:18Z",
       "side": 1,
       "message": "Should we use /var/tmp instead ? I know var/tmp is normally located on a physical disk (with larger space). Not sure.",
+      "range": {
+        "startLine": 53,
+        "startChar": 13,
+        "endLine": 53,
+        "endChar": 18
+      },
+      "revId": "c288a6269e2443d469f3a1c83d31529106db2db0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "01f8e241_2a3edd17",
+        "filename": "plays/image-side-load.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-08-20T20:45:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7f645488_996ec40a",
       "range": {
         "startLine": 53,
         "startChar": 13,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "3860842c_b9ec4f7f",
+        "filename": "plays/image-side-load.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-08-20T20:45:24Z",
+      "side": 1,
+      "message": "I tried it both ways, I don\u0027t know if it should stay or not, I could go either way here.",
+      "parentUuid": "81d96f1b_52e8487b",
+      "revId": "c288a6269e2443d469f3a1c83d31529106db2db0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fceef9a6_e4dcd777",
         "filename": "plays/podman-setup.yml",
         "patchSetId": 1
@@ -70,6 +130,24 @@
       "writtenOn": "2020-08-20T13:01:48Z",
       "side": 1,
       "message": "I\u0027m not sure if `podman system migrate` is required or not https://stackoverflow.com/questions/56541820/when-should-podman-system-migrate-be-run (I guess it won\u0027t hurt if you do that?)",
+      "revId": "c288a6269e2443d469f3a1c83d31529106db2db0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4caaf1a1_af7aadc0",
+        "filename": "plays/podman-setup.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-08-20T20:45:24Z",
+      "side": 1,
+      "message": "this is supposed to be run before any images/containers are added, so I think it isn\u0027t necessary but it won\u0027t hurt, will add.",
+      "parentUuid": "fceef9a6_e4dcd777",
       "revId": "c288a6269e2443d469f3a1c83d31529106db2db0",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
