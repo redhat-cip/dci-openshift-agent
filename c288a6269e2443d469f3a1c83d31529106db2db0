@@ -19,6 +19,29 @@
     },
     {
       "key": {
+        "uuid": "7f645488_996ec40a",
+        "filename": "plays/image-side-load.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-08-20T13:04:18Z",
+      "side": 1,
+      "message": "Should we use /var/tmp instead ? I know var/tmp is normally located on a physical disk (with larger space). Not sure.",
+      "range": {
+        "startLine": 53,
+        "startChar": 13,
+        "endLine": 53,
+        "endChar": 18
+      },
+      "revId": "c288a6269e2443d469f3a1c83d31529106db2db0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "81d96f1b_52e8487b",
         "filename": "plays/image-side-load.yml",
         "patchSetId": 1
