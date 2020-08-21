@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "a3807b36_7db0341a",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 655
+      },
+      "writtenOn": "2020-08-21T08:15:40Z",
+      "side": 1,
+      "message": "Yes, something that can be modified easily without modifying the playbook if the images are changed",
+      "parentUuid": "9f88211d_b314ce9d",
+      "revId": "c288a6269e2443d469f3a1c83d31529106db2db0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f645488_996ec40a",
         "filename": "plays/image-side-load.yml",
         "patchSetId": 1
@@ -113,6 +131,24 @@
       "side": 1,
       "message": "I tried it both ways, I don\u0027t know if it should stay or not, I could go either way here.",
       "parentUuid": "81d96f1b_52e8487b",
+      "revId": "c288a6269e2443d469f3a1c83d31529106db2db0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "04fa497a_67a0c507",
+        "filename": "plays/image-side-load.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 655
+      },
+      "writtenOn": "2020-08-21T08:15:40Z",
+      "side": 1,
+      "message": "I guess that maybe the ~/.ssh/config file generation/deletion can be extracted into a more general \u0027post-install\u0027 playbook (https://github.com/redhat-cip/dci-openshift-agent/issues/1)",
+      "parentUuid": "3860842c_b9ec4f7f",
       "revId": "c288a6269e2443d469f3a1c83d31529106db2db0",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
