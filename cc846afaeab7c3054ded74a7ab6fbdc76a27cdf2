@@ -34,6 +34,23 @@
       "revId": "cc846afaeab7c3054ded74a7ab6fbdc76a27cdf2",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d414980_71b69a78",
+        "filename": "filter_plugins/combine_outputs.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 29
+      },
+      "writtenOn": "2020-08-24T21:37:52Z",
+      "side": 1,
+      "message": "for key,value in input1.items() would be more readable imo",
+      "revId": "cc846afaeab7c3054ded74a7ab6fbdc76a27cdf2",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
