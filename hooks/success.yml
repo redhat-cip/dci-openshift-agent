@@ -1,10 +1,15 @@
 ---
+- name: set outputs to be copied
+  set_fact:
+    outputs:
+      kubeconfig: "~/clusterconfigs/auth/kubeconfig"
+      hosts: "/etc/hosts"
+
 - name: Copy outputs if defined
   delegate_to: "{{ groups['provisioner'][0] }}"
   fetch:
-    src: "{{ item }}"
-    dest: "{{ job_info['outputs'] }}"
+    src: "{{ item.value[0] }}"
+    dest: "{{ item.value[1] }}"
     flat: true
-  loop:
-    - "~/clusterconfigs/auth/kubeconfig"
+  loop: "{{ outputs |combine_outputs(job_info.outputs) |dict2items }}"
   when: job_info.outputs is defined and job_info.outputs != None
