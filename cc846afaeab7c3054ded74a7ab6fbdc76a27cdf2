@@ -16,6 +16,24 @@
       "revId": "cc846afaeab7c3054ded74a7ab6fbdc76a27cdf2",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ffcc0c6_3791e4d0",
+        "filename": "filter_plugins/combine_outputs.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-08-24T20:30:53Z",
+      "side": 1,
+      "message": "it\u0027s pretty small.  We\u0027re only talking a few lines.  I can change to iteritems though",
+      "parentUuid": "d6dab9c5_16091468",
+      "revId": "cc846afaeab7c3054ded74a7ab6fbdc76a27cdf2",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
