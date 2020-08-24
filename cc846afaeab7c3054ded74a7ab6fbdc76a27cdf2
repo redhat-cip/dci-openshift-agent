@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d6dab9c5_16091468",
+        "filename": "filter_plugins/combine_outputs.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-08-24T19:20:44Z",
+      "side": 1,
+      "message": "here you are holding a) input1 into memory with .items() and b) growing another dict in combined.\n\nThe input can be really large I feel, so at the very least I think iteritems() (or py3 similar) should be used here, what do you think?",
+      "revId": "cc846afaeab7c3054ded74a7ab6fbdc76a27cdf2",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
