@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bba504d1_bcf3f2a3",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-08-25T18:44:36Z",
+      "side": 1,
+      "message": "nit pick - just get rid of this whitespace.",
+      "revId": "5447ab3472969f4295ae7893cf1e835a6f6c4218",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a2b0f7d_4a69a3a8",
+        "filename": "plays/cnf-tests-run.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-08-25T18:44:36Z",
+      "side": 1,
+      "message": "again - very minor - but might as well get rid of the trailing space",
+      "revId": "5447ab3472969f4295ae7893cf1e835a6f6c4218",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ece0640_756a516d",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-08-25T18:44:36Z",
+      "side": 1,
+      "message": "remove trailing whitespace",
+      "revId": "5447ab3472969f4295ae7893cf1e835a6f6c4218",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
