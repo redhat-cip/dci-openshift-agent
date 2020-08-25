@@ -17,3 +17,6 @@ dci_topic: OCP-4.4
 
 # Specify version of baremetal deploy repo, default is HEAD
 #baremetal_deploy_version: HEAD
+
+# By default we do not run cnf tests
+# dci_openshift_agent_cnf_tests: all
