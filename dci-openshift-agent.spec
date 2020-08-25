@@ -46,7 +46,6 @@ install -p -D -m 644 plays/failure.yml %{buildroot}%{_datadir}/dci-openshift-age
 install -p -D -m 644 plays/fetch_bits.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 install -p -D -m 644 plays/upload_logs.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/upload_logs.yml
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
-install -p -D -m 644 filter_plugins/combine_outputs.py %{buildroot}%{_datadir}/dci-openshift-agent/filter_plugins/combine_outputs.py
 
 install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.service
 install -p -D -m 644 systemd/%{name}.timer %{buildroot}%{_unitdir}/%{name}.timer
@@ -103,7 +102,6 @@ exit 0
 %{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 %{_datadir}/dci-openshift-agent/plays/upload_logs.yml
 %{_datadir}/dci-openshift-agent/group_vars/all
-%{_datadir}/dci-openshift-agent/filter_plugins/combine_outputs.py
 
 %{_unitdir}/*
 
