@@ -125,8 +125,15 @@
   tasks:
     - block:
         # Launch DCI tests
-        - name: Run the post-run tests
+        - name: Run the post-run ose tests
           include_tasks: plays/dci-tests.yml
+      
+        - name: Run post-run cnf tests setup
+          include_tasks: plays/cnf-tests-setup.yaml
+
+        - name: Run post-run cnf tests
+          include_tasks: plays/cnf-tests-run.yaml
+
       rescue:
         - name: Run the teardown process
           include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
