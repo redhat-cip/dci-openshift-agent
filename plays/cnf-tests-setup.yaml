@@ -1,0 +1,66 @@
+---
+- block:
+  - name: Generate temp dir
+    tempfile:
+      state: directory
+      suffix: outputdir
+    register: outputdir
+
+  - name: Get oc command and KUBECONFIG from provisioner
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    fetch:
+      src: "{{ item }}"
+      dest: "{{ outputdir.path }}/"
+      flat: true
+    loop:
+      - /usr/local/bin/oc
+      - "~/clusterconfigs/auth/kubeconfig"
+
+  - name: Creating default worker pool worker-cnf
+    shell: |
+     export KUBECONFIG={{ outputdir.path }}/kubeconfig
+     PATH=$PATH:{{ outputdir.path }}
+     cd "{{ cnf_features_deploy_dir }}" && make setup-test-cluster
+     PATH=${PATH/":{{ outputdir.path }}"/}
+
+  - name: wait for nodes to be ready with updated mcp. Please be patient as this can take a while..
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker-cnf --timeout=30m
+
+  - name: Deploy sctp feature
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/sctp
+
+  - name: wait for nodes to be ready with updated mc. Please be patient as this can take a while..
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker-cnf --timeout=30m
+
+  - name: Deploy ptp feature
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/ptp
+      {{ outputdir.path }}/oc wait --for=condition=Ready pod -l name=ptp-operator -n openshift-ptp --timeout=5m
+
+  - name: Deploy performance feature
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/performance
+      {{ outputdir.path }}/oc wait --for=condition=Ready pod -l name=performance-operator -n openshift-performance-addon --timeout=5m
+
+  - name: Deploy sriov feature
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/sriov
+      {{ outputdir.path }}/oc wait --for=condition=Ready pod -l name=sriov-network-operator -n openshift-sriov-network-operator --timeout=5m
+
+  - name: Deploy dpdk feature
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/dpdk
+      {{ outputdir.path }}/oc -n dpdk wait build -l app=s2i-dpdk --for condition=Complete --timeout 1m
+  when:
+    - dci_openshift_agent_cnf_tests is defined and dci_openshift_agent_cnf_tests == "all"
+

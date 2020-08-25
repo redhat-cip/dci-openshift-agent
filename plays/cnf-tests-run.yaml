@@ -1,0 +1,119 @@
+---
+- block:
+  - name: Generate temp dir
+    tempfile:
+      state: directory
+      suffix: outputdir
+    register: outputdir
+
+  - name: Get oc command and KUBECONFIG from provisioner
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    fetch:
+      src: "{{ item }}"
+      dest: "{{ outputdir.path }}/"
+      flat: true
+    loop:
+      - /usr/local/bin/oc
+      - "~/clusterconfigs/auth/kubeconfig"
+
+  - name: Get date
+    shell: date +%Y%m%d-%H%M%S
+    register: date
+
+  - name: Install packages needed for testing
+    package:
+      name: "{{ item }}"
+      state: present
+    become: true
+    with_items:
+      - podman
+      - slirp4netns
+
+  - name: Check /proc/sys/user/max_user_namespaces is correct
+    lineinfile:
+      path: /proc/sys/user/max_user_namespaces
+      regexp: '^0'
+      state: absent
+    check_mode: yes
+    changed_when: false
+    register: out
+
+  - name: Create /etc/sysctl.d/userns.conf
+    become: true
+    copy:
+      content: |
+        user.max_user_namespaces=28633
+      dest: /etc/sysctl.d/userns.conf
+    when: out.found
+
+  - name: Run sysctl -p /etc/sysctl.d/userns.conf
+    become: true
+    command: |
+      sysctl -p /etc/sysctl.d/userns.conf
+    when: out.found
+
+  - name: Add subuid entry
+    become: true
+    lineinfile:
+      path: /etc/subuid
+      regexp: '^{{ ansible_user }}'
+      line: '{{ ansible_user }}:100000:65536'
+
+  - name: Add subgid entry
+    become: true
+    lineinfile:
+      path: /etc/subgid
+      regexp: '^{{ ansible_user }}'
+      line: '{{ ansible_user }}:100000:65536'
+
+  - name: Run SCTP tests
+    command: |
+       podman run -v {{ outputdir.path }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig -v {{ outputdir.path }}:/tests:Z quay.io/openshift-kni/cnf-tests:4.5 /usr/bin/test-run.sh  -ginkgo.focus="sctp" --junit /tests/{{ date.stdout }}/sctp
+
+  - name: Run PTP tests
+    command: |
+       podman run -v {{ outputdir.path }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig -v {{ outputdir.path }}:/tests:Z quay.io/openshift-kni/cnf-tests:4.5 /usr/bin/test-run.sh  -ginkgo.focus="ptp" --junit  /tests/{{ date.stdout }}/ptp
+
+  - name: Run performance tests
+    command: |
+       podman run -v {{ outputdir.path }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig -v {{ outputdir.path }}:/tests:Z quay.io/openshift-kni/cnf-tests:4.5 /usr/bin/test-run.sh  -ginkgo.focus="performance" --junit  /tests/{{ date.stdout }}/performance
+
+  - name: Run SRIOV tests
+    command: |
+       podman run -v {{ outputdir.path }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig -v {{ outputdir.path }}:/tests:Z quay.io/openshift-kni/cnf-tests:4.5 /usr/bin/test-run.sh  -ginkgo.focus="sriov" --junit  /tests/{{ date.stdout }}/sriov
+
+  - name: Run DPDK tests
+    command: |
+       podman run -v {{ outputdir.path }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig -v {{ outputdir.path }}:/tests:Z quay.io/openshift-kni/cnf-tests:4.5 /usr/bin/test-run.sh  -ginkgo.focus="dpdk" --junit  /tests/{{ date.stdout }}/dpdk
+
+  - name: Tar up the log directory
+    archive:
+      path: "{{ outputdir.path }}/{{ date.stdout }}"
+      dest: "{{ outputdir.path }}/{{ date.stdout }}.tar"
+      format: tar
+
+  - name: Find test logs
+    find:
+      paths: "{{ outputdir.path }}"
+      recurse: yes
+      patterns: "*.tar"
+    register: logs_matched
+
+  - name: Upload logs directory to DCI Control Server
+    environment:
+      - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
+      - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
+      - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
+    dci_file:
+      path: "{{ item.path }}"
+      name: "{{ item.path | basename }}"
+      job_id: "{{ hostvars.localhost.job_id }}"
+    with_items: "{{ logs_matched.files }}"
+
+  - name: Clean up Temp dir
+    file:
+      path: "{{ outputdir.path }}"
+      state: absent
+  when:
+    - dci_openshift_agent_cnf_tests is defined and dci_openshift_agent_cnf_tests == "all"
+
