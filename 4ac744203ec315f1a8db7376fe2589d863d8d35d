@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "921fced7_03023bba",
+        "filename": "plays/image-side-load.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-08-26T19:28:18Z",
+      "side": 1,
+      "message": "I\u0027m guessing we can\u0027t use the ansible archive module because of the way we are using podman to create this tareball?",
+      "revId": "4ac744203ec315f1a8db7376fe2589d863d8d35d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
