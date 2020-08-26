@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "d10bce93_1b4f5db4",
+        "filename": "hooks/running.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-08-26T11:42:21Z",
+      "side": 1,
+      "message": "We already get the version from job_info. Look in hooks/configure\n\n- name: Get openshift_version from job.components\n  set_fact:\n    version: \"{{ item[\u0027name\u0027] }}\"\n  with_items: \"{{ hostvars.localhost.job_info.job.components }}\"\n  when: item[\"type\"] \u003d\u003d \"ocp\"",
+      "revId": "3f6c0e0cccd10c546dc07c6e46347833f983726c",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "197a3471_eb6a8e75",
         "filename": "hooks/running.yml",
         "patchSetId": 1
