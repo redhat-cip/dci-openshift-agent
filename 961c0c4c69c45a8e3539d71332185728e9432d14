@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb83070c_5cd40c0f",
+        "filename": "hooks/running.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-08-26T14:07:45Z",
+      "side": 1,
+      "message": "I still don\u0027t understand why this change is needed.  Both hooks/configure.yml and hooks/running.yml run on provisioner.",
+      "revId": "961c0c4c69c45a8e3539d71332185728e9432d14",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
