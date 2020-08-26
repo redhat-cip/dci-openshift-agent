@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "197a3471_eb6a8e75",
+        "filename": "hooks/running.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 29
+      },
+      "writtenOn": "2020-08-26T09:26:33Z",
+      "side": 1,
+      "message": "Depending of the config, we could have more than one components. I don\u0027t think hardcoding the number of components is a good idea.",
+      "revId": "3f6c0e0cccd10c546dc07c6e46347833f983726c",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
