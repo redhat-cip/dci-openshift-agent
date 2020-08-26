@@ -1,5 +1,20 @@
 ---
+- name: Get OCP version from job_info
+  set_fact:
+    version: "{{ item.name }}"
+  with_items: "{{ job_info.job.components }}"
+  when: item["type"] == "ocp"
+
+- name: Do some checks
+  assert:
+    success_msg: "All components are present and version is defined"
+    fail_msg: "There are missing components or version cannot be found"
+    that:
+      - "job_info['job']['components']|length == 1"
+      - version is defined
+
 - import_role:
     name: node-prep
+
 - import_role:
     name: installer
