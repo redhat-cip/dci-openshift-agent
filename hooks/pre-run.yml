@@ -1,1 +1,147 @@
 ---
+- block:
+  - name: Set release_url for development envs
+    set_fact:
+      release_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview"
+    when: build == 'dev'
+
+  - name: Set release_url for GA envs
+    set_fact:
+      release_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp"
+    when: build == 'ga'
+
+  - name: Stat on OCP version
+    stat:
+      path: "{{ provision_cache_store }}/{{ version }}"
+    register: ocpversionpath
+
+  - name: Set facts
+    set_fact:
+      webserver_url: "{{ groups['registry_host'][0] }}:8000"
+      cmd: openshift-baremetal-install
+      _pullsecret_file: "{{ provision_cache_store }}/pull-secret.txt"
+
+  - block:
+    - name: Create cache dir
+      file:
+        path: "{{ provision_cache_store }}/{{ version }}"
+        state: directory
+
+    - name: Copy PullSecret into cache
+      copy:
+        content: "{{ pullsecret }}"
+        dest: "{{ _pullsecret_file }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+        force: yes
+
+    - name: Store Release.txt File
+      get_url:
+        url: "{{ release_url }}/{{ version }}/release.txt"
+        dest: "{{ provision_cache_store }}/{{ version }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+    when:
+      - not ocpversionpath.stat.exists
+
+  - set_fact:
+      result: "{{ lookup('file', provision_cache_store + '/' + version + '/release.txt') }}"
+
+  - name: Set Fact for Release Image
+    set_fact:
+      release_version: "{{ result | regex_search('Version:.*') | regex_replace('Version:\\s*(.*)', '\\1') }}"
+      release_image: "{{ result | regex_search('Pull From:.*') | regex_replace('Pull From:\\s*(.*)', '\\1') }}"
+
+  - block:
+    - name: Get the ocp client tar gunzip file
+      get_url:
+        url: "{{ release_url }}/{{ version }}/openshift-client-linux-{{ release_version }}.tar.gz"
+        dest: "{{ provision_cache_store }}/{{ version }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: "Untar the openshift-client-linux-{{ release_version }}.tar.gz"
+      unarchive:
+        src: "{{ provision_cache_store }}/{{ version }}/openshift-client-linux-{{ release_version }}.tar.gz"
+        dest: "{{ provision_cache_store }}/{{ version }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+        remote_src: yes
+
+    - name: Extracting the installer
+      command: |
+        {{ provision_cache_store }}/{{ version }}/oc adm release extract \
+        --registry-config {{ _pullsecret_file | quote }} --command={{ cmd | quote }} \
+        --to {{ provision_cache_store }}/{{ version }} {{ release_image }}
+      args:
+        chdir: "{{ provision_cache_store }}/{{ version }}"
+        executable: /bin/bash
+    when:
+      - not ocpversionpath.stat.exists
+
+  - name: Get COMMIT_ID
+    shell: |
+      {{ provision_cache_store }}/{{ version }}/openshift-baremetal-install version | grep '^built from commit' | awk '{print $4}'
+    register: commit_id
+
+  - name: Store rhcos.json File
+    get_url:
+      url: "https://raw.githubusercontent.com/openshift/installer/{{ commit_id.stdout }}/data/data/rhcos.json"
+      dest: "{{ provision_cache_store }}/{{ version }}"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: '0755'
+    when:
+      - not ocpversionpath.stat.exists
+
+  - include_vars:
+      file: "{{ provision_cache_store }}/{{ version }}/rhcos.json"
+      name: rhcos_json
+
+  - name: Set Facts for RHCOS_URI and RHCOS_PATH
+    set_fact:
+      rhcos_qemu_uri: "{{ rhcos_json | json_query('images.qemu.path') }}"
+      rhcos_uri: "{{ rhcos_json | json_query('images.openstack.path') }}"
+      rhcos_path: "{{ rhcos_json | json_query('baseURI') }}"
+
+  - name: Set facts for RHCOS_QEMU_SHA256 and RHCOS_SHA256
+    set_fact:
+      rhcos_qemu_sha256: "{{ rhcos_json | json_query('images.qemu.sha256') }}"
+      rhcos_qemu_sha256_unzipped: '{{ rhcos_json | json_query(''images.qemu."uncompressed-sha256"'') }}'
+      rhcos_sha256: "{{ rhcos_json | json_query('images.openstack.sha256') }}"
+
+  - name: Set bootstrap and clusteros image URL override
+    set_fact:
+      bootstraposimage: "{{ webserver_url }}/{{ rhcos_qemu_uri }}?sha256={{ rhcos_qemu_sha256_unzipped }}"
+      clusterosimage: "{{ webserver_url }}/{{ rhcos_uri }}?sha256={{ rhcos_sha256 }}"
+
+  - name: Download {{ rhcos_qemu_uri }} for cache
+    get_url:
+      url:  "{{ rhcos_path }}{{ rhcos_qemu_uri }}"
+      dest: "{{ provision_cache_store }}/{{ rhcos_qemu_uri }}"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: '0644'
+      setype: httpd_sys_content_t
+      checksum: "sha256:{{ rhcos_qemu_sha256 }}"
+
+  - name: Download {{ rhcos_uri }} for cache
+    get_url:
+      url:  "{{ rhcos_path }}{{ rhcos_uri }}"
+      dest: "{{ provision_cache_store }}/{{ rhcos_uri }}"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: '0644'
+      setype: httpd_sys_content_t
+      checksum: "sha256:{{ rhcos_sha256 }}"
+      timeout: 3600
+  when:
+    - "'registry_host' in groups"
+    - groups['registry_host'] | length > 0
+  delegate_to: "{{ groups['registry_host'][0] }}"
+
+    # TODO: Mirror registry
