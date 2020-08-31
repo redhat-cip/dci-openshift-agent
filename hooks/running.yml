@@ -1,4 +1,12 @@
 ---
+- name: Populate clusterosimage from pre-run
+  set_fact:
+    clusterosimage: "{{ hostvars.localhost.clusterosimage }}"
+  when: hostvars.localhost.clusterosimage is defined
+- name: Populate bootstraposimage from pre-run
+  set_fact:
+    bootstraposimage: "{{ hostvars.localhost.bootstraposimage }}"
+  when: hostvars.localhost.bootstraposimage is defined
 - import_role:
     name: node-prep
 - import_role:
