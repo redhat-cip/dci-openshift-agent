@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7d8d70dd_bf691ab8",
+        "filename": "plays/dci-tests.yml",
+        "patchSetId": 10
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 655
+      },
+      "writtenOn": "2020-09-02T12:48:02Z",
+      "side": 1,
+      "message": "It seems the junit files needs to be cleaned up after the run, otherwise they are all uploaded (the new one and the old ones) https://www.distributed-ci.io/jobs/e8fb2d5b-b3eb-4ce0-a5ad-19ef98f8fe8a/files",
+      "revId": "24355e24b24c20096c1d61eb363a6557d0f5eecc",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
