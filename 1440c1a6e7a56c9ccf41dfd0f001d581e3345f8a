@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "09f00eed_5df506d8",
+        "filename": "plays/oc-setup.yml",
+        "patchSetId": 12
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 655
+      },
+      "writtenOn": "2020-09-03T12:58:16Z",
+      "side": 1,
+      "message": "Just in case, we have already dedicated clusterroles for every test suite here https://github.com/e-minguez/ose-tests/tree/master/rbac\nSo instead creating the self-provisioner-namespaces clusterrole and give the `nonadmin` user the self-provisioner-namespaces, cluster-reader and admin roles, you can just reconcile the cluster role that you want https://github.com/e-minguez/ose-tests#for-each-test-suite. For instance, openshift-conformance-minimal:\n\noc auth reconcile -f https://raw.githubusercontent.com/e-minguez/ose-tests/master/rbac/osetests-openshift-conformance-minimal.yaml",
+      "revId": "1440c1a6e7a56c9ccf41dfd0f001d581e3345f8a",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
