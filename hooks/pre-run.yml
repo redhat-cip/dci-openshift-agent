@@ -1,16 +1,24 @@
 ---
+- name: Get openshift_version from job.components
+  set_fact:
+    version: "{{ item['name'] }}"
+  with_items: "{{ job_info.job.components }}"
+  when: item["type"] == "ocp"
+
+- name: Get build from job.components
+  set_fact:
+    build: "{{ item['build'] }}"
+  with_items: "{{ job_info.job.components }}"
+  when:
+    - item["type"] == "ocp"
+    - item.build is defined
+
+- name: Set variables from job_info
+  set_fact:
+    build: "{{ build | default(job_info.job.topic.data.build) }}"
+    pullsecret: "{{ openshift_secret | default(job_info.job.topic.data.pull_secret) }}"
+
 - block:
-  - name: Get openshift_version from job.components
-    set_fact:
-      version: "{{ item['name'] }}"
-    with_items: "{{ job_info.job.components }}"
-    when: item["type"] == "ocp"
-
-  - name: Set variables from job_info
-    set_fact:
-      build: "{{ job_info.job.topic.data.build }}"
-      _pullsecret: "{{ openshift_secret | default(job_info.job.topic.data.pull_secret) }}"
-
   - name: Set variables from registry_host vars
     set_fact:
       provision_cache_store: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}"
@@ -52,7 +60,7 @@
 
   - name: combined auths
     set_fact:
-      combined_auth: "{{ disconnected_registry_auths_fixed | combine(_pullsecret, recursive=True) }}"
+      combined_auth: "{{ disconnected_registry_auths_fixed | combine(pullsecret, recursive=True) }}"
     no_log: true
 
   - name: Copy PullSecret into cache
