@@ -1,0 +1,261 @@
+---
+- block:
+  - name: Login as admin user for cnf-tests
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc login --insecure-skip-tls-verify=true -u admin -p admin https://api.{{ cluster }}.{{ domain }}:6443
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+    when: dci_openshift_agent_cnf_tests_mode == "online"
+
+  - name: Creating default worker pool worker-cnf
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+      PATH: "{{ dci_cluster_config_dir }}:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin"
+    shell: |
+     cd "{{ cnf_features_deploy_dir }}" && make setup-test-cluster
+
+  - name: wait for nodes to be ready with updated mcp. Please be patient as this can take a while..
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker-cnf --timeout=45m
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Set operator channel version
+    shell: |
+      cd "{{ cnf_feature_deploy_feature_configs_dir }}"
+      find  -type f  ! -path 'sctp' ! -path 'dpdk' -print0 | xargs -0 sed -i -e "s/channel:.*/channel: "'"{{ cnf_operator_channel }}"'"/g"
+
+  - name: Set operator subscription src
+    shell: |
+      cd "{{ cnf_feature_deploy_feature_configs_dir }}"
+      find -type f -not -path "./sctp/*" -not -path "./dpdk/*" -print0 | xargs -0 sed -i -e "s/source:.*/source: mirrored-redhat-operators/g"
+    when:
+      - dci_openshift_agent_cnf_tests_mode == "offline"
+
+  - name: Change github repo and dpdk base image to point to local ones for dpdk bc
+    shell: |
+       sed -i  "s|{{ cnf_features_deploy_repo }}|http://{{ local_registry_host }}/cnf-features-deploy.git|g" {{ cnf_feature_deploy_feature_configs_dir }}/dpdk/build-config.yaml
+       sed -i  "s|quay.io/openshift-kni/dpdk.*|{{ local_registry_host }}:{{ local_registry_port }}/dpdk:{{ cnf_tests_image }}|g" {{ cnf_feature_deploy_feature_configs_dir }}/dpdk/build-config.yaml
+
+  - name: Remove branch type in dpdk buildconfig as we are cloning a single branch
+    shell: |
+       sed -i -e "s/ref: .*//g" {{ cnf_feature_deploy_feature_configs_dir }}/dpdk/build-config.yaml
+       sed -i -e "s/type: Git//g" {{ cnf_feature_deploy_feature_configs_dir }}/dpdk/build-config.yaml
+
+  - name: Update cluster image config with trustbundle of local repo
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"user-ca-bundle"}}}' --type=merge
+    changed_when: true
+
+  - name: Change the image for deploying performance
+    shell:
+      cmd: >
+        sed -i "s|image: .*|image: {{ local_registry_host }}:{{ local_registry_port }}/performance-addon-operator-registry:{{ cnf_tests_image }}-snapshot|g"
+        {{ cnf_feature_deploy_feature_configs_dir }}/performance/operator_catalogsource.yaml
+
+  - name: Deploy sctp feature
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/sctp
+
+  - name: Check if sctp mc is deployed
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc get mc load-sctp-module
+    register: sctp_mc
+    changed_when: "'load-sctp-module' in sctp_mc.stdout"
+
+  - name: wait for nodes to be ready with updated mc. Please be patient as this can take a while..
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker-cnf --timeout=45m
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Deploy ptp feature
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/ptp
+
+  - name: Check if ptp operator is deployed
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc get pod -l name=ptp-operator -n openshift-ptp
+    register: ptp_op
+    until: "'ptp-operator' in ptp_op.stdout"
+    delay: 15
+    retries: 20
+    changed_when: "'ptp-operator' in ptp_op.stdout"
+
+  - name: Wait for ptp operator to be ready
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc wait --for=condition=Ready pod -l name=ptp-operator -n openshift-ptp --timeout=5m
+
+  - name: Change apiversion for performance profile
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+       sed -i "s|performance.openshift.io|performance.openshift.io/v1alpha1|g" "{{ cnf_feature_deploy_feature_configs_dir }}"/../integration-base/performance/performance_profile.yaml
+
+  - name: Deploy performance feature
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"//performance
+    delay: 10
+    retries: 5
+    changed_when: true
+
+  - name: Check if performance operator is deployed
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc get pod -l name=performance-operator -n openshift-performance-addon
+    register: performance_op
+    until: "'performance-operator' in performance_op.stdout"
+    delay: 15
+    retries: 20
+    changed_when: "'performance-operator' in performance_op.stdout"
+
+  - name: Create performance profile
+    environment:
+       KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+       {{ dci_cluster_config_dir }}/oc create -f "{{ cnf_feature_deploy_feature_configs_dir }}"/../integration-base/performance/performance_profile.yaml
+    delay: 10
+    retries: 5
+    changed_when: true
+
+  - name: wait for nodes to be ready with updated mc. Please be patient as this can take a while..
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker-cnf --timeout=45m
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Wait for performance addon operator to be ready
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc wait --for=condition=Ready pod -l name=performance-operator -n openshift-performance-addon --timeout=5m
+
+  - name: Deploy sriov feature
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/sriov
+
+  - name: Check if sriov operator is deployed
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc get pod -l name=sriov-network-operator -n openshift-sriov-network-operator
+    register: sriov_op
+    until: "'sriov-network-operator' in sriov_op.stdout"
+    delay: 15
+    retries: 20
+    changed_when: "'sriov-network-operator' in sriov_op.stdout"
+
+  - name: Wait for sriov operator to be ready
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc wait --for=condition=Ready pod -l name=sriov-network-operator -n openshift-sriov-network-operator --timeout=5m
+
+  - name: Deploy dpdk feature
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/dpdk
+
+  - name: Check if dpdk bc is created
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc get bc -n dpdk s2i-dpdk
+    register: dpdk_bc
+    until: "'s2i-dpdk' in dpdk_bc.stdout"
+    delay: 15
+    retries: 20
+    changed_when: "'s2i-dpdk' in dpdk_bc.stdout"
+
+  - name: Get real path for registry auth file
+    shell: realpath {{ dci_cluster_config_dir }}/{{ registry_auth_file }}
+    register: registry_auth_real_path
+
+  - name: Create secret for local registry for dpdk bc to pull dpdk image
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell:
+     cmd: >
+      {{ dci_cluster_config_dir }}/oc create secret generic registry-secret
+      --from-file=.dockerconfigjson={{ registry_auth_real_path.stdout }}
+      --type=kubernetes.io/dockerconfigjson -n dpdk
+    changed_when: true
+
+  - name: Set build pull secret for the build config
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+        {{ dci_cluster_config_dir }}/oc set build-secret --pull bc/s2i-dpdk registry-secret -n dpdk
+
+  - name: Link builder to the above created secret
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+       {{ dci_cluster_config_dir }}/oc secrets link builder registry-secret -n dpdk
+
+  - name: Create configmap from local registry cert file
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: 
+      cmd: >
+       {{ dci_cluster_config_dir }}/oc create configmap registry-cas -n openshift-config 
+       --from-file={{ local_registry_host }}..{{ local_registry_port }}=/etc/pki/ca-trust/source/anchors/jumphost.dfwt5g.lab.crt
+
+  - name: Check if configmap is created
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc get configmap registry-cas -n openshift-config
+    register: configmap_op
+    until: "'registry-cas' in configmap_op.stdout"
+    delay: 15
+    retries: 3
+    changed_when: "'registry-cas' in configmap_op.stdout"
+
+  - name: Patch additional trust ca with registry certificate
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+       {{ dci_cluster_config_dir }}/oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge  
+
+  - name: Wait for dpdk s2i build to complete
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc wait --for=condition=Complete build -l app=s2i-dpdk -n dpdk --timeout=5m
+  when:
+    - (dci_openshift_agent_cnf_tests_mode is defined) and (dci_openshift_agent_cnf_tests_mode == "online" or dci_openshift_agent_cnf_tests_mode == "offline")

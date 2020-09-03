@@ -10,3 +10,36 @@ dci_tags: ['debug']
 baremetal_deploy_repo: https://github.com/openshift-kni/baremetal-deploy
 baremetal_deploy_version: HEAD
 dci_openshift_agent_conformance: ''
+dci_images_to_side_load:
+- "docker.io/library/busybox:1.29"
+- "docker.io/library/httpd:2.4.38-alpine"
+- "docker.io/library/nginx:1.14-alpine"
+- "gcr.io/kubernetes-e2e-test-images/mounttest:1.0"
+- "k8s.gcr.io/pause:3.2"
+- "us.gcr.io/k8s-artifacts-prod/e2e-test-images/agnhost:2.12"
+dci_cluster_config_dir: ~/clusterconfigs
+#All of the below fields need to be set for running online cnf-tests
+cnf_features_deploy_repo: https://github.com/openshift-kni/cnf-features-deploy.git
+cnf_features_deploy_branch: release-4.5
+cnf_features_deploy_dir: "{{ dci_cache_dir }}/cnf_features_deploy_repo"
+cnf_feature_deploy_feature_configs_dir: "{{ cnf_features_deploy_dir }}/feature-configs/deploy"
+# Mode is either offline or online
+dci_openshift_agent_cnf_tests_mode: ''
+# Hostname for local registry created during offline install
+local_registry_host: ''
+# Local registry port
+local_registry_port: ''
+# Local registry username and password
+local_registry_user: dummy
+local_registry_password: dummy
+# Username and password for registry.redhat.io
+redhat_registry_user: ''
+redhat_registry_password: ''
+# Username and password for quay.io
+quay_user: ''
+quay_password: ''
+# cnf-tests image tag in quay.io
+cnf_tests_image: ''
+# Name of the auth file needed for local registry, quay.io and registry.redhat.io
+registry_auth_file: registry-auths.json
+cnf_operator_channel: ''
