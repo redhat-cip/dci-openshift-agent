@@ -5,12 +5,12 @@
   vars:
     ip: "{{ ansible_default_ipv4.address }}/{{ansible_default_ipv4.netmask }}"
 
-- name: Get openshift_version from job.components
+- name: Get version and build from localhost vars
   set_fact:
-    version: "{{ item['name'] }}"
-  with_items: "{{ hostvars.localhost.job_info.job.components }}"
-  when: item["type"] == "ocp"
+    version: "{{ hostvars.localhost.version }}"
+    build: "{{ hostvars.localhost.build }}"
 
-- set_fact:
-    build: "{{ hostvars.localhost.job_info.job.topic.data.build }}"
-    pullsecret: "{{ openshift_secret | default(hostvars.localhost.job_info.job.topic.data.pull_secret)| to_json }}"
+- name: Get pullsecret from localhost vars
+  set_fact:
+    pullsecret: "{{ hostvars.localhost.pullsecret| to_json }}"
+  no_log: true
