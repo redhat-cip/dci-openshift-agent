@@ -11,6 +11,14 @@
   with_items: "{{ hostvars.localhost.job_info.job.components }}"
   when: item["type"] == "ocp"
 
+- name: Get build from job.components
+  set_fact:
+    build: "{{ item['build'] }}"
+  with_items: "{{ hostvars.localhost.job_info.job.components }}"
+  when:
+    - item["type"] == "ocp"
+    - item.build is defined
+
 - set_fact:
-    build: "{{ hostvars.localhost.job_info.job.topic.data.build }}"
+    build: "{{ build | default(hostvars.localhost.job_info.job.topic.data.build) }}"
     pullsecret: "{{ openshift_secret | default(hostvars.localhost.job_info.job.topic.data.pull_secret)| to_json }}"
