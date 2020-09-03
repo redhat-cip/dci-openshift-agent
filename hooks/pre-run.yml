@@ -6,9 +6,17 @@
     with_items: "{{ job_info.job.components }}"
     when: item["type"] == "ocp"
 
+  - name: Get build from job.components
+    set_fact:
+      build: "{{ item['build'] }}"
+    with_items: "{{ job_info.job.components }}"
+    when:
+      - item["type"] == "ocp"
+      - item.build is defined
+
   - name: Set variables from job_info
     set_fact:
-      build: "{{ job_info.job.topic.data.build }}"
+      build: "{{ build | default(job_info.job.topic.data.build) }}"
       _pullsecret: "{{ openshift_secret | default(job_info.job.topic.data.pull_secret) }}"
 
   - name: Set variables from registry_host vars
