@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "804785ec_ba8b32a5",
+        "filename": "hooks/pre-run.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-09-04T13:38:07Z",
+      "side": 1,
+      "message": "don\u0027t we say, we\u0027ll use tags to mark a ga build? I don\u0027t see a build field in components.",
+      "revId": "31c33137e1feb5b4d52821a78d4e48af6b5b61ce",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
