@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
 Version:       0.0.VERS
-Release:       3%{?dist}
+Release:       4%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -121,6 +121,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Fri Sep  4 2020 Eduardo Minguez <edu@redhat.com> - 0.0.1-4
+- Non-admin user for ose-tests uses a custom role instead generic
+
 * Wed Aug 26 2020 Jorge A Gallegos <kad@blegh.net> - 0.0.1-3
 - Unbundled the oc setup from the dci-tests play
 - Images are now side-loaded onto the openshift cluster nodes
