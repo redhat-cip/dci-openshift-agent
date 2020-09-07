@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
-Version:       0.0.VERS
-Release:       3%{?dist}
+Version:       0.1.0
+Release:       0.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -43,6 +43,11 @@ install -p -D -m 644 plays/oc-setup.yml %{buildroot}%{_datadir}/dci-openshift-ag
 install -p -D -m 644 plays/image-side-load.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/image-side-load.yml
 install -p -D -m 644 plays/podman-setup.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/podman-setup.yml
 install -p -D -m 644 plays/dci-tests.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/dci-tests.yml
+install -p -D -m 644 plays/create_local_git_repo.yaml %{buildroot}%{_datadir}/dci-openshift-agent/plays/create_local_git_repo.yaml
+install -p -D -m 644 plays/mirror_images.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/mirror_images.yml
+install -p -D -m 644 plays/cnf-tests-run.yaml %{buildroot}%{_datadir}/dci-openshift-agent/plays/cnf-tests-run.yaml
+install -p -D -m 644 plays/cleanup.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/cleanup.yml
+
 install -p -D -m 644 plays/failure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/failure.yml
 install -p -D -m 644 plays/fetch_bits.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 install -p -D -m 644 plays/post_run.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/post_run.yml
@@ -102,6 +107,10 @@ exit 0
 %{_datadir}/dci-openshift-agent/plays/image-side-load.yml
 %{_datadir}/dci-openshift-agent/plays/podman-setup.yml
 %{_datadir}/dci-openshift-agent/plays/dci-tests.yml
+%{_datadir}/dci-openshift-agent/plays/create_local_git_repo.yaml
+%{_datadir}/dci-openshift-agent/plays/mirror_images.yml
+%{_datadir}/dci-openshift-agent/plays/cnf-tests-run.yaml
+%{_datadir}/dci-openshift-agent/plays/cleanup.yml
 %{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 %{_datadir}/dci-openshift-agent/plays/post_run.yml
 %{_datadir}/dci-openshift-agent/group_vars/all
@@ -117,6 +126,10 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Oct 21 2020 Frederic Lepied <flepied@redhat.com> 0.1.0-0.VERS
+- added cnf-tests files
+- fixed rpm versionning
+
 * Wed Aug 26 2020 Jorge A Gallegos <kad@blegh.net> - 0.0.1-3
 - Unbundled the oc setup from the dci-tests play
 - Images are now side-loaded onto the openshift cluster nodes

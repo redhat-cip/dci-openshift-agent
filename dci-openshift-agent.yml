@@ -141,6 +141,23 @@
         - name: Run the Red Hat tests
           include_tasks: plays/dci-tests.yml
           when: dci_openshift_agent_conformance is defined and dci_openshift_agent_conformance != ""
+
+         # Setup and run cnf-tests
+        - name: Create local git repo on jumphost for disconnected cnf-tests
+          include_tasks: plays/create_local_git_repo.yaml
+          when:
+            - "'registry_host' in groups"
+            - groups['registry_host'] | length > 0
+            - dci_openshift_agent_cnf_tests_mode is defined and dci_openshift_agent_cnf_tests_mode == "offline"
+
+        - name: Mirror images to local registry for disconnected cnf-tests
+          include_tasks: plays/mirror_images.yml
+          when: dci_openshift_agent_cnf_tests_mode is defined and dci_openshift_agent_cnf_tests_mode == "offline"
+
+        - name: Run cnf tests
+          include_tasks: plays/cnf-tests-run.yaml
+          when: (dci_openshift_agent_cnf_tests_mode is defined) and (dci_openshift_agent_cnf_tests_mode == "online" or dci_openshift_agent_cnf_tests_mode == "offline")
+
       rescue:
         - name: Run the teardown process
           include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
@@ -148,6 +165,9 @@
 
         - name: Run the failure process
           include_tasks: plays/failure.yml
+      always:
+        - name: Clean up clusterconfig dir
+          include_tasks: plays/cleanup.yml
 
 # Step 6 : state "partner-testing"
 - name: 'Launch partner tests'
