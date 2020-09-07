@@ -75,8 +75,3 @@
       job_id: "{{ hostvars.localhost.job_id }}"
       mime: "application/junit"
     with_items: "{{ junit_matched.files }}"
-
-  - name: Clean up clusterconfig dir
-    file:
-      path: "{{ dci_cluster_configs_dir }}"
-      state: absent
