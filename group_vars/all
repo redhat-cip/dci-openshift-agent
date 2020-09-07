@@ -10,5 +10,14 @@ dci_tags: ['debug']
 baremetal_deploy_repo: https://github.com/openshift-kni/baremetal-deploy
 baremetal_deploy_version: HEAD
 dci_openshift_agent_conformance: ''
+cnf_features_deploy_repo: https://github.com/openshift-kni/cnf-features-deploy.git
+cnf_features_deploy_branch: release-4.5
+cnf_features_deploy_dir: "{{ dci_cache_dir }}/cnf_features_deploy_repo"
+cnf_feature_deploy_feature_configs_dir: "{{ cnf_features_deploy_dir }}/feature-configs/deploy"
+# Mode is either offline or online
+dci_openshift_agent_cnf_tests_mode: ''
+# cnf-tests image tag in quay.io
+cnf_tests_image: ''
+cnf_operator_channel: ''
 dci_cluster_configs_dir: "{{'~/clusterconfigs' | expanduser}}-{{ cluster }}"
 dci_ose_tests_image: quay.io/eminguez/ose-tests-full:latest
