@@ -1,0 +1,133 @@
+# Mirror images needed for running cnf-tests
+---
+- block:
+  - name: Login as admin user for cnf-tests
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc login --insecure-skip-tls-verify=true -u admin -p admin https://api.{{ cluster }}.{{ domain }}:6443
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Set local_registry_up
+    set_fact:
+      local_registry_up: "{{ local_registry_user }}:{{ local_registry_password }}"
+
+  - name: Set local_registry_auth
+    set_fact:
+      local_registry_auth: '"{{ local_registry_host }}:{{ local_registry_port }}": {"auth": "{{ local_registry_up | b64encode }}"}'
+
+  - name: Set redhat_registry_up
+    set_fact:
+      redhat_registry_up: "{{ redhat_registry_user }}:{{ redhat_registry_password }}"
+
+  - name: Set redhat_registry_auth
+    set_fact:
+      redhat_registry_auth: '"registry.redhat.io" : {"auth": "{{ redhat_registry_up | b64encode }}"}'
+
+  - name: Set quay_up
+    set_fact:
+      quay_up: "{{ quay_user }}:{{ quay_password }}"
+
+  - name: Set quay_auth
+    set_fact:
+      quay_auth: '"quay.io": {"auth": "{{ quay_up | b64encode }}"}'
+
+  - name: Create auth file
+    shell: |
+     echo '{
+        "auths": {
+                   {{ redhat_registry_auth }},
+                   {{ quay_auth }},
+                   {{ local_registry_auth }}
+         }
+      }' > {{ dci_cluster_config_dir }}/{{ registry_auth_file }}
+
+  - name: Create images.json file
+    shell: |
+      echo '[
+        {
+            "registry": "quay.io/openshift-kni/",
+            "image": "cnf-tests:{{ cnf_tests_version }}"
+        },
+        {
+            "registry": "quay.io/openshift-kni/",
+            "image": "dpdk:{{ cnf_tests_version }}"
+        },
+        {
+            "registry": "quay.io/openshift-kni/",
+            "image": "performance-addon-operator-registry:{{ operator_channel }}-snapshot"
+        }
+
+      ]' > {{ dci_cluster_config_dir }}/images.json
+
+  - name: Mirror cnf-tests and dpdk images to local repo
+    shell: >
+      podman run -v {{ dci_cluster_config_dir }}/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests:{{ cnf_tests_version }}
+      /usr/bin/mirror -registry "{{ local_registry_host }}:{{ local_registry_port }}/" --images "/kubeconfig/images.json"
+      |  {{ dci_cluster_config_dir }}/oc image mirror -f - -a {{ dci_cluster_config_dir }}/{{ registry_auth_file }} --insecure=true
+
+  - name: Build catalog
+    shell:
+      cmd: >
+        {{ dci_cluster_config_dir }}/oc adm catalog build
+        --appregistry-org redhat-operators
+        --from=registry.redhat.io/openshift4/ose-operator-registry:v{{ cnf_tests_version }}
+        --filter-by-os="linux/amd64"
+        --to={{ local_registry_host }}:{{ local_registry_port }}/olm/redhat-operators:v1 -a {{ dci_cluster_config_dir }}/{{ registry_auth_file }} --insecure
+
+  - name: Mirror catalog manifests
+    shell:
+      cmd: >
+        cd {{ dci_cluster_config_dir }} &&
+        {{ dci_cluster_config_dir }}/oc adm catalog mirror {{ local_registry_host }}:{{ local_registry_port }}/olm/redhat-operators:v1
+        {{ local_registry_host }}:{{ local_registry_port }} -a {{ dci_cluster_config_dir }}/{{ registry_auth_file }} --insecure
+        --filter-by-os="linux/amd64" --manifests-only -a {{ dci_cluster_config_dir }}/{{ registry_auth_file }}
+
+  - name: Use only manifests that are needed for cnf-tests
+    shell: |
+      grep -i 'performance\|sriov\|ptp' {{ dci_cluster_config_dir }}/redhat-operators-manifests/mapping.txt > {{ dci_cluster_config_dir }}/redhat-operators-manifests/mapping_2.txt
+
+  - name: Mirror images to local repo
+    shell: |
+      {{ dci_cluster_config_dir }}/oc image mirror -a {{ dci_cluster_config_dir }}/{{ registry_auth_file }} -f {{ dci_cluster_config_dir }}/redhat-operators-manifests/mapping_2.txt --insecure
+
+  - name: Apply image content source policy
+    shell: |
+      {{ dci_cluster_config_dir }}/oc apply -f {{ dci_cluster_config_dir }}/redhat-operators-manifests/imageContentSourcePolicy.yaml
+
+  - name: Create catalog src
+    shell: |
+      cat << EOF | {{ dci_cluster_config_dir }}/oc apply -f -
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: CatalogSource
+      metadata:
+        name: mirrored-redhat-operators
+        namespace: openshift-marketplace
+      spec:
+        sourceType: grpc
+        image: {{ local_registry_host }}:{{ local_registry_port }}/olm/redhat-operators:v1
+        displayName: Red Hat Operators
+        publisher: grpc
+      EOF
+
+  - name: Wait for 10 seconds..
+    wait_for:
+      timeout: 10
+
+  - name: Wait for worker nodes to be ready with the new image content source policy. Please be patient, this can take a while..
+    shell: |
+      {{ dci_cluster_config_dir }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker --timeout=45m
+
+  - name: Check if master nodes are ready with the new image content source policy. Waiting till they are ready...
+    shell: |
+      {{ dci_cluster_config_dir }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/master --timeout=45m
+
+  - name: Configure registry
+    shell: |
+      {{ dci_cluster_config_dir }}/oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
+      {{ dci_cluster_config_dir }}/oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'
+  when:
+    - dci_openshift_agent_cnf_tests_mode is defined and dci_openshift_agent_cnf_tests_mode == "disconnected"
