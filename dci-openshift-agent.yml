@@ -52,12 +52,12 @@
 
       rescue: &teardown_error
         - block:
+          ignore_unreachable: true
+
             - name: Run the teardown process
               include_tasks: "{{ item }}/hooks/teardown.yml"
               loop: "{{ dci_config_dirs }}"
               when: dci_teardown_on_failure|bool
-          ignore_unreachable: true
-          ignore_errors: true
 
           always:
             - name: Run the error process
@@ -105,12 +105,12 @@
 
       rescue: &teardown_failure
         - block:
+          ignore_unreachable: true
+
             - name: Run the teardown process
               include_tasks: "{{ item }}/hooks/teardown.yml"
               loop: "{{ dci_config_dirs }}"
               when: dci_teardown_on_failure|bool
-          ignore_unreachable: true
-          ignore_errors: true
 
           always:
             - name: Run the failure process
