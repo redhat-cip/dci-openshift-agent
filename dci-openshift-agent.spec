@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.1.0
+Version:       0.1.1
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -101,6 +101,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Oct 29 2020 Frederic Lepied <flepied@redhat.com> 0.1.1-1
+- added cnf-tests files
+
 * Mon Oct 26 2020 Thomas Vassilian <tvassili@redhat.com> - 0.1.0-1
 - Fail if OCP nodes do not match installer inventory
 - Add an optional task to erase bootloader

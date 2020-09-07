@@ -48,6 +48,19 @@
   retries: 3
   delay: 10
 
+- name: Clone cnf-features-deploy
+  git:
+    version: "{{ cnf_features_deploy_branch }}"
+    repo: "{{ cnf_features_deploy_repo }}"
+    dest: "{{ dci_cache_dir }}/cnf_features_deploy_repo"
+    force: yes
+  # On RHEL8 git clone can sporadically fail with OpenSSL SSL_read:
+  # SSL_ERROR_SYSCALL, errno 104. This is a workaround to try cloning the repo
+  # multiple times.
+  register: cnf_features_deploy_clone
+  retries: 3
+  delay: 10
+
 - block:
   - name: Set variables from registry_host vars
     set_fact:
