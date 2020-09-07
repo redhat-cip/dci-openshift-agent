@@ -1,0 +1,153 @@
+# Mirror images needed for running cnf-tests
+---
+- block:
+  - name: Install packages needed for testing
+    package:
+      name: "{{ item }}"
+      state: present
+    become: true
+    with_items:
+      - podman
+
+  - name: Generate temp dir
+    tempfile:
+      state: directory
+      suffix: outputdir
+    register: outputdir
+
+  - name: Get oc command and KUBECONFIG from provisioner
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    fetch:
+      src: "{{ item }}"
+      dest: "{{ outputdir.path }}/"
+      flat: true
+    loop:
+      - /usr/local/bin/oc
+      - "~/clusterconfigs/auth/kubeconfig"
+
+  - name: Set local_registry_up
+    set_fact:
+      local_registry_up: "{{ local_registry_user }}:{{ local_registry_password }}"
+
+  - name: Set local_registry_auth
+    set_fact:
+      local_registry_auth: '"{{ local_registry_host }}:{{ local_registry_port }}": {"auth": "{{ local_registry_up | b64encode }}"}'
+
+  - name: Set redhat_registry_up
+    set_fact:
+      redhat_registry_up: "{{ redhat_registry_user }}:{{ redhat_registry_password }}"
+
+  - name: Set redhat_registry_auth
+    set_fact:
+      redhat_registry_auth: '"registry.redhat.io" : {"auth": "{{ redhat_registry_up | b64encode }}"}'
+
+  - name: Set quay_up
+    set_fact:
+      quay_up: "{{ quay_user }}:{{ quay_password }}"
+
+  - name: Set quay_auth
+    set_fact:
+      quay_auth: '"quay.io": {"auth": "{{ quay_up | b64encode }}"}'
+
+  - name: Create auth file
+    shell: |
+     echo '{
+        "auths": {
+                   {{ redhat_registry_auth }},
+                   {{ quay_auth }},
+                   {{ local_registry_auth }}
+         }
+      }' > "{{ outputdir.path }}/{{ registry_auth_file }}"
+
+  - name: Create images.json file
+    shell: |
+      echo '[
+        {
+            "registry": "quay.io/openshift-kni/",
+            "image": "cnf-tests:{{ cnf_tests_version }}"
+        },
+        {
+            "registry": "quay.io/openshift-kni/",
+            "image": "dpdk:{{ cnf_tests_version }}"
+        },
+        {
+            "registry": "quay.io/openshift-kni/",
+            "image": "performance-addon-operator-registry:{{ operator_channel }}-snapshot"
+        }
+
+      ]' > {{ outputdir.path }}/images.json
+
+  - name: Mirror cnf-tests and dpdk images to local repo
+    shell: >
+      podman run -v {{ outputdir.path }}/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests:{{ cnf_tests_version }}
+      /usr/bin/mirror -registry "{{ local_registry_host }}:{{ local_registry_port }}/" --images "/kubeconfig/images.json"
+      |  {{ outputdir.path }}/oc image mirror -f - -a {{ outputdir.path }}/{{ registry_auth_file }} --insecure=true
+    become: true
+
+  - name: Build catalog
+    shell:
+      cmd: >
+        {{ outputdir.path }}/oc adm catalog build
+        --appregistry-org redhat-operators
+        --from=registry.redhat.io/openshift4/ose-operator-registry:v{{ cnf_tests_version }}
+        --filter-by-os="linux/amd64"
+        --to={{ local_registry_host }}:{{ local_registry_port }}/olm/redhat-operators:v1 -a {{ outputdir.path }}/{{ registry_auth_file }} --insecure
+
+  - name: Mirror catalog manifests
+    shell:
+      cmd: >
+        cd {{ outputdir.path }} &&
+        {{ outputdir.path }}/oc adm catalog mirror {{ local_registry_host }}:{{ local_registry_port }}/olm/redhat-operators:v1 
+        {{ local_registry_host }}:{{ local_registry_port }} -a {{ outputdir.path }}/{{ registry_auth_file }} --insecure
+        --filter-by-os="linux/amd64" --manifests-only -a {{ outputdir.path }}/{{ registry_auth_file }}
+
+  - name: Use only manifests that are needed for cnf-tests
+    shell: |
+      grep -i 'performance\|sriov\|ptp' {{ outputdir.path }}/redhat-operators-manifests/mapping.txt > {{ outputdir.path }}/redhat-operators-manifests/mapping_2.txt
+
+  - name: Mirror images to local repo
+    shell: |
+      {{ outputdir.path }}/oc image mirror -a {{ outputdir.path }}/{{ registry_auth_file }} -f {{ outputdir.path }}/redhat-operators-manifests/mapping_2.txt --insecure
+
+  - name: Apply image content source policy
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -f {{ outputdir.path }}/redhat-operators-manifests/imageContentSourcePolicy.yaml
+
+  - name: Create catalog src
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      cat << EOF | {{ outputdir.path }}/oc apply -f -
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: CatalogSource
+      metadata:
+        name: mirrored-redhat-operators
+        namespace: openshift-marketplace
+      spec:
+        sourceType: grpc
+        image: {{ local_registry_host }}:{{ local_registry_port }}/olm/redhat-operators:v1
+        displayName: Red Hat Operators
+        publisher: grpc
+      EOF
+
+  - name: Wait for 10 seconds..
+    wait_for:
+      timeout: 10
+
+  - name: Wait for worker nodes to be ready with the new image content source policy. Please be patient, this can take a while..
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker --timeout=45m
+
+  - name: Check if master nodes are ready with the new image content source policy. Waiting till they are ready...
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/master --timeout=45m
+
+  - name: Configure registry
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
+      {{ outputdir.path }}/oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'
+  when:
+    - dci_openshift_agent_cnf_tests_mode is defined and dci_openshift_agent_cnf_tests_mode == "disconnected"

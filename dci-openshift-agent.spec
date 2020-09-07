@@ -106,6 +106,10 @@ exit 0
 %{_datadir}/dci-openshift-agent/plays/image-side-load.yml
 %{_datadir}/dci-openshift-agent/plays/podman-setup.yml
 %{_datadir}/dci-openshift-agent/plays/dci-tests.yml
+%{_datadir}/dci-openshift-agent/plays/create_local_git_repo.yaml
+%{_datadir}/dci-openshift-agent/plays/mirror_images.yml
+%{_datadir}/dci-openshift-agent/plays/cnf-tests-run.yaml
+%{_datadir}/dci-openshift-agent/plays/cnf-tests-setup.yaml
 %{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 %{_datadir}/dci-openshift-agent/plays/upload_logs.yml
 %{_datadir}/dci-openshift-agent/group_vars/all

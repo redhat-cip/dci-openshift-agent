@@ -1,0 +1,119 @@
+---
+- block:
+  - name: Generate temp dir
+    tempfile:
+      state: directory
+      suffix: outputdir
+    register: outputdir
+
+  - name: Get oc command and KUBECONFIG from provisioner
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    fetch:
+      src: "{{ item }}"
+      dest: "{{ outputdir.path }}/"
+      flat: true
+    loop:
+      - /usr/local/bin/oc
+      - "~/clusterconfigs/auth/kubeconfig"
+
+  - name: Creating default worker pool worker-cnf
+    shell: |
+     export KUBECONFIG={{ outputdir.path }}/kubeconfig
+     PATH=$PATH:{{ outputdir.path }}
+     cd "{{ cnf_features_deploy_dir }}" && make setup-test-cluster
+     PATH=${PATH/":{{ outputdir.path }}"/}
+
+  - name: wait for nodes to be ready with updated mcp. Please be patient as this can take a while..
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker-cnf --timeout=45m
+
+  - name: Set operator channel version
+    shell: |
+      cd "{{ cnf_feature_deploy_feature_configs_dir }}"
+      find  -type f  ! -path 'sctp' ! -path 'dpdk' -print0 | xargs -0 sed -i -e "s/channel:.*/channel: "'"{{ operator_channel }}"'"/g"
+
+  - name: Set operator subscription src
+    shell: |
+      cd "{{ cnf_feature_deploy_feature_configs_dir }}"
+      find -type f -not -path "./sctp/*" -not -path "./dpdk/*" -print0 | xargs -0 sed -i -e "s/source:.*/source: mirrored-redhat-operators/g"
+    when:
+      - dci_openshift_agent_cnf_tests_mode == "disconnected"
+
+  - name: Change github repo and dpdk base image to point to local ones for dpdk bc
+    shell: |
+       sed -i  "s|{{ cnf_features_deploy_repo }}|http://$HOSTNAME/cnf-features-deploy.git|g" {{ cnf_feature_deploy_feature_configs_dir }}/dpdk/build-config.yaml
+       sed -i  "s|quay.io/openshift-kni/dpdk.*|{{ local_registry_host }}:{{ local_registry_port }}/dpdk:{{ cnf_tests_version }}|g" {{ cnf_feature_deploy_feature_configs_dir }}/dpdk/build-config.yaml
+
+  - name: Remove branch type in dpdk buildconfig as we are cloning a single branch
+    shell: |
+       sed -i -e "s/ref: .*//g" {{ cnf_feature_deploy_feature_configs_dir }}/dpdk/build-config.yaml
+       sed -i -e "s/type: Git//g" {{ cnf_feature_deploy_feature_configs_dir }}/dpdk/build-config.yaml
+
+  - name: Change the image for deploying performance
+    shell:
+      cmd: >
+        sed -i "s|image: .*|image: {{ local_registry_host }}:{{ local_registry_port }}/performance-addon-operator-registry:{{ cnf_tests_version }}-snapshot|g"
+        {{ cnf_feature_deploy_feature_configs_dir }}/performance/operator_catalogsource.yaml
+
+  - name: Deploy sctp feature
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/sctp
+      sleep 20
+
+  - name: wait for nodes to be ready with updated mc. Please be patient as this can take a while..
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker-cnf --timeout=45m
+
+  - name: Deploy ptp feature
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/ptp
+      sleep 5
+
+  - name: Wait for ptp operator to be ready
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=Ready pod -l name=ptp-operator -n openshift-ptp --timeout=5m
+
+  - name: Deploy performance feature
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/../integration-base/performance
+      sleep 20
+
+  - name: wait for nodes to be ready with updated mc. Please be patient as this can take a while..
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker-cnf --timeout=45m
+
+  - name: Wait for performance addon operator to be ready
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=Ready pod -l name=performance-operator -n openshift-performance-addon --timeout=5m
+
+  - name: Deploy sriov feature
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/sriov
+      sleep 10
+
+  - name: Wait for sriov operator to be ready
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=Ready pod -l name=sriov-network-operator -n openshift-sriov-network-operator --timeout=5m
+
+  - name: Deploy dpdk feature
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc apply -k "{{ cnf_feature_deploy_feature_configs_dir }}"/dpdk
+      sleep 5
+
+  - name: Wait for dpdk s2i build to be ready
+    shell: |
+      export KUBECONFIG={{ outputdir.path }}/kubeconfig
+      {{ outputdir.path }}/oc wait --for=condition=Complete build -l app=s2i-dpdk -n dpdk --timeout=5m
+  when:
+    - (dci_openshift_agent_cnf_tests_mode is defined) and (dci_openshift_agent_cnf_tests_mode == "non-disconnected" or dci_openshift_agent_cnf_tests_mode == "disconnected")
