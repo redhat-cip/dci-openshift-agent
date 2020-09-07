@@ -17,4 +17,26 @@
   when:
     - dci_openshift_agent_conformance is defined
     - dci_openshift_agent_conformance | length > 0
+
+# Setup and run cnf-tests
+- block:
+
+    - name: Create local git repo on jumphost for disconnected cnf-tests
+      include_tasks: cnf-tests-git.yml
+      when:
+        - "'registry_host' in groups"
+        - groups['registry_host'] | length > 0
+        - dci_openshift_agent_cnf_tests_mode == "offline"
+
+    - name: Mirror images to local registry for disconnected cnf-tests
+      include_tasks: cnf-tests-mirror.yml
+      when: dci_openshift_agent_cnf_tests_mode == "offline"
+
+    - name: Run cnf tests
+      include_tasks: cnf-tests-run.yml
+      when: >
+        dci_openshift_agent_cnf_tests_mode == "online" or dci_openshift_agent_cnf_tests_mode == "offline"
+
+  when:
+    - dci_openshift_agent_cnf_tests_mode is defined
 ...
