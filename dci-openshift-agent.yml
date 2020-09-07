@@ -166,7 +166,32 @@
 
         - name: Run the failure process
           include_tasks: plays/failure.yml
+    - block:
+        # Setup and run cnf-tests
+        - name: Create local git repo on jumphost for disconnected cnf-tests
+          include_tasks: plays/create_local_git_repo.yaml
 
+        - name: Mirror images to local registry for disconnected cnf-tests
+          include_tasks: plays/mirror_images.yml
+
+        - name: Deploy cnf features
+          include_tasks: plays/cnf-tests-setup.yaml
+
+        - name: Run cnf tests
+          include_tasks: plays/cnf-tests-run.yaml
+      rescue:
+        - name: Run the teardown process
+          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          when: dci_teardown_on_failure|bool
+
+        - name: Run the failure process
+          include_tasks: plays/failure.yml
+    - block:
+        - name: Clean up clusterconfig dir
+          file:
+            path: "{{ dci_cluster_config_dir }}"
+            state: absent
+            
 # Step 6 : state "post-run"
 - name: 'Launch post-run tests'
   hosts: localhost
