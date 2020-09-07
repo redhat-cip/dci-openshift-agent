@@ -1,0 +1,154 @@
+# Mirror images needed for running cnf-tests
+---
+  - name: Set facts
+    set_fact:
+      _pullsecret_file: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+
+  - name: Install skopeo
+    package:
+      name:
+        - skopeo
+      state: present
+    become: true
+
+  - name: Login as admin user for cnf-tests
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_configs_dir }}/oc login --insecure-skip-tls-verify=true -u admin -p admin https://api.{{ cluster }}.{{ domain }}:6443
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Create images.json file
+    shell: |
+      echo '[
+        {
+            "registry": "quay.io/openshift-kni/",
+            "image": "cnf-tests:{{ cnf_tests_image }}"
+        },
+        {
+            "registry": "quay.io/openshift-kni/",
+            "image": "dpdk:{{ cnf_tests_image }}"
+        },
+        {
+            "registry": "quay.io/openshift-kni/",
+            "image": "performance-addon-operator-registry:{{ cnf_operator_channel }}-snapshot"
+        }
+
+      ]' > {{ dci_cluster_configs_dir }}/images.json
+
+  - name: Mirror cnf-tests and dpdk images to local repo
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell: >
+      set -o pipefail;
+      podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests:{{ cnf_tests_image }}
+      /usr/bin/mirror -registry "{{ local_registry_host }}:{{ local_registry_port }}/" --images "/kubeconfig/images.json"
+      |  {{ dci_cluster_configs_dir }}/oc image mirror -f - -a {{ _pullsecret_file }} --insecure=true
+
+  - name: Build catalog
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell:
+      cmd: >
+        {{ dci_cluster_configs_dir }}/oc adm catalog build
+        --appregistry-org redhat-operators
+        --from=registry.redhat.io/openshift4/ose-operator-registry:v{{ cnf_tests_image }}
+        --filter-by-os="linux/amd64"
+        --to={{ local_registry_host }}:{{ local_registry_port }}/olm/redhat-operators:v1 -a {{ _pullsecret_file }} --insecure
+
+  - name: Mirror catalog manifests
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell:
+      cmd: >
+        cd {{ dci_cluster_configs_dir }} &&
+        {{ dci_cluster_configs_dir }}/oc adm catalog mirror {{ local_registry_host }}:{{ local_registry_port }}/olm/redhat-operators:v1
+        {{ local_registry_host }}:{{ local_registry_port }} -a {{ _pullsecret_file }} --insecure
+        --filter-by-os="linux/amd64" --manifests-only
+
+  - name: Use only manifests that are needed for cnf-tests # noqa 306
+    shell: >
+      grep -i 'performance\|sriov\|ptp' {{ dci_cluster_configs_dir }}/redhat-operators-manifests/mapping.txt
+      > {{ dci_cluster_configs_dir }}/redhat-operators-manifests/mapping_2.txt
+
+  - name: Modify the manifest file to copy using skopeo # noqa 303
+    shell: |
+       sed -i -e "s/\=/ docker\:\/\//g" {{ dci_cluster_configs_dir }}/redhat-operators-manifests/mapping_2.txt
+       sed -i -e "s/^/docker\:\/\//g" {{ dci_cluster_configs_dir }}/redhat-operators-manifests/mapping_2.txt
+
+  - name: Mirror images to local repo
+    shell:
+      cmd: >
+        while IFS= read -r line; do skopeo copy --authfile {{ _pullsecret_file }}
+        --dest-tls-verify=false --all $line ;done < {{ dci_cluster_configs_dir }}/redhat-operators-manifests/mapping_2.txt
+
+  - name: Apply image content source policy
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_configs_dir }}/oc apply -f {{ dci_cluster_configs_dir }}/redhat-operators-manifests/imageContentSourcePolicy.yaml
+    register: create_icsp
+    changed_when: "'imagecontentsourcepolicy.operator.openshift.io \"redhat-operators\" created' in create_icsp.stdout"
+
+  - name: Create catalog src
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_configs_dir }}/oc apply -f - << EOF
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: CatalogSource
+      metadata:
+        name: mirrored-redhat-operators
+        namespace: openshift-marketplace
+      spec:
+        sourceType: grpc
+        image: "{{ local_registry_host }}:{{ local_registry_port }}/olm/redhat-operators:v1"
+        displayName: Red Hat Operators
+        publisher: grpc
+      EOF
+    register: create_catsource
+    changed_when: "'catalogsource.operators.coreos.com/mirrored-redhat-operators' in create_catsource.stdout"
+
+  - name: wait for master MCP to start updating
+    environment:
+      KUBECONFIG:  "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_configs_dir }}/oc wait --for=condition=Updating --timeout=300s mcp master
+    changed_when: false
+
+  - name: wait for worker MCP to start updating
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_configs_dir }}/oc wait --for=condition=Updating --timeout=300s mcp worker
+    changed_when: false
+
+  - name: Check if master nodes are ready with the new image content source policy. Waiting till they are ready...
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_configs_dir }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/master --timeout=45m
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Wait for worker nodes to be ready with the new image content source policy. Please be patient, this can take a while..
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_configs_dir }}/oc wait --for=condition=updated machineconfigpool.machineconfiguration.openshift.io/worker --timeout=45m
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Configure registry
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_configs_dir }}/oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{} } } }'
+      {{ dci_cluster_configs_dir }}/oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"} }'
