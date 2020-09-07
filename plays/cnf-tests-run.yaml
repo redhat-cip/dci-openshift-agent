@@ -1,0 +1,101 @@
+---
+  - name: Get date
+    command: date +%Y%m%d-%H%M%S
+    register: date
+
+  - name: set cnf_tests_image_registry for offline env
+    set_fact:
+       cnf_tests_image_registry: '{{ local_registry_host }}:{{ local_registry_port }}'
+    when: dci_openshift_agent_cnf_tests_mode == "offline"
+
+  - name: set cnf_tests_image_registry for online env
+    set_fact:
+       cnf_tests_image_registry: 'quay.io/openshift-kni'
+    when: dci_openshift_agent_cnf_tests_mode == "online"
+
+  - name: Run SCTP tests
+    environment:
+      REGISTRY_AUTH_FILE: "{{ _pullsecret_file }}"
+    shell:
+      cmd: >
+       podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
+       -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
+       -v {{ dci_cluster_configs_dir }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+       /usr/bin/test-run.sh  -ginkgo.focus="sctp" --junit /tests/{{ date.stdout }}/sctp
+    ignore_errors: yes
+    when: cnf_test_suites is defined and  "sctp" in cnf_test_suites
+
+  - name: Run PTP tests
+    environment:
+      REGISTRY_AUTH_FILE: "{{ _pullsecret_file }}"
+    shell:
+      cmd: >
+       podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
+       -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
+       -v {{ dci_cluster_configs_dir }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+       /usr/bin/test-run.sh  -ginkgo.focus="ptp" --junit  /tests/{{ date.stdout }}/ptp
+    ignore_errors: yes
+    when: cnf_test_suites is defined and "ptp" in cnf_test_suites
+
+  - name: Run performance tests
+    environment:
+      REGISTRY_AUTH_FILE: "{{ _pullsecret_file }}"
+    shell:
+      cmd: >
+       podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
+       -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
+       -v {{ dci_cluster_configs_dir }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+       /usr/bin/test-run.sh  -ginkgo.focus="performance" --junit  /tests/{{ date.stdout }}/performance
+    ignore_errors: yes
+    when: cnf_test_suites is defined and "performance" in cnf_test_suites
+
+  - name: Run SRIOV tests
+    environment:
+      REGISTRY_AUTH_FILE: "{{ _pullsecret_file }}"
+    shell:
+      cmd: >
+         podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
+         -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
+         -v {{ dci_cluster_configs_dir }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+         /usr/bin/test-run.sh  -ginkgo.focus="sriov" --junit  /tests/{{ date.stdout }}/sriov
+    ignore_errors: yes
+    when: cnf_test_suites is defined and "sriov" in cnf_test_suites
+
+  - name: Run DPDK tests
+    environment:
+      REGISTRY_AUTH_FILE: "{{ _pullsecret_file }}"
+    shell:
+      cmd: >
+        podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
+        -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }} -e DPDK_TESTS_IMAGE=dpdk:{{ cnf_tests_image }}
+        -v {{ dci_cluster_configs_dir }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+        /usr/bin/test-run.sh  -ginkgo.focus="dpdk" --junit  /tests/{{ date.stdout }}/dpdk
+    ignore_errors: yes
+    when: cnf_test_suites is defined and "dpdk" in cnf_test_suites
+
+  - name: Rename junit xml files with the feature name
+    shell: |
+       cd {{ dci_cluster_configs_dir }}/{{ date.stdout }}/sctp && for i in *; do mv "$i" sctp_"$i"; done
+       cd {{ dci_cluster_configs_dir }}/{{ date.stdout }}/ptp && for i in *; do mv "$i" ptp_"$i"; done
+       cd {{ dci_cluster_configs_dir }}/{{ date.stdout }}/performance && for i in *; do mv "$i" performance_"$i"; done
+       cd {{ dci_cluster_configs_dir }}/{{ date.stdout }}/sriov && for i in *; do mv "$i" sriov_"$i"; done
+       cd {{ dci_cluster_configs_dir }}/{{ date.stdout }}/dpdk && for i in *; do mv "$i" dpdk_"$i"; done
+
+  - name: Find test Junit files
+    find:
+      paths: "{{ dci_cluster_configs_dir }}"
+      recurse: yes
+      patterns: "*.xml"
+    register: junit_matched
+
+  - name: Upload Junit files to DCI Control Server
+    environment:
+      - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
+      - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
+      - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
+    dci_file:
+      path: "{{ item.path }}"
+      name: "{{ item.path | basename | regex_replace('^(.*).xml$','\\1') }}"
+      job_id: "{{ hostvars.localhost.job_id }}"
+      mime: "application/junit"
+    with_items: "{{ junit_matched.files }}"

@@ -1,0 +1,4 @@
+- name: Clean up clusterconfig dir
+  file:
+    path: "{{ dci_cluster_configs_dir }}"
+    state: absent
