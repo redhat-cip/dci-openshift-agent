@@ -159,6 +159,9 @@
         - include_tasks: plays/tests.yml
 
       rescue: *teardown_failure
+      always:
+        - name: Clean up clusterconfig dir
+          include_tasks: plays/cleanup.yml
 
 # Step 5 : partner testing
 - name: 'Launch partner tests'
