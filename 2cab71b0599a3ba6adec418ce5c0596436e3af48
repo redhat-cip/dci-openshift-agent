@@ -1,0 +1,327 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ee9e1bd4_1f4e4357",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "this should be under an \"always\" section in the above block, and possibly as a \"cnf-cleanup.yml\" playbook",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6482a6e5_e92d65de",
+        "filename": "group_vars/all",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "i think \"online\" and \"offline\" are more meaningful",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "27de6549_c474d436",
+        "filename": "group_vars/all",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "there is a mix and match of prefixes here, you should stick with cnf and dci whenever it makes sense, and also prefix local_ and quay_ and redhat_ variables as well, so we know they are all related to the cnf setup",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1f8c0153_02de9242",
+        "filename": "group_vars/all",
+        "patchSetId": 6
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "this might be better named cnf_tests_image or similar",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "95806330_877a1166",
+        "filename": "plays/cnf-tests-run.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "i think you don\u0027t need these many variables, just using a \"cnd_tests_image\" with e.g. quay.io/cnf-tests/foo:bar should simplify it",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c62eeee0_46999f46",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "this becomes more readable if you run this with an environment section where you export the PATH like in the task you wrote above, no need to set the PATH back since all tasks are isolated from one another",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8879461d_4daea54b",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "replace with an oc wait",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d9116ceb_bb8957aa",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "replace with an oc wait",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "71020377_a05529f5",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "replace with an oc wait",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "81bcf56d_ca9db79d",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "replace with an oc wait",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "74af9bbc_180ab01f",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "i think this and the firewall setup is already done in a different previous playbook",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "99d773a5_6aca4a11",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "if you\u0027re cleaning up this repo every time, use a shallow clone of depth\u003d1, but maybe you should keep the git repo in-between runs, in which case a full clone makes sense with update\u003dyes to ensure it is kept up to date",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ad7ede30_f6cada31",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "this step becomes unnecessary if you suffix dest in the previous task with .git",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2b73501a_b2d0c320",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "I don\u0027t understand this step, are you pushing to this mirrored git repo from somewhere?",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d5326653_edd1120f",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "same as my comment above",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c8fe6471_3ae24814",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "if you don\u0027t plan on using rescue/always sections, remove the block and unindent the tasks",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f45e16e6_93621048",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "I am a bit torn here: to me, it is simpler to replace all of this with a single variable that holds the entire contents of the auths file and write that to disk, but I am not sure about the logistics",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4fa3c2e0_3bddd665",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "you only want to do this when using the local mirror, right?",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a7e1aed0_3b0c4076",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-09T22:26:07Z",
+      "side": 1,
+      "message": "replace with a wait process",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
