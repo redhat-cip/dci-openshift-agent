@@ -2,7 +2,7 @@
 - block:
   - name: openshift conformance minimal tests
     command: |
-      podman run --rm -e TESTS="{{ dci_openshift_agent_conformance }}" -v {{ dci_cluster_config_dir }}:/tests:Z quay.io/eminguez/ose-tests-full:latest
+      podman run --pull=always --rm -e TESTS="{{ dci_openshift_agent_conformance }}" -v {{ dci_cluster_config_dir }}:/tests:Z {{ dci_ose_tests_image }}
 
   - name: Find test logs
     find:
