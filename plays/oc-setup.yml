@@ -75,29 +75,30 @@
     register: result
     until: result.rc == 0
 
-  - name: Create a self-provisioner-namespace cluster role
+  - name: Get cluster role definition from github in the provisioner
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    get_url:
+      url: "https://raw.githubusercontent.com/e-minguez/ose-tests/master/rbac/osetests-{{ dci_openshift_agent_conformance }}.yaml"
+      dest: "/tmp/osetests-{{ dci_openshift_agent_conformance }}.yaml"
+
+  - name: Get cluster role definition from provisioner
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    fetch:
+      src: "/tmp/osetests-{{ dci_openshift_agent_conformance }}.yaml"
+      dest: "{{ dci_cluster_config_dir }}/osetests-{{ dci_openshift_agent_conformance }}.yaml"
+      flat: true
+  
+  - name: Remove the cluster role definition file in the provisioner
+    delegate_to: "{{ groups['provisioner'][0] }}"
+    file:
+      path: "/tmp/osetests-{{ dci_openshift_agent_conformance }}.yaml"
+      state: absent
+
+  - name: Give the non-admin user the required role
     environment:
       KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
     shell: |
-      cat <<EOF | {{ dci_cluster_config_dir }}/oc apply -f -
-      apiVersion: rbac.authorization.k8s.io/v1
-      kind: ClusterRole
-      metadata:
-        annotations:
-          openshift.io/description: A user that can create and delete namespaces
-        name: self-provisioner-namespaces
-      rules:
-      - apiGroups:
-        - ""
-        resources:
-        - namespaces
-        verbs:
-        - "*"
-      EOF
-
-      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user admin nonadmin
-      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user cluster-reader nonadmin
-      {{ dci_cluster_config_dir }}/oc adm policy add-cluster-role-to-user self-provisioner-namespaces nonadmin
+      {{ dci_cluster_config_dir }}/oc auth reconcile -f {{ dci_cluster_config_dir }}/osetests-{{ dci_openshift_agent_conformance }}.yaml
       # It can take a while for the user to be given the permissions
 
   - name: Wait for the nonadmin user to reflect permissions
