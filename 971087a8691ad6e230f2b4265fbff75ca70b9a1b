@@ -16,6 +16,24 @@
       "revId": "971087a8691ad6e230f2b4265fbff75ca70b9a1b",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e4810b74_2ce3a41c",
+        "filename": "plays/oc-setup.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 655
+      },
+      "writtenOn": "2020-09-11T12:29:28Z",
+      "side": 1,
+      "message": "Is this playbook executed in the jumphost?",
+      "parentUuid": "58d4ac13_53c4f9ee",
+      "revId": "971087a8691ad6e230f2b4265fbff75ca70b9a1b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
