@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "58d4ac13_53c4f9ee",
+        "filename": "plays/oc-setup.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-11T12:27:26Z",
+      "side": 1,
+      "message": "you don\u0027t need to do this in the provisioner, can be done directly on the jumphost I believe, get_url straight to dci_cluster_config_dir",
+      "revId": "971087a8691ad6e230f2b4265fbff75ca70b9a1b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
