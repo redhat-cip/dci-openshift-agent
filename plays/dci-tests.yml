@@ -1,5 +1,40 @@
 ---
 - block:
+  - name: Login with non-admin user to create the nonadmin_kubeconfig file
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/nonadmin_kubeconfig"
+    shell: |
+      # It can take a few moments for the user to be created...
+      {{ dci_cluster_config_dir }}/oc login --insecure-skip-tls-verify=true -u nonadmin -p nonadmin https://api.{{ cluster }}.{{ domain }}:6443
+    retries: 10
+    delay: 10
+    register: result
+    until: result.rc == 0
+
+  - name: Get cluster role definition from github
+    get_url:
+      url: "https://raw.githubusercontent.com/e-minguez/ose-tests/master/rbac/osetests-{{ dci_openshift_agent_conformance }}.yaml"
+      dest: "{{ dci_cluster_config_dir | expanduser }}/osetests-{{ dci_openshift_agent_conformance }}.yaml"
+
+  - name: Give the non-admin user the required role
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_config_dir }}/oc auth reconcile -f {{ dci_cluster_config_dir }}/osetests-{{ dci_openshift_agent_conformance }}.yaml
+      # It can take a while for the user to be given the permissions
+
+  - name: Wait for the nonadmin user to reflect permissions
+    environment:
+      KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+    shell: |
+      # probe for up to 2 minutes (t*sleep time)
+      for t in {1..60}; do
+        {{ dci_cluster_config_dir }}/oc adm policy who-can '*' namespaces | grep nonadmin && exit 0
+        echo "waiting..."
+        sleep 2;
+      done
+      exit 1
+
   - name: openshift conformance minimal tests
     command: |
       podman run --pull=always --rm -e TESTS="{{ dci_openshift_agent_conformance }}" -v {{ dci_cluster_config_dir }}:/tests:Z {{ dci_ose_tests_image }}
