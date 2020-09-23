@@ -16,20 +16,19 @@
       url: "https://raw.githubusercontent.com/e-minguez/ose-tests/master/rbac/osetests-{{ dci_openshift_agent_conformance }}.yaml"
       dest: "{{ dci_cluster_config_dir | expanduser }}/osetests-{{ dci_openshift_agent_conformance }}.yaml"
 
-  - name: Give the non-admin user the required role
+  - name: Create cluster role with the minimum set of permissions needed for tests
     environment:
       KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
     shell: |
       {{ dci_cluster_config_dir }}/oc auth reconcile -f {{ dci_cluster_config_dir }}/osetests-{{ dci_openshift_agent_conformance }}.yaml
-      # It can take a while for the user to be given the permissions
 
-  - name: Wait for the nonadmin user to reflect permissions
+  - name: Wait for the clusterrole to appear in openshift
     environment:
       KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
     shell: |
       # probe for up to 2 minutes (t*sleep time)
       for t in {1..60}; do
-        {{ dci_cluster_config_dir }}/oc adm policy who-can '*' namespaces | grep nonadmin && exit 0
+        {{ dci_cluster_config_dir }}/oc get clusterrole/osetests-{{ dci_openshift_agent_conformance }} && exit 0
         echo "waiting..."
         sleep 2;
       done
