@@ -27,11 +27,12 @@
     environment:
       KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
     shell: |
-      # probe for up to 2 minutes (t*sleep time)
+      # probe for up to 5 minutes (t*sleep time)
       for t in {1..60}; do
         {{ dci_cluster_config_dir }}/oc adm policy who-can '*' namespaces | grep nonadmin && exit 0
+        {{ dci_cluster_config_dir }}/oc adm policy who-can '*' namespaces
         echo "waiting..."
-        sleep 2;
+        sleep 5
       done
       exit 1
 
