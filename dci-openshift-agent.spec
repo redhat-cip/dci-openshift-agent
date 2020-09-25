@@ -37,9 +37,10 @@ install -p -D -m 644 hooks/user-tests.yml %{buildroot}%{_sysconfdir}/dci-openshi
 install -p -D -m 644 hooks/teardown.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/teardown.yml
 install -p -D -m 644 settings.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/settings.yml
 
+find roles/oc-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
+
 install -p -D -m 644 plays/configure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/configure.yml
 install -p -D -m 644 plays/running.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/running.yml
-install -p -D -m 644 plays/oc-setup.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/oc-setup.yml
 install -p -D -m 644 plays/image-side-load.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/image-side-load.yml
 install -p -D -m 644 plays/podman-setup.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/podman-setup.yml
 install -p -D -m 644 plays/dci-tests.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/dci-tests.yml
@@ -95,10 +96,11 @@ exit 0
 %{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
 %{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 
+%{_datadir}/dci-openshift-agent/roles/oc-setup/*
+
 %{_datadir}/dci-openshift-agent/plays/failure.yml
 %{_datadir}/dci-openshift-agent/plays/configure.yml
 %{_datadir}/dci-openshift-agent/plays/running.yml
-%{_datadir}/dci-openshift-agent/plays/oc-setup.yml
 %{_datadir}/dci-openshift-agent/plays/image-side-load.yml
 %{_datadir}/dci-openshift-agent/plays/podman-setup.yml
 %{_datadir}/dci-openshift-agent/plays/dci-tests.yml
@@ -117,7 +119,10 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
-* Wed Aug 26 2020 Jorge A Gallegos <kad@blegh.net> - 0.0.1-3
+* Tue Oct 13 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-4
+- oc-setup is now a role
+
+* Wed Aug 26 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-3
 - Unbundled the oc setup from the dci-tests play
 - Images are now side-loaded onto the openshift cluster nodes
 - Podman is setup on its own playbook

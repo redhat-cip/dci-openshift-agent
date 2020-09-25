@@ -129,8 +129,9 @@
     dci_status: 'running'
   tasks:
     - block:
-        - name: Login to the openshift cluster
-          include_tasks: plays/oc-setup.yml
+        - name: "dci-openshift-agent : Setup openshift access"
+          include_role:
+            name: oc-setup
 
         - name: Setup podman on the jumphost
           include_tasks: plays/podman-setup.yml
@@ -141,6 +142,7 @@
         - name: Run the Red Hat tests
           include_tasks: plays/dci-tests.yml
           when: dci_openshift_agent_conformance is defined and dci_openshift_agent_conformance != ""
+
       rescue:
         - name: Run the teardown process
           include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
