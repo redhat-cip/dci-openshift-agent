@@ -332,6 +332,24 @@
     },
     {
       "key": {
+        "uuid": "c29c3925_778cebd0",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-09-29T11:57:34Z",
+      "side": 1,
+      "message": "S2i build does not like shallow - [kni@provisioner.cluster6.dfwt5g.lab tmp]$ oc logs -n dpdk build/s2i-dpdk-1\nCloning \"http://jumphost.cluster6.dfwt5g.lab/cnf-features-deploy.git\" ...\nerror: fatal: protocol error: expected sha/ref, got \u0027shallow d86972a28ff18e93b677a41b6002e2a592b14964\u0027\nSo I will not change the dpeth",
+      "parentUuid": "dfed20b3_955132c6",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad7ede30_f6cada31",
         "filename": "plays/create_local_git_repo.yaml",
         "patchSetId": 6
