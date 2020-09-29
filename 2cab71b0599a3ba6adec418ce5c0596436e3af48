@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8f32027d_65791949",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-09-29T10:06:19Z",
+      "side": 1,
+      "message": "Makes sense. I will add cleanup.yml. Should that be under hooks or play directory?",
+      "parentUuid": "ee9e1bd4_1f4e4357",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6482a6e5_e92d65de",
         "filename": "group_vars/all",
         "patchSetId": 6
@@ -104,6 +122,24 @@
     },
     {
       "key": {
+        "uuid": "d002ec48_3940518a",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-09-29T10:06:19Z",
+      "side": 1,
+      "message": "Makes sense",
+      "parentUuid": "c62eeee0_46999f46",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8879461d_4daea54b",
         "filename": "plays/cnf-tests-setup.yaml",
         "patchSetId": 6
@@ -115,6 +151,24 @@
       "writtenOn": "2020-09-09T22:26:07Z",
       "side": 1,
       "message": "replace with an oc wait",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "111ebe18_44882a09",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-09-29T10:06:19Z",
+      "side": 1,
+      "message": "After creating the resource. It takes a few seconds for the resource to be available to oc wait on. Otherwise oc wait will fail with resource not found.",
+      "parentUuid": "8879461d_4daea54b",
       "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
@@ -138,6 +192,24 @@
     },
     {
       "key": {
+        "uuid": "a5adae26_d6502440",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-09-29T10:06:19Z",
+      "side": 1,
+      "message": "After creating the resource. It takes a few seconds for the resource to be available to oc wait on. Otherwise oc wait will fail with resource not found.",
+      "parentUuid": "d9116ceb_bb8957aa",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "71020377_a05529f5",
         "filename": "plays/cnf-tests-setup.yaml",
         "patchSetId": 6
@@ -155,6 +227,24 @@
     },
     {
       "key": {
+        "uuid": "43730964_32891ed9",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-09-29T10:06:19Z",
+      "side": 1,
+      "message": "After creating the resource. It takes a few seconds for the resource to be available to oc wait on. Otherwise oc wait will fail with resource not found.",
+      "parentUuid": "71020377_a05529f5",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "81bcf56d_ca9db79d",
         "filename": "plays/cnf-tests-setup.yaml",
         "patchSetId": 6
@@ -166,6 +256,24 @@
       "writtenOn": "2020-09-09T22:26:07Z",
       "side": 1,
       "message": "replace with an oc wait",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ea17dd38_ce80b4e7",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-09-29T10:06:19Z",
+      "side": 1,
+      "message": "After creating the resource. It takes a few seconds for the resource to be available to oc wait on. Otherwise oc wait will fail with resource not found.",
+      "parentUuid": "81bcf56d_ca9db79d",
       "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
@@ -200,6 +308,24 @@
       "writtenOn": "2020-09-09T22:26:07Z",
       "side": 1,
       "message": "if you\u0027re cleaning up this repo every time, use a shallow clone of depth\u003d1, but maybe you should keep the git repo in-between runs, in which case a full clone makes sense with update\u003dyes to ensure it is kept up to date",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dfed20b3_955132c6",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-09-29T10:06:19Z",
+      "side": 1,
+      "message": "I am not sure how I can",
+      "parentUuid": "99d773a5_6aca4a11",
       "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
@@ -308,6 +434,24 @@
     },
     {
       "key": {
+        "uuid": "2c333993_04e49300",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-09-29T10:06:19Z",
+      "side": 1,
+      "message": "yes.",
+      "parentUuid": "4fa3c2e0_3bddd665",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a7e1aed0_3b0c4076",
         "filename": "plays/mirror_images.yml",
         "patchSetId": 6
@@ -319,6 +463,24 @@
       "writtenOn": "2020-09-09T22:26:07Z",
       "side": 1,
       "message": "replace with a wait process",
+      "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e7e2d8b4_11602b96",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-09-29T10:06:19Z",
+      "side": 1,
+      "message": "You mean oc wait?",
+      "parentUuid": "a7e1aed0_3b0c4076",
       "revId": "2cab71b0599a3ba6adec418ce5c0596436e3af48",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
