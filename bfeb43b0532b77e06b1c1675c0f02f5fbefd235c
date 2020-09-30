@@ -16,6 +16,24 @@
       "revId": "bfeb43b0532b77e06b1c1675c0f02f5fbefd235c",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4e815f6_9735b543",
+        "filename": "plays/dci-tests.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-09-30T12:30:53Z",
+      "side": 1,
+      "message": "this was just a test, if you look at previous failures you\u0027ll see a weird podman overlay error, I\u0027ve been trying to reproduce this but I couldn\u0027t, so I changed it to 2 steps, but that also didn\u0027t work as it complains \"--rm\" is an invalid flag now (???)",
+      "parentUuid": "11a42d7e_fe2502f5",
+      "revId": "bfeb43b0532b77e06b1c1675c0f02f5fbefd235c",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
     }
   ]
 }
