@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "11a42d7e_fe2502f5",
+        "filename": "plays/dci-tests.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 655
+      },
+      "writtenOn": "2020-09-30T07:50:56Z",
+      "side": 1,
+      "message": "Why the two steps? Doesn\u0027t --pull\u003dalways work?",
+      "revId": "bfeb43b0532b77e06b1c1675c0f02f5fbefd235c",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
