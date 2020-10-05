@@ -12,3 +12,5 @@ baremetal_deploy_version: HEAD
 dci_openshift_agent_conformance: ''
 dci_cluster_configs_dir: "{{'~/clusterconfigs' | expanduser}}-{{ cluster }}"
 dci_ose_tests_image: quay.io/eminguez/ose-tests-full:latest
+bundle_image: ''
+operator_sdk_version: v1.0.1
