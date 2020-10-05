@@ -193,6 +193,10 @@
     - block:
         - include_tasks: plays/tests.yml
 
+        - name: "dci-openshift-agent : Operator tests (CVP)"
+          include_role:
+            name: operator-tests
+
       rescue: *teardown_failure
 
 # Step 5 : partner testing

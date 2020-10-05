@@ -1,0 +1,47 @@
+---
+- block:
+  when:
+    - hostvars.localhost.cvp_submit
+  - name: RES API CALL / Create Certification
+    uri:
+        url: https://{{ pyxis_host }}/{{ resource_path }}
+        method: POST
+        client_cert: "{{ pyxis_crt }}"
+        client_key: "{{ pyxis_key }}"
+        body_format: json
+        body:
+            created_by: "DCI:{{ hostvars.localhost.job_id }}"
+    ignore_errors: yes
+    register: rest_certification
+    vars:
+        resource_path: "v1/projects/certification"
+
+  - name: Set identifier
+    set_fact:
+      identifier: "{{ rest_certification.json._id }}"
+    when:
+      - rest_certification.status ==  201
+
+  - name: REST API CALL / Request Scan
+    uri:
+        url: https://{{ pyxis_host }}/{{ resource_path }}
+        method: POST
+        client_cert: "{{ pyxis_crt }}"
+        client_key: "{{ pyxis_key }}"
+        body_format: json
+        body:
+            pull_spec: "{{ public_bundle_image }}"
+            created_by: "DCI:{{ hostvars.localhost.job_id }}"
+    ignore_errors: yes
+    register: rest_scan
+    vars:
+        resource_path: "v1/projects/certification/id/{{ identifier }}/requests/scans"
+    when:
+      - rest_certification.status ==  201
+
+  - name: DEBUG / GOT INFO
+    debug:
+        msg: "{{ rest_scan.json }}"
+    when:
+      - rest_scan.status ==  201
+...

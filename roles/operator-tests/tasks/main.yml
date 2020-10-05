@@ -1,0 +1,23 @@
+---
+# ansible-playbook -vv -i "localhost," --connection=local local-test-operator-bundle.yml -e bundle_image=quay.io/krsacme/testpmd-operator-bundle:v0.1.1 -e operator_sdk_version=v1.0.1
+- block:
+  - name: "operator-tests: Fetch bits"
+    include_tasks: 10_fetch_bits.yml
+
+  - name: "operator-tests: Install Dependencies"
+    include_tasks: 20_install_dependencies.yml
+
+  - name: "operator-tests: Run Bundle tests"
+    include_tasks: 30_run_bundle_tests.yml
+
+  - name: "operator-tests: Submit Operator bundle"
+    include_tasks: 40_submit_bundle.yml
+
+  - name: "operator-tests: Upload artifacts"
+    include_tasks: 50_upload_artifacts.yml
+
+  - name: "operator-tests: Cleanup"
+    include_tasks: 60_clean_up.yml
+when:
+  - bundle_image is defined
+...

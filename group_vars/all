@@ -28,3 +28,5 @@ dci_rpms_to_components:
   - python3-openshift
   - ansible
 dci_gits_to_components: "{{ dci_config_dirs }}"
+bundle_image: ''
+operator_sdk_version: v1.0.1

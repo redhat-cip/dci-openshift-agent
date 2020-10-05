@@ -1,0 +1,7 @@
+---
+- name: "Cleanup created resources on the KIND cluster"
+  include_role:
+    name: "{{ dci_cache_dir }}/operator-test-playbooks/roles/cleanup_operator_resources"
+  when:
+    - run_cleanup|bool
+...

@@ -57,6 +57,7 @@ find roles/operator-performance-profile -type f -exec install -v -p -D -m 644 "{
 find roles/operator-sriov -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/operators-mirror -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/cnv-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
+find roles/operator-tests -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 
@@ -121,6 +122,7 @@ exit 0
 %{_datadir}/dci-openshift-agent/roles/operator-sriov/*
 %{_datadir}/dci-openshift-agent/roles/operators-mirror/*
 %{_datadir}/dci-openshift-agent/roles/cnv-setup/*
+%{_datadir}/dci-openshift-agent/roles/operator-tests/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 

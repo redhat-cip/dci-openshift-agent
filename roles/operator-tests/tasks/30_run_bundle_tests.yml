@@ -1,0 +1,13 @@
+---
+- name: "Extract the operator bundle image into files needed to run the tests"
+  include_role:
+    name: "{{ dci_cache_dir }}/operator-test-playbooks/roles/extract_operator_bundle"
+
+- name: "Parse the operator bundle image, manifest and metadata"
+  include_role:
+    name: "{{ dci_cache_dir }}/operator-test-playbooks/roles/parse_operator_bundle"
+
+- name: "Validate the operator manifest and metadata using operator-sdk"
+  include_role:
+    name: "{{ dci_cache_dir }}/operator-test-playbooks/roles/validate_operator_bundle"
+...

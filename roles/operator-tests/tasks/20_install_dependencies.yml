@@ -1,0 +1,5 @@
+---
+- name: "Install pre-reqs"
+  debug:
+    msg: "dci_cache_dir: {{ dci_cache_dir }}"
+...

@@ -1,0 +1,12 @@
+---
+operator_cache_dir: "/tmp"
+operator_test_playbooks_version: "master"
+operator_test_playbooks_repo: github.com:redhat-operator-ecosystem/operator-test-playbooks.git
+run_upstream: false
+work_dir: ""
+operator_work_dir:
+operator_bundle_dir:
+testing_bin_path:
+jq_bin_path:
+yq_bin_path:
+umoci_bin_path:

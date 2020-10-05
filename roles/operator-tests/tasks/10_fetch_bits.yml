@@ -1,0 +1,22 @@
+---
+- name: Clone operator-test-playbooks
+  git:
+    version: "{{ operator_test_playbooks_version }}"
+    repo: "{{ operator_test_playbooks_repo }}"
+    dest: "{{ dci_cache_dir }}/operator-test-playbooks"
+    force: yes
+  # On RHEL8 git clone can sporadically fail with OpenSSL SSL_read:
+  # SSL_ERROR_SYSCALL, errno 104. This is a workaround to try cloning the repo
+  # multiple times.
+  register: operator_test_playbooks_clone
+  retries: 3
+  delay: 10
+
+- name: Mirror bundle image
+  shell: |
+    oc adm mirror # mirror bundle_image to local registry
+
+- name: Set bundle image to mirror
+  set_facts:
+    bundle_image: "{{ local_registry | quote }}/{{ local_repo | quote }}:{{ operator_version | quote }}"
+...
