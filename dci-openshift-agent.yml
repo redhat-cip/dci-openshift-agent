@@ -108,7 +108,7 @@
     - block:
         # Launch installer
         - name: Launch installer
-          include_tasks: '{{ dci_config_dir }}/hooks/running.yml'
+          include_tasks: plays/running.yml
 
       rescue:
         - name: Run the teardown process
@@ -172,8 +172,8 @@
         - name: Run the failure process
           include_tasks: plays/failure.yml
 
-# Step 7 : Upload logs
-- name: Upload logs to DCI Control server
+# Step 7 : Post Run
+- name: Launch post run
   hosts: localhost
   tags:
     - post-run
@@ -181,7 +181,7 @@
     dci_status: 'post-run'
   tasks:
     - block:
-        - include_tasks: plays/upload_logs.yml
+        - include_tasks: plays/post_run.yml
       rescue:
         - name: Run the teardown process
           include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
