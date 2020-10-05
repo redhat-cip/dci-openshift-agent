@@ -1,0 +1,31 @@
+---
+- name: set EXTERNAL_SUBNET
+  set_fact:
+    extcidrnet: "{{ ip | ipaddr('network') }}/{{ ip | ipaddr('prefix') }}"
+  vars:
+    ip: "{{ ansible_default_ipv4.address }}/{{ansible_default_ipv4.netmask }}"
+
+- name: Get version and build from localhost vars
+  set_fact:
+    version: "{{ hostvars.localhost.version }}"
+    build: "{{ hostvars.localhost.build }}"
+
+- name: Get pullsecret from localhost vars
+  set_fact:
+    pullsecret: "{{ hostvars.localhost.pullsecret| to_json }}"
+  no_log: true
+
+- name: Populate clusterosimage from fetch_bits
+  set_fact:
+    clusterosimage: "{{ hostvars.localhost.clusterosimage }}"
+  when: hostvars.localhost.clusterosimage is defined
+
+- name: Populate bootstraposimage from fetch_bits
+  set_fact:
+    bootstraposimage: "{{ hostvars.localhost.bootstraposimage }}"
+  when: hostvars.localhost.bootstraposimage is defined
+
+- import_role:
+    name: node-prep
+- import_role:
+    name: installer
