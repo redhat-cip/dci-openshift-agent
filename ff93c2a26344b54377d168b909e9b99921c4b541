@@ -16,6 +16,24 @@
       "revId": "ff93c2a26344b54377d168b909e9b99921c4b541",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "483d99b1_b61ef0f6",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 17
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-10-06T04:02:17Z",
+      "side": 1,
+      "message": "I am using cmd while using the \u003e is a folding block operator mostly in cnf-tests-run.yaml just so that it is readable.",
+      "parentUuid": "96cd8958_ff8217a8",
+      "revId": "ff93c2a26344b54377d168b909e9b99921c4b541",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
