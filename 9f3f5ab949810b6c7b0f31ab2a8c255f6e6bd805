@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c6265e1b_5111e5d7",
+        "filename": "plays/cnf-tests-run.yaml",
+        "patchSetId": 21
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-07T17:56:36Z",
+      "side": 1,
+      "message": "please add the --rm flag to this and all other podman run commands in here, so we don\u0027t leave stopped containers laying around",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eefc1225_5de5af25",
+        "filename": "plays/cnf-tests-setup.yaml",
+        "patchSetId": 21
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-07T17:56:36Z",
+      "side": 1,
+      "message": "dangling whitespace",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f13ba846_f56a98c5",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 21
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-07T17:56:36Z",
+      "side": 1,
+      "message": "this should be done with the systemd module, e.g.\n\nsystemd:\n  name: httpd\n  state: restarted",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d2473e33_871d50fb",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 21
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-07T17:56:36Z",
+      "side": 1,
+      "message": "dangling whitespace",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "98550f53_dce24a7a",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 21
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-07T17:56:36Z",
+      "side": 1,
+      "message": "please move this when conditional and the delegate_to to the main playbook where the include_tasks for this playbook happens, that way you can remove the block in this playbook and unindent it all 1 level",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3b44669c_ef5a5bae",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 21
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-07T17:56:36Z",
+      "side": 1,
+      "message": "add --rm to podman run",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3160408b_683f5e17",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 21
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-07T17:56:36Z",
+      "side": 1,
+      "message": "dangling whitespace",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "24ede426_6f3ee8dc",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 21
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-07T17:56:36Z",
+      "side": 1,
+      "message": "these 3 tasks can be a single shell script call and they will be executed in a single connection, instead of 3 ansible round trips",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
