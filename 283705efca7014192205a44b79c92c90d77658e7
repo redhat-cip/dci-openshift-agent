@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ccd8c6ba_ddafa0cd",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 20
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-10-07T13:09:07Z",
+      "side": 1,
+      "message": "See my comment below. \n\nIf you really want to copy the contents of the combined_auth it\u0027s already in a variable called combined_auth which you can do here\n\ncontent: \"{{ combined_auth | to_nice_json}}\"",
+      "revId": "283705efca7014192205a44b79c92c90d77658e7",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "55913701_74de0001",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 20
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-10-07T13:09:07Z",
+      "side": 1,
+      "message": "You should be able to simply reference the auth file I gave you here.\n--authfile {{ _pullsecret_file }}\n\nIf you really want to copy it you could specify \n\n{{ combined_auth | to_nice_json}}\n\ninstead of cat\u0027ing the file.",
+      "revId": "283705efca7014192205a44b79c92c90d77658e7",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
