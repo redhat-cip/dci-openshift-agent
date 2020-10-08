@@ -135,6 +135,24 @@
       "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a38329c5_49dbaeef",
+        "filename": "plays/mirror_images.yml",
+        "patchSetId": 21
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-10-08T04:01:50Z",
+      "side": 1,
+      "message": "That would prevent 3 round trips agree. But wouldn\u0027t readability take a hit due to that? For instance - The task \"Modify the manifet file to copy using skopeo\" is a workaround for a oc image mirror bug which might not be needed in 4.6. By combining all of the tasks the steps would seem to be less clear?",
+      "parentUuid": "24ede426_6f3ee8dc",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
