@@ -105,6 +105,24 @@
     },
     {
       "key": {
+        "uuid": "e5b7c530_9e0673f3",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 21
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-10-08T08:28:47Z",
+      "side": 1,
+      "message": "I will submit another patch with delegate_to in create_git_repo.yaml and the when condition in dci-openshift-agent.yaml",
+      "parentUuid": "5b2afdcc_30d77a0e",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3b44669c_ef5a5bae",
         "filename": "plays/mirror_images.yml",
         "patchSetId": 21
