@@ -87,6 +87,24 @@
     },
     {
       "key": {
+        "uuid": "5b2afdcc_30d77a0e",
+        "filename": "plays/create_local_git_repo.yaml",
+        "patchSetId": 21
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 656
+      },
+      "writtenOn": "2020-10-08T08:17:09Z",
+      "side": 1,
+      "message": "This wont work due to ansible bug (potentially in 2.9 as well somehow). Syntax checker gave me this issue - ERROR! \u0027delegate_to\u0027 is not a valid attribute for a TaskInclude (https://github.com/ansible/ansible/issues/56072, https://access.redhat.com/solutions/4539811) and delegate_to does not work well for entire play without a block - ERROR! \u0027delegate_to\u0027 is not a valid attribute for a Play. I will keep it as it is.",
+      "parentUuid": "98550f53_dce24a7a",
+      "revId": "9f3f5ab949810b6c7b0f31ab2a8c255f6e6bd805",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3b44669c_ef5a5bae",
         "filename": "plays/mirror_images.yml",
         "patchSetId": 21
