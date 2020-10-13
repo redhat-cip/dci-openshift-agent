@@ -43,6 +43,7 @@ for play in plays/*.yml; do
 done
 
 find roles/oc-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
+find roles/podman-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 install -p -D -m 644 templates/ssh_config.j2 %{buildroot}%{_datadir}/dci-openshift-agent/templates/ssh_config.j2
@@ -91,6 +92,7 @@ exit 0
 
 %{_datadir}/dci-openshift-agent/plays/*.yml
 %{_datadir}/dci-openshift-agent/roles/oc-setup/*
+%{_datadir}/dci-openshift-agent/roles/podman-setup/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 %{_datadir}/dci-openshift-agent/templates/ssh_config.j2
@@ -108,6 +110,9 @@ exit 0
 * Mon Oct 26 2020 Thomas Vassilian <tvassili@redhat.com> - 0.1.0-1
 - Fail if OCP nodes do not match installer inventory
 - Add an optional task to erase bootloader
+
+* Tue Oct 13 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-5
+- podman-setup is now a role
 
 * Tue Oct 13 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-4
 - oc-setup is now a role
