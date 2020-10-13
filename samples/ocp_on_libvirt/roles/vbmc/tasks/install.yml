@@ -9,6 +9,7 @@
           - "python{% if ansible_python.version.major == 3 %}3{% endif %}-setuptools"
           - "python{% if ansible_python.version.major == 3 %}3{% endif %}-pip"
           - ipmitool
+          - psmisc
         state: latest
         disable_gpg_check: yes
 
@@ -52,7 +53,7 @@
     - name: adds VirtualBMC as systemd service
       copy:
         mode: 0664
-        dest: "/etc/systemd/system/virtualbmc.service"
+        dest: "{{ vbmc_systemd_unit }}"
         content: |
           [Unit]
           Description=Virtual Baseboard Management Controller Emulation service

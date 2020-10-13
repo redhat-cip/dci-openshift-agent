@@ -40,6 +40,13 @@
         enabled: no
       ignore_errors: true
 
+    - name: Stop the Virtual BMCs
+      become: true
+      systemd:
+        name: virtualbmc
+        state: stopped
+      ignore_errors: true
+
     - name: kill vbmc processes if not managed by systemd
       command: killall vbmc
       when: vbmc_proc.rc == 0
@@ -77,6 +84,10 @@
       path: "{{ item }}"
       state: absent
   with_items:
-      - /usr/lib/systemd/system/virtualbmc.service
+      - "{{ vbmc_systemd_unit }}"
       - "{{ vbmc_config_dir }}"
   ignore_errors: true
+
+- name: reload systemd
+  systemd:
+      daemon_reload: yes
