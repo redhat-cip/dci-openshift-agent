@@ -137,8 +137,9 @@
           include_role:
             name: podman-setup
 
-        - name: Side-load images prior to testing
-          include_tasks: plays/image-side-load.yml
+        - name: "dci-openshift-agent : Side-load podman images prior to testing"
+          include_role:
+            name: image-side-load
 
         - name: Run the Red Hat tests
           include_tasks: plays/dci-tests.yml
