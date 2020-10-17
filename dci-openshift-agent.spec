@@ -40,10 +40,10 @@ install -p -D -m 644 settings.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent
 find roles/oc-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/podman-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/image-side-load -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
+find roles/redhat-tests -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 
 install -p -D -m 644 plays/configure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/configure.yml
 install -p -D -m 644 plays/running.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/running.yml
-install -p -D -m 644 plays/dci-tests.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/dci-tests.yml
 install -p -D -m 644 plays/failure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/failure.yml
 install -p -D -m 644 plays/fetch_bits.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 install -p -D -m 644 plays/post_run.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/post_run.yml
@@ -99,11 +99,11 @@ exit 0
 %{_datadir}/dci-openshift-agent/roles/oc-setup/*
 %{_datadir}/dci-openshift-agent/roles/podman-setup/*
 %{_datadir}/dci-openshift-agent/roles/image-side-load/*
+%{_datadir}/dci-openshift-agent/roles/redhat-tests/*
 
 %{_datadir}/dci-openshift-agent/plays/failure.yml
 %{_datadir}/dci-openshift-agent/plays/configure.yml
 %{_datadir}/dci-openshift-agent/plays/running.yml
-%{_datadir}/dci-openshift-agent/plays/dci-tests.yml
 %{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 %{_datadir}/dci-openshift-agent/plays/post_run.yml
 %{_datadir}/dci-openshift-agent/group_vars/all
@@ -119,6 +119,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Oct 15 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-7
+- Split and rename redhat-tests role
+
 * Wed Oct 14 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-6
 - split image-side-load into a role
 
