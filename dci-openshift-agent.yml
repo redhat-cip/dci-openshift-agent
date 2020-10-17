@@ -144,9 +144,12 @@
           include_role:
             name: image-side-load
 
-        - name: Run the Red Hat tests
-          include_tasks: plays/dci-tests.yml
-          when: dci_openshift_agent_conformance is defined and dci_openshift_agent_conformance != ""
+        - name: "dci-openshift-agent : Run Red Hat test suite"
+          include_role:
+            name: redhat-tests
+          when:
+            - dci_openshift_agent_conformance is defined
+            - dci_openshift_agent_conformance != ""
 
       rescue:
         - name: Run the teardown process
