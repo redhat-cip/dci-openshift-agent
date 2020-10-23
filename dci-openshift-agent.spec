@@ -30,6 +30,7 @@ DCI Openshift Agent
 %install
 install -p -D -m 644 ansible.cfg %{buildroot}%{_datadir}/dci-openshift-agent/ansible.cfg
 install -p -D -m 644 dci-openshift-agent.yml  %{buildroot}%{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
+install -p -D -m 644 infrastructure.yml %{buildroot}%{_datadir}/dci-openshift-agent/infrastructure.yml
 install -p -D -m 644 dcirc.sh.dist %{buildroot}%{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 
 for hook in hooks/*.yml; do
@@ -46,6 +47,7 @@ find roles/oc-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_d
 find roles/podman-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/image-side-load -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/redhat-tests -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
+find roles/local-registry-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 install -p -D -m 644 templates/ssh_config.j2 %{buildroot}%{_datadir}/dci-openshift-agent/templates/ssh_config.j2
@@ -90,6 +92,7 @@ exit 0
 
 %{_datadir}/dci-openshift-agent/ansible.cfg
 %{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
+%{_datadir}/dci-openshift-agent/infrastructure.yml
 %{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 
 %{_datadir}/dci-openshift-agent/plays/*.yml
@@ -97,6 +100,7 @@ exit 0
 %{_datadir}/dci-openshift-agent/roles/podman-setup/*
 %{_datadir}/dci-openshift-agent/roles/image-side-load/*
 %{_datadir}/dci-openshift-agent/roles/redhat-tests/*
+%{_datadir}/dci-openshift-agent/roles/local-registry-setup/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 %{_datadir}/dci-openshift-agent/templates/ssh_config.j2
@@ -114,6 +118,10 @@ exit 0
 * Mon Oct 26 2020 Thomas Vassilian <tvassili@redhat.com> - 0.1.0-1
 - Fail if OCP nodes do not match installer inventory
 - Add an optional task to erase bootloader
+
+* Fri Oct 23 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-8
+- Add an infrastructure playbook to setup a local registry
+- Add a local-registry-setup role
 
 * Thu Oct 15 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-7
 - Split and rename redhat-tests role
