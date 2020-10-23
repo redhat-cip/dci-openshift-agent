@@ -29,6 +29,7 @@ DCI Openshift Agent
 %install
 install -p -D -m 644 ansible.cfg %{buildroot}%{_datadir}/dci-openshift-agent/ansible.cfg
 install -p -D -m 644 dci-openshift-agent.yml  %{buildroot}%{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
+install -p -D -m 644 infrastructure.yml %{buildroot}%{_datadir}/dci-openshift-agent/infrastructure.yml
 install -p -D -m 644 dcirc.sh.dist %{buildroot}%{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 install -p -D -m 644 hooks/pre-run.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/pre-run.yml
 install -p -D -m 644 hooks/configure.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/configure.yml
@@ -94,6 +95,7 @@ exit 0
 
 %{_datadir}/dci-openshift-agent/ansible.cfg
 %{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
+%{_datadir}/dci-openshift-agent/infrastructure.yml
 %{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 
 %{_datadir}/dci-openshift-agent/roles/oc-setup/*
@@ -119,6 +121,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Fri Oct 23 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-8
+- Add an infrastructure playbook to setup a local registry
+
 * Thu Oct 15 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-7
 - Split and rename redhat-tests role
 
