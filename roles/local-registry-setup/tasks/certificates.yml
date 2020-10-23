@@ -1,0 +1,34 @@
+---
+- name: "local-registry-setup : Create a private key file"
+  openssl_privatekey:
+    path: "{{ registry_cert_key }}"
+
+- name: "local-registry-setup : Create a CSR"
+  openssl_csr:
+    path: "{{ registry_cert_csr }}"
+    privatekey_path: "{{ registry_cert_key }}"
+    common_name: "{{ registry_fqdn }}"
+    subject_alt_name: "{{ registry_cert_alt_name | default(omit) }}"
+
+- name: "local-registry-setup : Create a self-signed certificate"
+  openssl_certificate:
+    path: "{{ registry_cert_crt }}"
+    privatekey_path: "{{ registry_cert_key }}"
+    csr_path: "{{ registry_cert_csr }}"
+    provider: selfsigned
+
+- name: "local-registry-setup : Add certificate to system CA trust store"
+  copy:
+    src: "{{ registry_cert_crt }}"
+    dest: /etc/pki/ca-trust/source/anchors/
+    remote_src: true
+
+- name: "local-registry_setup : Update system CA trust store"
+  shell: update-ca-trust extract
+
+- name: "local-registry-setup : Make certificate available on http server"
+  copy:
+    src: "{{ registry_cert_crt }}"
+    dest: "{{ registry_cache_dir }}/registry/{{ registry_cert_crt | basename }}"
+    remote_src: true
+...

@@ -1,0 +1,24 @@
+---
+- hosts: registry_host
+  become: true
+  vars:
+    registry_user: registry
+
+  tasks:
+  - name: "infrastructure : Setup podman"
+    tags:
+    - podman
+    include_role:
+      name: podman-setup
+    vars:
+      podman_additional_subuids:
+      - "{{ registry_user }}:165536:65536"
+      podman_additional_subgids:
+      - "{{ registry_user }}:165536:65536"
+
+  - name: "infrastructure : Create local registry"
+    tags:
+    - registry
+    include_role:
+      name: local-registry-setup
+...

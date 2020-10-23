@@ -1,0 +1,35 @@
+---
+- name: "local-registry-setup : Create sample index file"
+  copy:
+    dest: "{{ registry_cache_dir }}/index.html"
+    content: "hello"
+    owner: "{{ registry_user }}"
+    group: "{{ registry_user }}"
+
+- name: "local-registry-setup : Create htpasswd file"
+  shell: >
+    htpasswd -bBc {{ registry_dir }}/auth/htpasswd
+    {{ registry_http_user }} {{ registry_http_pass }}
+
+- name: "local-registry-setup : Create auths.json file"
+  copy:
+    dest: "{{ registry_cache_dir }}/registry/{{ registry_fqdn }}-auths.json"
+    content: >
+      {
+        "{{ registry_fqdn }}:{{ registry_http_port }}": {
+          "auth": "{{ (registry_http_user + ':' + registry_http_pass) | b64encode }}",
+          "email": "{{ registry_http_user }}@{{ registry_fqdn }}"
+        }
+      }
+
+- name: "local-registry-setup : Open ports on firewall"
+  firewalld:
+    zone: "{{ registry_firewall_zone }}"
+    port: "{{ item }}"
+    state: enabled
+    permanent: true
+    immediate: true
+  with_items:
+  - "{{ registry_cache_http_port }}/tcp"
+  - "{{ registry_http_port }}/tcp"
+...

@@ -1,0 +1,10 @@
+---
+- name: "podman-setup : Run podman system migrate for main account"
+  become_user: "{{ ansible_user }}"
+  shell: podman system migrate
+
+- name: "podman-setup : Run podman system migrate for additional uids"
+  become_user: "{{ item.item.split(':')[0] }}"
+  shell: podman system migrate
+  with_items: "{{ additional_subuids_added.results | selectattr('changed', 'equalto', true) | list }}"
+...
