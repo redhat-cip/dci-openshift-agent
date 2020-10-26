@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3d9e3d61_850109a5",
+        "filename": "roles/local-registry-setup/defaults/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-10-26T14:57:42Z",
+      "side": 1,
+      "message": "This won\u0027t work for libvirt..  Why not update this to a list of zones.",
+      "revId": "44c698ef85e80e36d5f77e909cfe905af90e72de",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5781293e_a5097a9f",
+        "filename": "roles/local-registry-setup/tasks/certificates.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-10-26T14:57:42Z",
+      "side": 1,
+      "message": "Installation of 4.6 and higher will require alt name.  Why not make the default registry_fqdn.  Newer ssl code ignores CN",
+      "revId": "44c698ef85e80e36d5f77e909cfe905af90e72de",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b2e0d61c_3277a202",
+        "filename": "roles/local-registry-setup/tasks/service.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-10-26T14:57:42Z",
+      "side": 1,
+      "message": "is this going to be in /root or /home/registry?  I know the playbook has become: true. so I\u0027m not sure what happens here.",
+      "revId": "44c698ef85e80e36d5f77e909cfe905af90e72de",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
