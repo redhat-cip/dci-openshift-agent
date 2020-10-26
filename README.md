@@ -36,7 +36,7 @@ The 3 remaining systems will run the freshly installed OCP Cluster. “3” is t
 The `Jumpbox` can be a physical server or a virtual machine.
 In any case, it must:
 
-- Be running the latest stable RHEL release (**7.6 or higher**) and registered via RHSM.
+- Be running the latest stable RHEL release (**8.2 or higher**) and registered via RHSM.
 - Have at least 160GB of free space available in `/var`
 - Have access to Internet
 - Be able to connect the following Web urls:
@@ -77,16 +77,16 @@ The `dci-openshift-agent` is packaged and available as a RPM file.
 However,`dci-release` and `epel-release` must be installed first:
 
 ```bash
-# yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-# yum -y install https://packages.distributed-ci.io/dci-release.el7.noarch.rpm
-# subscription-manager repos --enable=rhel-7-server-extras-rpms
-# subscription-manager repos --enable=rhel-7-server-optional-rpms
-# yum -y install dci-openshift-agent
+# dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+# dnf -y install https://packages.distributed-ci.io/dci-release.el8.noarch.rpm
+# subscription-manager repos --enable=rhel-8-Base-rpms
+# subscription-manager repos --enable=rhel-8-AppStream-rpms
+# dnf -y install dci-openshift-agent
 ```
 
 ## Configuration
 
-There are two configuration files for `dci-openshift-agent`: `/etc/dci-openshift-agent/dcirc.sh` and `/etc/dci-openshift-agent/hosts`.
+There are three configuration files for `dci-openshift-agent`: `/etc/dci-openshift-agent/dcirc.sh`, `/etc/dci-openshift-agent/hosts` and `/etc/dci-openshift-agent/settings.yml`.
 
 - `/etc/dci-openshift-agent/dcirc.sh`
 
@@ -110,23 +110,26 @@ export DCI_API_SECRET
 export DCI_CS_URL
 ```
 
+- `/etc/dci-openshift-agent/settings.yml`
+
+This is the dci openshift agent settings (format is `.ini`).  Use this to specify which version of OCP to install.
+
+| Variable                | Required | Type          | Description                                          |
+| ----------------------- | -------- | ------------- | ---------------------------------------------------- |
+| topic                   | True     | String        | Name of the topic.  `OCP-4.3` or `OCP-4.4`. |
+| dci_components_by_query | False    | List          | component by query. ['name:4.5.9']                          |
+| dci_components          | False    | List          | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f'] |
+| dci_openshift_agent_conformance | False | String | If deined we will run that catagory of conformance test |
+| baremetal_deploy_version | False | String | Allows you to lock upstream baremetal repo to specific version |
+
 - `/etc/dci-openshift-agent/hosts`
 
 This file is an Ansible inventory file (format is `.ini`). It includes the configuration for the `dci-openshift-agent` job and the inventory for the masters, workers (if any) and the provisionhost.
-The possible values are:
-
-| Variable     | Required | Type          | Description                                          |
-| ------------ | -------- | ------------- | ---------------------------------------------------- |
-| topic        | True     | String        | Name of the topic. It can be `OCP-4.3` or `OCP-4.4`. |
-| cluster_name | True     | String        | RHCP cluster name.                                   |
-| base_domain  | True     | String        | Domain                                               |
-| ironic_nodes | True     | String (JSON) | tbd                                                  |
 
 Example:
 
 ```console
 [all:vars]
-dci_topic=OCP-4.3
 prov_nic=eno1
 pub_nic=eno2
 domain=example.com
@@ -175,7 +178,7 @@ If you need to run the `dci-openshift-agent` manually in foreground, you can use
 
 ```
 # su - dci-openshift-agent
-$ cd /usr/share/dci-openshift-agent && source /etc/dci-openshift-agent/dcirc.sh && /usr/bin/ansible-playbook -vv /usr/share/dci-openshift-agent/dci-openshift-agent.yml
+% dci-openshift-agent -s -- -v
 ```
 
 ### dci-openshift-agent workflow
@@ -187,16 +190,19 @@ _Step 1 :_ State “New job”
 
 _Step 2 :_ State “Pre-run”
 
-- Deploy infrastructure: `/hooks/pre-run.yml`
+- Deploy infrastructure if needed: `/hooks/pre-run.yml`
 
 _Step 3 :_ State “Running”
 
 - Configure OpenShift nodes: `/hooks/configure.yml`
-- Start OpenShift installer: `/hooks/running.yml`
+- Start OpenShift installer: `/plays/running.yml`
 
 _Step 4 :_ State “Post-run”
 
-- Start DCI tests (This is empty for now): `/plays/dci-tests.yml`
+- Login to the openshift cluster: `/plays/oc-setup.yml`
+- Setup podman on the jumphost: `/plays/podman-setup.yml`
+- Side-load images: `plays/image-side-load.yml`
+- Start DCI tests: `/plays/dci-tests.yml`
 - Start user specific tests: `/hooks/user-tests.yml`
 
 _Step 5 :_ State “Success”
