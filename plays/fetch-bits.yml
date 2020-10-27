@@ -94,7 +94,7 @@
 
   - name: Copy PullSecret into cache
     copy:
-      content: "{{ combined_auth | to_nice_json}}"
+      content: "{{ combined_auth | to_nice_json }}"
       dest: "{{ _pullsecret_file }}"
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
