@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
-Version:       0.0.VERS
-Release:       3%{?dist}
+Version:       0.1.0
+Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -14,6 +14,7 @@ Requires: dci-ansible
 Requires: ansible-role-dci-import-keys
 Requires: ansible-role-dci-retrieve-component
 Requires: ansible-role-dci-sync-registry
+Requires: python3-pyyaml python3-openshift
 
 %{?systemd_requires}
 Requires(pre): shadow-utils
@@ -30,22 +31,17 @@ DCI Openshift Agent
 install -p -D -m 644 ansible.cfg %{buildroot}%{_datadir}/dci-openshift-agent/ansible.cfg
 install -p -D -m 644 dci-openshift-agent.yml  %{buildroot}%{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
 install -p -D -m 644 dcirc.sh.dist %{buildroot}%{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
-install -p -D -m 644 hooks/pre-run.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/pre-run.yml
-install -p -D -m 644 hooks/configure.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/configure.yml
-install -p -D -m 644 hooks/success.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/success.yml
-install -p -D -m 644 hooks/user-tests.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/user-tests.yml
-install -p -D -m 644 hooks/teardown.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/hooks/teardown.yml
+
+for hook in hooks/*.yml; do
+    install -p -D -m 644 $hook  %{buildroot}%{_sysconfdir}/dci-openshift-agent/$hook
+done
+
 install -p -D -m 644 settings.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/settings.yml
 
-install -p -D -m 644 plays/configure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/configure.yml
-install -p -D -m 644 plays/running.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/running.yml
-install -p -D -m 644 plays/oc-setup.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/oc-setup.yml
-install -p -D -m 644 plays/image-side-load.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/image-side-load.yml
-install -p -D -m 644 plays/podman-setup.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/podman-setup.yml
-install -p -D -m 644 plays/dci-tests.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/dci-tests.yml
-install -p -D -m 644 plays/failure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/failure.yml
-install -p -D -m 644 plays/fetch_bits.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
-install -p -D -m 644 plays/post_run.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/post_run.yml
+for play in plays/*.yml; do
+    install -p -D -m 644 $play %{buildroot}%{_datadir}/dci-openshift-agent/$play
+done
+
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 install -p -D -m 644 templates/ssh_config.j2 %{buildroot}%{_datadir}/dci-openshift-agent/templates/ssh_config.j2
 
@@ -104,6 +100,7 @@ exit 0
 %{_datadir}/dci-openshift-agent/plays/dci-tests.yml
 %{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 %{_datadir}/dci-openshift-agent/plays/post_run.yml
+%{_datadir}/dci-openshift-agent/plays/pre-run.yml
 %{_datadir}/dci-openshift-agent/group_vars/all
 %{_datadir}/dci-openshift-agent/templates/ssh_config.j2
 
@@ -117,6 +114,10 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Oct 26 2020 Thomas Vassilian <tvassili@redhat.com> - 0.1.0-1
+- Fail if OCP nodes do not match installer inventory
+- Add an optional task to erase bootloader
+
 * Wed Aug 26 2020 Jorge A Gallegos <kad@blegh.net> - 0.0.1-3
 - Unbundled the oc setup from the dci-tests play
 - Images are now side-loaded onto the openshift cluster nodes
