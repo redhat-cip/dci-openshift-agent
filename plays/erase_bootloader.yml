@@ -1,0 +1,10 @@
+- name: dd to /dev/sda to prevent old deployment confusion
+  delegate_to: "{{ item }}"
+  become: true
+  shell:
+    cmd: dd if=/dev/zero of=/dev/sdc bs=512 count=1
+  when:
+    - dci_erase_bootloader_on_disk
+    # Security check to improve (if OS  == CoreOS 4.4)
+    - hostvars[ansible_distribution_version] == "4.4"
+  with_items: "{{ groups['masters'] + groups['workers'] }}"

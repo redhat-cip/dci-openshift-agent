@@ -46,6 +46,8 @@ install -p -D -m 644 plays/dci-tests.yml %{buildroot}%{_datadir}/dci-openshift-a
 install -p -D -m 644 plays/failure.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/failure.yml
 install -p -D -m 644 plays/fetch_bits.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 install -p -D -m 644 plays/post_run.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/post_run.yml
+install -p -D -m 644 plays/erase_bootloader.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/erase_bootloader.yml
+install -p -D -m 644 plays/check_cluster.yml %{buildroot}%{_datadir}/dci-openshift-agent/plays/check_cluster.yml
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 install -p -D -m 644 templates/ssh_config.j2 %{buildroot}%{_datadir}/dci-openshift-agent/templates/ssh_config.j2
 
@@ -104,6 +106,8 @@ exit 0
 %{_datadir}/dci-openshift-agent/plays/dci-tests.yml
 %{_datadir}/dci-openshift-agent/plays/fetch_bits.yml
 %{_datadir}/dci-openshift-agent/plays/post_run.yml
+%{_datadir}/dci-openshift-agent/plays/erase_bootloader.yml
+%{_datadir}/dci-openshift-agent/plays/check_cluster.yml
 %{_datadir}/dci-openshift-agent/group_vars/all
 %{_datadir}/dci-openshift-agent/templates/ssh_config.j2
 
@@ -117,6 +121,10 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Oct 26 2020 Thomas Vassilian <tvassili@redhat.com> - 0.0.1-4
+- Fail is OCP nodes does not match installer inventory
+- Add an optional playbook to erase bootloader
+
 * Wed Aug 26 2020 Jorge A Gallegos <kad@blegh.net> - 0.0.1-3
 - Unbundled the oc setup from the dci-tests play
 - Images are now side-loaded onto the openshift cluster nodes
