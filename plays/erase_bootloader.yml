@@ -1,0 +1,8 @@
+- name: Erase bootloader to prevent old OS to boot
+  delegate_to: "{{ item }}"
+  become: true
+  shell:
+    cmd: "[ ! -z \"$(grep \"Red Hat Enterprise Linux CoreOS\" /etc/os-release)\" ] && dd if=/dev/zero of=/dev/sda bs=512 count="
+  when:
+    - dci_erase_bootloader_on_disk|bool == true
+  with_items: "{{ groups['masters'] + groups['workers'] }}"

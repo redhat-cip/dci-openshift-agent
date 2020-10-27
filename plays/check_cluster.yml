@@ -1,0 +1,11 @@
+---
+- name: Check inventory to match ocp cluster config
+  environment:
+    KUBECONFIG: "{{ dci_cluster_config_dir | expanduser }}/kubeconfig"
+  k8s_info:
+    api_version: v1
+    kind: nodes
+    name: "{{ item }}"
+  register: node
+  with_items: "{{ groups['masters'] + groups['workers'] }}"
+  failed_when: not node.resources
