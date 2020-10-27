@@ -3,7 +3,7 @@
   set_fact:
     extcidrnet: "{{ ip | ipaddr('network') }}/{{ ip | ipaddr('prefix') }}"
   vars:
-    ip: "{{ ansible_default_ipv4.address }}/{{ansible_default_ipv4.netmask }}"
+    ip: "{{ ansible_default_ipv4.address }}/{{ ansible_default_ipv4.netmask }}"
 
 - name: Get version and build from localhost vars
   set_fact:
@@ -27,5 +27,6 @@
 
 - import_role:
     name: node-prep
+
 - import_role:
     name: installer
