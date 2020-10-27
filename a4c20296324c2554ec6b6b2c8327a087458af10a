@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25ec2e72_bcd3c42b",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-10-27T02:52:22Z",
+      "side": 1,
+      "message": "rhel-8-for-x86_64-baseos-rpms",
+      "range": {
+        "startLine": 82,
+        "startChar": 2,
+        "endLine": 82,
+        "endChar": 54
+      },
+      "revId": "a4c20296324c2554ec6b6b2c8327a087458af10a",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9edee5e7_03ccce7b",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-10-27T02:52:22Z",
+      "side": 1,
+      "message": "rhel-8-for-x86_64-appstream-rpms",
+      "range": {
+        "startLine": 83,
+        "startChar": 38,
+        "endLine": 83,
+        "endChar": 59
+      },
+      "revId": "a4c20296324c2554ec6b6b2c8327a087458af10a",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "57b52783_3a5eab6c",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-10-27T02:52:22Z",
+      "side": 1,
+      "message": "ctl",
+      "range": {
+        "startLine": 181,
+        "startChar": 15,
+        "endLine": 181,
+        "endChar": 21
+      },
+      "revId": "a4c20296324c2554ec6b6b2c8327a087458af10a",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
