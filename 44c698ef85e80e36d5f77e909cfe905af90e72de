@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1b2defa6_5aa50098",
+        "filename": "roles/local-registry-setup/defaults/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-27T03:12:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d9e3d61_850109a5",
+      "revId": "44c698ef85e80e36d5f77e909cfe905af90e72de",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5781293e_a5097a9f",
         "filename": "roles/local-registry-setup/tasks/certificates.yml",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "0d3bbcc2_b1d75f0e",
+        "filename": "roles/local-registry-setup/tasks/certificates.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-27T03:12:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5781293e_a5097a9f",
+      "revId": "44c698ef85e80e36d5f77e909cfe905af90e72de",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b2e0d61c_3277a202",
         "filename": "roles/local-registry-setup/tasks/service.yml",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2020-10-26T14:57:42Z",
       "side": 1,
       "message": "is this going to be in /root or /home/registry?  I know the playbook has become: true. so I\u0027m not sure what happens here.",
+      "revId": "44c698ef85e80e36d5f77e909cfe905af90e72de",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9e901a49_288e0b38",
+        "filename": "roles/local-registry-setup/tasks/service.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-10-27T03:12:27Z",
+      "side": 1,
+      "message": "there\u0027s a become_user at the end of this file",
+      "parentUuid": "b2e0d61c_3277a202",
       "revId": "44c698ef85e80e36d5f77e909cfe905af90e72de",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
