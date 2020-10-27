@@ -59,7 +59,7 @@
   - name: Set facts
     set_fact:
       cmd: openshift-baremetal-install
-      _pullsecret_file: "{{ provision_cache_store }}/pull-secret.txt"
+      _pullsecret_file: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
 
   - name: Set release_url for development envs
     set_fact:
