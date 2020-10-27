@@ -55,6 +55,16 @@
           include_tasks: plays/failure.yml
 
 # Step 2 : state "Pre-run"
+- name: 'Erase previous bootloader'
+  hosts: localhost
+  tags:
+    - pre-run
+  vars:
+    dci_status: 'pre-run'
+  tasks:
+    - include_tasks: 'plays/erase_bootloader.yml'
+      ignore_errors: true
+
 - name: 'Launch pre-run to deploy installer'
   hosts: localhost
   tags:
@@ -109,6 +119,10 @@
         # Launch installer
         - name: Launch installer
           include_tasks: plays/running.yml
+
+        # Check cluster after install
+        - name: Check cluster
+          include_tasks: plays/check_cluster.yml
 
       rescue:
         - name: Run the teardown process
