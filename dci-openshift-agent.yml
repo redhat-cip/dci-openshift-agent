@@ -31,7 +31,7 @@
       when: dci_tags
 
 # Step 1 : state "New job"
-- name: Prepare host
+- name: Prepare jumphost
   hosts: localhost
   vars:
     dci_status: 'new'
@@ -45,7 +45,7 @@
 
         # Download Openshift from DCI
         - name: Import Openshift files from DCI
-          include_tasks: plays/fetch_bits.yml
+          include_tasks: plays/fetch-bits.yml
       rescue:
         - name: Run the teardown process
           include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
@@ -55,7 +55,7 @@
           include_tasks: plays/failure.yml
 
 # Step 2 : state "Pre-run"
-- name: 'Launch pre-run to deploy installer'
+- name: 'Launch pre-run'
   hosts: localhost
   tags:
     - pre-run
@@ -63,7 +63,10 @@
     dci_status: 'pre-run'
   tasks:
     - block:
-        # Deploy infrastructure
+        # prepare infrastructure
+        - name: Run the pre-run hook
+          include_tasks: 'plays/pre-run.yml'
+
         - name: Run the pre-run hook
           include_tasks: '{{ dci_config_dir }}/hooks/pre-run.yml'
 
@@ -181,7 +184,7 @@
     dci_status: 'post-run'
   tasks:
     - block:
-        - include_tasks: plays/post_run.yml
+        - include_tasks: plays/post-run.yml
       rescue:
         - name: Run the teardown process
           include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
