@@ -1,0 +1,109 @@
+---
+- name: "upgrader : Get current version"
+  shell:
+    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+    cmd: oc get clusterversion
+
+- name: "upgrader : Get target openshift version from job.components"
+  set_fact:
+    version: "{{ item['name'] }}"
+  with_items: "{{ hostvars.localhost.job_info.job.components }}"
+  when: item["type"] == "ocp"
+
+- name: Set major openshift version from topic
+  set_fact:
+    major: "{{ hostvars.localhost.job_info.job.topic.name | upper | replace('OCP-', '') }}"
+
+- block:
+  - name: "upgrader : Fetch release digest"
+    uri:
+      url: "{{ webserver_url }}/{{ version }}/release.dig"
+      return_content: true
+    register: release_digest
+
+  - name: "upgrader : Fetch signature for target release"
+    get_url:
+      url: "{{ webserver_url }}/{{ version }}/signature.yaml"
+      dest: ~/clusterconfigs/signature-{{ version }}.yaml
+      mode: 0644
+
+  - name: "upgrader : Fetch imagecontentsourcepolicy for target release"
+    get_url:
+      url: "{{ webserver_url }}/{{ version }}/imagecontentsourcepolicy.yaml"
+      dest: ~/clusterconfigs/imagecontentsourcepolicy-{{ version }}.yaml
+      mode: 0644
+
+  - name: "upgrader : Apply signatures to cluster"
+    shell:
+      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+      cmd: oc apply -f ../signature-{{ version }}.yaml
+
+  - name: "upgrader : Apply imagecontentsourcepolicy to cluster"
+    shell:
+      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+      cmd: oc apply -f ../imagecontentsourcepolicy-{{ version }}.yaml
+
+  - name: "upgrader : Wait for machineconfigpools to update"
+    shell:
+      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+      cmd: |
+        for mcp in $(oc get mcp -o name); do
+          oc wait --timeout=1m --for=condition=Updated ${mcp} &
+        done
+        wait -n
+    retries: 5
+
+  - name: "upgrader : Wait for nodes to become Ready"
+    shell:
+      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+      cmd: |
+        for node in $(oc get nodes -o name); do
+          oc wait --timeout=5m --for=condition=Ready ${node} &
+        done
+        wait -n
+    retries: 4
+
+  - name: "upgrader : Patch clusterversion to point to custom upstream graph"
+    shell:
+      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+      cmd: >
+        oc patch clusterversion/version
+        --patch '{"spec": {"upstream": "{{ webserver_url }}/{{ version }}/graph"}}'
+        --type merge &&
+        oc wait --timeout=10m --for=condition=RetrievedUpdates clusterversion/version
+
+  when:
+  - webserver_url is defined
+  - webserver_url != ""
+
+- name: "upgrader : Patch clusterversion to point to fast channel"
+  shell:
+    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+    cmd: >
+      oc patch clusterversion/version
+      --patch '{"spec": {"channel": "fast-{{ major }}"}}'
+      --type merge &&
+      oc wait --timeout=10m --for=condition=RetrievedUpdates clusterversion/version
+
+- name: "upgrader : Execute the upgrade"
+  shell:
+    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+    cmd: oc adm upgrade --to {{ version }}
+
+- name: "upgrader : Wait for upgrade to start"
+  shell:
+    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+    cmd: oc wait --timeout=1m --for=condition=Progressing clusterversion/version
+  retries: 5
+
+- name: "upgrader : Monitor upgrade until complete"
+  shell:
+    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+    cmd: >
+      oc get clusterversion/version -o json
+      | jq -r '.status.history[] | select(.version == "{{ version }}").state'
+  register: upgrade_progress
+  until: upgrade_progress.stdout.find("Completed") > 0
+  retries: 90
+  delay: 60
+...
