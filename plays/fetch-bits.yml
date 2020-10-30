@@ -101,22 +101,83 @@
       mode: '0644'
       force: yes
 
-  - block:
-    - name: Create cache dir
-      file:
-        path: "{{ provision_cache_store }}/{{ version }}"
-        mode: '0755'
-        state: directory
+  - name: Create cache dir
+    file:
+      path: "{{ provision_cache_store }}/{{ version }}"
+      mode: '0755'
+      state: directory
 
-    - name: Store Release.txt File
-      get_url:
-        url: "{{ release_url }}/{{ version }}/release.txt"
-        dest: "{{ provision_cache_store }}/{{ version }}"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0755'
-    when:
-      - not ocpversionpath.stat.exists
+  - name: Store Release.txt File
+    get_url:
+      url: "{{ release_url }}/{{ version }}/release.txt"
+      dest: "{{ provision_cache_store }}/{{ version }}"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: 0644
+
+  - name: Get digest for release
+    shell: >
+      grep '^Digest:' {{ provision_cache_store }}/{{ version }}/release.txt
+      | tr -s ' '
+      | cut -d ' ' -f 2
+    register: release_digest
+
+  - name: Write release digest
+    copy:
+      dest: "{{ provision_cache_store }}/{{ version }}/release.dig"
+      content: "{{ release_digest.stdout }}"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: 0644
+
+  - name: Fetch release signature
+    get_url:
+      url: "https://mirror.openshift.com/pub/openshift-v4/signatures/openshift/release/{{ release_digest.stdout | replace(':', '=') }}/signature-1"
+      dest: "{{ provision_cache_store }}/{{ version }}/signature.bin"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: 0644
+
+  - name: Base64 encode binary signature
+    slurp:
+      src: "{{ provision_cache_store }}/{{ version }}/signature.bin"
+    register: signature_b64
+
+  - name: Write release image content source policy
+    copy:
+      dest: "{{ provision_cache_store }}/{{ version }}/imagecontentsourcepolicy.yaml"
+      mode: 0644
+      content: |
+        apiVersion: operator.openshift.io/v1alpha1
+        kind: ImageContentSourcePolicy
+        metadata:
+          name: release-{{ version }}
+        spec:
+          repositoryDigestMirrors:
+          - mirrors:
+            - {{ local_registry }}/{{ local_repo }}
+            source: quay.io/openshift-release-dev/ocp-release
+          - mirrors:
+            - {{ local_registry }}/{{ local_repo }}
+            source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+          - mirrors:
+            - {{ local_registry }}/{{ local_repo }}
+            source: registry.svc.ci.openshift.org/ocp/release
+
+  - name: Write new signature config map
+    copy:
+      dest: "{{ provision_cache_store }}/{{ version }}/signature.yaml"
+      mode: 0644
+      content: |
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: signature-{{ version }}
+          namespace: openshift-config-managed
+          labels:
+            release.openshift.io/verification-signatures: ""
+        binaryData:
+          {{ release_digest.stdout | replace(':', '-') }}-1 : {{ signature_b64.content }}
 
   - set_fact:
       result: "{{ lookup('file', provision_cache_store + '/' + version + '/release.txt') }}"
@@ -133,7 +194,7 @@
         dest: "{{ provision_cache_store }}/{{ version }}"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-        mode: '0755'
+        mode: 0644
 
     - name: "Untar the openshift-client-linux-{{ release_version }}.tar.gz"
       unarchive:
@@ -141,7 +202,7 @@
         dest: "{{ provision_cache_store }}/{{ version }}"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-        mode: '0755'
+        mode: 0755
         remote_src: yes
 
     - name: Extracting the installer
@@ -156,7 +217,7 @@
     - name: Set executable permissions on installer
       file:
         path: "{{ provision_cache_store }}/{{ version }}/{{ cmd }}"
-        mode: '0755'
+        mode: 0755
     when:
       - not ocpversionpath.stat.exists
 
@@ -171,7 +232,7 @@
       dest: "{{ provision_cache_store }}/{{ version }}"
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
-      mode: '0755'
+      mode: 0644
     when:
       - not ocpversionpath.stat.exists
 
@@ -198,7 +259,7 @@
 
   - name: Download {{ rhcos_qemu_uri }} for cache
     get_url:
-      url:  "{{ rhcos_path }}{{ rhcos_qemu_uri }}"
+      url: "{{ rhcos_path }}{{ rhcos_qemu_uri }}"
       dest: "{{ provision_cache_store }}/{{ rhcos_qemu_uri }}"
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
@@ -208,7 +269,7 @@
 
   - name: Download {{ rhcos_uri }} for cache
     get_url:
-      url:  "{{ rhcos_path }}{{ rhcos_uri }}"
+      url: "{{ rhcos_path }}{{ rhcos_uri }}"
       dest: "{{ provision_cache_store }}/{{ rhcos_uri }}"
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
