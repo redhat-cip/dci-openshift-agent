@@ -1,17 +1,3 @@
-#
-# APACHE
-#
-
-- name: Ensure Apache is installed
-  package:
-    name: 'httpd'
-    state: 'present'
-  become: true
-- name: Ensure Apache is running
-  systemd:
-    name: 'httpd'
-    state: 'started'
-  become: true
 - name: Install helper tools
   become: true
   package:
@@ -21,6 +7,15 @@
     - "python{% if ansible_python.version.major == 3 %}3{% endif %}-firewall"
     - "python{% if ansible_python.version.major == 3 %}3{% endif %}-dns"
     - "python{% if ansible_python.version.major == 3 %}3{% endif %}-netaddr"
+    - "jq"
+    - "httpd"
+
+- name: Ensure Apache is running
+  systemd:
+    name: 'httpd'
+    state: 'started'
+  become: true
+
 - name: Open port 80 on the firewall
   firewalld:
     zone: public
@@ -30,12 +25,14 @@
   register: result
   failed_when: false
   become: true
+
 - name: Drop existing repo files
   file:
     path: '{{ item }}'
     state: absent
   with_fileglob: '{{ dci_mirror_location }}/dci_repo/dci_repo*.repo'
   become: true
+
 - name: Ensure proper directories are created
   file:
     path: '{{ item }}'
