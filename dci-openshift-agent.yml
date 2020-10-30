@@ -105,13 +105,25 @@
   tags:
     - running
     - installing
+    - upgrading
   vars:
     dci_status: 'running'
   tasks:
     - block:
-        # Launch installer
-        - name: Launch installer
-          include_tasks: plays/running.yml
+        - name: "dci-openshift-agent : Launch installer"
+          include_tasks: plays/installer.yml
+          when:
+            - dci_main is not defined or dci_main == 'install'
+
+        - name: "dci-openshift-agent : Launch upgrader"
+          vars:
+            local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
+            local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
+            topic: "{{ dci_topic }}"
+          include_tasks: plays/upgrader.yml
+          when:
+            - dci_main is defined
+            - dci_main == 'upgrade'
 
       rescue:
         - name: Run the teardown process
@@ -147,9 +159,9 @@
         - name: "dci-openshift-agent : Run Red Hat test suite"
           include_role:
             name: redhat-tests
-          when:
-            - dci_openshift_agent_conformance is defined
-            - dci_openshift_agent_conformance != ""
+      when:
+        - dci_openshift_agent_conformance is defined
+        - dci_openshift_agent_conformance != ""
 
       rescue:
         - name: Run the teardown process

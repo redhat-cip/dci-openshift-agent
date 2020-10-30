@@ -115,6 +115,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Sat Oct 31 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.1.1-1
+- Add an upgrader playbook
+
 * Mon Oct 26 2020 Thomas Vassilian <tvassili@redhat.com> - 0.1.0-1
 - Fail if OCP nodes do not match installer inventory
 - Add an optional task to erase bootloader
