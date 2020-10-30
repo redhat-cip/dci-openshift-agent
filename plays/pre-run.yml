@@ -10,6 +10,7 @@
     fi
   when:
     - dci_erase_bootloader_on_disk|default(False)|bool
+    - dci_main is not defined or dci_main == 'install'
   with_items: "{{ groups['masters'] + groups['workers'] }}"
   ignore_unreachable: true
   ignore_errors: true
