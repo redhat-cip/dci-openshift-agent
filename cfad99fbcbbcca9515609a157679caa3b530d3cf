@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e4093841_1fc1238d",
+        "filename": "dci-openshift-agent.spec",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-10-30T14:30:52Z",
+      "side": 1,
+      "message": "Merge conflict :-)",
+      "revId": "cfad99fbcbbcca9515609a157679caa3b530d3cf",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
