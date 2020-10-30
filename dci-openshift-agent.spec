@@ -119,6 +119,9 @@ exit 0
 - Fail if OCP nodes do not match installer inventory
 - Add an optional task to erase bootloader
 
+* Fri Oct 30 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-13
+- Add an upgrader playbook
+
 * Fri Oct 23 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.0.1-8
 - Add an infrastructure playbook to setup a local registry
 - Add a local-registry-setup role
