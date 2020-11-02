@@ -1,0 +1,10 @@
+Code-Review+2: Bill Peck <bill@pecknet.com>
+Code-Review+2: Frederic Lepied <flepied@redhat.com>
+Workflow+1: Bill Peck <bill@pecknet.com>
+Code-Review+2: Yassine Lamgarchal <yassine.lamgarchal@redhat.com>
+Verified+2: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-by: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-at: Mon, 02 Nov 2020 22:46:19 +0000
+Reviewed-on: https://softwarefactory-project.io/r/19835
+Project: dci-openshift-agent
+Branch: refs/heads/master
