@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0c0bde22_1010cab2",
+        "filename": "roles/redhat-tests/tasks/upload.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 29
+      },
+      "writtenOn": "2020-11-02T16:51:27Z",
+      "side": 1,
+      "message": "Is there some .log ?",
+      "revId": "37019e0314321d4463c56647378dada01f6fda1b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
