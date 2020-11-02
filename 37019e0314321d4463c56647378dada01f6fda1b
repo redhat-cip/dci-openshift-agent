@@ -16,6 +16,24 @@
       "revId": "37019e0314321d4463c56647378dada01f6fda1b",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6776fc59_c7ef29af",
+        "filename": "roles/redhat-tests/tasks/upload.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-11-02T23:02:37Z",
+      "side": 1,
+      "message": "Not according to the original playbooks",
+      "parentUuid": "0c0bde22_1010cab2",
+      "revId": "37019e0314321d4463c56647378dada01f6fda1b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
