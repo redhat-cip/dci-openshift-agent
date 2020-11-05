@@ -25,6 +25,23 @@
     bootstraposimage: "{{ hostvars.localhost.bootstraposimage }}"
   when: hostvars.localhost.bootstraposimage is defined
 
+- name: Process catalog source mirrors
+  when: redhat_catalog_image_sources|default([])|length > 0
+  block:
+    - name: Set facts required populating redhat-catalog mirrors
+      set_fact:
+        img_extras: []
+        registry: "{{ local_registry }}/"
+
+    - name: Update the list with the required format
+      set_fact:
+        img_extras: "{{ img_extras + [{ 'source': item, 'mirrors': [ registry + item.split('/')[1:]|join('/') ] }] }}"
+      loop: "{{ redhat_catalog_image_sources }}"
+
+    - name: Set image_content_source_extras fact for the installer role
+      set_fact:
+        image_content_source_extras: "{{ img_extras }}"
+
 - import_role:
     name: node-prep
 

@@ -7,8 +7,14 @@ dci_config_dir: /etc/dci-openshift-agent
 dci_cache_dir: /var/lib/dci-openshift-agent
 dci_teardown_on_failure: true
 dci_tags: ['debug']
-baremetal_deploy_repo: https://github.com/openshift-kni/baremetal-deploy
-baremetal_deploy_version: HEAD
+# TODO (skramaja): TESTING
+baremetal_deploy_repo: https://github.com/krsacme/baremetal-deploy
+baremetal_deploy_version: extend_image_content_source
 dci_openshift_agent_conformance: ''
 dci_cluster_config_dir: "~/clusterconfigs-{{ cluster }}"
 dci_ose_tests_image: quay.io/eminguez/ose-tests-full:latest
+redhat_catalog_image_sources:
+  - registry.redhat.io/redhat
+  - registry.redhat.io/openshift4
+  - registry.redhat.io/container-native-virtualization
+  - registry.redhat.io/ocs4
