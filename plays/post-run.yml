@@ -11,11 +11,28 @@
       baremetal_deploy_version: {{ baremetal_deploy_clone.after }}
     dest: "{{ logdir.path }}/config.log"
 
+- name: Find metal3 pod
+  environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
+  shell: |
+    {{ dci_cluster_configs_dir }}/oc --insecure-skip-tls-verify=true \
+    -n openshift-machine-api get pods | awk '/metal3/ { print $1 }'
+  register: metal3_pod
+
+- name: Copy Ironic logs
+  environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
+  command: |
+    {{ dci_cluster_configs_dir }}/oc --insecure-skip-tls-verify=true cp 
+    openshift-machine-api/{{ metal3_pod.stdout }}:shared/log/ironic/deploy/.
+    {{ logdir.path }} -c metal3-ironic-conductor
+  when: metal3_pod.stdout
+
 - name: Find deployment logs
   find:
     paths: "{{ logdir.path }}"
     recurse: yes
-    patterns: "*.log,*.txt,*.html"
+    patterns: "*.log,*.txt,*.html,*.tar.gz"
   register: logs_matched
 
 - name: Upload logs directory to DCI Control Server
