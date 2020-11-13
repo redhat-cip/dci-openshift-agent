@@ -1,4 +1,4 @@
 ---
 - name: Fail properly
   fail:
-    msg: 'Something went wrong during the {{ dci_status }}. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.localhost.job_info.job.id }}/jobStates'
+    msg: 'Something went wrong during the {{ dci_status }}. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.localhost.job_info.job.id }}/jobStates' # noqa 204
