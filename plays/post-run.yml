@@ -15,6 +15,7 @@
   environment:
       KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
   shell: |
+    set -o pipefail
     {{ dci_cluster_configs_dir }}/oc --insecure-skip-tls-verify=true \
     -n openshift-machine-api get pods | awk '/metal3/ { print $1 }'
   register: metal3_pod
@@ -23,7 +24,7 @@
   environment:
       KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
   command: |
-    {{ dci_cluster_configs_dir }}/oc --insecure-skip-tls-verify=true cp 
+    {{ dci_cluster_configs_dir }}/oc --insecure-skip-tls-verify=true cp
     openshift-machine-api/{{ metal3_pod.stdout }}:shared/log/ironic/deploy/.
     {{ logdir.path }} -c metal3-ironic-conductor
   when: metal3_pod.stdout
