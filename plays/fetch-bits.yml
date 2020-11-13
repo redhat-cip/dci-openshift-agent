@@ -1,4 +1,5 @@
-- set_fact:
+- name: Set the components variable
+  set_fact:
     components: '{{ job_info.job.components }}'
 
 - name: Get openshift_version from job.components
@@ -144,7 +145,7 @@
 
   - name: Fetch channel upgrade graph
     get_url:
-      url: "https://api.openshift.com/api/upgrades_info/v1/graph?channel=fast-{{ major}}&arch=amd64"
+      url: "https://api.openshift.com/api/upgrades_info/v1/graph?channel=fast-{{ major }}&arch=amd64"
       headers:
         Accept: "application/json"
       dest: "{{ provision_cache_store }}/{{ version }}/graph"
@@ -193,7 +194,8 @@
         binaryData:
           {{ release_digest.stdout | replace(':', '-') }}-1 : {{ signature_b64.content }}
 
-  - set_fact:
+  - name: Set result variable
+    set_fact:
       result: "{{ lookup('file', provision_cache_store + '/' + version + '/release.txt') }}"
 
   - name: Set Fact for Release Image
@@ -250,7 +252,8 @@
     when:
       - not ocpversionpath.stat.exists
 
-  - include_vars:
+  - name: Load variables from rhcos.json
+    include_vars:
       file: "{{ provision_cache_store }}/{{ version }}/rhcos.json"
       name: rhcos_json
 

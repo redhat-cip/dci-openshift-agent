@@ -1,7 +1,7 @@
 ---
 - name: "podman-setup : Run podman system migrate for main account"
   become_user: "{{ ansible_user }}"
-  shell: podman system migrate
+  command: podman system migrate
 
 # it is possible the additional uids don't exist yet, in which case we
 # don't have to run podman system migrate
