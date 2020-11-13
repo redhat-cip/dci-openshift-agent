@@ -1,4 +1,8 @@
 ---
+- name: Always fail
+  fail:
+    msg: 'failed on purpose'
+
 - name: Erase bootloader to prevent old OS to boot
   delegate_to: "{{ item }}"
   become: true
