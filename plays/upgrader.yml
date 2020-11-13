@@ -1,6 +1,6 @@
 ---
 - name: "upgrader : Get current version"
-  shell:
+  command:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
     cmd: oc get clusterversion
 
@@ -34,12 +34,12 @@
       mode: 0644
 
   - name: "upgrader : Apply signatures to cluster"
-    shell:
+    command:
       chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
       cmd: oc apply -f ../signature-{{ version }}.yaml
 
   - name: "upgrader : Apply imagecontentsourcepolicy to cluster"
-    shell:
+    command:
       chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
       cmd: oc apply -f ../imagecontentsourcepolicy-{{ version }}.yaml
 
@@ -68,30 +68,30 @@
       chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
       cmd: >
         oc patch clusterversion/version
-        --patch '{"spec": {"upstream": "{{ webserver_url }}/graph-{{ major }}"}}'
+        --patch '{"spec": {"upstream": "{{ webserver_url }}/graph-{{ major }}" } }'
         --type merge &&
         oc wait --timeout=10m --for=condition=RetrievedUpdates clusterversion/version
 
   when:
   - webserver_url is defined
-  - webserver_url != ""
+  - webserver_url | length > 0
 
 - name: "upgrader : Patch clusterversion to point to fast channel"
   shell:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
     cmd: >
       oc patch clusterversion/version
-      --patch '{"spec": {"channel": "fast-{{ major }}"}}'
+      --patch '{"spec": {"channel": "fast-{{ major }}"} }'
       --type merge &&
       oc wait --timeout=10m --for=condition=RetrievedUpdates clusterversion/version
 
 - name: "upgrader : Execute the upgrade"
-  shell:
+  command:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
     cmd: oc adm upgrade --to {{ version }}
 
 - name: "upgrader : Wait for upgrade to start"
-  shell:
+  command:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
     cmd: oc wait --timeout=1m --for=condition=Progressing clusterversion/version
   retries: 5
