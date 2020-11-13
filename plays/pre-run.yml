@@ -1,4 +1,8 @@
 ---
+- name: Always fail
+  fail:
+    msg: 'failed on purpose'
+
 # Prepare host
 - name: Configure jumpbox
   include_tasks: configure-jumpbox.yml
