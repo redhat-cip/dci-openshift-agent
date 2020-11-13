@@ -148,7 +148,7 @@
             name: redhat-tests
           when:
             - dci_openshift_agent_conformance is defined
-            - dci_openshift_agent_conformance != ""
+            - dci_openshift_agent_conformance | length > 0
 
       rescue: *teardown_failure
 
