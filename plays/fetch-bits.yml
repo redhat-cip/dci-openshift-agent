@@ -118,6 +118,7 @@
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
       mode: 0644
+      timeout: 300
 
   - name: Get digest for release
     shell: >
@@ -141,6 +142,7 @@
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
       mode: 0644
+      timeout: 300
 
   - name: Fetch channel upgrade graph
     get_url:
@@ -151,6 +153,7 @@
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
       mode: 0644
+      timeout: 300
 
   - name: Base64 encode binary signature
     slurp:
@@ -209,6 +212,7 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: 0644
+        timeout: 300
 
     - name: "Untar the openshift-client-linux-{{ release_version }}.tar.gz"
       unarchive:
@@ -247,6 +251,7 @@
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
       mode: 0644
+      timeout: 300
     when:
       - not ocpversionpath.stat.exists
 
@@ -280,6 +285,7 @@
       mode: '0644'
       setype: httpd_sys_content_t
       checksum: "sha256:{{ rhcos_qemu_sha256 }}"
+      timeout: 3600
 
   - name: Download {{ rhcos_uri }} for cache
     get_url:
