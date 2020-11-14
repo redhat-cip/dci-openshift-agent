@@ -141,6 +141,7 @@
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
       mode: 0644
+      timeout: 300
 
   - name: Fetch channel upgrade graph
     get_url:
@@ -151,6 +152,7 @@
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
       mode: 0644
+      timeout: 300
 
   - name: Base64 encode binary signature
     slurp:
@@ -234,6 +236,7 @@
         mode: 0755
     when:
       - not ocpversionpath.stat.exists
+    
 
   - name: Get COMMIT_ID
     shell: |
