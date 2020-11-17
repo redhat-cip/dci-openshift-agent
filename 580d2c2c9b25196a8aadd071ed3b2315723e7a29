@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "817c173e_18c51816",
+        "filename": "plays/fetch-bits.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-11-17T16:43:55Z",
+      "side": 1,
+      "message": "Why move this out of the version directory?  I expect everything to do with the done file to be in the same directory.",
+      "revId": "580d2c2c9b25196a8aadd071ed3b2315723e7a29",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
