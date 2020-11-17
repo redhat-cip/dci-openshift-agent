@@ -16,6 +16,24 @@
       "revId": "580d2c2c9b25196a8aadd071ed3b2315723e7a29",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c61c6bc1_b85db47a",
+        "filename": "plays/fetch-bits.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-11-17T18:33:49Z",
+      "side": 1,
+      "message": "I did it like this because it\u0027s not version specific and so can benefit from update from other versions if needed.",
+      "parentUuid": "817c173e_18c51816",
+      "revId": "580d2c2c9b25196a8aadd071ed3b2315723e7a29",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
