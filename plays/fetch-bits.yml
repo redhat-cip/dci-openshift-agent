@@ -52,6 +52,11 @@
   retries: 3
   delay: 10
 
+- name: Look if the mirroring has already been done
+  stat:
+    path: "{{ provision_cache_store }}/{{ version }}/done"
+  register: mirror_done
+
 - block:
   - name: Set variables from registry_host vars
     set_fact:
@@ -146,10 +151,10 @@
 
   - name: Fetch channel upgrade graph
     get_url:
-      url: "https://api.openshift.com/api/upgrades_info/v1/graph?channel=fast-{{ major}}&arch=amd64"
+      url: "https://api.openshift.com/api/upgrades_info/v1/graph?channel=fast-{{ major }}&arch=amd64"
       headers:
         Accept: "application/json"
-      dest: "{{ provision_cache_store }}/{{ version }}/graph"
+      dest: "{{ provision_cache_store }}/graph-{{ major }}"
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
       mode: 0644
@@ -308,7 +313,11 @@
         --to="{{ local_registry | quote }}/{{ local_repo | quote }}"
       '
 
+  - name: Create a done file
+    file: path="{{ provision_cache_store }}/{{ version }}/done" state=touch
+
   when:
+    - not mirror_done.stat.exists
     - "'registry_host' in groups"
     - groups['registry_host'] | length > 0
     - webserver_url is defined

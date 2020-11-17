@@ -68,7 +68,7 @@
       chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
       cmd: >
         oc patch clusterversion/version
-        --patch '{"spec": {"upstream": "{{ webserver_url }}/{{ version }}/graph"}}'
+        --patch '{"spec": {"upstream": "{{ webserver_url }}/graph-{{ major }}"}}'
         --type merge &&
         oc wait --timeout=10m --for=condition=RetrievedUpdates clusterversion/version
 
