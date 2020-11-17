@@ -34,6 +34,24 @@
       "revId": "580d2c2c9b25196a8aadd071ed3b2315723e7a29",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "28249b56_50651972",
+        "filename": "plays/fetch-bits.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2020-11-17T18:42:53Z",
+      "side": 1,
+      "message": "Makes sense, But can we do a separate stat on that file then?",
+      "parentUuid": "c61c6bc1_b85db47a",
+      "revId": "580d2c2c9b25196a8aadd071ed3b2315723e7a29",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
