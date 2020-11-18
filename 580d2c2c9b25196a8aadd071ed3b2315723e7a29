@@ -52,6 +52,24 @@
       "revId": "580d2c2c9b25196a8aadd071ed3b2315723e7a29",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b3293536_b8097770",
+        "filename": "plays/fetch-bits.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-11-18T07:40:48Z",
+      "side": 1,
+      "message": "I don\u0027t think that\u0027s needed as there will a download of this file for all versions of the same major.",
+      "parentUuid": "28249b56_50651972",
+      "revId": "580d2c2c9b25196a8aadd071ed3b2315723e7a29",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
