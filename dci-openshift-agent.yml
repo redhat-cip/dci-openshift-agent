@@ -41,7 +41,7 @@
     - block:
         # Prepare host
         - name: Configure jumpbox
-          include_tasks: plays/configure.yml
+          include_tasks: plays/configure-jumpbox.yml
 
         # Download Openshift from DCI
         - name: Import Openshift files from DCI
@@ -88,6 +88,10 @@
     dci_status: 'running'
   tasks:
     - block:
+        # Prepare provisioner host
+        - name: Configure provisioner
+          include_tasks: plays/configure-provisioner.yml
+
         - name: Launch configure
           include_tasks: '{{ dci_config_dir }}/hooks/configure.yml'
 
