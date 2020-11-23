@@ -1,0 +1,57 @@
+---
+
+- block:
+    - name: Generate temp dir for logs
+      tempfile:
+        state: directory
+        suffix: logdir
+      register: logdir
+
+    - name: Get logs from oc adm must-gather
+      shell: |
+        {{ dci_cluster_configs_dir }}/oc --insecure-skip-tls-verify=true \
+        must-gather --dest-dir={{ logdir.path }}'
+      ignore_errors: true
+
+    - name: Find metal3 pod
+      shell: |
+        {{ dci_cluster_configs_dir }}/oc --insecure-skip-tls-verify=true \
+        -n openshift-machine-api get pods | awk '/metal3/ { print $1 }'
+      register: metal3_pod
+      ignore_errors: true
+
+    - name: Copy Ironic logs
+      command: |
+        {{ dci_cluster_configs_dir }}/oc --insecure-skip-tls-verify=true cp 
+        openshift-machine-api/{{ metal3_pod.stdout }}:shared/log/ironic/deploy/.
+        {{ logdir.path }} -c metal3-ironic-conductor
+      when: metal3_pod.stdout
+      ignore_errors: true
+
+    - name: Find deployment logs
+      find:
+        paths: "{{ logdir.path }}"
+        recurse: yes
+        patterns: "*.log,*.txt,*.html,*.tar.gz"
+      register: logs_matched
+
+    - name: Upload logs directory to DCI Control Server
+      environment:
+        - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
+        - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
+        - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
+      dci_file:
+        path: "{{ item.path }}"
+        name: "{{ item.path | basename }}"
+        job_id: "{{ hostvars.localhost.job_id }}"
+      with_items: "{{ logs_matched.files }}"
+
+    - name: Clean up Temp dir
+      file:
+        path: "{{ logdir.path }}"
+        state: absent
+
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
+...
