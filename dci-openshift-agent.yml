@@ -1,6 +1,9 @@
 ---
-# Initial step
-- hosts: localhost
+# Step 0
+- name: set dci variables
+  hosts: localhost
+  vars:
+    dci_status: 'new'
   tags:
     - job
   tasks:
@@ -24,7 +27,7 @@
       set_fact:
         job_id: '{{ job_info.job.id }}'
 
-    - name: 'Set DCI tags for the current job'
+    - name: Set DCI tags for the current job
       dci_job:
         id: '{{ job_id }}'
         tags: '{{ dci_tags }}'
