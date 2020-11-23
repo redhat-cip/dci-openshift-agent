@@ -1,3 +1,4 @@
+---
 - name: Install helper tools
   become: true
   package:
@@ -43,3 +44,10 @@
     - '{{ dci_cache_dir }}'
     - '{{ dci_mirror_location }}/dci_repo'
   become: true
+
+- name: "Clean up {{ dci_cluster_configs_dir }}"
+  file:
+    path: "{{ dci_cluster_configs_dir }}"
+    state: absent
+
+...
