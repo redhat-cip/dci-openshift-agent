@@ -1,56 +1,4 @@
 ---
-- name: Generate temp dir
-  tempfile:
-    state: directory
-    suffix: logdir
-  register: logdir
-
-- name: Generate config.log
-  copy:
-    content: |
-      baremetal_deploy_version: {{ baremetal_deploy_clone.after }}
-    dest: "{{ logdir.path }}/config.log"
-
-- name: Find metal3 pod
-  environment:
-      KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
-  shell: |
-    set -o pipefail
-    {{ dci_cluster_configs_dir }}/oc --insecure-skip-tls-verify=true \
-    -n openshift-machine-api get pods | awk '/metal3/ { print $1 }'
-  register: metal3_pod
-
-- name: Copy Ironic logs
-  environment:
-      KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
-  command: |
-    {{ dci_cluster_configs_dir }}/oc --insecure-skip-tls-verify=true cp
-    openshift-machine-api/{{ metal3_pod.stdout }}:shared/log/ironic/deploy/.
-    {{ logdir.path }} -c metal3-ironic-conductor
-  when: metal3_pod.stdout
-
-- name: Find deployment logs
-  find:
-    paths: "{{ logdir.path }}"
-    recurse: yes
-    patterns: "*.log,*.txt,*.html,*.tar.gz"
-  register: logs_matched
-
-- name: Upload logs directory to DCI Control Server
-  environment:
-    - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
-    - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
-    - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
-  dci_file:
-    path: "{{ item.path }}"
-    name: "{{ item.path | basename }}"
-    job_id: "{{ hostvars.localhost.job_id }}"
-  with_items: "{{ logs_matched.files }}"
-
-- name: Clean up Temp dir
-  file:
-    path: "{{ logdir.path }}"
-    state: absent
 
 - name: set outputs to be copied
   set_fact:
@@ -66,3 +14,7 @@
     flat: true
   with_dict: "{{ job_info.outputs }}"
   when: job_info.outputs is defined and job_info.outputs != None
+
+- name: Upload logs
+  include_tasks: get-logs.yml
+...

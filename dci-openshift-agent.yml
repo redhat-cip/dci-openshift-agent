@@ -49,19 +49,16 @@
         # Download Openshift from DCI
         - name: Import Openshift files from DCI
           include_tasks: plays/fetch-bits.yml
-      rescue: &teardown_failure
+      rescue: &teardown_error
         - block:
             - name: Run the teardown process
               include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
               when: dci_teardown_on_failure|bool
-
-            - name: Run the failure process
-              include_tasks: plays/failure.yml
           ignore_unreachable: true
 
-          rescue:
-            - name: Run the failure process
-              include_tasks: plays/failure.yml
+          always:
+            - name: Run the error process
+              include_tasks: plays/error.yml
 
 # Step 2 : state "Pre-run"
 - name: 'Launch pre-run'
@@ -79,7 +76,7 @@
         - name: Run the pre-run hook
           include_tasks: '{{ dci_config_dir }}/hooks/pre-run.yml'
 
-      rescue: *teardown_failure
+      rescue: *teardown_error
 
 # Step 3 : state "configure"
 - name: 'Launch configure'
@@ -98,7 +95,7 @@
         - name: Launch configure
           include_tasks: '{{ dci_config_dir }}/hooks/configure.yml'
 
-      rescue: *teardown_failure
+      rescue: *teardown_error
 
 # Step 4 : state "installing"
 - name: 'Launch install'
@@ -125,7 +122,16 @@
             - dci_main is defined
             - dci_main == 'upgrade'
 
-      rescue: *teardown_failure
+      rescue: &teardown_failure
+        - block:
+            - name: Run the teardown process
+              include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+              when: dci_teardown_on_failure|bool
+          ignore_unreachable: true
+
+          always:
+            - name: Run the failure process
+              include_tasks: plays/failure.yml
 
 # Step 5 : state "redhat-testing"
 - name: 'Launch Red Hat tests'
@@ -186,7 +192,8 @@
   tasks:
     - block:
         - include_tasks: plays/post-run.yml
-      rescue: *teardown_failure
+
+      rescue: *teardown_error
 
 # Step 8 : state "success"
 - name: 'Success'
