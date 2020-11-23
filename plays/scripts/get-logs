@@ -1,0 +1,102 @@
+#!/bin/sh
+#
+# Copyright (C) 2020 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+log=$1
+dir="$2"
+
+if [ -z "$log" -o -z "$dir" ]; then
+    echo "Usage: $0 <provisioner login> <dest dir>" 1>&2
+    exit 1
+fi
+
+rem="ssh $log"
+
+myscript=$(mktemp)
+
+if [ ! -w $myscript ]; then
+    echo "Unable to create a temporary file" 1>&2
+fi
+
+set -x
+
+cat > $myscript <<EOF
+# do not display the output of the spawn process
+log_user 0
+
+spawn ssh $log sudo virsh list
+
+expect -- "----------------------------------------------------"
+
+expect {
+    -re "\\\\d+\\\\s+(.*)\\\\s+running" {set nodename \$expect_out(1,string)}
+    eof {puts stderr "Unable to find the vm name"; exit 1}
+}
+
+spawn ssh -t $log sudo virsh console \$nodename
+
+expect "Escape character is"
+send "\n"
+
+expect {
+    -re ".*: ((?:\\\\d+\\.){3}\\\\d+) " {puts \$expect_out(1,string); exit}
+    ogin: {puts stderr "No IPv4 found"; exit 1}
+}
+EOF
+
+ip=$(expect -f $myscript)
+
+rm $myscript
+
+if [ -n "$ip" ]; then
+    echo "found VM IPv4 $ip"
+
+    for serv in release-image bootkube; do
+        $rem ssh core@$ip journalctl -b -u $serv.service > $dir/$serv.log
+    done
+
+    for cont in ipa-downloader coreos-downloader; do
+        $rem ssh core@$ip podman logs $cont > $dir/$cont.log
+    done
+else
+    remdir=$($rem mktemp -d)
+
+    if [ -n "$remdir" ]; then
+        # Ironic logs
+        metal3_pod=$($rem oc -n openshift-machine-api get pods | awk '/metal3/ { print $1 }')
+        if [ -n "$metal3_pod" ]; then
+            echo "Downloading ironic logs from $metal3_pod"
+            $rem oc cp openshift-machine-api/$metal3_pod:shared/log/ironic/deploy/. $remdir -c metal3-ironic-conductor
+        fi
+        
+        # Get the output of various oc commands
+        $rem oc version > $dir/version.txt
+        $rem oc get clusterversion/version > $dir/clusterversion.txt
+        $rem oc get clusteroperator > $dir/clusteroperator.txt
+        $rem oc get nodes > $dir/nodes.txt
+        $rem oc get events --all-namespaces > $dir/events.txt
+        
+        # must-gather
+        # $rem oc adm must-gather --dest-dir=$dir
+        
+        # Get remote logs
+        scp $log:$remdir/* $dir/
+        $rem rm -rf $remdir
+    else
+        echo "Unable to create a temporary directory on $rem" 1>&2
+    fi
+fi
+
+# get-logs ends here
