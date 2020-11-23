@@ -1,14 +1,15 @@
+---
 - name: Install helper tools
   become: true
   package:
-    name: "{{ item }}"
+    name:
+      - "python{% if ansible_python.version.major == 3 %}3{% endif %}-firewall"
+      - "python{% if ansible_python.version.major == 3 %}3{% endif %}-dns"
+      - "python{% if ansible_python.version.major == 3 %}3{% endif %}-netaddr"
+      - "jq"
+      - "httpd"
+      - "expect"
     state: installed
-  with_items:
-    - "python{% if ansible_python.version.major == 3 %}3{% endif %}-firewall"
-    - "python{% if ansible_python.version.major == 3 %}3{% endif %}-dns"
-    - "python{% if ansible_python.version.major == 3 %}3{% endif %}-netaddr"
-    - "jq"
-    - "httpd"
 
 - name: Ensure Apache is running
   systemd:
@@ -43,3 +44,10 @@
     - '{{ dci_cache_dir }}'
     - '{{ dci_mirror_location }}/dci_repo'
   become: true
+
+- name: "Clean up {{ dci_cluster_configs_dir }}"
+  file:
+    path: "{{ dci_cluster_configs_dir }}"
+    state: absent
+
+...
