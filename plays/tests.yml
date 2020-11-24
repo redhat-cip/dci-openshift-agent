@@ -1,16 +1,4 @@
 ---
-- name: "dci-openshift-agent : Setup openshift access"
-  include_role:
-    name: oc-setup
-
-- name: "dci-openshift-agent : Setup podman on the jumphost"
-  include_role:
-    name: podman-setup
-
-- name: "dci-openshift-agent : Side-load podman images prior to testing"
-  include_role:
-    name: image-side-load
-
 - name: "dci-openshift-agent : Run Red Hat test suite"
   include_role:
     name: redhat-tests
