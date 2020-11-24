@@ -50,4 +50,7 @@
     path: "{{ dci_cluster_configs_dir }}"
     state: absent
 
+- name: "Setup podman on the jumphost"
+  include_role:
+    name: podman-setup
 ...
