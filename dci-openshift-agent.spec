@@ -48,6 +48,9 @@ find roles/podman-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}
 find roles/image-side-load -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/redhat-tests -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/local-registry-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
+find roles/prepare-cnf -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
+find roles/operator-performance-profile -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
+find roles/operator-sriov -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 install -p -D -m 644 templates/ssh_config.j2 %{buildroot}%{_datadir}/dci-openshift-agent/templates/ssh_config.j2
@@ -101,6 +104,9 @@ exit 0
 %{_datadir}/dci-openshift-agent/roles/image-side-load/*
 %{_datadir}/dci-openshift-agent/roles/redhat-tests/*
 %{_datadir}/dci-openshift-agent/roles/local-registry-setup/*
+%{_datadir}/dci-openshift-agent/roles/prepare-cnf/*
+%{_datadir}/dci-openshift-agent/roles/operator-performance-profile/*
+%{_datadir}/dci-openshift-agent/roles/operator-sriov/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 %{_datadir}/dci-openshift-agent/templates/ssh_config.j2
@@ -115,6 +121,11 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Tue Nov 24 2020 Thomas Vassilian <tvassili@redhat.com> - 0.1.1-2
+- Add a role to prepare CNF testings
+- Add a role to enable performance-profile operator
+- Add a role to enable sriov operator
+
 * Sat Oct 31 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.1.1-1
 - Add an upgrader playbook
 
