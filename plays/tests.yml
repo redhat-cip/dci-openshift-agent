@@ -3,6 +3,32 @@
   include_role:
     name: oc-setup
 
+- name: "dci-openshift-agent : Prepare cluster for CNF"
+  include_role:
+    name: prepare-cnf
+  when:
+    - dci_prepare_cnf|bool
+
+- name: "dci-openshift-agent : Install performance profile operator"
+  include_role:
+    name: operator-performance-profile
+  when:
+    - enable_perf_addon|default(true)|bool
+    - dci_prepare_cnf|bool
+
+- name: "dci-openshift-agent : Install sriov operator"
+  include_role:
+    name: operator-sriov
+  when:
+    - enable_sriov|default(true)|bool
+    - dci_prepare_cnf|bool
+
+- name: Reset maxUnavailable count to default value 1
+  environment:
+    KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
+  command:
+    cmd: oc patch mcp worker --type=merge -p '{"spec":{"maxUnavailable":1}}'
+
 - name: "dci-openshift-agent : Setup podman on the jumphost"
   include_role:
     name: podman-setup
