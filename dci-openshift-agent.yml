@@ -124,6 +124,37 @@
 
       rescue: *teardown_failure
 
+# Step 4b (optional) : Configure cluster for CNF testing
+- name: 'Launch install'
+  hosts: provisioner
+  tags:
+    - running
+    - installing
+    - upgrading
+  vars:
+    dci_status: 'running'
+  tasks:
+    - block:
+        - name: "dci-openshift-agent : Prepare cluster for CNF"
+          include_role: 
+            name: prepare-cnf
+
+        - name: "dci-openshift-agent : Install performance profile operator"
+          include_role:
+            name: operator-performance-profile
+          when: enable_perf_addon|default(true)|bool
+
+        - name: "dci-openshift-agent : Install sriov operator"
+          include_role:
+            name: operator-sriov
+          when: enable_sriov|default(true)|bool
+
+      when:
+        - dci_main is not defined or dci_main == 'install'
+        - dci_prepare_cnf|bool
+
+      rescue: *teardown_failure
+
 # Step 5 : state "redhat-testing"
 - name: 'Launch Red Hat tests'
   hosts: localhost
