@@ -22,6 +22,30 @@
       "revId": "da8b77f46fa42ce1197818cf8849d0f425b5bb1e",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9edd5834_b8722cb9",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-11-25T16:54:52Z",
+      "side": 1,
+      "message": "Is it working on RHEL7 too?",
+      "parentUuid": "4a96a1ad_4c105b4a",
+      "range": {
+        "startLine": 79,
+        "startChar": 10,
+        "endLine": 79,
+        "endChar": 20
+      },
+      "revId": "da8b77f46fa42ce1197818cf8849d0f425b5bb1e",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
