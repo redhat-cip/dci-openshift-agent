@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a96a1ad_4c105b4a",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-11-25T16:49:01Z",
+      "side": 1,
+      "message": "Ansible docs  we recommend to use the loop statement but it is the same in this case as we do not have list element in our list.",
+      "range": {
+        "startLine": 79,
+        "startChar": 10,
+        "endLine": 79,
+        "endChar": 20
+      },
+      "revId": "da8b77f46fa42ce1197818cf8849d0f425b5bb1e",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
