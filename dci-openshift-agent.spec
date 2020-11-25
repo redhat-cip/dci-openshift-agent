@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.1.0
+Version:       0.1.2
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -41,6 +41,10 @@ install -p -D -m 644 settings.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent
 
 for play in plays/*.yml; do
     install -p -D -m 644 $play %{buildroot}%{_datadir}/dci-openshift-agent/$play
+done
+
+for script in plays/scripts/*; do
+    install -p -D -m 755 $script %{buildroot}%{_datadir}/dci-openshift-agent/$script
 done
 
 find roles/oc-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
@@ -96,6 +100,7 @@ exit 0
 %{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 
 %{_datadir}/dci-openshift-agent/plays/*.yml
+%{_datadir}/dci-openshift-agent/plays/scripts/*
 %{_datadir}/dci-openshift-agent/roles/oc-setup/*
 %{_datadir}/dci-openshift-agent/roles/podman-setup/*
 %{_datadir}/dci-openshift-agent/roles/image-side-load/*
@@ -115,6 +120,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Nov 25 2020 Frederic Lepied <flepied@redhat.com> 0.1.2-1
+- add a scripts subdir
+
 * Sat Oct 31 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.1.1-1
 - Add an upgrader playbook
 
