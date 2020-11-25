@@ -52,7 +52,8 @@
       rescue: &teardown_error
         - block:
             - name: Run the teardown process
-              include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+              include_tasks: "{{ item }}/hooks/teardown.yml"
+              loop: "{{ dci_config_dirs }}"
               when: dci_teardown_on_failure|bool
           ignore_unreachable: true
 
@@ -74,7 +75,8 @@
           include_tasks: 'plays/pre-run.yml'
 
         - name: Run the pre-run hook
-          include_tasks: '{{ dci_config_dir }}/hooks/pre-run.yml'
+          include_tasks: '{{ item }}/hooks/pre-run.yml'
+          loop: "{{ dci_config_dirs }}"
 
       rescue: *teardown_error
 
@@ -93,7 +95,8 @@
           include_tasks: plays/configure-provisioner.yml
 
         - name: Launch configure
-          include_tasks: '{{ dci_config_dir }}/hooks/configure.yml'
+          include_tasks: '{{ item }}/hooks/configure.yml'
+          loop: "{{ dci_config_dirs }}"
 
       rescue: *teardown_error
 
@@ -125,7 +128,8 @@
       rescue: &teardown_failure
         - block:
             - name: Run the teardown process
-              include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+              include_tasks: "{{ item }}/hooks/teardown.yml"
+              loop: "{{ dci_config_dirs }}"
               when: dci_teardown_on_failure|bool
           ignore_unreachable: true
 
@@ -178,7 +182,8 @@
     - block:
         # Launch user tests
         - name: Run the partner tests hook
-          include_tasks: '{{ dci_config_dir }}/hooks/user-tests.yml'
+          include_tasks: '{{ item }}/hooks/user-tests.yml'
+          loop: "{{ dci_config_dirs }}"
 
       rescue: *teardown_failure
 
@@ -205,10 +210,12 @@
   tasks:
     - block:
         - name: Run the success hook
-          include_tasks: '{{ dci_config_dir }}/hooks/success.yml'
+          include_tasks: '{{ item }}/hooks/success.yml'
+          loop: "{{ dci_config_dirs }}"
 
         - name: Run the teardown process
-          include_tasks: "{{ dci_config_dir }}/hooks/teardown.yml"
+          include_tasks: "{{ item }}/hooks/teardown.yml"
+          loop: "{{ dci_config_dirs }}"
           when: dci_teardown_on_failure|bool
       ignore_unreachable: true
       ignore_errors: true
