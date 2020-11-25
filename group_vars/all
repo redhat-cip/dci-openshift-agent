@@ -3,7 +3,7 @@ dci_components_by_query: []
 dci_base_ip: "{{ ansible_default_ipv4.address }}"
 dci_baseurl: "http://{{ dci_base_ip }}"
 dci_mirror_location: /var/www/html
-dci_config_dir: /etc/dci-openshift-agent
+dci_config_dirs: [/etc/dci-openshift-agent]
 dci_cache_dir: /var/lib/dci-openshift-agent
 dci_teardown_on_failure: true
 dci_tags: ['debug']
