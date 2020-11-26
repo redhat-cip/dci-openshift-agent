@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6ceb7833_ad83ffe2",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-11-26T14:43:34Z",
+      "side": 1,
+      "message": "I didn\u0027t plan to do this but why not.",
+      "parentUuid": "8f0deea1_5d9560c2",
+      "range": {
+        "startLine": 58,
+        "startChar": 14,
+        "endLine": 58,
+        "endChar": 48
+      },
+      "revId": "08ce1ee34539c34dbf47c394d8bdc967c21f3177",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a7778944_2439c39a",
         "filename": "dci-openshift-agent.yml",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2020-11-26T14:18:19Z",
       "side": 1,
       "message": "i don\u0027t see the diff between teardown_error and teardown_failure",
+      "range": {
+        "startLine": 106,
+        "startChar": 14,
+        "endLine": 106,
+        "endChar": 31
+      },
+      "revId": "08ce1ee34539c34dbf47c394d8bdc967c21f3177",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5858fadb_2bf23b85",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-11-26T14:43:34Z",
+      "side": 1,
+      "message": "it is calling failure.yml or error.yml",
+      "parentUuid": "a7778944_2439c39a",
       "range": {
         "startLine": 106,
         "startChar": 14,
