@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8f0deea1_5d9560c2",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-11-26T14:18:19Z",
+      "side": 1,
+      "message": "I think it is a good time to also check if file exist. To avoid to ship empty file. I did it here: https://github.com/redhat-cip/dci-openshift-app-agent/blob/master/dci-openshift-app-agent.yml#L43-L44\nThe pb is when you use custom hooks folder you have to create empty files (because not shipped in the rpm)",
+      "range": {
+        "startLine": 58,
+        "startChar": 14,
+        "endLine": 58,
+        "endChar": 48
+      },
+      "revId": "08ce1ee34539c34dbf47c394d8bdc967c21f3177",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a7778944_2439c39a",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-11-26T14:18:19Z",
+      "side": 1,
+      "message": "i don\u0027t see the diff between teardown_error and teardown_failure",
+      "range": {
+        "startLine": 106,
+        "startChar": 14,
+        "endLine": 106,
+        "endChar": 31
+      },
+      "revId": "08ce1ee34539c34dbf47c394d8bdc967c21f3177",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aca2c79_3347342c",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-11-26T14:18:19Z",
+      "side": 1,
+      "message": "same comment about file stat test",
+      "range": {
+        "startLine": 176,
+        "startChar": 10,
+        "endLine": 176,
+        "endChar": 53
+      },
+      "revId": "08ce1ee34539c34dbf47c394d8bdc967c21f3177",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5334f888_82540c8c",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 526
+      },
+      "writtenOn": "2020-11-26T14:18:19Z",
+      "side": 1,
+      "message": "again",
+      "range": {
+        "startLine": 193,
+        "startChar": 0,
+        "endLine": 193,
+        "endChar": 56
+      },
+      "revId": "08ce1ee34539c34dbf47c394d8bdc967c21f3177",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
