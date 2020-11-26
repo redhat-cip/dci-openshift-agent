@@ -183,39 +183,77 @@ If you need to run the `dci-openshift-agent` manually in foreground, you can use
 
 ### dci-openshift-agent workflow
 
-_Step 1 :_ State “New job”
+_Step 0 :_ “New DCI job”
 
-- Prepare the `Jumpbox`: `/plays/configure.yml`
-- Download OpenShift from DCI: `/plays/fetch_bits.yml`
+- Create a DCI job
 
-_Step 2 :_ State “Pre-run”
+_tags: job_
+_runs on localhost_
 
+_Step 1 :_ “Pre-run”
+
+- Prepare the `Jumpbox`: `/plays/pre-run.yml`
 - Deploy infrastructure if needed: `/hooks/pre-run.yml`
 
-_Step 3 :_ State “Running”
+_tags: pre-run_
+_runs on localhost_
 
-- Configure OpenShift nodes: `/hooks/configure.yml`
-- Start OpenShift installer: `/plays/running.yml`
+_Step 2 :_ “Configure”
 
-_Step 4 :_ State “Post-run”
+- Prepare provisioner: `/plays/configure-provisioner.yml` and `/hooks/configure.yml`
 
-- Login to the openshift cluster: `/plays/oc-setup.yml`
-- Setup podman on the jumphost: `/plays/podman-setup.yml`
-- Side-load images: `plays/image-side-load.yml`
-- Start DCI tests: `/plays/dci-tests.yml`
-- Start user specific tests: `/hooks/user-tests.yml`
+_tags: running, configure_
+_runs on provisioner_
 
-_Step 5 :_ State “Success”
+_Step 3a :_ “Installing”
 
-- Launch additional tasks when the job is successful: /hooks/success.yml
+- Start OpenShift install: `/plays/install.yml` and `/hooks/install.yml`. This is launched the variable `dci_main` is undefined or equal to `install`.
+
+_tags: running, installing_
+_runs on provisioner_
+
+_Step 3b :_ “Upgrading”
+
+- Start OpenShift upgrade: `/plays/upgrade.yml` and `/hooks/upgrade.yml`. This is launched when the variable `dci_main` is set to `upgrade`.
+
+_tags: running, upgrading_
+_runs on provisioner_
+
+_Step 4 :_ “Red Hat tests”
+
+- start Red Hat tests: `/plays/tests.yml`
+
+_tags: running, testing, redhat-testing_
+_runs on localhost_
+
+_Step 5 :_ “Partner tests”
+
+- start partner tests: `/hooks/tests.yml`
+
+_tags: running, testing, partner-testing_
+_runs on localhost_
+
+_Step 6 :_ “Post-run”
+
+- Start post-run to collect results:  `/plays/post-run.yml` and `/hooks/post-run.yml`
+
+_tags: post-run_
+_runs on localhost_
+
+_Step 5 :_ “Success”
+
+- Launch additional tasks when the job is successful: `/hooks/success.yml`
+
+_tags: success_
+_runs on localhost_
 
 _Exit playbooks:_
-The 2 following playbooks are executed sequentially at any step that fail:
+The following playbooks are executed sequentially at any step that fail:
 
-- Teardown: /hooks/teardown.yml
-- Failure: /plays/failure.yml
+- Teardown: `/hooks/teardown.yml`
+- Failure: `/plays/failure.yml` during the `running` steps and `/plays/error.yml` during the other steps.
 
-_All playbooks located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized by the user._
+_All the task files located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized by the user._
 
 ## Create your DCI account on distributed-ci.io
 

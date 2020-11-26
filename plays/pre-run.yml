@@ -1,4 +1,12 @@
 ---
+# Prepare host
+- name: Configure jumpbox
+  include_tasks: configure-jumpbox.yml
+
+# Download Openshift from DCI
+- name: Import Openshift files from DCI
+  include_tasks: fetch-bits.yml
+
 - name: Erase bootloader to prevent old OS to boot
   delegate_to: "{{ item }}"
   become: true
