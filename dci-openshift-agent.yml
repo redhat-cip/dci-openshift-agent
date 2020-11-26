@@ -1,6 +1,6 @@
 ---
-# Step 0
-- name: set dci variables
+# Step 0 : DCI setup
+- name: 'Set dci variables'
   hosts: localhost
   vars:
     dci_status: 'new'
@@ -33,35 +33,7 @@
         tags: '{{ dci_tags }}'
       when: dci_tags
 
-# Step 1 : state "New job"
-- name: Prepare jumphost
-  hosts: localhost
-  vars:
-    dci_status: 'new'
-  tags:
-    - configure
-  tasks:
-    - block:
-        # Prepare host
-        - name: Configure jumpbox
-          include_tasks: plays/configure-jumpbox.yml
-
-        # Download Openshift from DCI
-        - name: Import Openshift files from DCI
-          include_tasks: plays/fetch-bits.yml
-      rescue: &teardown_error
-        - block:
-            - name: Run the teardown process
-              include_tasks: "{{ item }}/hooks/teardown.yml"
-              loop: "{{ dci_config_dirs }}"
-              when: dci_teardown_on_failure|bool
-          ignore_unreachable: true
-
-          always:
-            - name: Run the error process
-              include_tasks: plays/error.yml
-
-# Step 2 : state "Pre-run"
+# Step 1 : pre run
 - name: 'Launch pre-run'
   hosts: localhost
   tags:
@@ -78,9 +50,20 @@
           include_tasks: '{{ item }}/hooks/pre-run.yml'
           loop: "{{ dci_config_dirs }}"
 
-      rescue: *teardown_error
+      rescue: &teardown_error
+        - block:
+            - name: Run the teardown process
+              include_tasks: "{{ item }}/hooks/teardown.yml"
+              loop: "{{ dci_config_dirs }}"
+              when: dci_teardown_on_failure|bool
+              ignore_unreachable: true
+              ignore_errors: true
 
-# Step 3 : state "configure"
+          always:
+            - name: Run the error process
+              include_tasks: plays/error.yml
+
+# Step 2 : configure
 - name: 'Launch configure'
   hosts: provisioner
   tags:
@@ -100,30 +83,25 @@
 
       rescue: *teardown_error
 
-# Step 4 : state "installing"
+# Step 3a : installing
 - name: 'Launch install'
   hosts: provisioner
   tags:
     - running
     - installing
-    - upgrading
   vars:
     dci_status: 'running'
   tasks:
     - block:
-        - name: "dci-openshift-agent : Launch installer"
-          include_tasks: plays/installer.yml
-          when:
-            - dci_main is not defined or dci_main == 'install'
+        - name: "dci-openshift-agent : Launch install"
+          include_tasks: plays/install.yml
 
-        - name: "dci-openshift-agent : Launch upgrader"
-          vars:
-            local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
-            local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
-          include_tasks: plays/upgrader.yml
-          when:
-            - dci_main is defined
-            - dci_main == 'upgrade'
+        - name: "dci-openshift-agent : Launch partner install"
+          include_tasks: '{{ item }}/hooks/install.yml'
+          loop: "{{ dci_config_dirs }}"
+
+      when:
+        - dci_main is not defined or dci_main == 'install'
 
       rescue: &teardown_failure
         - block:
@@ -131,13 +109,43 @@
               include_tasks: "{{ item }}/hooks/teardown.yml"
               loop: "{{ dci_config_dirs }}"
               when: dci_teardown_on_failure|bool
-          ignore_unreachable: true
+              ignore_unreachable: true
+              ignore_errors: true
 
           always:
             - name: Run the failure process
               include_tasks: plays/failure.yml
 
-# Step 5 : state "redhat-testing"
+# Step 3b : upgrading
+- name: 'Launch upgrade'
+  hosts: provisioner
+  tags:
+    - running
+    - upgrading
+  vars:
+    dci_status: 'running'
+  tasks:
+    - block:
+        - name: "dci-openshift-agent : Launch upgrade"
+          vars:
+            local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
+            local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
+          include_tasks: plays/upgrade.yml
+
+        - name: "dci-openshift-agent : Launch partner upgrade"
+          vars:
+            local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
+            local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
+          include_tasks: '{{ item }}/hooks/upgrade.yml'
+          loop: "{{ dci_config_dirs }}"
+
+      when:
+        - dci_main is defined
+        - dci_main == 'upgrade'
+
+      rescue: *teardown_failure
+
+# Step 4 : redhat testing
 - name: 'Launch Red Hat tests'
   hosts: localhost
   tags:
@@ -148,28 +156,11 @@
     dci_status: 'running'
   tasks:
     - block:
-        - name: "dci-openshift-agent : Setup openshift access"
-          include_role:
-            name: oc-setup
-
-        - name: "dci-openshift-agent : Setup podman on the jumphost"
-          include_role:
-            name: podman-setup
-
-        - name: "dci-openshift-agent : Side-load podman images prior to testing"
-          include_role:
-            name: image-side-load
-
-        - name: "dci-openshift-agent : Run Red Hat test suite"
-          include_role:
-            name: redhat-tests
-          when:
-            - dci_openshift_agent_conformance is defined
-            - dci_openshift_agent_conformance | length > 0
+        - include_tasks: plays/tests.yml
 
       rescue: *teardown_failure
 
-# Step 6 : state "partner-testing"
+# Step 5 : partner testing
 - name: 'Launch partner tests'
   hosts: localhost
   tags:
@@ -181,13 +172,13 @@
   tasks:
     - block:
         # Launch user tests
-        - name: Run the partner tests hook
-          include_tasks: '{{ item }}/hooks/user-tests.yml'
+        - name: Run the partner tests
+          include_tasks: '{{ item }}/hooks/tests.yml'
           loop: "{{ dci_config_dirs }}"
 
       rescue: *teardown_failure
 
-# Step 7 : Post Run
+# Step 6 : post run
 - name: Launch post run
   hosts: localhost
   tags:
@@ -198,9 +189,13 @@
     - block:
         - include_tasks: plays/post-run.yml
 
+        - name: Run the partner post-run
+          include_tasks: '{{ item }}/hooks/post-run.yml'
+          loop: "{{ dci_config_dirs }}"
+
       rescue: *teardown_error
 
-# Step 8 : state "success"
+# Step 7 : state "success"
 - name: 'Success'
   hosts: localhost
   tags:
