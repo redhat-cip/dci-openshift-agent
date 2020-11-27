@@ -52,16 +52,20 @@
 
       rescue: &teardown_error
         - block:
-            - name: Run the teardown process
-              include_tasks: "{{ item }}/hooks/teardown.yml"
-              loop: "{{ dci_config_dirs }}"
-              when: dci_teardown_on_failure|bool
-          ignore_unreachable: true
-          ignore_errors: true
+
+            - block:
+                - name: Run the teardown process
+                  include_tasks: "{{ item }}/hooks/teardown.yml"
+                  loop: "{{ dci_config_dirs }}"
+                  when: dci_teardown_on_failure|bool
+              ignore_unreachable: true
+              ignore_errors: true
 
           always:
             - name: Run the error process
               include_tasks: plays/error.yml
+
+          ignore_unreachable: true
 
 # Step 2 : configure
 - name: 'Launch configure'
@@ -105,16 +109,20 @@
 
       rescue: &teardown_failure
         - block:
-            - name: Run the teardown process
-              include_tasks: "{{ item }}/hooks/teardown.yml"
-              loop: "{{ dci_config_dirs }}"
-              when: dci_teardown_on_failure|bool
-          ignore_unreachable: true
-          ignore_errors: true
+
+            - block:
+                - name: Run the teardown process
+                  include_tasks: "{{ item }}/hooks/teardown.yml"
+                  loop: "{{ dci_config_dirs }}"
+                  when: dci_teardown_on_failure|bool
+              ignore_unreachable: true
+              ignore_errors: true
 
           always:
             - name: Run the failure process
               include_tasks: plays/failure.yml
+
+          ignore_unreachable: true
 
 # Step 3b : upgrading
 - name: 'Launch upgrade'
