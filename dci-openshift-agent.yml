@@ -35,13 +35,16 @@
 
 # Step 1 : pre run
 - name: 'Launch pre-run'
-  hosts: localhost
+  hosts: provisioner
   tags:
     - pre-run
   vars:
     dci_status: 'pre-run'
   tasks:
     - block:
+        - fail:
+            msg: on purpose
+
         # prepare infrastructure
         - name: Run the pre-run hook
           include_tasks: 'plays/pre-run.yml'
