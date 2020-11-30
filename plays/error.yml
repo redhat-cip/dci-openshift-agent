@@ -3,11 +3,15 @@
   set_fact:
     dci_current_status: "{{ dci_status }}"
     dci_status: error
+  delegate_to: localhost
 
 - name: Upload logs
   include_tasks: get-logs.yml
 
-- name: Fail properly
-  fail:
+- name: Link job
+  debug:
     msg: 'Error: something went wrong during the {{ dci_current_status }}. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.localhost.job_info.job.id }}/jobStates' # noqa 204
+
+- name: Exit without failure
+  meta: end_play
 ...
