@@ -67,8 +67,8 @@ if [ -n "$ip" ]; then
         $rem ssh core@$ip journalctl -b -u $serv.service > $dir/$serv.log
     done
 
-    for cont in ipa-downloader coreos-downloader; do
-        $rem ssh core@$ip podman logs $cont > $dir/$cont.log
+    for pod in $($rem ssh core@$ip sudo podman ps 2>&1 | sed 's/.* //'|grep -v '^\(hosts\|NAMES\)$'); do
+        $rem ssh core@$ip sudo podman logs $pod > $dir/$pod.log
     done
 else
     remdir=$($rem mktemp -d)
