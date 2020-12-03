@@ -2,8 +2,6 @@
 # Step 0 : DCI setup
 - name: 'Set dci variables'
   hosts: localhost
-  vars:
-    dci_status: 'new'
   tags:
     - job
   tasks:
@@ -27,6 +25,11 @@
       set_fact:
         job_id: '{{ job_info.job.id }}'
 
+    - name: set job state
+      dci_job:
+        id: "{{ job_id }}"
+        status: "new"
+
     - name: Set DCI tags for the current job
       dci_job:
         id: '{{ job_id }}'
@@ -38,9 +41,12 @@
   hosts: localhost
   tags:
     - pre-run
-  vars:
-    dci_status: 'pre-run'
   tasks:
+    - name: pre-run
+      dci_job:
+        id: "{{ job_id }}"
+        status: "pre-run"
+
     - block:
         # prepare infrastructure
         - name: Run the pre-run hook
@@ -52,8 +58,14 @@
 
       rescue: &teardown_error
         - block:
+            - name: error
+              dci_job:
+                id: "{{ hostvars.localhost.job_id }}"
+                status: "error"
+              delegate_to: localhost
 
             - block:
+
                 - name: Run the teardown process
                   include_tasks: "{{ item }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs }}"
@@ -63,7 +75,7 @@
 
           always:
             - name: Run the error process
-              include_tasks: plays/error.yml
+              include_tasks: plays/failure.yml
 
           ignore_unreachable: true
 
@@ -73,9 +85,13 @@
   tags:
     - running
     - configure
-  vars:
-    dci_status: 'running'
   tasks:
+    - name: running
+      dci_job:
+        id: "{{ hostvars.localhost.job_id }}"
+        status: "running"
+      delegate_to: localhost
+
     - block:
         # Prepare provisioner host
         - name: Configure provisioner
@@ -93,8 +109,6 @@
   tags:
     - running
     - installing
-  vars:
-    dci_status: 'running'
   tasks:
     - block:
         - name: "dci-openshift-agent : Launch install"
@@ -109,6 +123,11 @@
 
       rescue: &teardown_failure
         - block:
+            - name: failure
+              dci_job:
+                id: "{{ hostvars.localhost.job_id }}"
+                status: "failure"
+              delegate_to: localhost
 
             - block:
                 - name: Run the teardown process
@@ -130,8 +149,6 @@
   tags:
     - running
     - upgrading
-  vars:
-    dci_status: 'running'
   tasks:
     - block:
         - name: "dci-openshift-agent : Launch upgrade"
@@ -160,8 +177,6 @@
     - running
     - testing
     - redhat-testing
-  vars:
-    dci_status: 'running'
   tasks:
     - block:
         - include_tasks: plays/tests.yml
@@ -175,8 +190,6 @@
     - running
     - testing
     - partner-testing
-  vars:
-    dci_status: 'running'
   tasks:
     - block:
         # Launch user tests
@@ -191,9 +204,12 @@
   hosts: localhost
   tags:
     - post-run
-  vars:
-    dci_status: 'post-run'
   tasks:
+    - name: post-run
+      dci_job:
+        id: "{{ job_id }}"
+        status: "post-run"
+
     - block:
         - include_tasks: plays/post-run.yml
 
@@ -208,9 +224,12 @@
   hosts: localhost
   tags:
     - success
-  vars:
-    dci_status: 'success'
   tasks:
+    - name: success
+      dci_job:
+        id: "{{ job_id }}"
+        status: "success"
+
     - block:
         - name: Run the success hook
           include_tasks: '{{ item }}/hooks/success.yml'
