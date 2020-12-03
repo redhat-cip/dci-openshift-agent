@@ -5,11 +5,15 @@
 
 - name: "dci-openshift-agent : Setup podman on the jumphost"
   include_role:
-    name: podman-setup
+    name: ansible-role-dci-podman
 
 - name: "dci-openshift-agent : Side-load podman images prior to testing"
+  vars:
+    sideload_ocp_cluster: "{{ cluster }}"
+    sideload_ocp_provisioner: "{{ groups['provisioner'][0] }}"
+    sideload_ocp_cluster_nodes: "{{ groups['masters'] + groups['workers'] }}"
   include_role:
-    name: image-side-load
+    name: ansible-role-dci-ocp-imagesideload
 
 - name: "dci-openshift-agent : Run Red Hat test suite"
   include_role:
