@@ -92,10 +92,4 @@
     - hostvars.localhost.enable_perf_addon|default(true)|bool
     - hostvars.localhost.enable_sriov|default(true)|bool
     - hostvars.localhost.dci_prepare_cnf|bool
-
-- name: "Side-load podman images prior to testing"
-  include_role:
-    name: image-side-load
-    apply:
-      delegate_to: localhost
 ...
