@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.1.2
+Version:       0.1.3
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -14,6 +14,8 @@ Requires: dci-ansible
 Requires: ansible-role-dci-import-keys
 Requires: ansible-role-dci-retrieve-component
 Requires: ansible-role-dci-sync-registry
+Requires: ansible-role-dci-podman
+Requires: ansible-role-dci-ocp-imagesideload
 Requires: python3-pyyaml python3-openshift
 
 %{?systemd_requires}
@@ -48,8 +50,6 @@ for script in plays/scripts/*; do
 done
 
 find roles/oc-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
-find roles/podman-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
-find roles/image-side-load -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/redhat-tests -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/local-registry-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/prepare-cnf -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
@@ -105,8 +105,6 @@ exit 0
 %{_datadir}/dci-openshift-agent/plays/*.yml
 %{_datadir}/dci-openshift-agent/plays/scripts/*
 %{_datadir}/dci-openshift-agent/roles/oc-setup/*
-%{_datadir}/dci-openshift-agent/roles/podman-setup/*
-%{_datadir}/dci-openshift-agent/roles/image-side-load/*
 %{_datadir}/dci-openshift-agent/roles/redhat-tests/*
 %{_datadir}/dci-openshift-agent/roles/local-registry-setup/*
 %{_datadir}/dci-openshift-agent/roles/prepare-cnf/*
@@ -126,6 +124,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Dec 03 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.1.3-1
+- Add ansible roles to replace podman setup and image sideload
+
 * Wed Nov 25 2020 Frederic Lepied <flepied@redhat.com> 0.1.2-1
 - add a scripts subdir
 

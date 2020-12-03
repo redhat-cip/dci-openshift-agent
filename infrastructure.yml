@@ -7,7 +7,7 @@
     tags:
     - podman
     include_role:
-      name: podman-setup
+      name: ansible-role-dci-podman
 
   - name: "infrastructure : Create local registry"
     tags:
