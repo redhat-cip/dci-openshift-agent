@@ -1,0 +1,220 @@
+#!/usr/bin/env ansible-playbook
+#
+# Short-hand to install an ocp-on-libvirt lab. You would run this from your
+# workstation pointing to the host in your /etc/ansible/hosts
+# First export the environment variables so this playbook knows what values
+# to use, then run it as an executable. Example:
+# sudo echo "myserver ansible_user=root ansible_host=some-server.eng.redhat.com" >> /etc/ansible/hosts
+# source /path/to/file/with/secret/values.sh
+# ./ocp-on-libvirt.yml -i /etc/ansible/hosts -l myserver
+#
+# NOTE: playbook will fail if you haven't defined the secret variables required
+---
+- name: (Re-)Create ocp-on-libvirt lab in a fresh host
+  hosts: '*'
+  become: true
+  vars:
+    dci_client_id: "{{ lookup('env', 'DCI_CLIENT_ID') }}"
+    dci_api_secret: "{{ lookup('env', 'DCI_API_SECRET') }}"
+    rhn_user: "{{ lookup('env', 'RHN_USER') }}"
+    rhn_pass: "{{ lookup('env', 'RHN_PASS') }}"
+    github_user: "{{ lookup('env', 'GH_USER') }}"
+    dci_cs_url: "https://api.distributed-ci.io/"
+    extra_pkgs:
+      - byobu
+      - rsync
+      - tcpdump
+
+  tasks:
+    - name: Assert all required fields exist
+      assert:
+        that: "{{ item }} != ''"
+      with_items:
+        - dci_client_id
+        - dci_api_secret
+        - rhn_user
+        - rhn_pass
+        - github_user
+
+    - name: Subscribe system to RHN
+      tags:
+        - setup
+      redhat_subscription:
+        state: present
+        username: "{{ rhn_user }}"
+        password: "{{ rhn_pass }}"
+        auto_attach: true
+      when:
+        - ansible_distribution == "RedHat"
+
+    - name: Install EPEL Release
+      tags:
+        - setup
+      yum:
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+
+    - name: Install DCI Release
+      tags:
+        - setup
+      yum:
+        name: "https://packages.distributed-ci.io/dci-release.el7.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+
+    - name: Install extra packages
+      tags:
+        - setup
+        - pkgs
+      yum:
+        name: "{{ extra_pkgs }}"
+        state: present
+
+    - name: Enable extra repos for RHEL7
+      tags:
+        - setup
+      shell: <
+        subscription-manager repos --enable={{ item }}
+      with_items:
+        - rhel-7-server-extras-rpms
+        - rhel-7-server-optional-rpms
+      when:
+        - ansible_distribution == "RedHat"
+        - ansible_distribution_major_version == 7
+
+    - name: Install dci-openshift-agent
+      tags:
+        - setup
+        - install
+      yum:
+        name: dci-openshift-agent
+        state: present
+
+    - name: Enable byobu for the dci-openshift-agent user
+      tags:
+        - setup
+        - install
+      become_user: dci-openshift-agent
+      shell: |
+        byobu-enable
+        byobu-ctrl-a screen
+
+    - name: Copy SSH key to the dci-openshift-agent user
+      tags:
+        - setup
+        - install
+      authorized_key:
+        user: dci-openshift-agent
+        state: present
+        key: "https://github.com/{{ github_user }}.keys"
+
+    - name: Ensure there is a ~/tmp directory for d-o-a
+      tags:
+        - setup
+        - install
+      become_user: dci-openshift-agent
+      file:
+        path: ~/tmp
+        state: directory
+
+    - name: Destroy VMs
+      tags:
+        - install
+        - destroy
+      become_user: dci-openshift-agent
+      environment:
+        ANSIBLE_LOG_PATH: /tmp/libvirt-destroy.log
+      shell: ansible-playbook libvirt_destroy.yml
+      args:
+        chdir: ~dci-openshift-agent/samples/ocp_on_libvirt
+
+    - name: Create VMs
+      tags:
+        - install
+        - create
+      become_user: dci-openshift-agent
+      environment:
+        ANSIBLE_LOG_PATH: /tmp/libvirt-up.log
+      shell: ansible-playbook libvirt_up.yml
+      args:
+        chdir: ~dci-openshift-agent/samples/ocp_on_libvirt
+
+    - name: Copy the hosts file
+      tags:
+        - install
+        - create
+        - config
+      copy:
+        src: ~dci-openshift-agent/samples/ocp_on_libvirt/hosts
+        dest: /etc/dci-openshift-agent/hosts
+        remote_src: true
+
+    - name: Replace all pointers to registry.example.com with our hostname
+      tags:
+        - config
+      replace:
+        path: /etc/dci-openshift-agent/hosts
+        regexp: 'registry\.example\.com'
+        replace: "{{ ansible_fqdn }}"
+
+    - name: Replace all pointers to /opt/cache with /var/cache/images
+      tags:
+        - config
+      replace:
+        path: /etc/dci-openshift-agent/hosts
+        regexp: '\/opt\/cache(\/registry)?'
+        replace: "/var/cache/images"
+
+    - name: Make sure registry dir is there
+      tags:
+        - config
+      lineinfile:
+        path: /etc/dci-openshift-agent/hosts
+        regexp: '^#registry_dir='
+        line: '#registry_dir=/var/cache/registry'
+
+    - name: Uncomment all needed lines
+      tags:
+        - config
+        - customize
+      replace:
+        path: /etc/dci-openshift-agent/hosts
+        regexp: '^#({{ item }}.*)'
+        replace: '\1'
+      with_items:
+        - webserver_url
+        - "{{ ansible_fqdn }}"
+        - disconnected_registry_auths_file
+        - disconnected_registry_mirrors_file
+        - provision_cache_store
+        - registry_dir
+        - local_registry
+        - local_repo
+      when: with_local_registry|bool
+
+    - name: Create the dcirc file
+      tags:
+        - install
+        - create
+        - config
+      copy:
+        dest: /etc/dci-openshift-agent/dcirc.sh
+        content: |
+          export DCI_CLIENT_ID='{{ dci_client_id }}'
+          export DCI_API_SECRET='{{ dci_api_secret }}'
+          export DCI_CS_URL='{{ dci_cs_url }}'
+          export ANSIBLE_LOG_PATH='/tmp/dci-openshift-agent.log'
+
+    - name: Create tiny sh wrapper
+      tags:
+        - install
+        - config
+      copy:
+        dest: /usr/local/bin/go-dci
+        mode: 0755
+        content: |
+          #!/bin/bash -x
+          source /etc/dci-openshift-agent/dcirc.sh
+          ansible-playbook dci-openshift-agent.yml -e @/etc/dci-openshift-agent/settings.yml $@
+...
