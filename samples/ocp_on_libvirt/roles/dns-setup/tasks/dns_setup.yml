@@ -59,8 +59,8 @@
   with_dict: "{{ vm_inv_info }}"
   become: "{{ libvirt_become }}"
 
-- name: Restart NetworkManager
+- name: Reload NetworkManager
   service:
     name: NetworkManager
-    state: restarted
+    state: reloaded
   become: "{{ libvirt_become }}"

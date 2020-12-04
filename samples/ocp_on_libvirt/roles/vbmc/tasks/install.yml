@@ -13,6 +13,17 @@
         state: latest
         disable_gpg_check: yes
 
+  - name: Get libvirt package information
+    yum:
+      list: libvirt
+    register: libvirt_package
+
+  - name: Get libvirt version
+    set_fact:
+      libvirt_version: "{{ item.version }}"
+    loop: "{{ libvirt_package.results }}"
+    when: item.yumstate == "installed"
+
   - name: "check if there's a virtualenv already installed (i.e.: a system-wide RPM package)"
     command: virtualenv --version
     changed_when: false
@@ -36,7 +47,7 @@
     name:
       - pip
       - dateutils
-      - libvirt-python==4.5.0
+      - libvirt-python=={{ libvirt_version }}
       - pyghmi==1.5.13
     state: latest
 
