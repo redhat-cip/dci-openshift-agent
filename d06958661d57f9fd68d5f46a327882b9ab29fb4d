@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9e75d7ef_ac67a6af",
+        "filename": "plays/install.yml",
+        "patchSetId": 24
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2020-12-07T04:36:30Z",
+      "side": 1,
+      "message": "Here maxUnavailable is reset, where is this maxUnavailable set? It good to have both of them here itself.",
+      "revId": "d06958661d57f9fd68d5f46a327882b9ab29fb4d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4001e275_3e15e282",
+        "filename": "roles/prepare-cnf/tasks/main.yml",
+        "patchSetId": 24
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2020-12-07T04:36:30Z",
+      "side": 1,
+      "message": "Move this to install as this will be common for multiple roles.",
+      "revId": "d06958661d57f9fd68d5f46a327882b9ab29fb4d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e139c400_f7db72c9",
+        "filename": "roles/prepare-cnf/version/ocp4_4.yaml",
+        "patchSetId": 24
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2020-12-07T04:36:30Z",
+      "side": 1,
+      "message": "FYI. These are specific to example-cnf, I will move them to example-cnf-config during LB integration.",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 12
+      },
+      "revId": "d06958661d57f9fd68d5f46a327882b9ab29fb4d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
