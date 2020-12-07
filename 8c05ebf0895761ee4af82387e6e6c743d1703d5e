@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c9ca8baa_a61d6542",
+        "filename": "samples/ocp_on_libvirt/ocp-on-libvirt.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2020-12-07T22:55:59Z",
+      "side": 1,
+      "message": "(nitpick) I\u0027d use the sudo in the 2nd command to ensure the entry is added.\nI\u0027ll provide an update for this, as I\u0027m doing other few changes",
+      "revId": "8c05ebf0895761ee4af82387e6e6c743d1703d5e",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8a9d0ea6_8ac8007e",
+        "filename": "samples/ocp_on_libvirt/ocp-on-libvirt.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2020-12-07T22:55:59Z",
+      "side": 1,
+      "message": "Packages for el8 are available and I\u0027ve test using them and seem to work as expected, I\u0027ll provide an update for this.",
+      "revId": "8c05ebf0895761ee4af82387e6e6c743d1703d5e",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eca5020f_f1970c53",
+        "filename": "samples/ocp_on_libvirt/ocp-on-libvirt.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2020-12-07T22:55:59Z",
+      "side": 1,
+      "message": "`with_local_registry` is not defined hence failing for my use case, I\u0027ll add another condition to evaluate whether is defined or not",
+      "revId": "8c05ebf0895761ee4af82387e6e6c743d1703d5e",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "586aeb10_30fb280c",
+        "filename": "samples/ocp_on_libvirt/ocp-on-libvirt.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2020-12-07T22:55:59Z",
+      "side": 1,
+      "message": "I found that it is required to switch to the directory as there is the `ansible.cfg`. I\u0027m submitting an update for that as well.",
+      "revId": "8c05ebf0895761ee4af82387e6e6c743d1703d5e",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
