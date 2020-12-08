@@ -149,5 +149,7 @@
         seconds: 15
 
     - name: Check nodes
-      include_tasks: nodes-ok.yml
+      include_role:
+        name: prepare_cnf
+        tasks_from: nodes-ok.yml
 ...
