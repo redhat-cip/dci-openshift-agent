@@ -74,6 +74,12 @@ else
     remdir=$($rem mktemp -d)
 
     if [ -n "$remdir" ]; then
+        # Ignition logs
+        domain=$($rem hostname -d)
+        for h in $($rem oc get nodes|tail -n +2|awk '{print $1;}'); do
+            $rem ssh core@$h.$domain sudo journalctl --identifier=ignition --all > $dir/ignition-$h.log
+        done
+
         # Ironic logs
         metal3_pod=$($rem oc -n openshift-machine-api get pods | awk '/metal3/ { print $1 }')
         if [ -n "$metal3_pod" ]; then
