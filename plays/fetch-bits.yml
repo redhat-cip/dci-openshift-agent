@@ -19,6 +19,11 @@
   with_items: "{{ tags }}"
   when: item.split(":")[0] == "build"
 
+- name: Set build:ga
+  set_fact:
+    build: "ga"
+  when: build == "candidate"
+
 - name: Set pullsecret from job_info
   set_fact:
     pullsecret: "{{ openshift_secret | default(job_info.job.topic.data.pull_secret) }}"
