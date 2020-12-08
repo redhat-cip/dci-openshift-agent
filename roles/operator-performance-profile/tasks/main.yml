@@ -52,6 +52,8 @@
 
 # TODO(skramaja): This workaround is required only for ocp versions <= 4.5
 - name: Apply label to worker mcp
+  environment:
+    KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
   shell: |
     oc label mcp worker machineconfiguration.openshift.io/role=worker --overwrite
 
@@ -149,5 +151,7 @@
         seconds: 15
 
     - name: Check nodes
-      include_tasks: nodes-ok.yml
+      include_role:
+        name: prepare-cnf
+        tasks_from: nodes-ok.yml
 ...
