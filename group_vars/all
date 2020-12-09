@@ -19,4 +19,4 @@ cnf_tests_image: ''
 cnf_operator_channel: ''
 dci_cluster_configs_dir: "{{'~/clusterconfigs' | expanduser}}-{{ cluster }}"
 dci_ose_tests_image: quay.io/eminguez/ose-tests-full:latest
-dci_prepare_cnf: true
+dci_prepare_cnf: false
