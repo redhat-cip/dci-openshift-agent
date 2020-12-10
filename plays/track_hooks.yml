@@ -1,0 +1,27 @@
+---
+- name: get last commit id
+  command: git -C {{ item }} rev-parse HEAD  # noqa 305
+  register: last_commit_id
+
+- name: get repo url
+  command: git -C {{ item }} config --get remote.origin.url
+  register: repo_url
+
+- name: Create git repo component
+  dci_component:
+    name: "{{ item| basename  last_commit_id[:7] }}"
+    canonical_project_name: "{{ item| basename  last_commit_id[:7] }}"
+    team_id: "{{ job_info['job']['team_id'] }}"
+    topic_id: "{{ job_info['job']['topic_id'] }}"
+    type: hook
+    url: "{{ repo_url }}/tree/{{ last_commit_id }}"
+    state: present
+  register: hook_component
+  when: last_commit_id.rc == 0
+
+- name: 'Attach hook component to the job'
+  dci_job_component:
+    component_id: " {{ hook_component.component.id }} "
+    job_id: " {{ job_id }} "
+  when: last_commit_id.rc == 0
+...
