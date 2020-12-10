@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "734b3fd5_523e7ba5",
+        "filename": "plays/track_rpms_context.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2020-12-10T16:13:27Z",
+      "side": 1,
+      "message": "I had to extract the installed version of a package over here https://softwarefactory-project.io/r/#/c/20260/5/samples/ocp_on_libvirt/roles/vbmc/tasks/install.yml\n\nI think those two tasks could be reused in here to obtain the version.",
+      "revId": "e02567a5c097eb73b2813455a82824480728e590",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
