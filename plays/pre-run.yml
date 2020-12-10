@@ -22,3 +22,7 @@
   with_items: "{{ groups['masters'] + groups['workers'] }}"
   ignore_unreachable: true
   ignore_errors: true
+
+- include_tasks: track_rpms_context.yml
+  with_items: "{{ dci_rpms_to_components }}"
+...
