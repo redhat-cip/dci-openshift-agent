@@ -20,3 +20,10 @@ cnf_operator_channel: ''
 dci_cluster_configs_dir: "{{'~/clusterconfigs' | expanduser}}-{{ cluster }}"
 dci_ose_tests_image: quay.io/eminguez/ose-tests-full:latest
 dci_prepare_cnf: false
+dci_rpms_to_components:
+  - dci-openshift-agent
+  - dci-ansible
+  - python3-dciclient
+  - python3-kubernetes
+  - python3-openshift
+dci_gits_to_components: "{{ dci_config_dirs }}"
