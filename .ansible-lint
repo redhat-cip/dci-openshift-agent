@@ -1,2 +1,3 @@
 skip_list:
   - '301'                       # we use a lot of shell commands to get info
+  - '303'                       # sometimes the module doesn't cover all the command options
