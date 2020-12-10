@@ -1,0 +1,21 @@
+---
+- name: get package version
+  shell: yum list installed {{ item }} | grep {{ item }} | awk '{print $2}' | cut -d'-' -f1
+  args:
+    warn: false
+  register: package_version
+
+- name: 'Create package component'
+  dci_component:
+    name: "{{ item }} {{ package_version.stdout }}"
+    canonical_project_name: "{{ item }} {{ package_version.stdout }}"
+    team_id: "{{ job_info['job']['team_id'] }}"
+    topic_id: "{{ job_info['job']['topic_id'] }}"
+    type: rpm
+    state: present
+  register: package_component
+
+- name: 'Attach package component to the job'
+  dci_job_component:
+    component_id: " {{ package_component.component.id }} "
+    job_id: " {{ job_id }} "
