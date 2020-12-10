@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "dfe05944_28d04e27",
+        "filename": "dci-openshift-agent.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-12-10T16:45:35Z",
+      "side": 1,
+      "message": "I\u0027d prefer to put this in pre-run.yml than at the top level playbook.",
+      "revId": "e02567a5c097eb73b2813455a82824480728e590",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "734b3fd5_523e7ba5",
         "filename": "plays/track_rpms_context.yml",
         "patchSetId": 1
@@ -13,6 +30,24 @@
       "writtenOn": "2020-12-10T16:13:27Z",
       "side": 1,
       "message": "I had to extract the installed version of a package over here https://softwarefactory-project.io/r/#/c/20260/5/samples/ocp_on_libvirt/roles/vbmc/tasks/install.yml\n\nI think those two tasks could be reused in here to obtain the version.",
+      "revId": "e02567a5c097eb73b2813455a82824480728e590",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bf79d619_495fcf72",
+        "filename": "plays/track_rpms_context.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-12-10T16:45:35Z",
+      "side": 1,
+      "message": "why not use the packages fact?\n\nhttps://docs.ansible.com/ansible/latest/collections/ansible/builtin/package_facts_module.html",
+      "parentUuid": "734b3fd5_523e7ba5",
       "revId": "e02567a5c097eb73b2813455a82824480728e590",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
