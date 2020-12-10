@@ -1,0 +1,29 @@
+---
+- name: get .git directory's stats
+  stat:
+    path: "{{ item }}/.git"
+  register: stat_directory
+
+- name: get last commit id
+  command: git rev-parse HEAD  # noqa 305
+  register: last_commit_id
+  when: stat_directory.stat.exists
+
+- name: Create git repo component
+  dci_component:
+    name: "{{ item| basename  last_commit_id[:7] }}"
+    canonical_project_name: "{{ item| basename  last_commit_id[:7] }}"
+    team_id: "{{ job_info['job']['team_id'] }}"
+    topic_id: "{{ job_info['job']['topic_id'] }}"
+    type: hook
+    url: "local://last_commit_id"
+    state: present
+  register: hook_component
+  when: stat_directory.stat.exists
+
+- name: 'Attach hook component to the job'
+  dci_job_component:
+    component_id: " {{ hook_component.component.id }} "
+    job_id: " {{ job_id }} "
+  when: stat_directory.stat.exists
+...
