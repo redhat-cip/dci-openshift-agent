@@ -50,6 +50,11 @@
           include_tasks: '{{ item }}/hooks/pre-run.yml'
           loop: "{{ dci_config_dirs }}"
 
+        - include_tasks: plays/track_rpms_context.yml
+          with_items:
+            - dci-openshift-agent
+            - dci-ansible
+
       rescue: &teardown_error
         - block:
 
