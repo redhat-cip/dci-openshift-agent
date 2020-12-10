@@ -51,6 +51,24 @@
       "revId": "e02567a5c097eb73b2813455a82824480728e590",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7210b970_e064428d",
+        "filename": "plays/track_rpms_context.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2020-12-10T18:04:49Z",
+      "side": 1,
+      "message": "Good suggestion. I thought it would be slower but it was actually faster to use `package_facts`:\n\nGet package info (dnf) ------------------------- 1.45s\nGet packages info (package_facts) -------------- 0.97s",
+      "parentUuid": "bf79d619_495fcf72",
+      "revId": "e02567a5c097eb73b2813455a82824480728e590",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
