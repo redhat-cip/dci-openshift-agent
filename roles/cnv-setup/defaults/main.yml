@@ -1,0 +1,16 @@
+---
+cnv_use_local_catalog: true
+cnv_deploy_cnv: true
+cnv_deploy_hco: true
+cnv_deploy_vm: true
+cnv_version: 2.4
+cnv_ns: openshift-cnv
+cnv_marketplace_ns: openshift-marketplace
+cnv_catalog_image_name: redhat-operators
+cnv_catalog_image_version: v1
+cnv_vm_yaml: vm.yaml.j2
+cnv_vm_image: kubevirt/cirros-container-disk-demo:devel
+cnv_hco_api_check_count: 20
+cnv_test_ns1: cnv-test-1"
+cnv_test_ns2: cnv-test-2"
+...
