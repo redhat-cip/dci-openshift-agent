@@ -1,0 +1,29 @@
+---
+- name: "cnv-setup : Use local catalog"
+  include_tasks: local-catalog.yml
+  when:
+    - hostvars.localhost.local_registry| bool
+  tags:
+    - install
+
+- name: "cnv-setup : deploy cnv"
+  include_tasks: deploy-cnv.yml
+  when:
+    - cnv_deploy_cnv| bool
+  tags:
+    - install
+
+- name: "cnv-setup : deploy hco"
+  include_tasks: deploy-hco.yml
+  when:
+    - cnv_deploy_hco| bool
+  tags:
+    - install
+
+- name: "cnv-setup : deploy vm"
+  include_tasks: deploy-vm.yml
+  when:
+    - cnv_deploy_vm| bool
+  tags:
+    - install
+...
