@@ -1,0 +1,42 @@
+---
+# this may happen at 2.4.
+- name: set API version for <= 2.4
+  when:
+       cnv_version <= 2.4
+  set_fact:
+      api_version: v1alpha1
+  changed_when: false
+
+- name: set API version for > 2.4
+  when:
+    - cnv_version > 2.4
+  set_fact:
+    api_version: v1beta1
+  changed_when: false
+
+- name: install hco
+  k8s:
+    definition:
+      apiVersion: "hco.kubevirt.io/{{ api_version }}"
+      kind: HyperConverged
+      metadata:
+        name: kubevirt-hyperconverged
+        namespace: "{{ cnv_ns }}"
+      spec:
+        BareMetalPlatform: true
+
+- name: Check for hyperconverged type (60 sec wait)
+  k8s_info:
+    api: operators.coreos.com/v1alpha1
+    namespace: "{{ cnv_ns }}"
+    kind: ClusterServiceVersion
+  register: csv
+  retries: "{{ cnv_hco_api_check_count }}"
+  delay: 60
+  no_log: false
+  until:
+    - "csv.resources|length == 1"
+    - "'status' in csv.resources[0]"
+    - "'phase' in csv.resources[0].status"
+    - "csv.resources[0].status.phase == 'Succeeded'"
+    - "csv.resources[0].spec.displayName == 'OpenShift Virtualization'"
