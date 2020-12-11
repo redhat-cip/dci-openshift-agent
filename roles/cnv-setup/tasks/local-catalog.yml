@@ -1,0 +1,14 @@
+---
+- name: populate catalog source
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: CatalogSource
+      metadata:
+        name: "{{ cnv_catalog_operator }}"
+        namespace: "{{ cnv_marketplace_ns }}"
+      spec:
+        sourceType: grpc
+        image: "{{ cnv_catalog_registry }}:{{ cnv_catalog_registry_port }}/olm/{{ cnv_catalog_image_name }}:{{ cnv_catalog_image_version }}"
+        displayName: "{{ cnv_catalog_operator }}"
+        publisher: grpc
