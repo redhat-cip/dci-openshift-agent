@@ -19,9 +19,13 @@
   with_items: "{{ tags }}"
   when: item.split(":")[0] == "build"
 
-- name: Set build:ga
+# Candidate builds are ga builds that haven't gone ga quite yet.
+# The following changes the build and version vars to look like ga
+# for the upstream install playbooks
+- name: Set build:ga when build:candidate
   set_fact:
     build: "ga"
+    version: "{{ version.split('-')[0] }}"
   when: build == "candidate"
 
 - name: Set pullsecret from job_info
