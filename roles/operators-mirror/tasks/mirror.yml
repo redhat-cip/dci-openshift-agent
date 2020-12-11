@@ -26,8 +26,8 @@
       --dest-tls-verify=false --all docker://{{ item.split('=')[0] }}
       docker://{{ item.split('=')[1] }}
   register: copy
-  retries: 5
-  delay: 5
+  retries: 10
+  delay: 20
   until:
     - copy is not failed
   loop: "{{ lookup('file', dci_cluster_configs_dir + '/redhat-operators-manifests/mapping.txt').splitlines() }}"
