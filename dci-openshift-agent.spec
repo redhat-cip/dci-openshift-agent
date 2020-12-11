@@ -17,6 +17,7 @@ Requires: ansible-role-dci-sync-registry
 Requires: ansible-role-dci-podman
 Requires: ansible-role-dci-ocp-imagesideload
 Requires: python3-pyyaml python3-openshift
+Requires: ansible-collection-community-kubernetes
 
 %{?systemd_requires}
 Requires(pre): shadow-utils
@@ -53,6 +54,7 @@ find roles/redhat-tests -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}
 find roles/prepare-cnf -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/operator-performance-profile -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/operator-sriov -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
+find roles/cnv-setup -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 install -p -D -m 644 templates/ssh_config.j2 %{buildroot}%{_datadir}/dci-openshift-agent/templates/ssh_config.j2
@@ -106,6 +108,7 @@ exit 0
 %{_datadir}/dci-openshift-agent/roles/prepare-cnf/*
 %{_datadir}/dci-openshift-agent/roles/operator-performance-profile/*
 %{_datadir}/dci-openshift-agent/roles/operator-sriov/*
+%{_datadir}/dci-openshift-agent/roles/cnv-setup/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 %{_datadir}/dci-openshift-agent/templates/ssh_config.j2
