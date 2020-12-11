@@ -1,0 +1,36 @@
+---
+- name: Check for cnv-operator packagemanifests
+  k8s_info:
+    api_version: packages.operators.coreos.com/v1
+    kind: PackageManifest
+    name: kubevirt-hyperconverged
+    namespace: default
+  register: pkg_manifest_cnv
+
+- name: Deploy CatalogSource if not already deployed
+  when: pkg_manifest_cnv.resources|length == 0
+  block:
+  - name: populate catalog source
+    k8s:
+      definition:
+        apiVersion: operators.coreos.com/v1alpha1
+        kind: CatalogSource
+        metadata:
+          name: "{{ cnv_catalog_operator }}"
+          namespace: "{{ cnv_marketplace_ns }}"
+        spec:
+          sourceType: grpc
+          image: "{{ cnv_catalog_registry }}:{{ cnv_catalog_registry_port }}/olm/{{ cnv_catalog_image_name }}:{{ cnv_catalog_image_version }}"
+          displayName: "{{ cnv_catalog_operator }}"
+          publisher: grpc
+  - name: Wait for cnv-operator packagemanifests creation
+    k8s_info:
+      api_version: packages.operators.coreos.com/v1
+      kind: PackageManifest
+      name: kubevirt-hyperconverged
+      namespace: default
+    register: pkg_manifest_cnv
+    retries: "{{ cnv_hco_api_check_count }}"
+    delay: 60
+    until: pkg_manifest_cnv.resources|length != 0
+    failed_when: pkg_manifest_cnv.resources|length == 0
