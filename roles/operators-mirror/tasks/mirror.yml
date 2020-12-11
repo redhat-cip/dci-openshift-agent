@@ -23,7 +23,7 @@
   shell:
     cmd: >
       skopeo copy --authfile {{ dci_pullsecret_file }}
-      --dest-tls-verify=false --all docker://{{ item.split('=')[0] }}
+      --dest-tls-verify=false docker://{{ item.split('=')[0] }}
       docker://{{ item.split('=')[1] }}
   register: copy
   retries: 5
@@ -31,6 +31,7 @@
   until:
     - copy is not failed
   loop: "{{ lookup('file', dci_cluster_configs_dir + '/redhat-operators-manifests/mapping.txt').splitlines() }}"
+  ignore_errors: true
   when:
     - item | regex_findall(opm_mirror_list | join('|'))
 
