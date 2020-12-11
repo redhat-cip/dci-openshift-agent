@@ -1,0 +1,37 @@
+---
+# this may happen at 2.4.
+- name: set API version for <= 2.4
+  when:
+       cnv_version <= 2.4
+  set_fact:
+      api_version: v1alpha1
+  changed_when: false
+
+- name: set API version for > 2.4
+  when:
+    - cnv_version > 2.4
+  set_fact:
+    api_version: v1beta1
+  changed_when: false
+
+- name: install hco
+  k8s:
+    definition:
+      apiVersion: "hco.kubevirt.io/{{ api_version }}"
+      kind: HyperConverged
+      metadata:
+        name: kubevirt-hyperconverged
+        namespace: "{{ cnv_ns }}"
+      spec:
+        BareMetalPlatform: true
+- name: Check for VirtualMachine type (60 sec wait)
+  k8s_info:
+    api: "hco.kubevirt.io/{{ api_version }}"
+    namespace: ""
+    kind: ""
+  register: virt
+  retries: "{{ cnv_hco_api_check_count }}"
+  delay: 60
+  no_log: false
+  until:
+    - "virt.resources|length == 1"
