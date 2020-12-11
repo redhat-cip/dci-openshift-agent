@@ -43,7 +43,7 @@
     kind: ClusterServiceVersion
   register: csv
   retries: 30
-  delay: 5
+  delay: 60
   until:
     - "csv.resources|length == 1"
     - "'status' in csv.resources[0]"

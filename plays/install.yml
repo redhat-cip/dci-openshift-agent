@@ -41,6 +41,12 @@
     apply:
       delegate_to: localhost
 
+- name: "dci-openshift-agent : Setup cluster for CNV"
+  include_role:
+    name: cnv-setup
+  when:
+    - hostvars.localhost.cnv_version is defined
+
 - name: cnf block
   when: hostvars.localhost.dci_prepare_cnf|bool
   block:
