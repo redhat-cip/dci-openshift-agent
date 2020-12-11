@@ -1,0 +1,35 @@
+---
+- name: create CNV Namespace
+  k8s:
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ cnv_ns }}"
+
+- name: create Operator Group
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1
+      kind: OperatorGroup
+      metadata:
+        name: "kubevirt-hyperconverged-group"
+        namespace: "{{ cnv_ns }}"
+      spec:
+        targetNamespaces:
+          - "{{ cnv_ns }}"
+
+- name: create Subscription
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: hco-operatorhub
+        namespace: "{{ cnv_ns }}"
+      spec:
+        source: "{{ cnv_catalog_operator }}"
+        sourceNamespace: "{{ cnv_marketplace_ns }}"
+        name: kubevirt-hyperconverged
+        startingCSV: "kubevirt-hyperconverged-operator.v{{ cnv_version  }}.0"
+        channel: "{{ cnv_version| string  }}"
