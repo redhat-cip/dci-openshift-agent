@@ -22,7 +22,7 @@ if [ -z "$log" -o -z "$dir" ]; then
     exit 1
 fi
 
-rem="ssh $log"
+rem="timeout -v 2m ssh $log"
 
 myscript=$(mktemp)
 
@@ -100,6 +100,15 @@ else
         # Get remote logs
         scp $log:$remdir/* $dir/
         $rem rm -rf $remdir
+
+        # Post processing
+        cd $dir
+        for f in $(ls *.tar.gz 2> /dev/null); do
+            hostname=$(tar xOf $f journal|grep 'set hostname'|sed -e "s/.*set hostname to '//" -e "s/'.*//")
+            if [ -n "$hostname" ]; then
+                mv $f $hostname-files.tar.gz
+            fi
+        done
     else
         echo "Unable to create a temporary directory on $rem" 1>&2
     fi
