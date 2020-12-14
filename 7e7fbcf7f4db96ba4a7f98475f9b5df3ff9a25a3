@@ -1,0 +1,8 @@
+Code-Review+2: Frederic Lepied <flepied@redhat.com>
+Workflow+1: Jorge Gallegos <jgallego@redhat.com>
+Verified+2: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-by: Zuul CI <zuul@softwarefactory-project.io>
+Submitted-at: Mon, 14 Dec 2020 20:49:23 +0000
+Reviewed-on: https://softwarefactory-project.io/r/20254
+Project: dci-openshift-agent
+Branch: refs/heads/master
