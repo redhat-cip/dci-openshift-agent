@@ -13,6 +13,15 @@
         state: latest
         disable_gpg_check: yes
 
+  - name: Get packages info
+    package_facts:
+      manager: auto
+
+  - name: Get libvirt installed version
+    set_fact:
+      libvirt_version: "{{ ansible_facts.packages['libvirt'][0].version }}"
+    when: "'libvirt' in ansible_facts.packages"
+
   - name: "check if there's a virtualenv already installed (i.e.: a system-wide RPM package)"
     command: virtualenv --version
     changed_when: false
@@ -36,7 +45,7 @@
     name:
       - pip
       - dateutils
-      - libvirt-python==4.5.0
+      - libvirt-python=={{ libvirt_version }}
       - pyghmi==1.5.13
     state: latest
 
