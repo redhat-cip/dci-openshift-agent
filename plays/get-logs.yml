@@ -32,6 +32,7 @@
     mime: "text/plain"
   with_items: "{{ logs_matched.files }}"
   delegate_to: localhost
+  ignore_errors: true
 
 - name: Find deployment logs (binary)
   find:
@@ -53,6 +54,7 @@
     mime: "application/octet-stream"
   with_items: "{{ logs_matched.files }}"
   delegate_to: localhost
+  ignore_errors: true
 
 - name: Clean up Temp dir
   file:
