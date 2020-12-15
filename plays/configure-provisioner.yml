@@ -1,8 +1,32 @@
 ---
+
 - name: Install packages
   become: true
   package:
     name:
       - "python{% if ansible_python.version.major == 3 %}3{% endif %}-openshift"
     state: installed
+
+- name: Get provisioner SSH identity
+  fetch:
+    src: "~{{ ansible_user }}/.ssh/id_rsa"
+    dest: "~/.ssh/{{ sideload_ocp_cluster }}-provisioner_rsa"
+    flat: true
+
+- name: Erase bootloader to prevent old OS to boot
+  delegate_to: "{{ item }}"
+  become: true
+  shell: |
+    if grep 'Red Hat Enterprise Linux CoreOS' /etc/os-release; then
+      for disk in /dev/sd?; do
+        dd if=/dev/zero of=$disk bs=512 count=1
+      done
+    fi
+  when:
+    - dci_erase_bootloader_on_disk|default(False)|bool
+    - dci_main is not defined or dci_main == 'install'
+  with_items: "{{ groups['masters'] + groups['workers'] }}"
+  ignore_unreachable: true
+  ignore_errors: true
+
 ...
