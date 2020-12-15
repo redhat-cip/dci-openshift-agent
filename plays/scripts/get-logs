@@ -95,7 +95,18 @@ else
         $rem oc get events --all-namespaces > $dir/events.txt
         
         # must-gather
-        $rem oc adm must-gather --dest-dir=$dir
+        # When a policy is defined, use the same mirror (local registry)
+        must_gather_opts=""
+        registry=$($rem oc get imageContentSourcePolicy image-policy-0 -o json |
+                            jq -r '.spec.repositoryDigestMirrors[].mirrors[]' |
+                            grep -Pom1 '(\w+[.:])+\d+')
+        if [[ -n "${registry}" ]]; then
+            must_gather_opts="--image=${registry}/openshift/origin-must-gather"
+        fi
+
+        $rem oc adm must-gather \
+                 --dest-dir=${remdir} \
+                 ${must_gather_opts}
         
         # Get remote logs
         scp $log:$remdir/* $dir/
