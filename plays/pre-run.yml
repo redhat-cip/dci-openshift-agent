@@ -7,6 +7,13 @@
 - name: Import Openshift files from DCI
   include_tasks: fetch-bits.yml
 
+- name: Get provisioner SSH identity
+  delegate_to: "{{ groups['provisioner'][0] }}"
+  fetch:
+    src: "~{{ ansible_user }}/.ssh/id_rsa"
+    dest: "~/.ssh/{{ cluster }}-provisioner_rsa"
+    flat: true
+
 - name: Erase bootloader to prevent old OS to boot
   delegate_to: "{{ item }}"
   become: true
