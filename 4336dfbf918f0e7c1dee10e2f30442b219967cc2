@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "58e68844_edbdbb70",
+        "filename": "plays/scripts/get-logs",
+        "patchSetId": 2
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-12-16T15:06:07Z",
+      "side": 1,
+      "message": "I tested it and it almost works. we just need to change $dir to $remdir and it will working fine.",
+      "revId": "4336dfbf918f0e7c1dee10e2f30442b219967cc2",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
