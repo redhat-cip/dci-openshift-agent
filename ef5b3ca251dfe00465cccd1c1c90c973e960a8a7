@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba502b2f_b1c2babc",
+        "filename": "plays/scripts/get-logs",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2020-12-16T22:12:50Z",
+      "side": 1,
+      "message": "you can get the source in an easier way: oc get imageContentSourcePolicy/image-policy-0 -o json | jq -r \u0027.spec.repositoryDigestMirrors[0].source\u0027",
+      "revId": "ef5b3ca251dfe00465cccd1c1c90c973e960a8a7",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
