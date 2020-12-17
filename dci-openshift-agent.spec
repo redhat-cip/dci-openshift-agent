@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.1.3
+Version:       0.1.4
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -32,7 +32,6 @@ DCI Openshift Agent
 %install
 install -p -D -m 644 ansible.cfg %{buildroot}%{_datadir}/dci-openshift-agent/ansible.cfg
 install -p -D -m 644 dci-openshift-agent.yml  %{buildroot}%{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
-install -p -D -m 644 infrastructure.yml %{buildroot}%{_datadir}/dci-openshift-agent/infrastructure.yml
 install -p -D -m 644 dcirc.sh.dist %{buildroot}%{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 
 for hook in hooks/*.yml; do
@@ -99,7 +98,6 @@ exit 0
 
 %{_datadir}/dci-openshift-agent/ansible.cfg
 %{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
-%{_datadir}/dci-openshift-agent/infrastructure.yml
 %{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 
 %{_datadir}/dci-openshift-agent/plays/*.yml
@@ -124,6 +122,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Dec 21 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.1.4-1
+- Move infrastructure playbook to the samples directory
+
 * Thu Dec 03 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.1.3-1
 - Add ansible roles to replace podman setup and image sideload
 

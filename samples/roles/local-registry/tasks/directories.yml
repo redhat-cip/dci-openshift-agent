@@ -1,5 +1,5 @@
 ---
-- name: "local-registry-setup : Create registry directory structure"
+- name: Create registry directory structure
   file:
     path: "{{ registry_dir }}"
     state: directory
@@ -7,7 +7,7 @@
     group: "{{ registry_user }}"
     mode: 0755
 
-- name: "local-registry-setup : Create registry directory structure"
+- name: Create registry directory structure
   file:
     path: "{{ registry_dir }}/{{ item }}"
     state: directory
@@ -19,7 +19,7 @@
   - certs
   - data
 
-- name: "local-registry-setup : Create cache directory structure"
+- name: Create cache directory structure
   file:
     path: "{{ registry_cache_dir }}"
     state: directory
@@ -28,7 +28,7 @@
     mode: 0775
     setype: httpd_sys_content_t
 
-- name: "local-registry-setup : Create cache directory structure"
+- name: Create cache directory structure
   file:
     path: "{{ registry_cache_dir }}/registry"
     state: directory

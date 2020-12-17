@@ -1,5 +1,5 @@
 ---
-- name: "local-registry-setup : Create sample index file"
+- name: Create sample index file
   copy:
     dest: "{{ registry_cache_dir }}/index.html"
     content: "hello"
@@ -7,12 +7,12 @@
     group: "{{ registry_user }}"
     mode: 0644
 
-- name: "local-registry-setup : Create htpasswd file"
+- name: Create htpasswd file
   shell: >
     htpasswd -bBc {{ registry_dir }}/auth/htpasswd
     {{ registry_http_user }} {{ registry_http_pass }}
 
-- name: "local-registry-setup : Ensure htpasswd file is readable by registry user"
+- name: Ensure htpasswd file is readable by registry user
   file:
     path: "{{ registry_dir }}/auth/htpasswd"
     state: file
@@ -20,7 +20,7 @@
     owner: "{{ registry_user }}"
     group: "{{ registry_user }}"
 
-- name: "local-registry-setup : Create auths.json file"
+- name: Create auths.json file
   copy:
     dest: "{{ registry_cache_dir }}/{{ registry_fqdn }}-auths.json"
     mode: 0644
@@ -34,7 +34,7 @@
         }
       }
 
-- name: "local-registry-setup : Open ports on firewall"
+- name: Open ports on firewall
   firewalld:
     zone: "{{ item[0] }}"
     port: "{{ item[1] }}"
