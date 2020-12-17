@@ -1,0 +1,4 @@
+---
+reposync_base: /var/cache/repos
+reposync_repos: []
+...

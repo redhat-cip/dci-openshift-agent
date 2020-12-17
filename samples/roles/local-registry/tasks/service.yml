@@ -1,16 +1,16 @@
 ---
 - block:
-  - name: "local-registry-setup : Check if podman container exists"
+  - name: Check if podman container exists
     shell: "podman container exists {{ podman_svc }}"
     ignore_errors: true
     register: podman_container_running
     changed_when: false
 
-  - name: "local-registry-setup : Create podman container"
+  - name: Create podman container
     shell: "{{ podman_cmd }}"
     when: podman_container_running.rc != 0
 
-  - name: "local-registry-setup : Inspect running container"
+  - name: Inspect running container
     shell: podman inspect {{ podman_svc }}
     register: podman_inspect_data
     no_log: true
@@ -18,18 +18,18 @@
     delay: 2
     changed_when: false
 
-  - name: "local-registry-setup : Parse podman inspection data"
+  - name: Parse podman inspection data
     set_fact:
       podman_inspect: "{{ podman_inspect_data.stdout | from_json }}"
     no_log: true
 
-  - name: "local-registry-setup : Create systemd configuration directory"
+  - name: Create systemd configuration directory
     file:
       path: ~/.config/systemd/user
       state: directory
       recurse: true
 
-  - name: "local-registry-setup : Create systemd configuration to autostart"
+  - name: Create systemd configuration to autostart
     copy:
       dest: ~/.config/systemd/user/{{ podman_svc }}.service
       content: |
@@ -51,7 +51,7 @@
         [Install]
         WantedBy=default.target
 
-  - name: "local-registry-setup : Enable and start service"
+  - name: Enable and start service
     environment:
       XDG_RUNTIME_DIR: "/run/user/{{ registry_getent.uid }}"
     systemd:
