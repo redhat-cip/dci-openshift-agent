@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ccc2b474_39ab0233",
+        "filename": "plays/track_rpms.yml",
+        "patchSetId": 10
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-12-21T14:18:23Z",
+      "side": 1,
+      "message": "this should be the same as the previous line",
+      "revId": "cdcf324cf1ee3f72c3bbf86e89dbf1583d2a5f2e",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
