@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56531f1e_4bf47f87",
+        "filename": "plays/track_hooks.yml",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2020-12-22T12:15:30Z",
+      "side": 1,
+      "message": "we should not check the .git command but just use git rev- parse in the specified directory.",
+      "revId": "0cc3778a8264181f7087be588b9ba83ed5de9133",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
