@@ -1,5 +1,5 @@
 ---
-- name: "local-registry-setup : Install additional packages"
+- name: Install additional packages
   package:
     name: "{{ item }}"
     state: present

@@ -1,0 +1,23 @@
+---
+- hosts: registry_host
+  become: true
+
+  tasks:
+  - name: Setup podman
+    tags:
+    - podman
+    include_role:
+      name: ansible-role-dci-podman
+
+  - name: Create local registry
+    tags:
+    - registry
+    include_role:
+      name: local-registry
+
+  - name: Create RPM mirroring infra
+    tags:
+    - mirror
+    include_role:
+      name: reposync
+...
