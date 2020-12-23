@@ -1,4 +1,15 @@
 ---
+- name: Configure extra repositories
+  become: true
+  yum_repository:
+    name: "{{ item.name }}"
+    description: "{{ item.description | default(item.name + ' repository') }}"
+    baseurl: "{{ item.baseurl }}"
+    mirrorlist: "{{ item.mirrorlist | default(omit) }}"
+    gpgcheck: "{{ item.gpgcheck | default('no') }}"
+    state: "{{ item.state | default('present') }}"
+  with_items: "{{ provisioner_extra_repos | default([]) }}"
+
 - name: Install packages
   become: true
   package:
