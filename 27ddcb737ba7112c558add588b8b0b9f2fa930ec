@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d6704d1_4641eeb2",
+        "filename": "samples/ocp_on_libvirt/inventory/libvirt_resources.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-07T23:15:49Z",
+      "side": 1,
+      "message": "Should we be generating rsa anymore? I could be confused though, does specifying rsa mean rsa-sha2-256, because if not we would be generating a key that is deemed insecure.",
+      "revId": "27ddcb737ba7112c558add588b8b0b9f2fa930ec",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
