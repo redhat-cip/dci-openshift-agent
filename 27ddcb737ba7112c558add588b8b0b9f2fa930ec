@@ -16,6 +16,24 @@
       "revId": "27ddcb737ba7112c558add588b8b0b9f2fa930ec",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "686acef8_d0efaae9",
+        "filename": "samples/ocp_on_libvirt/inventory/libvirt_resources.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-01-07T23:42:52Z",
+      "side": 1,
+      "message": "I struggle with this as well, I think they are two different things, when creating a key you specify a type of key, in this case is RSA and the default bit size is 3072. The rsa-sha2-256 I *think* is a cipher for communication (key exchange?), that is when client and server negotiate on what cipher type to use to exchange keys and establish a connection. The latter depends more on the sshd server rather than the key iirc.\nIn any case we can start using ed25519 that\u0027s considered similarly as an RSA 4096",
+      "parentUuid": "6d6704d1_4641eeb2",
+      "revId": "27ddcb737ba7112c558add588b8b0b9f2fa930ec",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
