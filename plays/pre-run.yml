@@ -13,6 +13,7 @@
     src: "~{{ ansible_user }}/.ssh/id_rsa"
     dest: "~/.ssh/{{ cluster }}-provisioner_rsa"
     flat: true
+  ignore_errors: true
 
 - name: Erase bootloader to prevent old OS to boot
   delegate_to: "{{ item }}"
