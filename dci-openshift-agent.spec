@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
 Version:       0.1.5
-Release:       1.VERS%{?dist}
+Release:       2.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -56,7 +56,6 @@ find roles/operator-sriov -type f -exec install -v -p -D -m 644 "{}" "%{buildroo
 find roles/operators-mirror -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
-install -p -D -m 644 templates/ssh_config.j2 %{buildroot}%{_datadir}/dci-openshift-agent/templates/ssh_config.j2
 
 install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.service
 install -p -D -m 644 systemd/%{name}.timer %{buildroot}%{_unitdir}/%{name}.timer
@@ -110,7 +109,6 @@ exit 0
 %{_datadir}/dci-openshift-agent/roles/operators-mirror/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
-%{_datadir}/dci-openshift-agent/templates/ssh_config.j2
 
 %{_unitdir}/*
 
@@ -122,6 +120,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Fri Jan 29 2021 Tony Garcia <tonyg@redhat.com> - 0.1.5-2.VERS
+- Remove unused template
+
 * Thu Jan 21 2021 Bill Peck <bpeck@redhat.com> - 0.1.5-1
 - Add dynamic operator mirroring
 
