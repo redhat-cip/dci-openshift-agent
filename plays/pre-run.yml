@@ -14,6 +14,18 @@
     dest: "~/.ssh/{{ cluster }}-provisioner_rsa"
     flat: true
 
+- name: Set cluster SSH config
+  template:
+      dest: "~/.ssh/{{ cluster }}-config"
+      src: ../templates/ssh_config.j2
+      mode: 0600
+
+- name: Set symlink to SSH config
+  file:
+    src: "~/.ssh/{{ cluster }}-config"
+    dest: ~/.ssh/config
+    state: link
+
 - name: Erase bootloader to prevent old OS to boot
   delegate_to: "{{ item }}"
   become: true
