@@ -79,6 +79,16 @@
       path: "{{ vbmc_virtualenv }}"
       state: absent
 
+- name: Remove provisioner from ssh known_hosts
+  lineinfile:
+    path: "{{ item }}"
+    regexp: '^provisionhost.*'
+    state: absent
+  with_items:
+    - "/var/lib/dci-openshift-agent/.ssh/known_hosts"
+    - "~{{ ansible_user }}/.ssh/known_hosts"
+  ignore_errors: true
+
 - name: Delete scripts and configuration files
   file:
       path: "{{ item }}"
