@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c9ee9026_4abf5d0b",
+        "filename": "dci-openshift-agent-ctl",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 29
+      },
+      "writtenOn": "2021-01-14T23:22:33Z",
+      "side": 1,
+      "message": "typo",
+      "revId": "5251826f42e4c686b9db2d2e433a930b166cd4b3",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
