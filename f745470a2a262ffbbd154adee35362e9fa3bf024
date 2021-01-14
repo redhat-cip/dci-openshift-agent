@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c8e6a37_934df445",
+        "filename": "dev-ansible.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-14T15:27:47Z",
+      "side": 1,
+      "message": "this looks like a bad merge",
+      "revId": "f745470a2a262ffbbd154adee35362e9fa3bf024",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
