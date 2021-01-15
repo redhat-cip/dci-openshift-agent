@@ -3,6 +3,12 @@
 - name: Configure jumpbox
   include_tasks: configure-jumpbox.yml
 
+- name: Reset bmc
+  command: "ipmitool -I lanplus -U {{ hostvars[item]['ipmi_user'] }} -P {{ hostvars[item]['ipmi_password'] }} -H {{ hostvars[item]['ipmi_address'] }} -p {{ hostvars[item]['ipmi_port'] | default(623) }} mc reset cold"
+  with_items: "{{ groups['masters'] + groups['workers'] }}"
+  when:
+    - dci_reset_bmc|default(False)|bool
+
 # Download Openshift from DCI
 - name: Import Openshift files from DCI
   include_tasks: fetch-bits.yml
@@ -39,4 +45,14 @@
 
 - include_tasks: track_git_repo.yml
   with_items: "{{ dci_gits_to_components }}"
+
+- name: Check bmc
+  command: "ipmitool -I lanplus -U {{ hostvars[item]['ipmi_user'] }} -P {{ hostvars[item]['ipmi_password'] }} -H {{ hostvars[item]['ipmi_address'] }} -p {{ hostvars[item]['ipmi_port'] | default(623) }} mc info"
+  with_items: "{{ groups['masters'] + groups['workers'] }}"
+  retries: 6
+  delay: 10
+  register: result
+  until: result.rc == 0
+  when:
+    - dci_reset_bmc|default(False)|bool
 ...
