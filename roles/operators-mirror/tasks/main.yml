@@ -1,0 +1,9 @@
+---
+- name: "operators-mirror : mirror"
+  include_tasks: mirror.yml
+  when:
+    - local_registry is defined
+    - local_repo is defined
+  tags:
+    - mirror
+
