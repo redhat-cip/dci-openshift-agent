@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3f24f6e2_5fdb467d",
+        "filename": "roles/mirror_operators/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-18T16:06:57Z",
+      "side": 1,
+      "message": "Are you saying that v1 should be v{{ base_version }} here?  Because the original cnf-tests-mirror had v1 here.  I imagine this could have caused intermittent issues with parallel runs!?",
+      "parentUuid": "0ece42ce_59a93111",
+      "range": {
+        "startLine": 31,
+        "startChar": 88,
+        "endLine": 31,
+        "endChar": 90
+      },
+      "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3e19eba1_2c298c9a",
         "filename": "roles/mirror_operators/tasks/mirror.yml",
         "patchSetId": 1
@@ -53,6 +77,24 @@
       "writtenOn": "2021-01-18T15:51:57Z",
       "side": 1,
       "message": "Do we need this? As we are already creating mirrors to the local registry, this is not required.",
+      "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a733cd44_20ebe357",
+        "filename": "roles/mirror_operators/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-18T16:06:57Z",
+      "side": 1,
+      "message": "We need this because we need to tell openshift to pull those images from the mirror and not registry.redhat.io",
+      "parentUuid": "d77af675_ceaf5b34",
       "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
