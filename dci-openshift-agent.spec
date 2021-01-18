@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.1.4
+Version:       0.1.5
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -53,6 +53,7 @@ find roles/redhat-tests -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}
 find roles/prepare-cnf -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/operator-performance-profile -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 find roles/operator-sriov -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
+find roles/operators-mirror -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 install -p -D -m 644 templates/ssh_config.j2 %{buildroot}%{_datadir}/dci-openshift-agent/templates/ssh_config.j2
@@ -106,6 +107,7 @@ exit 0
 %{_datadir}/dci-openshift-agent/roles/prepare-cnf/*
 %{_datadir}/dci-openshift-agent/roles/operator-performance-profile/*
 %{_datadir}/dci-openshift-agent/roles/operator-sriov/*
+%{_datadir}/dci-openshift-agent/roles/operators-mirror/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 %{_datadir}/dci-openshift-agent/templates/ssh_config.j2
@@ -120,6 +122,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Jan 21 2021 Bill Peck <bpeck@redhat.com> - 0.1.5-1
+- Add dynamic operator mirroring
+
 * Mon Dec 21 2020 Jorge A Gallegos <jgallego@redhat.com> - 0.1.4-1
 - Move infrastructure playbook to the samples directory
 
