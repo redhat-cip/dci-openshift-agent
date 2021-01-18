@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0ece42ce_59a93111",
+        "filename": "roles/mirror_operators/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-01-18T15:51:57Z",
+      "side": 1,
+      "message": "version usually will be the ocp version? Should we have it as common for all ocp?",
+      "range": {
+        "startLine": 31,
+        "startChar": 88,
+        "endLine": 31,
+        "endChar": 90
+      },
+      "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3e19eba1_2c298c9a",
+        "filename": "roles/mirror_operators/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-01-18T15:51:57Z",
+      "side": 1,
+      "message": "alignment",
+      "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d77af675_ceaf5b34",
+        "filename": "roles/mirror_operators/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-01-18T15:51:57Z",
+      "side": 1,
+      "message": "Do we need this? As we are already creating mirrors to the local registry, this is not required.",
+      "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
