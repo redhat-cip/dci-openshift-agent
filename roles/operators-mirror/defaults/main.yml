@@ -1,0 +1,7 @@
+---
+from_registry: "registry.redhat.io/openshift4/ose-operator-registry"
+local_registry_path: "/olm/redhat-operators"
+catalog_source_name: "mirrored-redhat-operators"
+catalog_source_namespace: "openshift-marketplace"
+catalog_source_displayname: "Red Hat Operators"
+...
