@@ -77,7 +77,7 @@
   - name: Set facts
     set_fact:
       cmd: openshift-baremetal-install
-      _pullsecret_file: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+      pullsecret_file: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
 
   - name: Set release_url for development envs
     set_fact:
@@ -113,7 +113,7 @@
   - name: Copy PullSecret into cache
     copy:
       content: "{{ combined_auth | to_nice_json }}"
-      dest: "{{ _pullsecret_file }}"
+      dest: "{{ pullsecret_file }}"
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
       mode: '0644'
@@ -247,7 +247,7 @@
     - name: Extracting the installer
       command: |
         {{ provision_cache_store }}/{{ version }}/oc adm release extract \
-        --registry-config {{ _pullsecret_file | quote }} --command={{ cmd | quote }} \
+        --registry-config {{ pullsecret_file | quote }} --command={{ cmd | quote }} \
         --to {{ provision_cache_store }}/{{ version }} {{ release_image }}
       args:
         chdir: "{{ provision_cache_store }}/{{ version }}"
@@ -328,7 +328,7 @@
     command:
       '
       {{ provision_cache_store }}/{{ version }}/oc adm release mirror
-        -a "{{ _pullsecret_file }}"
+        -a "{{ pullsecret_file }}"
         --from="{{ release_image | quote }}"
         --to-release-image="{{ local_registry | quote }}/{{ local_repo | quote }}:{{ release_version | quote }}"
         --to="{{ local_registry | quote }}/{{ local_repo | quote }}"

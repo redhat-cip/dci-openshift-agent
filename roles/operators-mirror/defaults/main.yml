@@ -1,0 +1,4 @@
+---
+from_registry: "registry.redhat.io/openshift4/ose-operator-registry"
+local_registry_path: "/olm/redhat-operators"
+...
