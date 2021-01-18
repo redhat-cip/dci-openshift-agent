@@ -1,0 +1,174 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a901c356_a85ec9dc",
+        "filename": "dci-openshift-agent.spec",
+        "patchSetId": 8
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-18T23:19:47Z",
+      "side": 1,
+      "message": "needs version/release bump",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5bc1963a_c2807346",
+        "filename": "dci-openshift-agent.spec",
+        "patchSetId": 8
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-18T23:19:47Z",
+      "side": 1,
+      "message": "missing %changelog entry",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "68029399_5311ea1d",
+        "filename": "roles/operators-mirror/defaults/main.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-18T23:19:47Z",
+      "side": 1,
+      "message": "I feel like all of these should all be prefixed to avoid potential name overloading",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d4d55ab3_9574352a",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-18T23:19:47Z",
+      "side": 1,
+      "message": "move this to an e.g. tasks/install.yml file to keep it clean",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6f623982_9e513953",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-18T23:19:47Z",
+      "side": 1,
+      "message": "move these set_facts to an e.g. tasks/facts.yml to keep it clean. Also why split these facts ?",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "94f59763_ec9014da",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-18T23:19:47Z",
+      "side": 1,
+      "message": "this can be moved to a chdir param under shell command and leave only the oc adm command in here",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "418b3c7e_1848c77d",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-18T23:19:47Z",
+      "side": 1,
+      "message": "add a note in here explaining where the IMCSP YAML file comes from so we don\u0027t scratch our heads again 6 months from now :)",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "967abdb2_7eaada39",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-18T23:19:47Z",
+      "side": 1,
+      "message": "these two tasks can be condensed in a with_items: [\u0027worker\u0027, \u0027master\u0027] loop as you\u0027re not registering the output anywhere",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "90ff2a52_36852d30",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-18T23:19:47Z",
+      "side": 1,
+      "message": "nitpick: the previous oc wait calls use the short name (e.g. mcp worker) so maybe make them match?",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a711030_08f4b6f7",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-18T23:19:47Z",
+      "side": 1,
+      "message": "this can be a single patch call with both items",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
