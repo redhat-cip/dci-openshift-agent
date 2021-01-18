@@ -1,0 +1,60 @@
+- name: Install skopeo
+  package:
+    name:
+      - skopeo
+    state: present
+  become: true
+
+# This should come from inventory or settings
+- name: Containers to mirror
+  set_fact:
+     mirror_list:
+        - container-native-virtualization
+        - sriov
+        - performance
+        - ptp
+
+- name: Base version
+  set_fact:
+     base_version: "{{ version | split('.')[0] }}.{{ version | split('.')[1] }}"
+
+- name: Build catalog
+  environment:
+    KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+  shell:
+    cmd: >
+      set -x;
+      {{ dci_cluster_configs_dir }}/oc adm catalog build
+      --appregistry-org redhat-operators
+      --from={{ from_registry }}:v{{ base_version }}
+      --filter-by-os="linux/amd64"
+      --to={{ local_registry_host }}:{{ local_registry_port }}{{ local_registry_path }}:v{{ base_version }}
+      -a {{ pullsecret_file }} --insecure
+
+- name: Mirror catalog manifests
+  environment:
+    KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+  shell:
+    cmd: >
+      set -x;
+      cd {{ dci_cluster_configs_dir }} &&
+      {{ dci_cluster_configs_dir }}/oc adm catalog mirror 
+      {{ local_registry_host }}:{{ local_registry_port }}{{ local_registry_path }}:v{{ base_version }}
+      {{ local_registry_host }}:{{ local_registry_port }} -a {{ pullsecret_file }} --insecure
+      --filter-by-os="linux/amd64" --manifests-only
+
+- name: Copy Containers from mirror_list
+  shell:
+    cmd: >
+      skopeo copy --authfile {{ pullsecret_file }}
+      --dest-tls-verify=false --all docker://{{ item.split('=')[0] }}
+      docker://{{ item.split('=')[1] }}
+  loop: "{{ lookup('file', 'mapping.txt').splitlines() }}"
+  when:
+    - "{{ item | regex_findall(mirror_list | join('|')) }}"
+
+- name: Apply image content source policy
+  k8s:
+    kubeconfig: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
+    src: "{{ dci_cluster_configs_dir }}/redhat-operators-manifests/imageContentSourcePolicy.yaml"
+

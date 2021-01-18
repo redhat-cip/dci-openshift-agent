@@ -29,6 +29,10 @@
     - dci_openshift_agent_conformance is defined
     - dci_openshift_agent_conformance | length > 0
 
+- name: "dci-openshift-agent : Mirror Operators"
+  include_role:
+    name: operators-mirror
+
 # Setup and run cnf-tests
 - block:
 
