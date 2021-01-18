@@ -1,0 +1,12 @@
+# This should come from inventory or settings
+- name: Containers to mirror
+  set_fact:
+     mirror_list:
+        - container-native-virtualization
+        - sriov
+        - performance
+        - ptp
+
+- name: Base version
+  set_fact:
+     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
