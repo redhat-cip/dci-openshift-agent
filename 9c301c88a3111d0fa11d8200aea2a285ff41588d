@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "c480a731_4a5d4808",
+        "filename": "roles/mirror_operators/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-01-19T05:21:05Z",
+      "side": 1,
+      "message": "Yes, the OCP docs have thise for 4.6 https://docs.openshift.com/container-platform/4.6/operators/admin/olm-restricted-networks.html\n\nBut it is different for 4.5, which will clash in parallel runs. So its better to have them tagged as per OCP version.",
+      "parentUuid": "3f24f6e2_5fdb467d",
+      "range": {
+        "startLine": 31,
+        "startChar": 88,
+        "endLine": 31,
+        "endChar": 90
+      },
+      "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3e19eba1_2c298c9a",
         "filename": "roles/mirror_operators/tasks/mirror.yml",
         "patchSetId": 1
@@ -95,6 +119,24 @@
       "side": 1,
       "message": "We need this because we need to tell openshift to pull those images from the mirror and not registry.redhat.io",
       "parentUuid": "d77af675_ceaf5b34",
+      "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ddc741d_67f1c40b",
+        "filename": "roles/mirror_operators/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-01-19T05:21:05Z",
+      "side": 1,
+      "message": "Yes, but it is already added via this https://github.com/dallas-telco-lab/service-configs/blob/master/trust-bundles/cluster5-trust-bundle.yml#L54\n\nInstead of image to image mirror, we added global mirror which will be applicable to all images under the repo. \n\n- mirrors:\n  - registry.dfwt5g.lab:5000/openshift4\n  source: registry.redhat.io/openshift4\n- mirrors:\n  - registry.dfwt5g.lab:5000/container-native-virtualization\n  source: registry.redhat.io/container-native-virtualization",
+      "parentUuid": "a733cd44_20ebe357",
       "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
