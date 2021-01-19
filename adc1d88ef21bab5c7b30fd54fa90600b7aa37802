@@ -104,6 +104,23 @@
     },
     {
       "key": {
+        "uuid": "d8985b4c_1816b481",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-01-19T05:29:18Z",
+      "side": 1,
+      "message": "https://softwarefactory-project.io/r/#/c/20595/1/roles/mirror_operators/tasks/mirror.yml@55\n\nIMO, it is not required. Lets discuss this in detail tonight.",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "418b3c7e_1848c77d",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 8
@@ -115,6 +132,23 @@
       "writtenOn": "2021-01-18T23:19:47Z",
       "side": 1,
       "message": "add a note in here explaining where the IMCSP YAML file comes from so we don\u0027t scratch our heads again 6 months from now :)",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9b93a9b9_495bb3c5",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-01-19T05:29:18Z",
+      "side": 1,
+      "message": "These are done at the prepare-cnf tasks. I think we should keep a mirror and creating a catalog separately.  We could build additional intelligence to this role to avoid multiple runs or duplicate runs.\n\nhttps://github.com/redhat-cip/dci-openshift-agent/blob/master/roles/prepare-cnf/tasks/redhat-catalog-source.yml",
       "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
