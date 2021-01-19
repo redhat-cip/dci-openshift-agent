@@ -140,6 +140,24 @@
       "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7cf798fa_cc42859f",
+        "filename": "roles/mirror_operators/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-19T13:16:02Z",
+      "side": 1,
+      "message": "I understand that, but it\u0027s harder to maintain because you have to make changes in two different places.\n\nYou do realize that the cnf-mirror playbook did this right?  I simply moved it from there to here.\n\nThe only other thought I had was to filter the entries out of the imageContentSourcePolicy so we don\u0027t have entries that we haven\u0027t mirrored.",
+      "parentUuid": "9ddc741d_67f1c40b",
+      "revId": "9c301c88a3111d0fa11d8200aea2a285ff41588d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
