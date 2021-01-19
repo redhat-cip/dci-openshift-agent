@@ -70,6 +70,24 @@
     },
     {
       "key": {
+        "uuid": "e988b344_d489666d",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-19T13:49:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d4d55ab3_9574352a",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6f623982_9e513953",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 8
@@ -122,6 +140,24 @@
     },
     {
       "key": {
+        "uuid": "64710389_f0e2a83f",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-19T13:49:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "94f59763_ec9014da",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d8985b4c_1816b481",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 8
@@ -150,6 +186,24 @@
       "writtenOn": "2021-01-18T23:19:47Z",
       "side": 1,
       "message": "add a note in here explaining where the IMCSP YAML file comes from so we don\u0027t scratch our heads again 6 months from now :)",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "46118c85_deffd37b",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-19T13:49:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "418b3c7e_1848c77d",
       "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
@@ -208,6 +262,24 @@
     },
     {
       "key": {
+        "uuid": "6a643e0c_e55a07a5",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-19T13:49:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "967abdb2_7eaada39",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "90ff2a52_36852d30",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 8
@@ -225,6 +297,24 @@
     },
     {
       "key": {
+        "uuid": "952ee1f5_0fc23161",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-19T13:49:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90ff2a52_36852d30",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4a711030_08f4b6f7",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 8
@@ -236,6 +326,24 @@
       "writtenOn": "2021-01-18T23:19:47Z",
       "side": 1,
       "message": "this can be a single patch call with both items",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02798831_c7a4744a",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-19T13:49:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4a711030_08f4b6f7",
       "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
