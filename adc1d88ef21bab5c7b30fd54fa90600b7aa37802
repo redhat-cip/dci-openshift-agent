@@ -87,6 +87,24 @@
     },
     {
       "key": {
+        "uuid": "65271e9a_cb628bf3",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-19T13:21:14Z",
+      "side": 1,
+      "message": "The version is 4.5.6 for example.  We need the major version, 4.5.  Feel free to offer a nicer jinja syntax to get just the major version :-)",
+      "parentUuid": "6f623982_9e513953",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "94f59763_ec9014da",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 8
@@ -149,6 +167,24 @@
       "writtenOn": "2021-01-19T05:29:18Z",
       "side": 1,
       "message": "These are done at the prepare-cnf tasks. I think we should keep a mirror and creating a catalog separately.  We could build additional intelligence to this role to avoid multiple runs or duplicate runs.\n\nhttps://github.com/redhat-cip/dci-openshift-agent/blob/master/roles/prepare-cnf/tasks/redhat-catalog-source.yml",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "259423da_76497c04",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-19T13:21:14Z",
+      "side": 1,
+      "message": "I don\u0027t agree.  We should only need to add this catalog *if* we are mirroring and if we are mirroring it will be needed for more then just CNF.  Any operator being installed like cnv would need this too.",
+      "parentUuid": "9b93a9b9_495bb3c5",
       "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
