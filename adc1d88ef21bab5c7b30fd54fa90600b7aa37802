@@ -123,6 +123,24 @@
     },
     {
       "key": {
+        "uuid": "101b62dc_f4233887",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-19T15:31:44Z",
+      "side": 1,
+      "message": "sorry, I mean: there\u0027s 2 set_fact tasks one after the other, why not have them in a single set_fact task",
+      "parentUuid": "65271e9a_cb628bf3",
+      "revId": "adc1d88ef21bab5c7b30fd54fa90600b7aa37802",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "94f59763_ec9014da",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 8
