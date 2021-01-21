@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bb5f7cb4_863cf006",
+        "filename": "roles/operators-mirror/tasks/main.yml",
+        "patchSetId": 10
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-21T22:54:45Z",
+      "side": 1,
+      "message": "need to also prefix opm_ in these variables",
+      "revId": "a759b57c46bf7f1dd43bf4f7dd14d017c4445b5e",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
