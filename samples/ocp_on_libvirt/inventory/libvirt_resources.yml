@@ -38,7 +38,7 @@ all:
             sudo: ALL=(ALL) NOPASSWD:ALL
             lock_passwd: false
         run_commands:
-          - "sudo -u {{ provisionhost_user }} ssh-keygen -t ed25519 -f ~{{ provisionhost_user }}/.ssh/id_ed25519 -N ''"
+          - "sudo -u {{ provisionhost_user }} ssh-keygen -t rsa -b 4096 -f ~{{ provisionhost_user }}/.ssh/id_rsa -N ''"
           - dnf install epel-release -y
         driver: kvm
         memory: 16384

@@ -10,12 +10,9 @@
 - name: Get provisioner SSH identity
   delegate_to: "{{ groups['provisioner'][0] }}"
   fetch:
-    src: "{{ item }}"
-    dest: "~/.ssh/{{ cluster }}-provisioner_key"
+    src: "~{{ ansible_user }}/.ssh/id_rsa"
+    dest: "~/.ssh/{{ cluster }}-provisioner_rsa"
     flat: true
-  with_first_found:
-    - "~{{ ansible_user }}/.ssh/id_ed25519"
-    - "~{{ ansible_user }}/.ssh/id_rsa"
 
 - name: Erase bootloader to prevent old OS to boot
   delegate_to: "{{ item }}"
