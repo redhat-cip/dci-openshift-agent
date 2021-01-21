@@ -7,11 +7,6 @@
 - name: Import Openshift files from DCI
   include_tasks: fetch-bits.yml
 
-# Mirror Operators
-- name: "dci-openshift-agent : Mirror Operators"
-  include_role:
-    name: operators-mirror
-
 - name: Get provisioner SSH identity
   delegate_to: "{{ groups['provisioner'][0] }}"
   fetch:

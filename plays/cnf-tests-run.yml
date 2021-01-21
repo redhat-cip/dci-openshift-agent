@@ -15,7 +15,7 @@
 
   - name: Run SCTP tests
     environment:
-      REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
+      REGISTRY_AUTH_FILE: "{{ _pullsecret_file }}"
     shell:
       cmd: >
        podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
@@ -27,7 +27,7 @@
 
   - name: Run PTP tests
     environment:
-      REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
+      REGISTRY_AUTH_FILE: "{{ _pullsecret_file }}"
     shell:
       cmd: >
        podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
@@ -39,7 +39,7 @@
 
   - name: Run performance tests
     environment:
-      REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
+      REGISTRY_AUTH_FILE: "{{ _pullsecret_file }}"
     shell:
       cmd: >
        podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
@@ -51,7 +51,7 @@
 
   - name: Run SRIOV tests
     environment:
-      REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
+      REGISTRY_AUTH_FILE: "{{ _pullsecret_file }}"
     shell:
       cmd: >
          podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
@@ -63,7 +63,7 @@
 
   - name: Run DPDK tests
     environment:
-      REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
+      REGISTRY_AUTH_FILE: "{{ _pullsecret_file }}"
     shell:
       cmd: >
         podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
