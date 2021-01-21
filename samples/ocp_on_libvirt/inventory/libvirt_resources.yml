@@ -9,6 +9,7 @@ all:
     masters_prov_nic: ens3
     cluster_domain: "{{ cluster }}.{{ domain }}"
     baremetal_net_ipv6: false
+    image_url: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2
     networks:
       - name: baremetal
         ip: 192.168.123.1
@@ -36,14 +37,16 @@ all:
             groups: wheel
             sudo: ALL=(ALL) NOPASSWD:ALL
             lock_passwd: false
-        run_commands: []
+        run_commands:
+          - "sudo -u {{ provisionhost_user }} ssh-keygen -t ed25519 -f ~{{ provisionhost_user }}/.ssh/id_ed25519 -N ''"
+          - dnf install epel-release -y
         driver: kvm
         memory: 16384
         vcpus: 8
         arch: x86_64
         boot_dev: hd
         cpu_mode: host-passthrough
-        image_src: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+        image_src: "{{ image_url }}"
         disk_size: 42G
         disk_cache: unsafe
         disk_bus: virtio_scsi
@@ -60,7 +63,7 @@ all:
         arch: x86_64
         boot_dev: hd
         cpu_mode: host-passthrough
-        image_src: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+        image_src: "{{ image_url }}"
         disk_size: 42G
         disk_cache: unsafe
         disk_bus: virtio_scsi
@@ -77,7 +80,7 @@ all:
         arch: x86_64
         boot_dev: hd
         cpu_mode: host-passthrough
-        image_src: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+        image_src: "{{ image_url }}"
         disk_size: 42G
         disk_cache: unsafe
         disk_bus: virtio_scsi
@@ -94,7 +97,7 @@ all:
         arch: x86_64
         boot_dev: hd
         cpu_mode: host-passthrough
-        image_src: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
+        image_src: "{{ image_url }}"
         disk_size: 42G
         disk_cache: unsafe
         disk_bus: virtio_scsi
