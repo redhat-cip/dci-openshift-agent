@@ -41,6 +41,14 @@
     apply:
       delegate_to: localhost
 
+- name: "Add local catalog"
+  include_role:
+    name: operators-mirror
+    tasks_from: redhat-catalog-source.yml
+  when:
+    - hostvars.localhost.local_registry is defined
+    - hostvars.localhost.local_registry != ""
+
 - name: cnf block
   when: hostvars.localhost.dci_prepare_cnf|bool
   block:
