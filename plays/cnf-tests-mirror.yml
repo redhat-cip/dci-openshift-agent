@@ -34,5 +34,5 @@
     shell: >
       set -o pipefail;
       podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests:{{ cnf_tests_image }}
-      /usr/bin/mirror -registry "{{ local_registry_host }}:{{ local_registry_port }}/" --images "/kubeconfig/images.json"
+      /usr/bin/mirror -registry "{{ local_registry }}/" --images "/kubeconfig/images.json"
       |  {{ dci_cluster_configs_dir }}/oc image mirror -f - -a {{ dci_pullsecret_file }} --insecure=true
