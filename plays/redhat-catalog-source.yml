@@ -1,0 +1,29 @@
+---
+- name: Create CatalogSource for Red Hat operators
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: CatalogSource
+      metadata:
+        name: "{{ redhat_catalog_source }}"
+        namespace: openshift-marketplace
+      spec:
+        sourceType: grpc
+        image: "{{ local_registry_host }}:{{ local_registry_port }}/{{ opm_local_registry_path }}:v{{ base_version }}"
+        displayName: "Red Hat Marketplace"
+        publisher: grpc
+
+- name: Split OCP Version
+  set_fact:
+     ocp_version_maj: "{{ base_version.split('.')[0] }}"
+     ocp_version_min: "{{ base_version.split('.')[1] }}"
+
+- name: Disable default catalog sources for disconnected deployment
+  environment:
+    KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
+  shell: |
+    {{ dci_cluster_configs_dir }}/oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+  when:
+    - ocp_version_maj|int == 4
+    - ocp_version_min|int >= 6
+...
