@@ -1,0 +1,30 @@
+---
+- name: Basic facts
+  set_fact:
+    base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
+    ocp_version_maj: "{{ version.split('.')[0] }}"
+    ocp_version_min: "{{ version.split('.')[1] }}"
+
+- name: Create CatalogSource for Red Hat operators
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: CatalogSource
+      metadata:
+        name: "{{ opm_catalog_source_name }}"
+        namespace: "{{ opm_catalog_source_namespace }}"
+      spec:
+        sourceType: grpc
+        image: "{{ local_registry_host }}:{{ local_registry_port }}/{{ opm_local_registry_path }}:v{{ base_version }}"
+        displayName: "{{ opm_catalog_source_displayname }}"
+        publisher: grpc
+
+- name: Disable default catalog sources for disconnected deployment
+  environment:
+    KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
+  shell: |
+    {{ dci_cluster_configs_dir }}/oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+  when:
+    - ocp_version_maj|int == 4
+    - ocp_version_min|int >= 6
+...
