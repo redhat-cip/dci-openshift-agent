@@ -5,7 +5,7 @@
 
   - name: set cnf_tests_image_registry for offline env
     set_fact:
-       cnf_tests_image_registry: '{{ local_registry_host }}:{{ local_registry_port }}'
+       cnf_tests_image_registry: '{{ local_registry }}'
     when: cnf_tests_mode == "offline"
 
   - name: set cnf_tests_image_registry for online env
