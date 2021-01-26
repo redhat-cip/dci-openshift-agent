@@ -31,10 +31,10 @@
         name: performance-addon-operator-subscription
         namespace: openshift-performance-addon
       spec:
-        channel: "{{ ocp_version|string }}"
+        channel: "{{ base_version|string }}"
         name: performance-addon-operator
-        source: "{{ redhat_catalog_source }}"
-        sourceNamespace: openshift-marketplace
+        source: "{{ opm_catalog_source_name }}"
+        sourceNamespace: "{{ opm_catalog_source_namespace }}"
 
 - name: Check if performance-addon-operator csv is installed
   k8s_info:
