@@ -22,8 +22,8 @@
 - name: Copy Containers from opm_mirror_list
   shell:
     cmd: >
-      skopeo copy --authfile {{ dci_pullsecret_file }}
-      --dest-tls-verify=false --all docker://{{ item.split('=')[0] }}
+      skopeo copy --all --authfile {{ dci_pullsecret_file }}
+      --dest-tls-verify=false docker://{{ item.split('=')[0] }}
       docker://{{ item.split('=')[1] }}
   register: copy
   retries: 5
@@ -31,12 +31,13 @@
   until:
     - copy is not failed
   loop: "{{ lookup('file', dci_cluster_configs_dir + '/redhat-operators-manifests/mapping.txt').splitlines() }}"
+  ignore_errors: true
   when:
     - item | regex_findall(opm_mirror_list | join('|'))
 
 - name: Generate mirror entries
   set_fact:
-    mirrors: "{{ mirrors | combine({ item.split('=')[0].split('/')[0]
+    mirrors: "{{ mirrors | default({}) | combine({ item.split('=')[0].split('/')[0]
             + '/' + item.split('=')[0].split('/')[1] :
             item.split('=')[1].split('/')[0]
             + '/' + item.split('=')[1].split('/')[1]}) }}"
