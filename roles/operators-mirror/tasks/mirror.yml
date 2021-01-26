@@ -36,7 +36,7 @@
 
 - name: Generate mirror entries
   set_fact:
-    mirrors: "{{ mirrors | combine({ item.split('=')[0].split('/')[0]
+    mirrors: "{{ mirrors | default({}) | combine({ item.split('=')[0].split('/')[0]
             + '/' + item.split('=')[0].split('/')[1] :
             item.split('=')[1].split('/')[0]
             + '/' + item.split('=')[1].split('/')[1]}) }}"
