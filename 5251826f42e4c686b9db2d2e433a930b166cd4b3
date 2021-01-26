@@ -16,6 +16,24 @@
       "revId": "5251826f42e4c686b9db2d2e433a930b166cd4b3",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10a393cc_636c9ae8",
+        "filename": "dci-openshift-agent-ctl",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-01-26T17:00:33Z",
+      "side": 1,
+      "message": "all the script has been re-formatted",
+      "parentUuid": "c9ee9026_4abf5d0b",
+      "revId": "5251826f42e4c686b9db2d2e433a930b166cd4b3",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
