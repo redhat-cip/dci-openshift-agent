@@ -16,6 +16,24 @@
       "revId": "5b2654bc8c2dcbd899c38d9d76d00b38456d64cf",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "31edc387_a3e6b30a",
+        "filename": "plays/scripts/get-logs",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-01-27T17:38:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e38eb63_8e285a09",
+      "revId": "5b2654bc8c2dcbd899c38d9d76d00b38456d64cf",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
