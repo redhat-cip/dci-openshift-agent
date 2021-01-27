@@ -1,0 +1,8 @@
+# Overrides variable needed for local dev
+
+dci_config_dirs: [/var/lib/dci-openshift-agent/dci-openshift-agent]
+
+dci_rpms_to_components:
+   - dci-ansible
+   - python3-dciclient
+   - python3-kubernetes

@@ -1,14 +1,15 @@
 #!/bin/bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 start=0
 config=/etc/dci-openshift-agent/settings.yml
-params="$(getopt -o hsp:c: -l help,start,prefix:,config: --name "$(basename -- "$0")" -- "$@")"
+params="$(getopt -o hsdp:c: -l help,start,dev,prefix:,config: --name "$(basename -- "$0")" -- "$@")"
 
 function usage ()
 {
     name=$(basename -- "$0")
     cat << EOF
-Usage: $name [-h] [-s] [-p PREFIX] [-c CONFIG] -- [ansible-playbook args]
+Usage: $name [-h] [-s] [-d] [-p PREFIX] [-c CONFIG] -- [ansible-playbook args]
 
 arguments:
     -h, --help        Display this help message.
@@ -16,7 +17,8 @@ arguments:
     -p PREFIX, --prefix PREFIX
                       Specify prefix for Inventory and settings (use to specify different
                       clusters for example)
-     -c CONFIG, --config CONFIG
+    -d, --dev         Use script directory to find dcirc.sh and dci-openshift-agent.yml (for dev usage)
+    -c CONFIG, --config CONFIG
                       Path to config file. default is /etc/dci-openshift-agent/settings.yml
 EOF
     exit 0
@@ -30,61 +32,75 @@ do
     case $1 in
         -h|--help)
             usage
-            ;;
+        ;;
         -s|--start)
             start=1
             shift
-          ;;
+        ;;
+        -d|--dev)
+            dev=1
+            shift
+        ;;
         -c|--config)
             shift
             config=$1
             shift
-            ;;
+        ;;
         -p|--prefix)
             shift
             prefix=$1
             shift
-            ;;
+        ;;
         --)
             shift
             ansible_args=$@
             break
-            ;;
+        ;;
         *)
             usage
-            ;;
+        ;;
     esac
 done
 
 if [ $( id -u dci-openshift-agent ) -ne $( id -u ) ]; then
-  echo "must be run as the dci-openshift-agent user"
-  usage
+    echo "must be run as the dci-openshift-agent user"
+    usage
 fi
 
 if [ -n "$prefix" ]; then
     hosts="/etc/dci-openshift-agent/${prefix}-hosts"
     settings="/etc/dci-openshift-agent/${prefix}-settings.yml"
     if [ -e "$hosts" ]; then
-       prefix_args="-i $hosts"
+        prefix_args="-i $hosts"
     else
-       echo "Missing $hosts"
-       exit 1
+        echo "Missing $hosts"
+        exit 1
     fi
     if [ -e "$settings" ]; then
         prefix_args="${prefix_args} -e @$settings"
     else
-       echo "Missing $settings, will only use $config."
+        echo "Missing $settings, will only use $config."
     fi
 fi
 
 if [ "$start" -eq 1 ]; then
-    [ -e /etc/dci-openshift-agent/dcirc.sh ] && . /etc/dci-openshift-agent/dcirc.sh
-    [ -d /usr/share/dci-openshift-agent ] && cd /usr/share/dci-openshift-agent
+    if [ -z "$dev" ]; then
+        [ -e /etc/dci-openshift-agent/dcirc.sh ] && . /etc/dci-openshift-agent/dcirc.sh
+        [ -d /usr/share/dci-openshift-agent ] && cd /usr/share/dci-openshift-agent
+    else
+        [ -e $DIR/dcirc.sh ] && . $DIR/dcirc.sh
+        export ANSIBLE_CONFIG=$DIR/dev-ansible.cfg
+    fi
     ansible-playbook dci-openshift-agent.yml -e @$config ${prefix_args} $ansible_args
 else
     echo "Dry-Run: pass -s or --start to actually execute"
-    echo ". /etc/dci-openshift-agent/dcirc.sh"
-    echo "cd /usr/share/dci-openshift-agent"
+    if [ -z "$dev" ]; then
+        echo ". /etc/dci-openshift-agent/dcirc.sh"
+        echo "cd /usr/share/dci-openshift-agent"
+    else
+        echo "$DIR/dcirc.sh"
+        echo "ANSIBLE_CONFIG=$DIR/dev-ansible.cfg"
+    fi
     echo ansible-playbook dci-openshift-agent.yml -e @$config ${prefix_args} $ansible_args
     exit 1
 fi

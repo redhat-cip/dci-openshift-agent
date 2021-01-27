@@ -181,6 +181,28 @@ If you need to run the `dci-openshift-agent` manually in foreground, you can use
 % dci-openshift-agent-ctl -s -- -v
 ```
 
+### Local dev environment
+
+For dev purposes, it is important to be able to run and test the code directly on your dev environment so without using the package manager.
+
+In order to run the agent without using the RPM package, you need to move the three configuration files (`settings.yml`, `dcirc.sh` and `hosts`) in the directory of the git repo.
+
+Then, you need to modify dev-ansible.cfg two variables: `inventory` and `roles_path` (baremetal_deploy_repo).
+
+Also, in order to install package with the ansible playbook, you need to add rights to `dci-openshift-agent` user:
+
+```
+# cp dci-openshift-agent.sudo /etc/sudoers.d/dci-openshift-agent
+```
+
+Finally, you can run the script:
+
+```
+# Option -d for dev mode
+# Overrides variables with group_vars/dev
+% ./dci-openshift-agent-ctl -s -c settings.yml -d -- -e @group_vars/dev
+```
+
 ### dci-openshift-agent workflow
 
 _Step 0 :_ “New DCI job”
