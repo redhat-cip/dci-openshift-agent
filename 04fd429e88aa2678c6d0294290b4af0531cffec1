@@ -16,6 +16,24 @@
       "revId": "04fd429e88aa2678c6d0294290b4af0531cffec1",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f0e4676e_b49404be",
+        "filename": "plays/scripts/get-logs",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-01-27T18:02:19Z",
+      "side": 1,
+      "message": "definitely more elegant, I\u0027ll update that",
+      "parentUuid": "b24c0c15_5dad6809",
+      "revId": "04fd429e88aa2678c6d0294290b4af0531cffec1",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
