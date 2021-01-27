@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2e38eb63_8e285a09",
+        "filename": "plays/scripts/get-logs",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-27T15:10:16Z",
+      "side": 1,
+      "message": "usage check should be updated",
+      "revId": "5b2654bc8c2dcbd899c38d9d76d00b38456d64cf",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
