@@ -17,12 +17,19 @@
 log=$1
 dir="$2"
 
-if [ -z "$log" -o -z "$dir" ]; then
-    echo "Usage: $0 <provisioner login> <dest dir>" 1>&2
+if [ $# -lt 3 ]; then
+    echo "Usage: $0 <provisioner login> <dest dir> <masters name>" 1>&2
     exit 1
 fi
 
 rem="timeout -v 2m ssh $log"
+
+shift 2
+masters=()
+for name in "$@"; do
+      mod=$(echo "$name" | tr -d ,][)
+      masters+=($mod)
+done
 
 myscript=$(mktemp)
 
@@ -37,8 +44,6 @@ cat > $myscript <<EOF
 log_user 0
 
 spawn ssh $log sudo virsh list
-
-expect -- "----------------------------------------------------"
 
 expect {
     -re "\\\\d+\\\\s+(.*)\\\\s+running" {set nodename \$expect_out(1,string)}
@@ -59,9 +64,19 @@ EOF
 ip=$(expect -f $myscript)
 
 rm $myscript
+domain=$($rem hostname -d)
 
 if [ -n "$ip" ]; then
     echo "found VM IPv4 $ip"
+
+    #Installer logs
+    for master in "${masters[@]}"; do
+      master_param+=" --master $master.$domain"
+    done
+    # dump an archive with bootstrap logs
+    $rem openshift-baremetal-install gather boostrap --dir=/tmp/gatherBootstrap --boostrap $ip $master_param
+    scp $log:/tmp/gatherBootstrap/* $dir/
+    $rem rm -rf /tmp/gatherBootstrap
 
     for serv in release-image bootkube; do
         $rem ssh core@$ip journalctl -b -u $serv.service > $dir/$serv.log
@@ -75,7 +90,6 @@ else
 
     if [ -n "$remdir" ]; then
         # Ignition logs
-        domain=$($rem hostname -d)
         for h in $($rem oc get nodes|tail -n +2|awk '{print $1;}'); do
             $rem ssh core@$h.$domain sudo journalctl --identifier=ignition --all > $dir/ignition-$h.log
         done
@@ -86,14 +100,14 @@ else
             echo "Downloading ironic logs from $metal3_pod"
             $rem oc cp openshift-machine-api/$metal3_pod:shared/log/ironic/deploy/. $remdir -c metal3-ironic-conductor
         fi
-        
+
         # Get the output of various oc commands
         $rem oc version > $dir/version.txt
         $rem oc get clusterversion/version > $dir/clusterversion.txt
         $rem oc get clusteroperator > $dir/clusteroperator.txt
         $rem oc get nodes > $dir/nodes.txt
         $rem oc get events --all-namespaces > $dir/events.txt
-        
+
         # must-gather
         # When a policy is defined, use the same mirror (local registry)
         must_gather_opts=""
