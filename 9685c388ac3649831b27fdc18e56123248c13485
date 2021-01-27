@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a3932be_d8997009",
+        "filename": "plays/install.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-27T18:11:49Z",
+      "side": 1,
+      "message": "also when local_registry !\u003d \"\"",
+      "revId": "9685c388ac3649831b27fdc18e56123248c13485",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "07d2f98e_e9ea238c",
+        "filename": "plays/redhat-catalog-source.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-01-27T18:11:49Z",
+      "side": 1,
+      "message": "this should be delegated to the provisioner, right? otherwise the kubeconfig isn\u0027t present... ?",
+      "revId": "9685c388ac3649831b27fdc18e56123248c13485",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
