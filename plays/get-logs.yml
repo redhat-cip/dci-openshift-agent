@@ -8,7 +8,7 @@
   delegate_to: localhost
 
 - name: Get logs from OCP deployment
-  script: ./scripts/get-logs "{{ hostvars[groups['provisioner'][0]]['ansible_user'] }}@{{ groups['provisioner'][0] }}" "{{ logdir.path }}"
+  script: ./scripts/get-logs "{{ hostvars[groups['provisioner'][0]]['ansible_user'] }}@{{ groups['provisioner'][0] }}" "{{ logdir.path }}" "{{ groups['masters'] }}"
   delegate_to: localhost
   ignore_errors: true
 
