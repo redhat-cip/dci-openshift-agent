@@ -49,7 +49,7 @@
 
     - block:
         # prepare infrastructure
-        - name: Run the pre-run hook
+        - name: Run the pre-run
           include_tasks: 'plays/pre-run.yml'
 
         - name: Run the pre-run hook
