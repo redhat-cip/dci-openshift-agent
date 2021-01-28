@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d13f897d_5c781c2e",
+        "filename": "roles/prepare-cnf/tasks/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-01-28T15:59:00Z",
+      "side": 1,
+      "message": "Is this role required?",
+      "revId": "c5cff06df545e3cd4d18f55643bfcc16702bced5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f4f83d9a_577494eb",
+        "filename": "roles/prepare-cnf/tasks/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-01-28T15:59:00Z",
+      "side": 1,
+      "message": "This can be removed too as it is being done at https://softwarefactory-project.io/r/#/c/20761/2/plays/redhat-catalog-source.yml@21",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 24
+      },
+      "revId": "c5cff06df545e3cd4d18f55643bfcc16702bced5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
