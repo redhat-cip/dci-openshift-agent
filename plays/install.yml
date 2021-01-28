@@ -13,7 +13,13 @@
 - name: Get pullsecret from localhost vars
   set_fact:
     pullsecret: "{{ hostvars.localhost.pullsecret| to_json }}"
+  no_log: true
+
+- name: get pullsecret_file from localhost vars
+  set_fact:
     dci_pullsecret_file: "{{ hostvars.localhost.dci_pullsecret_file }}"
+  when:
+    - hostvars.localhost.dci_pullsecret_file is defined
   no_log: true
 
 - name: Populate clusterosimage from fetch_bits
