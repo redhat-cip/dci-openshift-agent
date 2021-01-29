@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3cede51_1ba44401",
+        "filename": "plays/pre-run.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-01-29T17:38:50Z",
+      "side": 1,
+      "message": "I\u0027m not sure if it\u0027s even needed, because the role takes care of evaluating if the provision_cache_store is defined there: https://github.com/redhat-cip/dci-openshift-agent/blob/master/roles/operators-mirror/tasks/main.yml#L14\n\nThe advantage I see on doing this is to avoid entering into the role.",
+      "revId": "38355e073d04708ecce27e8a5ffe43bdffdf23f0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
