@@ -19,6 +19,8 @@
 
 # Mirror Operators
 - name: "dci-openshift-agent : Mirror Operators"
+  vars:
+    dci_pullsecret_file: "{{ hostvars.localhost.provision_cache_store }}/{{ cluster }}-pull-secret.txt"
   include_role:
     name: operators-mirror
 
