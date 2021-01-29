@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "e1fb2969_c659c1e2",
+        "filename": "roles/prepare-cnf/tasks/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-01-29T03:53:54Z",
+      "side": 1,
+      "message": "Just for this one check we are using a role prepare-cnf, which can be avoided. If this check is required (not sure if nodes-ok.yaml is good enough), it can be integrated in one of the play and remove this role \"prepare-cnf\", as there is no preparation done here.",
+      "parentUuid": "be7472d8_e986879f",
+      "revId": "c5cff06df545e3cd4d18f55643bfcc16702bced5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f4f83d9a_577494eb",
         "filename": "roles/prepare-cnf/tasks/main.yml",
         "patchSetId": 2
