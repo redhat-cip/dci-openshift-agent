@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6bfb925_6699cfa4",
+        "filename": "plays/pre-run.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-01-29T13:23:38Z",
+      "side": 1,
+      "message": "provision_cache_store won\u0027t be defined if we are in connected mode.",
+      "revId": "280ee38b0654696338d078cecd2aea26e7ae899a",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
