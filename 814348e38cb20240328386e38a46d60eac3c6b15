@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e7c1e91_27065822",
+        "filename": "roles/operators-mirror/tasks/redhat-catalog-source.yml",
+        "patchSetId": 9
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-02-01T13:13:17Z",
+      "side": 1,
+      "message": "why is this required to set_fact again with the same name?",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 70
+      },
+      "revId": "814348e38cb20240328386e38a46d60eac3c6b15",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
