@@ -22,6 +22,30 @@
       "revId": "814348e38cb20240328386e38a46d60eac3c6b15",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "12693744_5c3f4069",
+        "filename": "roles/operators-mirror/tasks/redhat-catalog-source.yml",
+        "patchSetId": 9
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-02-01T13:42:29Z",
+      "side": 1,
+      "message": "This is an interesting one.  I found that defaults from a role don\u0027t propagate to other roles unless they have been specifically set.",
+      "parentUuid": "4e7c1e91_27065822",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 70
+      },
+      "revId": "814348e38cb20240328386e38a46d60eac3c6b15",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
