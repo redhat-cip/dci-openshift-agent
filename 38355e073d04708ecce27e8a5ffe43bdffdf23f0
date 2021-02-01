@@ -16,6 +16,24 @@
       "revId": "38355e073d04708ecce27e8a5ffe43bdffdf23f0",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b060a43_cd32ccd0",
+        "filename": "plays/pre-run.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-02-01T16:03:50Z",
+      "side": 1,
+      "message": "the when prevents it from referencing an undefined variable provision_cache_store",
+      "parentUuid": "b3cede51_1ba44401",
+      "revId": "38355e073d04708ecce27e8a5ffe43bdffdf23f0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
     }
   ]
 }
