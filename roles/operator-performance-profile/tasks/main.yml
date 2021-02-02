@@ -1,4 +1,8 @@
 ---
+- name: Set channel version
+  set_fact:
+    channel_version: "{{ ocp_version|string }}"
+
 - name: Create namespace for Performance Addon operator
   k8s:
     definition:
@@ -22,6 +26,11 @@
         targetNamespaces:
           - openshift-performance-addon
 
+- name: set channel version to latest for 4.7
+  set_fact:
+    channel_version: "alpha"
+  when: ocp_version|float >= 4.7
+
 - name: Create subscription for Performance Addon operator
   k8s:
     definition:
@@ -31,7 +40,7 @@
         name: performance-addon-operator-subscription
         namespace: openshift-performance-addon
       spec:
-        channel: "{{ ocp_version|string }}"
+        channel: "{{ channel_version }}"
         name: performance-addon-operator
         source: "{{ redhat_catalog_source }}"
         sourceNamespace: openshift-marketplace
