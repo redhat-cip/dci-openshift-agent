@@ -46,6 +46,30 @@
       "revId": "814348e38cb20240328386e38a46d60eac3c6b15",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "663a6600_95e83051",
+        "filename": "roles/operators-mirror/tasks/redhat-catalog-source.yml",
+        "patchSetId": 9
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2021-02-02T03:47:21Z",
+      "side": 1,
+      "message": "If it is in role\u0027s default, then it will be visible within the role. Now I understand why it is required, as performance-addon and sriov-network operators require both these vars.",
+      "parentUuid": "12693744_5c3f4069",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 70
+      },
+      "revId": "814348e38cb20240328386e38a46d60eac3c6b15",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
