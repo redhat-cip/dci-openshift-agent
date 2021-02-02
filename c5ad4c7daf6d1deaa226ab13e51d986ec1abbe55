@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9bd1f841_7032df3f",
+        "filename": "plays/scripts/get-logs",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2021-02-02T07:08:43Z",
+      "side": 1,
+      "message": "boostrap -\u003e bootstrap",
+      "range": {
+        "startLine": 77,
+        "startChar": 44,
+        "endLine": 77,
+        "endChar": 90
+      },
+      "revId": "c5ad4c7daf6d1deaa226ab13e51d986ec1abbe55",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
