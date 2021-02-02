@@ -21,6 +21,12 @@
         targetNamespaces:
         - openshift-sriov-network-operator
 
+- name: get default channel version (sriov-newtwork-operator)
+  shell: |
+    oc get packagemanifests sriov-network-operator -o json |
+    jq  -r '.status.defaultChannel'
+  register: sriov_network_channel_version
+
 - name: Create subscription for SR-IOV operator
   k8s:
     definition:
@@ -30,7 +36,7 @@
         name: sriov-network-operator-subsription
         namespace: openshift-sriov-network-operator
       spec:
-        channel: "{{ ocp_version|string }}"
+        channel: "{{ sriov_network_channel_version.stdout }}"
         name: sriov-network-operator
         source: "{{ redhat_catalog_source }}"
         sourceNamespace: openshift-marketplace
