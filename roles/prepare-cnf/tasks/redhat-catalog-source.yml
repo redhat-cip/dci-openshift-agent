@@ -25,6 +25,11 @@
   - set_fact:
       catalog_image_version: "v1"
     when: catalog_image_version is undefined
+  - set_fact:
+      catalog_image_version: "latest"
+      catalog_repo_name: "olm"
+      catalog_image_name: "redhat-operators"
+    when: catalog_image_version == "v4.7"
 
   - name: Create CatalogSource for Red Hat operators
     k8s:
