@@ -47,8 +47,8 @@
       name: sriov-network-operator
       namespace: default
     register: pkg_manifest_sriov
-    retries: 30
-    delay: 5
+    retries: 60
+    delay: 10
     until: pkg_manifest_sriov.resources|length != 0
     failed_when: pkg_manifest_sriov.resources|length == 0
 ...
