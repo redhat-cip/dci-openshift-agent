@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0c931f85_6478e0bd",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-02-02T18:50:56Z",
+      "side": 1,
+      "message": "v{{ base_version }} is used in later playbooks so I think those will need to be changed to use opm_version as well.",
+      "revId": "6cf225d80ed6accf1b36c7519d1a4beb99d037ca",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b4316cbf_e13a11c4",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-02-02T18:50:56Z",
+      "side": 1,
+      "message": "Do we really need to retry this 3 times?",
+      "revId": "6cf225d80ed6accf1b36c7519d1a4beb99d037ca",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "562b5e2f_ef64b13a",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-02-02T18:50:56Z",
+      "side": 1,
+      "message": "maybe create a var called {{ filter_by_arg }} which can be defined as either \"--index-filter-by-os\" or \"--filter-by-os\" ?  Then you don\u0027t need tp duplicate this whole command?",
+      "revId": "6cf225d80ed6accf1b36c7519d1a4beb99d037ca",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
