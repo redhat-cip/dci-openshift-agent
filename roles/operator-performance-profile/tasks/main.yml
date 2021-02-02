@@ -22,6 +22,12 @@
         targetNamespaces:
           - openshift-performance-addon
 
+- name: get default channel version (performance-addon-operator)
+  shell: |
+    oc get packagemanifests performance-addon-operator -o json |
+    jq  -r '.status.defaultChannel'
+  register: performance_addon_channel_version
+
 - name: Create subscription for Performance Addon operator
   k8s:
     definition:
@@ -31,7 +37,7 @@
         name: performance-addon-operator-subscription
         namespace: openshift-performance-addon
       spec:
-        channel: "{{ ocp_version|string }}"
+        channel: "{{ performance_addon_channel_version }}"
         name: performance-addon-operator
         source: "{{ redhat_catalog_source }}"
         sourceNamespace: openshift-marketplace
