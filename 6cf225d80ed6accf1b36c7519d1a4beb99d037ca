@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "251c405a_81ca3b6d",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-03T09:17:36Z",
+      "side": 1,
+      "message": "I did not find any other reference of v{{ base_version }} in later playbooks. Do you have one in mind?",
+      "parentUuid": "0c931f85_6478e0bd",
+      "revId": "6cf225d80ed6accf1b36c7519d1a4beb99d037ca",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b4316cbf_e13a11c4",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 5
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "be807a68_b34864cc",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-03T09:17:36Z",
+      "side": 1,
+      "message": "Nope, and I don\u0027t have any solid argument to keep this retry... I will remove it",
+      "parentUuid": "b4316cbf_e13a11c4",
+      "revId": "6cf225d80ed6accf1b36c7519d1a4beb99d037ca",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "562b5e2f_ef64b13a",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 5
@@ -47,6 +83,24 @@
       "writtenOn": "2021-02-02T18:50:56Z",
       "side": 1,
       "message": "maybe create a var called {{ filter_by_arg }} which can be defined as either \"--index-filter-by-os\" or \"--filter-by-os\" ?  Then you don\u0027t need tp duplicate this whole command?",
+      "revId": "6cf225d80ed6accf1b36c7519d1a4beb99d037ca",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7602b049_4e257da9",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-03T09:17:36Z",
+      "side": 1,
+      "message": "Yes, it is a good idea",
+      "parentUuid": "562b5e2f_ef64b13a",
       "revId": "6cf225d80ed6accf1b36c7519d1a4beb99d037ca",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
