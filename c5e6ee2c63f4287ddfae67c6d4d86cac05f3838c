@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56852177_0920a70f",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 14
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-02-04T00:10:20Z",
+      "side": 1,
+      "message": "Is it ok to continue if this task fails after the retries?",
+      "revId": "c5e6ee2c63f4287ddfae67c6d4d86cac05f3838c",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
