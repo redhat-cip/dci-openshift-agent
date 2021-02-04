@@ -16,6 +16,24 @@
       "revId": "38355e073d04708ecce27e8a5ffe43bdffdf23f0",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a32a7ab_2ad5daa8",
+        "filename": "plays/scripts/get-logs",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-04T08:03:56Z",
+      "side": 0,
+      "message": "the number of \u0027-\u0027 depends on the size of your tty so it introduces some inconsistent behaviors.\nTypically, on your libvirt lab, it may not get bootstrap ip because of this failing \u0027expect\u0027",
+      "parentUuid": "1f58b819_7039f89e",
+      "revId": "38355e073d04708ecce27e8a5ffe43bdffdf23f0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
     }
   ]
 }
