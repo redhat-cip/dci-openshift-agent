@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1f58b819_7039f89e",
+        "filename": "plays/scripts/get-logs",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-02-04T00:07:12Z",
+      "side": 0,
+      "message": "I\u0027m not sure I understand why this got removed",
+      "revId": "38355e073d04708ecce27e8a5ffe43bdffdf23f0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
