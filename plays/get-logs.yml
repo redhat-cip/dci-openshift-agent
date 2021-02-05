@@ -20,19 +20,35 @@
   register: logs_matched
   delegate_to: localhost
 
-- name: Upload text logs directory to DCI Control Server
-  environment:
-    - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
-    - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
-    - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
-  dci_file:
-    path: "{{ item.path }}"
-    name: "{{ item.path | basename }}"
-    job_id: "{{ hostvars.localhost.job_id }}"
-    mime: "text/plain"
+- block:
+  - name: Upload text logs directory to DCI Control Server
+    environment:
+      - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
+      - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
+      - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
+    dci_file:
+      path: "{{ item.path }}"
+      name: "{{ item.path | basename }}"
+      job_id: "{{ hostvars.localhost.job_id }}"
+      mime: "text/plain"
+    delegate_to: localhost
+
+  rescue:
+    - name: Create a local log directory
+      file:
+        path: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}"
+        state: directory
+      when: dci_local_log_dir is defined
+      delegate_to: localhost
+
+    - name: Copy log
+      copy:
+        src: "{{ item.path }}"
+        dest: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}/"
+      when: dci_local_log_dir is defined
+      delegate_to: localhost
+
   with_items: "{{ logs_matched.files }}"
-  delegate_to: localhost
-  ignore_errors: true
 
 - name: Find deployment logs (compressed)
   find:
@@ -42,19 +58,35 @@
   register: logs_matched
   delegate_to: localhost
 
-- name: Upload compressed logs to DCI Control Server
-  environment:
-    - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
-    - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
-    - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
-  dci_file:
-    path: "{{ item.path }}"
-    name: "{{ item.path | basename }}"
-    job_id: "{{ hostvars.localhost.job_id }}"
-    mime: "application/x-gzip"
+- block:
+  - name: Upload compressed logs to DCI Control Server
+    environment:
+      - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
+      - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
+      - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
+    dci_file:
+      path: "{{ item.path }}"
+      name: "{{ item.path | basename }}"
+      job_id: "{{ hostvars.localhost.job_id }}"
+      mime: "application/x-gzip"
+    delegate_to: localhost
+
+  rescue:
+    - name: Create a local log directory
+      file:
+        path: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}"
+        state: directory
+      when: dci_local_log_dir is defined
+      delegate_to: localhost
+
+    - name: Copy log
+      copy:
+        src: "{{ item.path }}"
+        dest: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}/"
+      when: dci_local_log_dir is defined
+      delegate_to: localhost
+
   with_items: "{{ logs_matched.files }}"
-  delegate_to: localhost
-  ignore_errors: true
 
 - name: Clean up Temp dir
   file:
