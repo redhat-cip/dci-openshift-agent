@@ -20,19 +20,11 @@
   register: logs_matched
   delegate_to: localhost
 
-- name: Upload text logs directory to DCI Control Server
-  environment:
-    - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
-    - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
-    - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
-  dci_file:
-    path: "{{ item.path }}"
-    name: "{{ item.path | basename }}"
-    job_id: "{{ hostvars.localhost.job_id }}"
-    mime: "text/plain"
+- name: "Upload text logs"
+  vars:
+    mime_type: "text/plain"
+  include_tasks: upload-log.yml
   with_items: "{{ logs_matched.files }}"
-  delegate_to: localhost
-  ignore_errors: true
 
 - name: Find deployment logs (compressed)
   find:
@@ -42,19 +34,11 @@
   register: logs_matched
   delegate_to: localhost
 
-- name: Upload compressed logs to DCI Control Server
-  environment:
-    - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
-    - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
-    - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
-  dci_file:
-    path: "{{ item.path }}"
-    name: "{{ item.path | basename }}"
-    job_id: "{{ hostvars.localhost.job_id }}"
-    mime: "application/x-gzip"
+- name: "Upload compressed logs"
+  vars:
+    mime_type: "application/x-gzip"
+  include_tasks: upload-log.yml
   with_items: "{{ logs_matched.files }}"
-  delegate_to: localhost
-  ignore_errors: true
 
 - name: Clean up Temp dir
   file:
