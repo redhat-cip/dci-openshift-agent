@@ -34,6 +34,24 @@
       "revId": "b0e50899508ddfe73698c0611e9c977ede9066fc",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1e82745c_3657d42b",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-05T13:53:28Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "07e6f249_4eb4bb61",
+      "revId": "b0e50899508ddfe73698c0611e9c977ede9066fc",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
