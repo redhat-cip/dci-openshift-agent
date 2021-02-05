@@ -16,6 +16,24 @@
       "revId": "b0e50899508ddfe73698c0611e9c977ede9066fc",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "07e6f249_4eb4bb61",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-02-05T13:52:05Z",
+      "side": 1,
+      "message": "Actually I found 4.6 introduced this random dir.\n\n/opt/cache/4.6.16/oc adm catalog mirror jumphost.cluster5.dfwt5g.lab:5000/olm/redhat-operators:v4.6 jumphost.cluster5.dfwt5g.lab:5000 -a /opt/cache/cluster5-pull-secret.txt --insecure --filter-by-os\u003d\"linux/amd64\" --manifests-only --dry-run 2\u003e\u00261 | grep wrote\nwrote database to /tmp/060469476\nwrote mirroring manifests to manifests-redhat-operators-1612532979\n\nWhile for older versions (4.5 and below) we could leave it unchanged I think it is best to have the flexibility and consistency among them so we can set it to whatever we need. To keep it consistent I used the same directory generated as in 4.5",
+      "parentUuid": "8be27d6c_94e65658",
+      "revId": "b0e50899508ddfe73698c0611e9c977ede9066fc",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
