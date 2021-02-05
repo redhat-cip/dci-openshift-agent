@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2424d2a9_b9ccc379",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 14
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-02-05T19:35:32Z",
+      "side": 1,
+      "message": "Do we know if there\u0027s any particular reason to define channel? Have we faced an issue with the `default` channel?\n\nIf we don\u0027t have a reason to set a particular channel we could not use a channel and that will use the default channel defined by the operator. \n\nFor example, for this operator the default channel is.\n\n$ oc get packagemanifests performance-addon-operator -o json |\n    jq  -r \u0027.status.defaultChannel\u0027\n4.5\n\nIf we have a reason to set a particular channel then I\u0027d suggest to use either the version of the cluster or the latest available, this could be tricky, but at least picking a valid channel should be attempted.\n\nFor example, for this operator, the channel \"alpha\" is not valid, only 4.4 and 4.5:\n\n$ oc get packagemanifests performance-addon-operator -o json |\n    jq  -r \u0027.status.channels[].name\u0027\n4.4\n4.5",
+      "revId": "79ec0336edf51327584b2479c2a3d719c84dc2d5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e729be2d_ef5a6533",
+        "filename": "roles/operator-sriov/tasks/main.yml",
+        "patchSetId": 14
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-02-05T19:35:32Z",
+      "side": 1,
+      "message": "Same comments as for the other operator.\n\nIn this case the default channel for this operator is:\n\n$ oc get packagemanifests sriov-network-operator -o json |\n    jq  -r \u0027.status.defaultChannel\u0027\n4.5\n\nAnd the valid channels for the operator are:\n\n$ oc get packagemanifests sriov-network-operator -o json |\n    jq  -r \u0027.status.channels[].name\u0027\n4.2                                                                                                                                  \n4.2-s390x                                                                                                                            \n4.3                                                                                                                                  \n4.4                                                                                                                                  \n4.5                                                                                                                                  \nalpha",
+      "revId": "79ec0336edf51327584b2479c2a3d719c84dc2d5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
