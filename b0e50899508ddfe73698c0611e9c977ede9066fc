@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8be27d6c_94e65658",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-05T08:59:38Z",
+      "side": 1,
+      "message": "In fact, since OCP-4.7 manifest_dir is generated with a random number so we will need this change. But why do you need to change it for 4.6 and older?",
+      "revId": "b0e50899508ddfe73698c0611e9c977ede9066fc",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
