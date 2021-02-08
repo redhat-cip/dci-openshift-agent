@@ -1,0 +1,51 @@
+---
+- name: create CNV Namespace
+  k8s:
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ cnv_ns }}"
+
+- name: create Operator Group
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1
+      kind: OperatorGroup
+      metadata:
+        name: "kubevirt-hyperconverged-group"
+        namespace: "{{ cnv_ns }}"
+      spec:
+        targetNamespaces:
+          - "{{ cnv_ns }}"
+
+- name: create Subscription
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: hco-operatorhub
+        namespace: "{{ cnv_ns }}"
+      spec:
+        source: "{{ opm_catalog_source_name | default('redhat-operators') }}"
+        sourceNamespace: "{{ opm_catalog_source_namespace | default('openshift-marketplace') }}"
+        name: kubevirt-hyperconverged
+
+- name: Wait for Subscription to be ready
+  k8s_info:
+    kind: pods
+    namespace: "{{ opm_catalog_source_namespace | default('openshift-marketplace') }}"
+    label_selectors:
+      - olm.catalogSource={{ opm_catalog_source_name | default('redhat-operators') }}
+  register: olm_cs
+  retries: "{{ cnv_hco_api_check_count }}"
+  delay: 60
+  no_log: false
+  until:
+    - "olm_cs.resources|length == 1"
+    - "'status' in olm_cs.resources[0]"
+    - "'containerStatuses' in olm_cs.resources[0].status"
+    - "olm_cs.resources[0].status.containerStatuses|length == 1"
+    - "'ready' in olm_cs.resources[0].status.containerStatuses[0]"
+    - "olm_cs.resources[0].status.containerStatuses[0].ready|bool"
