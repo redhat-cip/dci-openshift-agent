@@ -41,6 +41,14 @@
     apply:
       delegate_to: localhost
 
+- name: "Add local catalog"
+  include_role:
+    name: operators-mirror
+    tasks_from: redhat-catalog-source.yml
+  when:
+    - hostvars.localhost.local_registry is defined
+    - hostvars.localhost.local_registry != ""
+
 - name: cnf block
   when: hostvars.localhost.dci_prepare_cnf|bool
   block:
@@ -73,4 +81,10 @@
       shell: |
         {{ dci_cluster_configs_dir }}/oc patch mcp worker --type=merge -p '{"spec":{"maxUnavailable":1} }'
       delegate_to: localhost
+
+- name: "dci-openshift-agent : Setup cluster for CNV"
+  include_role:
+    name: cnv-setup
+  when:
+    - hostvars.localhost.cnv_version is defined
 ...
