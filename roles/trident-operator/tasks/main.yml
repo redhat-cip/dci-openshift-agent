@@ -1,0 +1,121 @@
+---
+- name: "Deploy Trident Storage Operator"
+  block:
+
+  - set_fact:
+      registryHost: hostvars.localhost.local_registry
+    when:
+      - hostvars.localhost.local_registry is defined
+
+  - name: "Create Working Directory"
+    tempfile:
+      state: directory
+    register: work_directory
+
+    ## Let ansible's search path resolve paths to files
+  - name: "Copy Static Files Into Working Directory"
+    copy:
+      src: "{{ item }}"
+      dest: "{{ work_directory.path }}"
+    with_items:
+    - "trident.netapp.io_tridentprovisioners_crd_post1.16.yml"
+
+  - name: "Fail If No VLAN Base Interface Defined"
+    fail:
+      msg: "Missing Required Parameter: vlan Interface name (baseIface)"
+    failed_when: baseIface is not defined
+
+  - name: "Fail If No VLAN ID Defined"
+    fail:
+      msg: "Missing Required Parameter: VLAN ID (vlanID)"
+    failed_when: vlanID is not defined
+
+  - name: "Check For The Existence Of NMSTATE API CRD's"
+    retries: 5
+    delay: 5
+    shell: "{{ dci_cluster_configs_dir }}/oc get nncp"
+
+  - name: "Render NNCP YAML"
+    template:
+      src: "vlan-interface-nncp.yml.j2"
+      dest: "{{ work_directory.path }}/vlan-interface-nncp.yml"
+
+  - name: "Create VLAN Configuration For Storage"
+    shell: "{{ dci_cluster_configs_dir }}/oc apply -f {{ work_directory.path }}/vlan-interface-nncp.yml"
+
+  - name: "Pause For 30 seconds To Let VLAN Configuration Propagate"
+    wait_for:
+      timeout: "30"
+
+  - name: "Wait To See If All NNCE Objects Complete Successfully"
+    retries: 10
+    delay: 5
+    shell: "{{ dci_cluster_configs_dir }}/oc get nnce -o jsonpath=\"{range .items[*]}{.status.conditions[?(@.type=='Available')].status }{end}\""
+    register: get_nnce_status
+    until: get_nnce_status.stdout | replace('True', '') | trim | length == 0
+
+  - name: "Create tridentprovisioners.trident.netapp.io CRD"
+    shell: "{{ dci_cluster_configs_dir }}/oc apply -f {{ work_directory.path }}/trident.netapp.io_tridentprovisioners_crd_post1.16.yml"
+
+  - name: "Check that CRD Is Now Present"
+    shell: "oc get crd tridentprovisioners.trident.netapp.io"
+
+  - name: "Create Trident Namespace"
+    k8s:
+      definition:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: trident
+
+  - name: "Render Trident Bundle From Template"
+    template:
+      src: "bundle.yml.j2"
+      dest: "{{ work_directory.path }}/bundle.yml"
+
+  - name: "Deploy Trident Bundle"
+    shell: "{{ dci_cluster_configs_dir }}/oc apply -f {{ work_directory.path }}/bundle.yml"
+
+  ## From what I can tell, the deployment is the only object in the bundle that may apply successfully but later fail
+  - name: "Check Trident Operator Status"
+    retries: 10
+    delay: 5
+    shell: "oc get pods -n trident -l app=operator.trident.netapp.io -o jsonpath='{.items[0].status.phase}'"
+    register: trident_pod
+    until: trident_pod.stdout == "Running"
+
+  - name: "Render TridentProvisioner Template"
+    template:
+      src: "tridentprovisioner_cr.yml.j2"
+      dest: "{{ work_directory.path }}/tridentprovisioner_cr.yml"
+
+  ## There's no "status" or "phase" so I'm guessing the command will fail if it doesn't work.
+  - name: "Create TridentProvisioner Instance"
+    shell: "{{ dci_cluster_configs_dir }}/oc apply -f {{ work_directory.path }}/tridentprovisioner_cr.yml"
+
+  - name: "Fetch Current Trident Controller Pod Name"
+    delay: 10
+    retries: 15
+    shell: "{{ dci_cluster_configs_dir }}/oc get pod -n trident -l app=controller.csi.trident.netapp.io -o jsonpath='{.items[0].metadata.name}'"
+    register: trident_controller_pod
+    until: trident_controller_pod.stdout | length > 0
+
+  - name: "Wait For Trident Controller Pod To Be In A Running State"
+    retries: 15
+    delay: 10
+    shell: "{{ dci_cluster_configs_dir }}/oc get pod -n trident -l app=controller.csi.trident.netapp.io -o jsonpath='{.items[0].status.phase}'"
+    register: trident_controller_pod_state
+    until: trident_controller_pod_state.stdout == "Running"
+
+  - name: "Render ONTAP Trident Backend Configuration"
+    template:
+      src: "netapp-backend.json.j2"
+      dest: "{{ work_directory.path }}/netapp-backend.json"
+
+  - name: "Copy JSON For Trident Backend Into Trident Controller Pod"
+    shell: "oc cp -n trident -c trident-main /tmp/06-netapp-backend.json {{trident_controller_pod.stdout}}:/tmp"
+
+  - name: "Create ONTAP Trident Backend via POST on REST Gateway"
+    shell: "{{ dci_cluster_configs_dir }}/oc exec -n trident {{trident_controller_pod.stdout}} -c trident-main -- curl -X POST http://localhost:8000/trident/v1/backend -d@/tmp/netapp-backend.json"
+    register: trident_api_query
+...
