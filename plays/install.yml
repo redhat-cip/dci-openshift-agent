@@ -67,6 +67,12 @@
       when:
         - hostvars.localhost.enable_sriov|default(true)|bool
 
+    - name: "Install Trident operator"
+      include_role:
+        - name: trident-operator
+      when:
+        - hostvars.localhost.enable_trident|default(true)|bool
+
     - name: Reset maxUnavailable count to default value 1
       environment:
         KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
