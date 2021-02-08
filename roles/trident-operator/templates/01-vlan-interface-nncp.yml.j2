@@ -1,0 +1,18 @@
+apiVersion: nmstate.io/v1alpha1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: ontap-vlan-interface
+spec:
+  desiredState:
+    interfaces:
+    - name: "{{ baseIface }}.{{ vlanID }}"
+      description: vlan interface for NetApp ONTAP storage.
+      type: vlan
+      state: up
+      ipv4:
+        enabled: true
+        dhcp: true
+        auto-gateway: false
+      vlan:
+        base-iface: "{{ baseIface }}"
+        id: {{ vlanID }}
