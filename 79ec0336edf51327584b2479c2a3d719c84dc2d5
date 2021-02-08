@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eecd3132_2f13b886",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 14
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-08T07:47:55Z",
+      "side": 1,
+      "message": "Thank you Tony for the explanations. I was  just doing a little test to see how it behaves. I did not thought of the default channel. I will try that :)",
+      "parentUuid": "2424d2a9_b9ccc379",
+      "revId": "79ec0336edf51327584b2479c2a3d719c84dc2d5",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e729be2d_ef5a6533",
         "filename": "roles/operator-sriov/tasks/main.yml",
         "patchSetId": 14
