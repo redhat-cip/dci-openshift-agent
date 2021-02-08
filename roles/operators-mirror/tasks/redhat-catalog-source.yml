@@ -1,0 +1,27 @@
+---
+- name: "operators-mirror : Set Facts"
+  include_tasks: facts.yml
+
+- name: "operators-mirror: Create CatalogSource for Red Hat operators"
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: CatalogSource
+      metadata:
+        name: "{{ opm_catalog_source_name }}"
+        namespace: "{{ opm_catalog_source_namespace }}"
+      spec:
+        sourceType: grpc
+        image: "{{ local_registry }}{{ opm_local_registry_path }}:v{{ base_version }}"
+        displayName: "{{ opm_catalog_source_displayname }}"
+        publisher: grpc
+
+- name: "operators-mirror: Disable default catalog sources for disconnected deployment"
+  command:
+    cmd: >
+      oc patch OperatorHub cluster --type json -p
+      '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+  when:
+    - ocp_version_maj|int == 4
+    - ocp_version_min|int >= 6
+...
