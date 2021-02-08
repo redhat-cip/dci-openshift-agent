@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "abe9097e_583cf904",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 16
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-02-08T17:47:13Z",
+      "side": 1,
+      "message": "Actually, if no channel is defined the Subscription will pick up the default channel provided by the operator :^)\n\nWe could simply not define a channel at all.",
+      "revId": "56b96480d0a08a075f517f2785e847253ecdc161",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "50d59e50_ad64ab35",
+        "filename": "roles/operator-sriov/tasks/main.yml",
+        "patchSetId": 16
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-02-08T17:47:13Z",
+      "side": 1,
+      "message": "Same comment as o-p-p",
+      "revId": "56b96480d0a08a075f517f2785e847253ecdc161",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
