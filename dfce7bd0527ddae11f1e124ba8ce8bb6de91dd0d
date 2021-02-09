@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ffae3bc5_16d29018",
+        "filename": "roles/operator-sriov/tasks/main.yml",
+        "patchSetId": 17
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 29
+      },
+      "writtenOn": "2021-02-09T14:20:18Z",
+      "side": 1,
+      "message": "this can be removed to use default by itself ?",
+      "revId": "dfce7bd0527ddae11f1e124ba8ce8bb6de91dd0d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
