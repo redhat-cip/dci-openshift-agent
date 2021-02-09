@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9878a55e_89a3ced3",
+        "filename": "roles/cnv-setup/tasks/deploy-hco.yml",
+        "patchSetId": 36
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-09T10:13:24Z",
+      "side": 1,
+      "message": "how many seconds in average it takes to have HCO ready?",
+      "revId": "6097ba5ee4cdf859352c406ed85871140a5f7980",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bcf25bc_c52dcd42",
+        "filename": "roles/operator-sriov/defaults/main.yml",
+        "patchSetId": 36
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-09T10:13:24Z",
+      "side": 1,
+      "message": "I did not find where this var is used",
+      "revId": "6097ba5ee4cdf859352c406ed85871140a5f7980",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "87edf127_4896a41f",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 36
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-09T10:13:24Z",
+      "side": 1,
+      "message": "Hum sorry I don\u0027t get this change ^^\u0027",
+      "revId": "6097ba5ee4cdf859352c406ed85871140a5f7980",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "62864e22_4c7fa45c",
+        "filename": "roles/operators-mirror/tasks/redhat-catalog-source.yml",
+        "patchSetId": 36
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-09T10:13:24Z",
+      "side": 1,
+      "message": "Why did you move the Catalog source creation from the prepare-cnf role here? To make separation of the two roles clearer?",
+      "revId": "6097ba5ee4cdf859352c406ed85871140a5f7980",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ec2269eb_e1227133",
+        "filename": "roles/operators-mirror/tasks/redhat-catalog-source.yml",
+        "patchSetId": 36
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-09T10:13:24Z",
+      "side": 1,
+      "message": "extra space",
+      "revId": "6097ba5ee4cdf859352c406ed85871140a5f7980",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
