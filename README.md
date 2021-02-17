@@ -181,6 +181,17 @@ If you need to run the `dci-openshift-agent` manually in foreground, you can use
 % dci-openshift-agent-ctl -s -- -v
 ```
 
+#### Overloading settings directory
+
+To allow storing the settings and the hooks in a different directory,
+you can set `/etc/dci-openshift-agent/config` like this:
+
+```Shell
+CONFIG_DIR=/var/lib/dci/configdir
+```
+
+This will allow you to use a version control system for all your settings and hooks.
+
 ### Local dev environment
 
 For dev purposes, it is important to be able to run and test the code directly on your dev environment so without using the package manager.
