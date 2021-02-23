@@ -1,0 +1,116 @@
+#!/bin/bash
+#
+# Copyright (C) 2021 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+set -e
+set -x
+
+BASEDIR=$(cd $(dirname $0); pwd)
+
+export GIT_COMMITTER_NAME="Extractor"
+export GIT_COMMITTER_EMAIL="noaddress@nowhere.com"
+
+TARGET="$1"
+test -n "$TARGET" -a -d "$TARGET" && cd "$TARGET"
+
+# git log -1 | while read line; do
+while read line; do
+  if ! egrep -iq '^\s*(build-depends|depends-on):' <<< $line; then
+      continue
+  fi
+  echo "Processing line '$line'"
+  # try to find a github pr first
+  if egrep -iq 'https://github.com/.*/pull' <<< $line; then
+      pr=$(sed -e 's@.*/pull/'@@ <<< $line)
+      proj=$(sed -e 's@\(build-Depends\|depends-on\):\s*https://github.com/\(.*\)/pull/.*@\2@i' <<< $line)
+      dir=$(basename $proj)
+
+      if [ -n "$pr" -a -n "$proj" ]; then
+          echo "Extracting PR $pr from $proj"
+
+          curl -s -H "Accept: application/vnd.github.v3+json" -H "Authorization: token $(cat ~/.github_token)" https://api.github.com/repos/$proj/pulls/$pr > $dir-$pr.json
+
+          if [ ! -d $dir ]; then
+              if [ -r $HOME/.ssh/id_github ]; then
+                  ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git clone git@github.com:$proj $dir"
+              else
+                  git clone git@github.com:$proj $dir
+              fi
+          fi
+
+          cd $dir
+          git stash || :
+          git checkout master
+          # remove old branch if it exists
+          git branch -D pr$pr || :
+          if [ -r $HOME/.ssh/id_github ]; then
+              ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git fetch origin pull/$pr/head:pr$pr"
+          else
+              git fetch origin pull/$pr/head:pr$pr
+          fi
+          # check if branch is already merged
+          if git branch -d pr$pr; then
+              git checkout master
+          else
+              git checkout pr$pr
+              if [ -r $HOME/.ssh/id_github ]; then
+                  ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git fetch origin master"
+              else
+                  git fetch origin master
+              fi
+              if ! git rebase origin/master; then
+                  $BASEDIR/send-feedback $TARGET "error in check dallas: unable to rebase PR $pr from $proj"
+                  rm -rf $TARGET
+                  exit 1
+              fi
+          fi
+      fi
+  else
+      # try to find a gerrit review
+      changeid=$(sed -e 's@\s*\(build-depends\|depends-on\):\s*\(.*\)\s*@\2@i' <<< $line)
+      if [ -n "$changeid" ]; then
+          curl -s https://softwarefactory-project.io/r/changes/${changeid}?o=CURRENT_REVISION | tail -n +2 > ${changeid}.json
+          PROJECT=$(jq -r .project ${changeid}.json)
+          CURREV=$(jq -r .current_revision ${changeid}.json)
+          PATCHSET=$(jq -r ".revisions[\"$CURREV\"]._number" ${changeid}.json)
+          REPOURL=$(jq -r ".revisions[\"$CURREV\"].fetch[\"anonymous http\"].url" ${changeid}.json)
+          REVID=$(jq -r ".revisions[\"$CURREV\"].fetch[\"anonymous http\"].ref" ${changeid}.json)
+
+          if [ ! -d $PROJECT ]; then
+              git clone $REPOURL $PROJECT
+          fi
+
+          cd $PROJECT
+          git stash || :
+          git checkout master
+          # remove old branch if it exists
+          git branch -D gr$changeid || :
+          git fetch $REPOURL $REVID:gr$changeid
+          # check if branch is already merged
+          if git branch -d gr$changeid; then
+              git checkout master
+          else
+              git checkout gr$changeid
+              git fetch origin master
+              if ! git rebase origin/master; then
+                  $BASEDIR/send-feedback $TARGET "error in dci-check-command: unable to rebase Gerrit review $changeid from $PROJECT"
+                  rm -rf $TARGET
+                  exit 1
+              fi
+          fi
+      fi
+  fi
+  cd $TARGET
+done
