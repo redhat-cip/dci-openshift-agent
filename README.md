@@ -174,7 +174,8 @@ Please note that the service is a systemd `Type=oneshot`. This means that if you
 $ systemctl start dci-rhel-agent
 ```
 
-If you need to run the `dci-openshift-agent` manually in foreground, you can use this command line:
+If you need to run the `dci-openshift-agent` manually in foreground,
+you can use this command line:
 
 ```
 # su - dci-openshift-agent
@@ -187,7 +188,7 @@ To allow storing the settings and the hooks in a different directory,
 you can set `/etc/dci-openshift-agent/config` like this:
 
 ```Shell
-CONFIG_DIR=/var/lib/dci/configdir
+CONFIG_DIR=/var/lib/dci-openshift-agent/config
 ```
 
 This will allow you to use a version control system for all your settings.
@@ -198,8 +199,29 @@ specify `dci_config_dirs` in your `settings.yml`. Example:
 ```YAML
 ---
 dci_topic: OCP-4.4
-dci_config_dirs: [/var/lib/dci/configdir]
+dci_config_dirs: [/var/lib/dci-openshift-agent/config]
 ```
+
+#### Testing a change
+
+If you want to test a change from a Gerrit review or from a Github PR,
+use the `dci-check-change` command. Example:
+
+```ShellSession
+$ dci-check-change 21136
+```
+
+to check https://softwarefactory-project.io/r/#/c/21136/ or from a Github:
+
+```ShellSession
+$ dci-check-change https://github.com/myorg/config/pull/42
+```
+
+Regarding Github, you will need a token to access private repositories
+stored in `~/.github_token`.
+
+By convention, the `settings.yml` and `hosts` files are searched in
+directories ending in `config`.
 
 ### Local dev environment
 
