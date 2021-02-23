@@ -8,7 +8,7 @@ function usage ()
 {
     name=$(basename -- "$0")
     cat << EOF
-Usage: $name [-h] [-s] [-d] [-p PREFIX] [-c CONFIG] -- [ansible-playbook args]
+Usage: $name [-h] [-s] [-d] [-v] [-p PREFIX] [-c CONFIG] -- [ansible-playbook args]
 
 arguments:
     -h, --help        Display this help message.
@@ -19,8 +19,9 @@ arguments:
     -d, --dev         Use script directory to find dcirc.sh and dci-openshift-agent.yml (for dev usage)
     -c CONFIG, --config CONFIG
                       Path to config file. default is /etc/dci-openshift-agent/settings.yml
+    -v, --verbose     Display commands
 EOF
-    exit 0
+    exit $1
 }
 
 if [ -r /etc/dci-openshift-agent/config ]; then
@@ -37,7 +38,7 @@ while true
 do
     case $1 in
         -h|--help)
-            usage
+            usage 0
         ;;
         -s|--start)
             start=1
@@ -57,20 +58,24 @@ do
             prefix=$1
             shift
         ;;
+        -v|--verbose)
+            set -x
+            shift
+            ;;
         --)
             shift
             ansible_args=$@
             break
         ;;
         *)
-            usage
+            usage 1
         ;;
     esac
 done
 
-if [ $( id -u dci-openshift-agent ) -ne $( id -u ) ]; then
+if [ "$( id -u dci-openshift-agent )" != "$( id -u )" ]; then
     echo "must be run as the dci-openshift-agent user"
-    usage
+    usage 1
 fi
 
 if [ -n "$prefix" ]; then
@@ -81,21 +86,19 @@ if [ -n "$prefix" ]; then
     else
         echo "Missing $settings, will only use $config."
     fi
-else
-    hosts="$config_dir/hosts"
-fi
 
-if [ -e "$hosts" ]; then
-    prefix_args="-i $hosts"
-else
-    echo "Missing $hosts"
-    exit 1
+    if [ -e "$hosts" ]; then
+        prefix_args="-i $hosts"
+    else
+        echo "Missing $hosts"
+        exit 1
+    fi
 fi
 
 if [ "$start" -eq 1 ]; then
     if [ -z "$dev" ]; then
         [ -e /etc/dci-openshift-agent/dcirc.sh ] && . /etc/dci-openshift-agent/dcirc.sh
-        [ -d /usr/share/dci-openshift-agent ] && cd /usr/share/dci-openshift-agent
+        [ -d ${DCI_OPENSHIFT_AGENT_DIR:-/usr/share/dci-openshift-agent} ] && cd ${DCI_OPENSHIFT_AGENT_DIR:-/usr/share/dci-openshift-agent}
     else
         [ -e $DIR/dcirc.sh ] && . $DIR/dcirc.sh
         export ANSIBLE_CONFIG=$DIR/dev-ansible.cfg
