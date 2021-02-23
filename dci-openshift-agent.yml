@@ -12,12 +12,13 @@
         dci_cs_url="{{ lookup('env','DCI_CS_URL') }}"
       no_log: true
 
-    # Schedule a new job only if not passed via pipeline
+    # Schedule a new job only if not passed via dci-pipeline
     - name: Schedule a new job
       dci_job:
         components: "{{ dci_components }}"
         components_by_query: "{{ dci_components_by_query }}"
         topic: "{{ dci_topic }}"
+        comment: "{{ dci_comment | default('') }}"
       register: job_info
       when: job_info is not defined
 
