@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.1.5
+Version:       0.2.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -17,6 +17,7 @@ Requires: ansible-role-dci-sync-registry
 Requires: ansible-role-dci-podman
 Requires: ansible-role-dci-ocp-imagesideload
 Requires: python3-pyyaml python3-openshift
+Requires: jq
 
 %{?systemd_requires}
 Requires(pre): shadow-utils
@@ -66,6 +67,11 @@ install -p -d -m 755 %{buildroot}/%{_sharedstatedir}/%{name}
 find samples -type f -exec install -Dm 644 "{}" "%{buildroot}%{_sharedstatedir}/dci-openshift-agent/{}" \;
 install -p -D -m 755 dci-openshift-agent-ctl %{buildroot}%{_bindir}/dci-openshift-agent-ctl
 
+install -p -D -m 755 dci-check-change %{buildroot}%{_bindir}/dci-check-change
+for cmd in extract-dependencies send-feedback test-runner; do
+    install -p -D -m 755 $cmd %{buildroot}%{_datadir}/dci-openshift-agent/
+done
+
 %if 0%{?rhel} && 0%{?rhel} < 8
 pathfix.py -pni "%{__python2}" %{buildroot}%{_sharedstatedir}/dci-openshift-agent/samples/ocp_on_libvirt/roles/bridge-setup/library/nmcli.py
 %else
@@ -96,6 +102,11 @@ exit 0
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/settings.yml
 %{_bindir}/dci-openshift-agent-ctl
 
+%{_bindir}/dci-check-change
+%{_datadir}/dci-openshift-agent/extract-dependencies
+%{_datadir}/dci-openshift-agent/send-feedback
+%{_datadir}/dci-openshift-agent/test-runner
+
 %{_datadir}/dci-openshift-agent/ansible.cfg
 %{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
 %{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
@@ -122,6 +133,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Tue Feb 23 2021 Frederic Lepied <flepied@redhat.com> 0.2.0-1
+- Add the dci-check-change command
+
 * Thu Jan 21 2021 Bill Peck <bpeck@redhat.com> - 0.1.5-1
 - Add dynamic operator mirroring
 
