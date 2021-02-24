@@ -12,12 +12,13 @@
         dci_cs_url="{{ lookup('env','DCI_CS_URL') }}"
       no_log: true
 
-    # Schedule a new job only if not passed via pipeline
+    # Schedule a new job only if not passed via dci-pipeline
     - name: Schedule a new job
       dci_job:
         components: "{{ dci_components }}"
         components_by_query: "{{ dci_components_by_query }}"
         topic: "{{ dci_topic }}"
+        comment: "{{ dci_comment | default('') }}"
       register: job_info
       when: job_info is not defined
 
@@ -34,7 +35,7 @@
       dci_job:
         id: '{{ job_id }}'
         tags: '{{ dci_tags }}'
-      when: dci_tags
+      when: dci_tags is defined
 
 # Step 1 : pre run
 - name: 'Launch pre-run'
@@ -50,7 +51,7 @@
     - block:
         # prepare infrastructure
         - name: Run the pre-run
-          include_tasks: 'plays/pre-run.yml'
+          include_tasks: plays/pre-run.yml
 
         - name: Run the pre-run hook
           include_tasks: '{{ hookdir }}/hooks/pre-run.yml'

@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# Copyright (C) 2021 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+set -x
+
+DIR="$1"
+BODY="$2"
+
+for json in $(ls $DIR/*.json); do
+    # gerrit
+    if [ $(jq -r .url $json) = null ]; then
+        CHANGEID=$(jq -r ._number $json)
+        CURREV=$(jq -r .current_revision $json)
+        PATCHSET=$(jq -r ".revisions[\"$CURREV\"]._number" $json)
+        if [ -n "$GERRIT_USER" ]; then
+            ssh -p 29418 $GERRIT_USER gerrit review -m "\"$BODY\"" $CHANGEID,$PATCHSET
+        fi
+    # github
+    else
+        ISSUE_URL=$(jq -r .issue_url $json)
+        if [ -r ~/.github_token ]; then
+            curl -s -H "Authorization: token $(cat ~/.github_token)" -X POST -d "{\"body\": \"$BODY\"}" "$ISSUE_URL/comments"
+        fi
+    fi
+done
+
+# send-feedback ends here
