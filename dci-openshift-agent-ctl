@@ -2,7 +2,6 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 start=0
-config=/etc/dci-openshift-agent/settings.yml
 params="$(getopt -o hsdp:c: -l help,start,dev,prefix:,config: --name "$(basename -- "$0")" -- "$@")"
 
 function usage ()
@@ -23,6 +22,13 @@ arguments:
 EOF
     exit 0
 }
+
+if [ -r /etc/dci-openshift-agent/config ]; then
+    . /etc/dci-openshift-agent/config
+fi
+
+config_dir=${CONFIG_DIR:-/etc/dci-openshift-agent}
+config=$config_dir/settings.yml
 
 eval set -- "$params"
 unset params
@@ -68,19 +74,22 @@ if [ $( id -u dci-openshift-agent ) -ne $( id -u ) ]; then
 fi
 
 if [ -n "$prefix" ]; then
-    hosts="/etc/dci-openshift-agent/${prefix}-hosts"
-    settings="/etc/dci-openshift-agent/${prefix}-settings.yml"
-    if [ -e "$hosts" ]; then
-        prefix_args="-i $hosts"
-    else
-        echo "Missing $hosts"
-        exit 1
-    fi
+    hosts="$config_dir/${prefix}-hosts"
+    settings="$config_dir/${prefix}-settings.yml"
     if [ -e "$settings" ]; then
         prefix_args="${prefix_args} -e @$settings"
     else
         echo "Missing $settings, will only use $config."
     fi
+else
+    hosts="$config_dir/hosts"
+fi
+
+if [ -e "$hosts" ]; then
+    prefix_args="-i $hosts"
+else
+    echo "Missing $hosts"
+    exit 1
 fi
 
 if [ "$start" -eq 1 ]; then
