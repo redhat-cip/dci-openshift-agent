@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9778ea9f_fd1f4e23",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-02-24T15:31:22Z",
+      "side": 1,
+      "message": "Do we really need to specify the channel? by default in 4.5 it is picking 4.5 as the channel to use:\n\n$ oc version  | grep Server\nServer Version: 4.5.31\n$ oc get packagemanifests performance-addon-operator -o json |     jq  -r \u0027.status.defaultChannel\u0027\n4.5\n\nI think we are deprecating 4.4 so in reality we only need to ensure 4.5 is working",
+      "revId": "561ec7d6f8c8c0271022982d924b241ebd67d124",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "de492bf2_e82ab990",
+        "filename": "roles/operator-sriov/tasks/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-02-24T15:31:22Z",
+      "side": 1,
+      "message": "Likewise:\n\n$ oc get packagemanifests sriov-network-operator -o json |     jq  -r \u0027.status.defaultChannel\u0027\n4.5",
+      "revId": "561ec7d6f8c8c0271022982d924b241ebd67d124",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
