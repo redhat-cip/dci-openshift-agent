@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e08fb5dd_30c2ccb4",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-02-25T10:32:21Z",
+      "side": 1,
+      "message": "Indeed, it should find the right channel. But I have an example of build where the csv is correctly installed and the only diff is that the channel is precised when created the sub https://www.distributed-ci.io/jobs/a7dd811e-9d2c-4b5f-b31b-1369c39ff179/jobStates#edd6c4c3-4bcc-465a-8445-2f68b18b63b1:file225",
+      "parentUuid": "9778ea9f_fd1f4e23",
+      "revId": "561ec7d6f8c8c0271022982d924b241ebd67d124",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "de492bf2_e82ab990",
         "filename": "roles/operator-sriov/tasks/main.yml",
         "patchSetId": 1
