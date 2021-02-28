@@ -226,23 +226,21 @@
       release_image: "{{ result | regex_search('Pull From:.*') | regex_replace('Pull From:\\s*(.*)', '\\1') }}"
 
   - block:
-    - name: Get the ocp client tar gunzip file
-      get_url:
-        url: "{{ release_url }}/{{ version }}/openshift-client-linux-{{ release_version }}.tar.gz"
-        dest: "{{ provision_cache_store }}/{{ version }}"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: 0644
-        timeout: 300
+    - name: "Client tools"
+      set_fact:
+        client_tools:
+          - openshift-client
 
-    - name: "Untar the openshift-client-linux-{{ release_version }}.tar.gz"
-      unarchive:
-        src: "{{ provision_cache_store }}/{{ version }}/openshift-client-linux-{{ release_version }}.tar.gz"
-        dest: "{{ provision_cache_store }}/{{ version }}"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: 0755
-        remote_src: yes
+    - name: "Client tools for 4.6 and above"
+      set_fact:
+        client_tools: "{{ client_tools + [ 'opm' ] }}"
+      when:
+        - version.split('.')[0]|int == 4
+        - version.split('.')[1]|int >= 6
+
+    - name: "Download and untar tools"
+      include_tasks: extract-tools.yml
+      loop: "{{ client_tools }}"
 
     - name: Extracting the installer
       command: |
