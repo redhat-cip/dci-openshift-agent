@@ -69,9 +69,10 @@
       local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
       local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
       disconnected_registry_auths_file: "{{ hostvars[groups['registry_host'][0]].disconnected_registry_auths_file }}"
+
   - name: Look if the mirroring has already been done
     stat:
-      path: "{{ provision_cache_store }}/{{ version }}/done"
+      path: "{{ provision_cache_store }}/{{ version }}/mirror_done"
     register: mirror_done
 
   - name: Set facts
@@ -89,10 +90,10 @@
       release_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp"
     when: build == 'ga'
 
-  - name: Stat on OCP version
+  - name: Look if rhcos and clients have already been done
     stat:
-      path: "{{ provision_cache_store }}/{{ version }}"
-    register: ocpversionpath
+      path: "{{ provision_cache_store }}/{{ version }}/clients_done"
+    register: clients_done
 
   - name: Read Disconnected auths
     include_vars:
@@ -226,23 +227,21 @@
       release_image: "{{ result | regex_search('Pull From:.*') | regex_replace('Pull From:\\s*(.*)', '\\1') }}"
 
   - block:
-    - name: Get the ocp client tar gunzip file
-      get_url:
-        url: "{{ release_url }}/{{ version }}/openshift-client-linux-{{ release_version }}.tar.gz"
-        dest: "{{ provision_cache_store }}/{{ version }}"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: 0644
-        timeout: 300
+    - name: "Client tools"
+      set_fact:
+        client_tools:
+          - openshift-client
 
-    - name: "Untar the openshift-client-linux-{{ release_version }}.tar.gz"
-      unarchive:
-        src: "{{ provision_cache_store }}/{{ version }}/openshift-client-linux-{{ release_version }}.tar.gz"
-        dest: "{{ provision_cache_store }}/{{ version }}"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: 0755
-        remote_src: yes
+    - name: "Client tools for 4.6 and above"
+      set_fact:
+        client_tools: "{{ client_tools + [ 'opm' ] }}"
+      when:
+        - version.split('.')[0]|int == 4
+        - version.split('.')[1]|int >= 6
+
+    - name: "Download and untar tools"
+      include_tasks: extract-tools.yml
+      loop: "{{ client_tools }}"
 
     - name: Extracting the installer
       command: |
@@ -257,24 +256,28 @@
       file:
         path: "{{ provision_cache_store }}/{{ version }}/{{ cmd }}"
         mode: 0755
-    when:
-      - not ocpversionpath.stat.exists
 
-  - name: Get COMMIT_ID
-    shell: |
-      {{ provision_cache_store }}/{{ version }}/openshift-baremetal-install version | grep '^built from commit' | awk '{print $4}'
-    register: commit_id
+    - name: Get COMMIT_ID
+      shell: |
+        {{ provision_cache_store }}/{{ version }}/openshift-baremetal-install version | grep '^built from commit' | awk '{print $4}'
+      register: commit_id
 
-  - name: Store rhcos.json File
-    get_url:
-      url: "https://raw.githubusercontent.com/openshift/installer/{{ commit_id.stdout }}/data/data/rhcos.json"
-      dest: "{{ provision_cache_store }}/{{ version }}"
-      owner: "{{ ansible_user }}"
-      group: "{{ ansible_user }}"
-      mode: 0644
-      timeout: 300
+    - name: Store rhcos.json File
+      get_url:
+        url: "https://raw.githubusercontent.com/openshift/installer/{{ commit_id.stdout }}/data/data/rhcos.json"
+        dest: "{{ provision_cache_store }}/{{ version }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: 0644
+        timeout: 300
+
     when:
-      - not ocpversionpath.stat.exists
+      - not clients_done.stat.exists
+
+  - name: Create a clients done file
+    file:
+      path: "{{ provision_cache_store }}/{{ version }}/clients_done"
+      state: touch
 
   - name: Load variables from rhcos.json
     include_vars:
@@ -336,8 +339,10 @@
     when:
       - not mirror_done.stat.exists
 
-  - name: Create a done file
-    file: path="{{ provision_cache_store }}/{{ version }}/done" state=touch
+  - name: Create a mirror done file
+    file:
+      path: "{{ provision_cache_store }}/{{ version }}/mirror_done"
+      state: touch
 
   when:
     - "'registry_host' in groups"
