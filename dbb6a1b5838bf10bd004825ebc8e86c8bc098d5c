@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "efa4882f_a96d8fee",
+        "filename": "roles/operators-mirror/tasks/build-catalog-image.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-01T09:12:38Z",
+      "side": 1,
+      "message": "Have you checked your patch on 4.4 ? Because for  this versions, the catalog image name, define in the vars is my-redhat-operator.",
+      "revId": "dbb6a1b5838bf10bd004825ebc8e86c8bc098d5c",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "febdffab_c889dbb4",
+        "filename": "roles/operators-mirror/tasks/build-catalog-index.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-01T09:12:38Z",
+      "side": 1,
+      "message": "I am not to get why we need to prune the source index?",
+      "revId": "dbb6a1b5838bf10bd004825ebc8e86c8bc098d5c",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
