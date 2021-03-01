@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ef15d1a5_54880c88",
+        "filename": "roles/operators-mirror/tasks/build-catalog-image.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-01T16:01:52Z",
+      "side": 1,
+      "message": "I did not, glad you mention that. I need to figure out if we are still going to support 4.4, I hope we don\u0027t so we can get rid of that part :^)",
+      "parentUuid": "efa4882f_a96d8fee",
+      "revId": "dbb6a1b5838bf10bd004825ebc8e86c8bc098d5c",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "febdffab_c889dbb4",
         "filename": "roles/operators-mirror/tasks/build-catalog-index.yml",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2021-03-01T09:12:38Z",
       "side": 1,
       "message": "I am not to get why we need to prune the source index?",
+      "revId": "dbb6a1b5838bf10bd004825ebc8e86c8bc098d5c",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4fdd8618_d464c07b",
+        "filename": "roles/operators-mirror/tasks/build-catalog-index.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-01T16:01:52Z",
+      "side": 1,
+      "message": "This is a new way to deal with catalogs starting in 4.6 (when opm was introduced) The docs state:\n\nWhen creating custom catalog images, previous versions of OpenShift Container Platform 4 required using the oc adm catalog build command, which has been deprecated for several releases. With the availability of Red Hat-provided index images starting in OpenShift Container Platform 4.6, catalog builders should start switching to using the opm index command to manage index images before the oc adm catalog build command is removed in a future release\n\nsource: https://docs.openshift.com/container-platform/4.6/operators/admin/olm-restricted-networks.html#olm-understanding-operator-catalog-images_olm-restricted-networks",
+      "parentUuid": "febdffab_c889dbb4",
       "revId": "dbb6a1b5838bf10bd004825ebc8e86c8bc098d5c",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
