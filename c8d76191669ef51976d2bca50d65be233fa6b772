@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91e24be5_91861b0c",
+        "filename": "plays/fetch-bits.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-03-01T20:28:38Z",
+      "side": 1,
+      "message": "I just wanted to say thank you for doing this with a split on \u0027.\u0027.  If you look at the upstream roles node-prep and installer just reference the string like an array and check [0] and [2] for major and minor version.  You can guess what problems may arise..  (maybe they didn\u0027t live through y2k?)",
+      "revId": "c8d76191669ef51976d2bca50d65be233fa6b772",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
