@@ -34,6 +34,24 @@
       "revId": "c8d76191669ef51976d2bca50d65be233fa6b772",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a113f119_98c9c5c0",
+        "filename": "plays/fetch-bits.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-01T22:45:07Z",
+      "side": 1,
+      "message": "this does look good to me, but I am now wondering if writing an ocp_version filter would make sense",
+      "parentUuid": "453de560_8a538072",
+      "revId": "c8d76191669ef51976d2bca50d65be233fa6b772",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
