@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90110fb1_e2d06010",
+        "filename": "roles/operators-mirror/tasks/facts.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-01T22:45:07Z",
+      "side": 1,
+      "message": "you not casting to int here?",
+      "revId": "829c0fdb927dbe15945bcd425a1022e5a17a97de",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0f270e46_624ed161",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-01T22:45:07Z",
+      "side": 1,
+      "message": "since you didn\u0027t cast to in when setting the fact, you need to cast in here imo",
+      "revId": "829c0fdb927dbe15945bcd425a1022e5a17a97de",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
