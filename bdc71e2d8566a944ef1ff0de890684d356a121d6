@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "689ba8ee_ecb44bc7",
+        "filename": "roles/cnv-setup/tasks/deploy-cnv.yml",
+        "patchSetId": 39
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-02T02:30:45Z",
+      "side": 1,
+      "message": "I think we should use what the default channel is set on the package side, e.g. for OCP 4.5 it is 2.4:\n\n$ oc version | grep Server\nServer Version: 4.5.31\n\n$ oc get packagemanifests kubevirt-hyperconverged -n openshift-marketplace -o json | jq  -r \u0027.status.defaultChannel\u0027\n2.4\n\n\nI know this may be an issue for 4.5 and below, it may be worth testing if 4.5 is also facing the same limitation as we saw in https://softwarefactory-project.io/r/#/c/20323/\n\nIn any case I think we could get rid of cnv_version from the pipeline unless we really want to install a particular cnv version.",
+      "revId": "bdc71e2d8566a944ef1ff0de890684d356a121d6",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ce2a07f9_4ffddc0d",
+        "filename": "roles/cnv-setup/tasks/deploy-hco.yml",
+        "patchSetId": 39
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-02T02:30:45Z",
+      "side": 1,
+      "message": "This is interesting the default channel in 4.5 is 2.4. That means that is likely that for 4.4 is below 2.4 but 4.4 is EOL, we could probably get rid of this part as well.",
+      "revId": "bdc71e2d8566a944ef1ff0de890684d356a121d6",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2ab8c77b_6d0019a4",
+        "filename": "roles/cnv-setup/tasks/deploy-hco.yml",
+        "patchSetId": 39
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-02T02:30:45Z",
+      "side": 1,
+      "message": "Not sure if community.kubernetes.k8s_info could help us with this validation as used with hco in the task above.\n\nFor instance we could check the phase of the csv, e.g:\n\n$ oc get csv performance-addon-operator.v4.6.0 -n openshift-performance-addon -o json | jq -r \u0027.status.phase\u0027\nSucceeded",
+      "revId": "bdc71e2d8566a944ef1ff0de890684d356a121d6",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f8fa422_7cc2e0a0",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 39
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-02T02:30:45Z",
+      "side": 1,
+      "message": "I think this is going to change once rebased",
+      "revId": "bdc71e2d8566a944ef1ff0de890684d356a121d6",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "28b74bb1_57037df5",
+        "filename": "roles/operator-sriov/tasks/main.yml",
+        "patchSetId": 39
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-02T02:30:45Z",
+      "side": 1,
+      "message": "likewise, only needed in 4.5",
+      "revId": "bdc71e2d8566a944ef1ff0de890684d356a121d6",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
