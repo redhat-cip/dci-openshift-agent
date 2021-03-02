@@ -16,6 +16,24 @@
       "revId": "5ada5a1d0455c812f66f1dbd6d613886a46a73c4",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "86cbed18_0a24f850",
+        "filename": "plays/fetch-bits.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-02T14:59:40Z",
+      "side": 1,
+      "message": "Right, this is due to the condition on the \"done\" file (at line 259) I\u0027ll remove them manually for testing, but newer versions should extract them both.",
+      "parentUuid": "1d259781_0c60a1b0",
+      "revId": "5ada5a1d0455c812f66f1dbd6d613886a46a73c4",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
