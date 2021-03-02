@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c41a377_7c85dc76",
+        "filename": "dci-openshift-agent.spec",
+        "patchSetId": 35
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-02T02:30:45Z",
+      "side": 1,
+      "message": "I think is worth bumping the version and adding a changelog entry to reflect the addition of the cnv-setup role and a new dependency",
+      "revId": "4d7dc0db55999f8b8d94464ffde9e3108a35a526",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
