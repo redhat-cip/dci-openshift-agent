@@ -90,7 +90,7 @@ There are three configuration files for `dci-openshift-agent`: `/etc/dci-openshi
 
 - `/etc/dci-openshift-agent/dcirc.sh`
 
-Note: The initial copy of `dcirc.sh` is shipped as `/etc/dci-rhel-agent/dcirc.sh.dist`.
+Note: The initial copy of `dcirc.sh` is shipped as `/etc/dci-openshift-agent/dcirc.sh.dist`.
 
 Copy this to `/etc/dci-openshift-agent/dcirc.sh` to get started, then replace inline some values with your own credentials.
 
@@ -171,7 +171,7 @@ Now that you have configured the `DCI OpenShift Agent`, you can start the servic
 Please note that the service is a systemd `Type=oneshot`. This means that if you need to run a DCI job periodically, you have to configure a `systemd timer` or a `crontab`.
 
 ```
-$ systemctl start dci-rhel-agent
+$ systemctl start dci-openshift-agent
 ```
 
 If you need to run the `dci-openshift-agent` manually in foreground,
