@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1d259781_0c60a1b0",
+        "filename": "plays/fetch-bits.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-02T14:34:54Z",
+      "side": 1,
+      "message": "this step has been skipped during the last try and as opm is not extracted, the job failed later with a \u0027/opt/cache/4.6.19/opm not found\u0027 error",
+      "revId": "5ada5a1d0455c812f66f1dbd6d613886a46a73c4",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
