@@ -52,6 +52,24 @@
       "revId": "c8d76191669ef51976d2bca50d65be233fa6b772",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "df331656_6b001132",
+        "filename": "plays/fetch-bits.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-02T03:01:49Z",
+      "side": 1,
+      "message": "That may be useful, we do the same in a couple of places",
+      "parentUuid": "a113f119_98c9c5c0",
+      "revId": "c8d76191669ef51976d2bca50d65be233fa6b772",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
