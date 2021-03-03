@@ -21,7 +21,7 @@ Therefore, the simplest working setup must be composed of at least **5** systems
 
 Please follow the [OpenShift Baremetal Deploy Guide (a.k.a. `openshift-kni`)](https://openshift-kni.github.io/baremetal-deploy/) for how to properly configure the OCP networks and systems.
 
-Choose either `4.4`, `4.5` or `4.6` and follow steps 1 to 4 to configure the networks and install RHEL 8 on the provisioning host.
+Choose the OCP version you want to install and follow steps 1 to 4 to configure the networks and install RHEL 8 on the provisioning host.
 
 Steps from 5 on will be handled by the `dci-openshift-agent`.
 
@@ -116,7 +116,7 @@ This is the dci openshift agent settings (format is `.ini`).  Use this to specif
 
 | Variable                | Required | Type          | Description                                          |
 | ----------------------- | -------- | ------------- | ---------------------------------------------------- |
-| topic                   | True     | String        | Name of the topic.  `OCP-4.4` or `OCP-4.5`. |
+| topic                   | True     | String        | Name of the topic.  `OCP-4.5` and up. |
 | dci_components_by_query | False    | List          | Component by query. ['name:4.5.9']                          |
 | dci_components          | False    | List          | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f'] |
 | dci_openshift_agent_conformance | False | String | If defined we will run that category of conformance test |
@@ -198,7 +198,7 @@ specify `dci_config_dirs` in your `settings.yml`. Example:
 
 ```YAML
 ---
-dci_topic: OCP-4.4
+dci_topic: OCP-4.6
 dci_config_dirs: [/var/lib/dci-openshift-agent/config]
 ```
 
