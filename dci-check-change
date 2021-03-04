@@ -22,6 +22,10 @@ cleanup() {
     fi
 }
 
+if [ -r /etc/dci-openshift-agent/config ]; then
+    . /etc/dci-openshift-agent/config
+fi
+
 BASEDIR=$(cd $(dirname $0); pwd)
 
 if [ $# = 0 -o "$1" = -h ]; then
@@ -114,6 +118,14 @@ if [ -d dci-openshift-agent ]; then
     BASEDIR=$PWD/dci-openshift-agent
 else
     BASEDIR=/usr/share/dci-openshift-agent
+fi
+
+if [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
+    if [ -n "$USE_PREFIX" ]; then
+        dci-queue schedule $DCI_QUEUE $BASEDIR/test-runner $DIR -p @RESOURCE "$@"
+    else
+        dci-queue schedule $DCI_QUEUE bash -c "echo @RESOURCE; $BASEDIR/test-runner $DIR $@"
+    fi
 fi
 
 $BASEDIR/test-runner $DIR "$@"
