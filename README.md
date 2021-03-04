@@ -223,6 +223,21 @@ stored in `~/.github_token`.
 By convention, the `settings.yml` and `hosts` files are searched in
 directories ending in `config`.
 
+You can use `dci-queue` from the `dci-pipeline` package to manage a
+queue of changes. To enable it, add the name of the queue into
+`/etc/dci-openshift-agent/config`:
+
+```Shell
+DCI_QUEUE=<queue name>
+```
+
+If you have multiple prefixes, you can also enable it in
+`/etc/dci-openshift-agent/config`:
+
+```Shell
+USE_PREFIX=1
+```
+
 ### Local dev environment
 
 For dev purposes, it is important to be able to run and test the code directly on your dev environment so without using the package manager.
