@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2e3c0ae6_bac3f272",
+        "filename": "plays/fetch-bits.yml",
+        "patchSetId": 9
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-04T13:47:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d0d5ce8e_96d96030",
+      "revId": "8d4d2e1f771158268e5538d4f58a665bef93dbf1",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a52b56c4_98e8984c",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 9
@@ -30,6 +48,24 @@
       "writtenOn": "2021-03-04T13:26:56Z",
       "side": 1,
       "message": "Why do we want the stderr of the catalog manifest? I see it has been added in an older patch but the use case is uncleared for me.",
+      "revId": "8d4d2e1f771158268e5538d4f58a665bef93dbf1",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0c458139_f9381152",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 9
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-04T13:47:21Z",
+      "side": 1,
+      "message": "I found inconsistencies depending on the version, one version was sending its output to stderr while another version to stdout. In the task above (Mirror catalog manifests) I redirected stderr to stdout so we should be able to parse it regardless of what the tool is doing",
+      "parentUuid": "a52b56c4_98e8984c",
       "revId": "8d4d2e1f771158268e5538d4f58a665bef93dbf1",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
