@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "db937061_c89aebcb",
+        "filename": "roles/cnv-setup/defaults/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-05T22:32:55Z",
+      "side": 1,
+      "message": "I don\u0027t think there\u0027s a way to modify this through cli. At the moment it is only possible through the values in the pipeline",
+      "parentUuid": "c7d8e7af_9d723d00",
+      "revId": "1e731fec4dff0a4faf6243815440008e86ce3754",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5f6c0d05_a8b01d73",
         "filename": "roles/cnv-setup/defaults/main.yml",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2021-03-05T14:47:32Z",
       "side": 1,
       "message": "Is this image mirrored correctly with the skopeo cmd?",
+      "revId": "1e731fec4dff0a4faf6243815440008e86ce3754",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "019d1bf8_59c8d4f7",
+        "filename": "roles/cnv-setup/defaults/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-05T22:32:55Z",
+      "side": 1,
+      "message": "I don\u0027t think this is mirrored, in fact I don\u0027t think the template that is using this is being used at the moment",
+      "parentUuid": "5f6c0d05_a8b01d73",
       "revId": "1e731fec4dff0a4faf6243815440008e86ce3754",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": false
