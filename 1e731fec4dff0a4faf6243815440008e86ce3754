@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7d8e7af_9d723d00",
+        "filename": "roles/cnv-setup/defaults/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-05T14:47:32Z",
+      "side": 1,
+      "message": "When launching a job, how easy is it to set cnv_deploy_cnv or another var to false?",
+      "revId": "1e731fec4dff0a4faf6243815440008e86ce3754",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5f6c0d05_a8b01d73",
+        "filename": "roles/cnv-setup/defaults/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-05T14:47:32Z",
+      "side": 1,
+      "message": "Is this image mirrored correctly with the skopeo cmd?",
+      "revId": "1e731fec4dff0a4faf6243815440008e86ce3754",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    }
+  ]
+}
