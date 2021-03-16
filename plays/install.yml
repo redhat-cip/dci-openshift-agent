@@ -73,4 +73,10 @@
       shell: |
         {{ dci_cluster_configs_dir }}/oc patch mcp worker --type=merge -p '{"spec":{"maxUnavailable":1} }'
       delegate_to: localhost
+
+- name: "dci-openshift-agent : Setup cluster for CNV"
+  include_role:
+    name: cnv-setup
+  when:
+    - hostvars.localhost.cnv_version is defined
 ...
