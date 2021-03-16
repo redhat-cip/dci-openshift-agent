@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "abd793bf_eb68a59c",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-16T11:13:33Z",
+      "side": 1,
+      "message": "It has crashed because the variable \u0027opm_catalog_source_namespace\u0027has been defined previously on the mirror role but only on the jumphost and  those tasks are executed on the provisioner.\nI am making a patch to fix this by adding default values",
+      "revId": "061c5b66ac307122c3937f19226a0490dd087dff",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
