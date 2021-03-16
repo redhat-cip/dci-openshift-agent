@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e45ea2c8_995afe0d",
+        "filename": "roles/cnv-setup/tasks/deploy-hco.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 536
+      },
+      "writtenOn": "2021-03-16T19:00:47Z",
+      "side": 1,
+      "message": "If you aren\u0027t going to have a 3rd option, you could use ternary and only have a single task\n\n  - name: Set API Version\n    set_fact:\n      api_version: \"{{ (cnv_version \u003e 2.4) | ternary(\u0027v1beta1\u0027, \u0027v1alpha1\u0027) }}\"\n    changed_when: false",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 21
+      },
+      "revId": "9d6745896fef88eaede6c1be5a1e1e8b22e2f979",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68d69e4c_7e4fa5d7",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 536
+      },
+      "writtenOn": "2021-03-16T19:00:47Z",
+      "side": 1,
+      "message": "failed_when: false may be preferred over ignore_errors because it won\u0027t show up as an big fail in the logs",
+      "range": {
+        "startLine": 70,
+        "startChar": 2,
+        "endLine": 70,
+        "endChar": 21
+      },
+      "revId": "9d6745896fef88eaede6c1be5a1e1e8b22e2f979",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
