@@ -16,6 +16,24 @@
       "revId": "061c5b66ac307122c3937f19226a0490dd087dff",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed9ed6ea_dc36179d",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-16T13:09:28Z",
+      "side": 1,
+      "message": "Thanks for the patch! I think sriov needs the same change, I just uploaded that change as well.",
+      "parentUuid": "abd793bf_eb68a59c",
+      "revId": "061c5b66ac307122c3937f19226a0490dd087dff",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
