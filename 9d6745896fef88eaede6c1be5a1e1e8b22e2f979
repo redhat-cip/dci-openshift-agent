@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "de39ffca_367d96c4",
+        "filename": "roles/cnv-setup/tasks/deploy-hco.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-16T21:47:03Z",
+      "side": 1,
+      "message": "This is good idea, but it will definitely have more versions of CNV as time passes",
+      "parentUuid": "e45ea2c8_995afe0d",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 21
+      },
+      "revId": "9d6745896fef88eaede6c1be5a1e1e8b22e2f979",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "68d69e4c_7e4fa5d7",
         "filename": "roles/operators-mirror/tasks/mirror.yml",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2021-03-16T19:00:47Z",
       "side": 1,
       "message": "failed_when: false may be preferred over ignore_errors because it won\u0027t show up as an big fail in the logs",
+      "range": {
+        "startLine": 70,
+        "startChar": 2,
+        "endLine": 70,
+        "endChar": 21
+      },
+      "revId": "9d6745896fef88eaede6c1be5a1e1e8b22e2f979",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "365981d9_96a3b562",
+        "filename": "roles/operators-mirror/tasks/mirror.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-16T21:47:03Z",
+      "side": 1,
+      "message": "Indeed! I\u0027m making this change, I also like avoiding seeing red ouput on all the failures. Thanks!",
+      "parentUuid": "68d69e4c_7e4fa5d7",
       "range": {
         "startLine": 70,
         "startChar": 2,
