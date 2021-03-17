@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25b073d4_f04f9c9b",
+        "filename": "roles/cnv-setup/tasks/deploy-hco.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 536
+      },
+      "writtenOn": "2021-03-17T13:38:08Z",
+      "side": 1,
+      "message": "looks like you\u0027re missing the - here but that appears not to affect when conditions.  By the way cnv_version is version(\u0027\u003e\u003d\u0027, \u00272.4\u0027) is also good when doing version checks because it\u0027ll handle the float/string stuff automagically",
+      "range": {
+        "startLine": 5,
+        "startChar": 3,
+        "endLine": 5,
+        "endChar": 7
+      },
+      "revId": "695ceba1463921045ad6f628735bdc6f0e9dad18",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
