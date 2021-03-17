@@ -20,6 +20,7 @@ dir="{{ '{{' }} ansible_user_dir {{ '}}' }}/clusterconfigs"
 
 [masters:vars]
 ansible_user=core
+ansible_ssh_extra_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/{{ cluster }}-provisioner_rsa'
 
 # Worker nodes
 [workers]
@@ -31,6 +32,7 @@ ansible_user=core
 
 [workers:vars]
 ansible_user=core
+ansible_ssh_extra_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/{{ cluster }}-provisioner_rsa'
 
 # Provision Host
 [provisioner]
