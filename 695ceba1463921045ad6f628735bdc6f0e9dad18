@@ -22,6 +22,30 @@
       "revId": "695ceba1463921045ad6f628735bdc6f0e9dad18",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f14d7fa0_0bd3f5bb",
+        "filename": "roles/cnv-setup/tasks/deploy-hco.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-17T14:28:57Z",
+      "side": 1,
+      "message": "Yep, you\u0027re right, it works right now, just because there\u0027s only one condition, but I\u0027ll get that fixed.\n\nI wasn\u0027t aware of `version`  that\u0027s great I just read the docs and is exactly what I need, I\u0027ll start using it right away.",
+      "parentUuid": "25b073d4_f04f9c9b",
+      "range": {
+        "startLine": 5,
+        "startChar": 3,
+        "endLine": 5,
+        "endChar": 7
+      },
+      "revId": "695ceba1463921045ad6f628735bdc6f0e9dad18",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
     }
   ]
 }
