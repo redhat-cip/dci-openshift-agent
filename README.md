@@ -315,6 +315,8 @@ _runs on localhost_
 _Step 6 :_ “Post-run”
 
 - Start post-run to collect results:  `/plays/post-run.yml` and `/hooks/post-run.yml`
+- Note: Red Hat and Partners test results must be stored within the {{ dci_cluster_configs_dir }}/ directory in order to be properly uploaded
+        to the DCI server.
 
 _tags: post-run_
 _runs on localhost_
