@@ -315,6 +315,8 @@ _runs on localhost_
 _Step 6 :_ “Post-run”
 
 - Start post-run to collect results:  `/plays/post-run.yml` and `/hooks/post-run.yml`
+- Note: All results files (logs, tests, ...) must be stored within the {{ dci_cluster_configs_dir }}/ directory in order to be properly uploaded
+        to the DCI server. Test result files must follow the Junit format and the file name must follow the pattern "junit_*.xml".
 
 _tags: post-run_
 _runs on localhost_
