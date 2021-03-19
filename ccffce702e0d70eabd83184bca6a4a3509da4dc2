@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e49102b0_0c399a97",
+        "filename": "roles/operators-mirror/tasks/facts.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-03-19T20:10:16Z",
+      "side": 1,
+      "message": "is the correct syntax in or is?  because you use is in the previous file.",
+      "revId": "ccffce702e0d70eabd83184bca6a4a3509da4dc2",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
