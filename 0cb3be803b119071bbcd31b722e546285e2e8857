@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8a576e82_541f1c54",
+        "filename": "plays/get-logs.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-19T13:25:15Z",
+      "side": 1,
+      "message": "Maybe we should specify in the doc that junits are searched from this folder and follow this pattern.",
+      "revId": "0cb3be803b119071bbcd31b722e546285e2e8857",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
