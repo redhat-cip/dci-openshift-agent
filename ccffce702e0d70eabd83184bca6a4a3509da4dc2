@@ -16,6 +16,24 @@
       "revId": "ccffce702e0d70eabd83184bca6a4a3509da4dc2",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d29639e3_1f6e95d8",
+        "filename": "roles/operators-mirror/tasks/facts.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-19T21:46:13Z",
+      "side": 1,
+      "message": "Ahhh!, my bad, the correct one is \"is\". I fixed the other ones with it, thanks!",
+      "parentUuid": "e49102b0_0c399a97",
+      "revId": "ccffce702e0d70eabd83184bca6a4a3509da4dc2",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
     }
   ]
 }
