@@ -8,7 +8,7 @@ masters_prov_nic={{ masters_prov_nic }}
 prov_ip=172.22.0.3
 dir="{{ '{{' }} ansible_user_dir {{ '}}' }}/clusterconfigs"
 
-#webserver_url=http://registry.example.com:8080
+#webserver_url="http://{{ ansible_fqdn }}:8080"
 
 # Master nodes
 [masters]
@@ -46,7 +46,7 @@ ansible_ssh_extra_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/n
 #   Define a host here to create or use a local copy of the installation registry
 #   Used for disconnected installation
 [registry_host]
-#{{ ansible_fqdn }} ansible_user={{ ansible_user }}
+#{{ ansible_fqdn }} ansible_user=dci-openshift-agent
 
 [registry_host:vars]
 # The following cert_* variables are needed to create the certificates

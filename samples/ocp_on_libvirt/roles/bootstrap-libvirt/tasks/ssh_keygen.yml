@@ -14,6 +14,11 @@
     creates: "{{ ssh_key_path }}"
   when: ssh_key_stat_local.stat.exists == false
 
+- name: "Ensure correct permissions on ~/.ssh/authorized_keys"
+  file:
+    path: "{{ '~' | expanduser }}/.ssh/authorized_keys"
+    mode: 0644
+
 - name: "Cat out contents of public key"
   shell: "cat {{ ssh_key_path }}.pub"
   register: pubkey
