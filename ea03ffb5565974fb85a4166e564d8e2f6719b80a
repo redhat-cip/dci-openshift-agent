@@ -16,6 +16,40 @@
       "revId": "ea03ffb5565974fb85a4166e564d8e2f6719b80a",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd419f54_39f01924",
+        "filename": "plays/get-logs.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-22T22:23:35Z",
+      "side": 1,
+      "message": "I wonder if we could reuse upload-log.yml for this one or the delegate_to would be a problem?",
+      "revId": "ea03ffb5565974fb85a4166e564d8e2f6719b80a",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d24c5537_d38b449e",
+        "filename": "plays/get-logs.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-22T22:23:35Z",
+      "side": 1,
+      "message": "Similar comment, although I see here that the junit needs a massage on the name",
+      "revId": "ea03ffb5565974fb85a4166e564d8e2f6719b80a",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
     }
   ]
 }
