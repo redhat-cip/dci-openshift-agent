@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "82cc656b_7234f704",
+        "filename": "roles/redhat-tests/tasks/main.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-22T17:48:39Z",
+      "side": 0,
+      "message": "should remove upload.yml then",
+      "revId": "7405b2280eee208149bc40233ffeb5072ac47d37",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
