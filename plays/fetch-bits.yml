@@ -232,12 +232,11 @@
         client_tools:
           - openshift-client
 
-    - name: "Client tools for 4.6 and above"
+    - name: "Client tools for 4.6.17 and above"
       set_fact:
         client_tools: "{{ client_tools + [ 'opm' ] }}"
       when:
-        - version.split('.')[0]|int == 4
-        - version.split('.')[1]|int >= 6
+        - version is version('4.6.17', ">=")
 
     - name: "Download and untar tools"
       include_tasks: extract-tools.yml
