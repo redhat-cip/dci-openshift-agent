@@ -16,6 +16,24 @@
       "revId": "4f3141f6331a8810c76e6637f750e6e314d8e4ba",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d82d167a_aea5458d",
+        "filename": "roles/cnv-setup/tasks/deploy-cnv.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-23T16:04:22Z",
+      "side": 1,
+      "message": "That\u0027s a great catch!  This is a great example on having a connected environment for testing (like libvirt) would be great to catch these.\n\nThis also highlights the need to change the other operator roles (sriov and performance-addon), not going to touche them here but that will need to change as well",
+      "parentUuid": "f59b3ad5_2be3121f",
+      "revId": "4f3141f6331a8810c76e6637f750e6e314d8e4ba",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
     }
   ]
 }
