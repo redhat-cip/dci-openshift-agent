@@ -79,4 +79,60 @@
     name: cnv-setup
   when:
     - hostvars.localhost.cnv_version is defined
+
+- block:
+  - name: "dci-openshift-agent : Label worker nodes for OCS"
+    command:
+      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+      cmd: "oc label --overwrite node {{ item }} cluster.ocs.openshift.io/openshift-storage=''"
+    with_items: "{{ groups['workers'] }}"
+    when: "groups['workers'] | length > 0"
+
+  - name: "dci-openshift-agent: Label master nodes for OCS (fallback if no workers)"
+    command:
+      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+      cmd: "oc label --overwrite node {{ item }} cluster.ocs.openshift.io/openshift-storage=''"
+    with_items: "{{ groups['masters'] }}"
+    when: "groups['workers'] | length == 0"
+
+  - name: "dci-openshift-agent: Define OCS CatalogSource"
+    include_role:
+      name: olm-catalog-source
+    vars:
+      catalog: ocs-catalog
+      image: "{{ ocs_operator_image }}"
+
+  - name: "dci-openshift-agent : Install OCS Operator"
+    include_role:
+      name: olm-operator
+    vars:
+      operator: ocs-operator
+      channel: alpha
+      source: ocs-catalog
+      namespace: openshift-storage
+      ns_labels:
+        openshift.io/cluster-monitoring: "true"
+
+  when:
+    - ocs_operator_image is defined
+
+- block:
+  - name: "dci-openshift-agent : Define LocalStorage CatalogSource"
+    include_role:
+      name: olm-catalog-source
+    vars:
+      catalog: local-storage-catalog
+      image: "{{ local_storage_operator_image }}"
+
+  - name: "dci-openshift-agent : Install LocalStorage Operator"
+    include_role:
+      name: olm-operator
+    vars:
+      operator: local-storage-operator
+      channel: "{{ local_storage_operator_channel | default('preview') }}"
+      source: local-storage-catalog
+      namespace: openshift-local-storage
+
+  when:
+    - local_storage_operator_image is defined
 ...
