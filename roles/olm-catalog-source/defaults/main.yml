@@ -1,0 +1,5 @@
+---
+catalog: olm-catalog
+namespace: openshift-marketplace
+publisher: Red Hat
+...

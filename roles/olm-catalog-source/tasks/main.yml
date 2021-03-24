@@ -1,0 +1,22 @@
+---
+- name: Assert required fields exist
+  assert:
+    that:
+      - catalog | string
+      - namespace | string
+      - image | string
+
+- name: Create marketplace CatalogSource
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: CatalogSource
+      metadata:
+        name: "{{ catalog }}-catalogsource"
+        namespace: "{{ namespace }}"
+      spec:
+        displayName: "CatalogSource for {{ catalog }}"
+        image: "{{ image }}"
+        publisher: "{{ publisher }}"
+        sourceType: grpc
+...
