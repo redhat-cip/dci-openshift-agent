@@ -1,0 +1,61 @@
+# Deploy a custom resource
+#
+# Required arguments:
+#   api_version: The api version, including the namespace of the CR
+#   (e.g hco.kubevirt.io/v1beta1)
+#
+#   namespace: The namespace in which the CR should be created
+#
+#   kind: The kind of the CR
+#
+#   name: The name that will be used to identify the CR
+#
+#   spec: The spec field of the CR.
+---
+- name: Check for mandatory input
+  assert:
+    that:
+      - api_version | string
+      - kind | string
+      - namespace | string
+      - name | string
+      - spec is mapping
+
+- name: Deploy CR
+  k8s:
+    definition:
+      apiVersion: "{{ api_version }}"
+      kind: "{{ kind }}"
+      metadata:
+        name: "{{ name }}"
+        namespace: "{{ namespace }}"
+      spec: "{{ spec }}"
+  register: result
+  retries: 5
+  delay: 60
+  until: result is not failed
+
+- name: Check that the CR is ready
+  community.kubernetes.k8s_info:
+    api_version: "{{ api_version }}"
+    namespace: "{{ namespace }}"
+    kind: "{{ kind }}"
+    wait: true
+    wait_condition:
+      type: Available
+      status: "True"
+    wait_timeout: 3600
+
+- name: Wait for the CSV to be ready
+  k8s_info:
+    api: operators.coreos.com/v1alpha1
+    namespace: "{{ namespace }}"
+    kind: ClusterServiceVersion
+  register: csv
+  retries: 30
+  delay: 60
+  until:
+    - "csv.resources|length == 1"
+    - "'status' in csv.resources[0]"
+    - "'phase' in csv.resources[0].status"
+    - "csv.resources[0].status.phase == 'Succeeded'"
