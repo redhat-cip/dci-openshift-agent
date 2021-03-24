@@ -79,4 +79,12 @@
     name: cnv-setup
   when:
     - hostvars.localhost.cnv_version is defined
+
+- name: "dci-openshift-agent: Install OCS"
+  tags:
+    - ocs
+  include_role:
+    name: operator-ocs
+  when:
+    - hostvars.localhost.ocs_operator_version is defined
 ...

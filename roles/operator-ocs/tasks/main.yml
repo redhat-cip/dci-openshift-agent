@@ -1,0 +1,108 @@
+---
+- name: Label worker nodes for OCS
+  command:
+    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+    cmd: "oc label --overwrite node {{ item }} cluster.ocs.openshift.io/openshift-storage=''"
+  with_items: "{{ groups['workers'] }}"
+  when: "groups['workers'] | length > 0"
+
+- name: Label master nodes for OCS (fallback if no workers defined)
+  command:
+    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+    cmd: "oc label --overwrite node {{ item }} cluster.ocs.openshift.io/openshift-storage=''"
+  with_items: "{{ groups['masters'] }}"
+  when: "groups['workers'] | length == 0"
+
+- name: Create Namespace for OCS
+  k8s:
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ ocs_operator_ns }}"
+        labels:
+          openshift.io/cluster-monitoring: "true"
+
+- name: Create OperatorGroup for OCS
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1
+      kind: OperatorGroup
+      metadata:
+        name: "{{ ocs_operator_ns }}-operatorgroup"
+        namespace: "{{ ocs_operator_ns }}"
+      spec:
+        targetNamespaces:
+        - "{{ ocs_operator_ns}}"
+
+
+- name: Create marketplace CatalogSource for OCS
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: CatalogSource
+      metadata:
+        name: ocs-catalogsource
+        namespace: openshift-marketplace
+      spec:
+        displayName: "Openshift Container Storage ({{ ocs_operator_version}})"
+        icon:
+          base64data: |
+            PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cD
+            ovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTQ1Ij48ZGVm
+            cz48c3R5bGU+LmNscy0xe2ZpbGw6I2UwMDt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPl
+            JlZEhhdC1Mb2dvLUhhdC1Db2xvcjwvdGl0bGU+PHBhdGggZD0iTTE1Ny43Nyw2Mi42
+            MWExNCwxNCwwLDAsMSwuMzEsMy40MmMwLDE0Ljg4LTE4LjEsMTcuNDYtMzAuNjEsMT
+            cuNDZDNzguODMsODMuNDksNDIuNTMsNTMuMjYsNDIuNTMsNDRhNi40Myw2LjQzLDAs
+            MCwxLC4yMi0xLjk0bC0zLjY2LDkuMDZhMTguNDUsMTguNDUsMCwwLDAtMS41MSw3Lj
+            MzYzAsMTguMTEsNDEsNDUuNDgsODcuNzQsNDUuNDgsMjAuNjksMCwzNi40My03Ljc2
+            LDM2LjQzLTIxLjc3LDAtMS4wOCwwLTEuOTQtMS43My0xMC4xM1oiLz48cGF0aCBjbG
+            Fzcz0iY2xzLTEiIGQ9Ik0xMjcuNDcsODMuNDljMTIuNTEsMCwzMC42MS0yLjU4LDMw
+            LjYxLTE3LjQ2YTE0LDE0LDAsMCwwLS4zMS0zLjQybC03LjQ1LTMyLjM2Yy0xLjcyLT
+            cuMTItMy4yMy0xMC4zNS0xNS43My0xNi42QzEyNC44OSw4LjY5LDEwMy43Ni41LDk3
+            LjUxLjUsOTEuNjkuNSw5MCw4LDgzLjA2LDhjLTYuNjgsMC0xMS42NC01LjYtMTcuOD
+            ktNS42LTYsMC05LjkxLDQuMDktMTIuOTMsMTIuNSwwLDAtOC40MSwyMy43Mi05LjQ5
+            LDI3LjE2QTYuNDMsNi40MywwLDAsMCw0Mi41Myw0NGMwLDkuMjIsMzYuMywzOS40NS
+            w4NC45NCwzOS40NU0xNjAsNzIuMDdjMS43Myw4LjE5LDEuNzMsOS4wNSwxLjczLDEw
+            LjEzLDAsMTQtMTUuNzQsMjEuNzctMzYuNDMsMjEuNzdDNzguNTQsMTA0LDM3LjU4LD
+            c2LjYsMzcuNTgsNTguNDlhMTguNDUsMTguNDUsMCwwLDEsMS41MS03LjMzQzIyLjI3
+            LDUyLC41LDU1LC41LDc0LjIyYzAsMzEuNDgsNzQuNTksNzAuMjgsMTMzLjY1LDcwLj
+            I4LDQ1LjI4LDAsNTYuNy0yMC40OCw1Ni43LTM2LjY1LDAtMTIuNzItMTEtMjcuMTYt
+            MzAuODMtMzUuNzgiLz48L3N2Zz4=
+          mediatype: image/svg+xml
+        image: "quay.io/ocs-dev/ocs-registry:{{ ocs_operator_version }}"
+        publisher: Red Hat
+        sourceType: grpc
+
+- name: Create subscription for OCS
+  k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: ocs-subscription
+        namespace: "{{ ocs_operator_ns }}"
+      spec:
+        channel: alpha
+        config:
+          resources: {}
+        name: ocs-operator
+        source: ocs-catalogsource
+        sourceNamespace: openshift-marketplace
+
+- name: Wait for operator to be Ready
+  command:
+    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+    cmd: >
+      oc --namespace={{ ocs_operator_ns }}
+      wait
+      --for='condition=Ready'
+      pod
+      --selector='name=ocs-operator'
+      --timeout='1m'
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
+  changed_when: false
+...

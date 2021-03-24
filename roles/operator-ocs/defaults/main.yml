@@ -1,0 +1,4 @@
+---
+ocs_operator_ns: openshift-storage
+ocs_operator_version: latest
+...
