@@ -1,6 +1,8 @@
 ---
 - name: "Prune source index but opm list"
   shell:
+    # opm requires write perms in the working directory
+    chdir: "/tmp"
     cmd: >
       set -x;
       REGISTRY_AUTH_FILE={{ dci_pullsecret_file }}
@@ -14,5 +16,3 @@
     cmd: >
       podman push {{ local_registry }}{{ opm_local_registry_path }}:{{ opm_version }}
       --authfile {{ dci_pullsecret_file }}
-
-...
