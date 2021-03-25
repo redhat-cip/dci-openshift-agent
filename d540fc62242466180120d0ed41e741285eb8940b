@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "51b6edba_cc754fac",
+        "filename": "plays/install.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-25T23:45:19Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8dc56e89_a52f585a",
+      "revId": "d540fc62242466180120d0ed41e741285eb8940b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ddc2ba4_6b2f700d",
         "filename": "plays/install.yml",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2021-03-25T16:53:48Z",
       "side": 1,
       "message": "Should it always by alpha?",
+      "revId": "d540fc62242466180120d0ed41e741285eb8940b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "072afd9e_9c5aca29",
+        "filename": "plays/install.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-25T23:45:19Z",
+      "side": 1,
+      "message": "Unsure... docs in the ocs-operator github do mention alpha as the channel, you can point to different versions in the catalogsource though.",
+      "parentUuid": "6ddc2ba4_6b2f700d",
       "revId": "d540fc62242466180120d0ed41e741285eb8940b",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
@@ -50,6 +86,24 @@
       "revId": "d540fc62242466180120d0ed41e741285eb8940b",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cc47526_9f284338",
+        "filename": "roles/olm-operator/tasks/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-25T23:45:19Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "304ca046_4da8f85d",
+      "revId": "d540fc62242466180120d0ed41e741285eb8940b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
