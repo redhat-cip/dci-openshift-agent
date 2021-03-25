@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55bf3e70_6a9e3fa6",
+        "filename": "roles/deploy-operator/tasks/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-25T18:00:48Z",
+      "side": 1,
+      "message": "empty space",
+      "revId": "7df59bfb8a2819f66ff41aea1b52fa2518438ab4",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "157e2f55_8888a618",
+        "filename": "roles/deploy-operator/tasks/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-25T18:00:48Z",
+      "side": 1,
+      "message": "In fact, channel if you don\u0027t precise any channel, it will use the default one. It should not be seen as a mandatory input.",
+      "revId": "7df59bfb8a2819f66ff41aea1b52fa2518438ab4",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5724171_b23fd0e6",
+        "filename": "roles/deploy-operator/tasks/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-25T18:00:48Z",
+      "side": 1,
+      "message": "for OCP-4.5, the default should be \u0027mirrored-redhat-operators\u0027, it has been fixed today on the master branch ^^",
+      "revId": "7df59bfb8a2819f66ff41aea1b52fa2518438ab4",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
