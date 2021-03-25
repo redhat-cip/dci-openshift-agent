@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "05da2e4d_9c96ebc1",
+        "filename": "roles/operators-mirror/tasks/build-catalog-index.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-25T16:47:38Z",
+      "side": 0,
+      "message": "y u delete EOF?",
+      "revId": "10333bc9043efcffe4ac8f458fd2d035d9c78447",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
