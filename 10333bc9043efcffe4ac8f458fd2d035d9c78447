@@ -16,6 +16,24 @@
       "revId": "10333bc9043efcffe4ac8f458fd2d035d9c78447",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14e279ec_8ccaf597",
+        "filename": "roles/operators-mirror/tasks/build-catalog-index.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-25T17:18:50Z",
+      "side": 0,
+      "message": "I didn\u0027t, it was vscode :( sorry, the auto-format took it away, I\u0027ll add it back!",
+      "parentUuid": "05da2e4d_9c96ebc1",
+      "revId": "10333bc9043efcffe4ac8f458fd2d035d9c78447",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
     }
   ]
 }
