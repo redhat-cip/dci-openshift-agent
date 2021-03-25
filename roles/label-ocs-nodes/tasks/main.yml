@@ -1,0 +1,13 @@
+# Label the nodes that should be used by OCS
+#
+# Required arguments:
+#   selector: The expression that will be used to select the nodes that
+#   should be labeled (e.g node-role.kubernetes.io/worker)
+---
+- name: Check for mandatory input
+  assert:
+    that:
+      - selector | string
+
+- name: Label OCS nodes
+  command: "oc label nodes cluster.ocs.openshift.io/openshift-storage= --selector={{ selector }} --overwrite"
