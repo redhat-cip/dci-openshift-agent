@@ -1,0 +1,20 @@
+- hosts: localhost
+  roles:
+    - name: Deploy CNV
+      role: deploy-operator
+      vars:
+        operator: kubevirt-hyperconverged
+        namespace: openshift-cnv
+        channel: stable
+    - name: Deploy local-storage operator
+      role: deploy-operator
+      vars:
+        operator: local-storage-operator
+        namespace: openshift-local-storage
+        channel: 4.7
+    - name: Deploy ocs operator
+      role: deploy-operator
+      vars:
+        operator: ocs-operator
+        namespace: openshift-storage
+        channel: stable-4.6

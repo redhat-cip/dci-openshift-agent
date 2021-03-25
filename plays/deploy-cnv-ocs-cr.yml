@@ -1,0 +1,63 @@
+- hosts: localhost
+  vars:
+    storage_class: all-nodes
+    local_storage_nodes_label: node-role.kubernetes.io/worker
+  roles:
+    - name: Deploy CNV CR
+      role: deploy-cr
+      vars:
+        api_version: hco.kubevirt.io/v1beta1
+        kind: HyperConverged
+        namespace: openshift-cnv
+        name: kubevirt-hyperconverged
+        spec:
+          BareMetalPlatform: true
+    - name: Label local storage nodes
+      role: label-ocs-nodes
+      vars:
+        selector: "{{ local_storage_nodes_label }}"
+    - name: Deploy local-storage CR
+      role: deploy-cr
+      vars:
+        api_version: local.storage.openshift.io/v1alpha1
+        kind: LocalVolumeSet
+        namespace: openshift-local-storage
+        name: local-storage-operator
+        spec:
+          deviceInclusionSpec:
+            deviceMechanicalProperties:
+            - NonRotational
+            deviceTypes:
+            - disk
+            - part
+            minSize: 1Gi
+          nodeSelector:
+            nodeSelectorTerms:
+            - matchExpressions:
+                - key: "{{ local_storage_nodes_label }}"
+                  operator: Exists
+          storageClassName: "{{ storage_class }}"
+          volumeMode: Block
+    - name: Deploy OCS CR
+      role: deploy-cr
+      vars:
+        api_version: ocs.openshift.io/v1
+        kind: StorageCluster
+        namespace: openshift-storage
+        name: ocs-storagecluster
+        spec:
+          monDataDirHostPath: /var/lib/rook
+          storageDeviceSets:
+          - config: {}
+            count: 1
+            dataPVCTemplate:
+              spec:
+                accessModes:
+                - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: "1"
+                storageClassName: "{{ storage_class }}"
+                volumeMode: Block
+            name: ocs-deviceset
+            replica: 3
