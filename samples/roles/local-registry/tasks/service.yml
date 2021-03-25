@@ -44,7 +44,7 @@
         Restart=on-failure
         ExecStart=/usr/bin/podman start {{ podman_svc }}
         ExecStop=/usr/bin/podman stop -t 10 {{ podman_svc }}
-        PIDFile=/run/user/{{ registry_getent.uid }}/containers/overlay-containers/{{ podman_inspect[0].Id }}/userdata/conmon.pid
+        PIDFile={{ podman_inspect[0].ConmonPidFile }}
         KillMode=none
         Type=forking
 
