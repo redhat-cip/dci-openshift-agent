@@ -34,6 +34,24 @@
       "revId": "4f3141f6331a8810c76e6637f750e6e314d8e4ba",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13227c9d_6da33283",
+        "filename": "roles/cnv-setup/tasks/deploy-cnv.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-03-25T08:14:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d82d167a_aea5458d",
+      "revId": "4f3141f6331a8810c76e6637f750e6e314d8e4ba",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
