@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dc56e89_a52f585a",
+        "filename": "plays/install.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 687
+      },
+      "writtenOn": "2021-03-25T16:53:48Z",
+      "side": 1,
+      "message": "For BM deployment it\u0027s need to deploy the local-storage operator as well.",
+      "revId": "d540fc62242466180120d0ed41e741285eb8940b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ddc2ba4_6b2f700d",
+        "filename": "plays/install.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 687
+      },
+      "writtenOn": "2021-03-25T16:53:48Z",
+      "side": 1,
+      "message": "Should it always by alpha?",
+      "revId": "d540fc62242466180120d0ed41e741285eb8940b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "304ca046_4da8f85d",
+        "filename": "roles/olm-operator/tasks/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 687
+      },
+      "writtenOn": "2021-03-25T16:53:48Z",
+      "side": 1,
+      "message": "Can you please document the different arguments this role is using? I a see a value also to explain which arguments are optional. Once of the weak points in Ansible is variables, it\u0027s very hard to track them.",
+      "revId": "d540fc62242466180120d0ed41e741285eb8940b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
