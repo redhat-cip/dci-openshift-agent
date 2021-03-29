@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fbead82e_4d14a8c3",
+        "filename": "dci-check-change",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-29T21:06:48Z",
+      "side": 1,
+      "message": "Since we are going to have always a ${SUFFIX}, we could define it earlier and just append the \"-$$\" when using `-f` AND \"${DIR}.boostrap\"",
+      "revId": "9ada3bcc3f3d5e7db21b048d69eb301b88d87e60",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c998d6f8_ba90cb87",
+        "filename": "dci-check-change",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-29T21:06:48Z",
+      "side": 1,
+      "message": "I think we can omit the change of perms in the ${DIR}, as that has been moved to a tmp directory here: https://github.com/redhat-cip/dci-openshift-agent/commit/93e1d9186647b59cda8e6bda35a3cd7c5d6b2cc8",
+      "revId": "9ada3bcc3f3d5e7db21b048d69eb301b88d87e60",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b963eed4_9572e860",
+        "filename": "test-runner",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-03-29T21:06:48Z",
+      "side": 1,
+      "message": "This is not needed any longer as the directory structure that contained these permissions is now written in /tmp",
+      "revId": "9ada3bcc3f3d5e7db21b048d69eb301b88d87e60",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
