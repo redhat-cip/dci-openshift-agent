@@ -103,7 +103,7 @@ if [ "$start" -eq 1 ]; then
         [ -e $DIR/dcirc.sh ] && . $DIR/dcirc.sh
         export ANSIBLE_CONFIG=$DIR/dev-ansible.cfg
     fi
-    ansible-playbook dci-openshift-agent.yml -e @$config ${prefix_args} $ansible_args
+    exec ansible-playbook dci-openshift-agent.yml -e @$config ${prefix_args} $ansible_args
 else
     echo "Dry-Run: pass -s or --start to actually execute"
     if [ -z "$dev" ]; then
