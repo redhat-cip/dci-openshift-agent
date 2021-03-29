@@ -5,6 +5,9 @@
   <os>
     <type arch='{{ host['arch'] }}'>hvm</type>
     <boot dev='{{ host['boot_dev'] }}'/>
+{% if enable_conserver %}
+    <bios useserial='yes' rebootTimeout='0'/>
+{% endif %}
   </os>
   <features>
     <acpi/>
@@ -55,6 +58,20 @@
 {% endfor %}
     <controller type='usb' index='0'/>
     <controller type='pci' index='0' model='pci-root'/>
+{% if enable_conserver %}
+    <serial type='unix'>
+      <source mode='bind' path='/tmp/{{ host['name'] }}.console'/>
+      <target type='isa-serial' port='0'>
+        <model name='isa-serial'/>
+      </target>
+      <alias name='serial0'/>
+    </serial>
+    <console type='unix'>
+      <source mode='bind' path='/tmp/{{ host['name'] }}.console'/>
+      <target type='serial' port='0'/>
+      <alias name='serial0'/>
+    </console>
+{% else %}
     <serial type='pty'>
       <target port='0'/>
     </serial>
@@ -63,6 +80,7 @@
       <target type='serial' port='0'/>
       <alias name='serial0'/>
     </console>
+{% endif %}
     <input type='mouse' bus='ps2'/>
     <input type='keyboard' bus='ps2'/>
     <graphics type='vnc' port='-1' autoport='yes' listen='127.0.0.1' keymap='en-us'>
