@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6072a53b_4b522e15",
+        "filename": "docs/disconnected_en.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-03-29T18:02:03Z",
+      "side": 1,
+      "message": "usually be",
+      "revId": "bddbeb7a20035bc56a3dd70f9fffed2de4f843a9",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8021d6ce_3c8fd784",
+        "filename": "docs/disconnected_en.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-03-29T18:02:03Z",
+      "side": 1,
+      "message": "Optional",
+      "revId": "bddbeb7a20035bc56a3dd70f9fffed2de4f843a9",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
