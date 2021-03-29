@@ -1,8 +1,0 @@
----
-- block:
-    - include_tasks: dns_setup.yml
-  when: hook_action == 'install'
-
-- block:
-    - include_tasks: dns_cleanup.yml
-  when: hook_action == 'cleanup'

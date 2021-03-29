@@ -1,0 +1,15 @@
+#!/usr/bin/env -S ansible-playbook -i /etc/dci-openshift-agent/hosts
+---
+- hosts: localhost
+  become: true
+
+  tasks:
+  - name: Install conserver
+    tags:
+    - console
+    include_role:
+      name: conserver
+    vars:
+      cluster_nodes: "{{ groups['masters'] + ('workers' in groups) | ternary(groups['workers'], []) }}"
+
+...

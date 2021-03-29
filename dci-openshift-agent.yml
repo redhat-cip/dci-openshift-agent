@@ -95,12 +95,15 @@
               delegate_to: localhost
 
             - block:
-                - name: Run the teardown process
+                - name: Run the teardown play
+                  include_tasks: plays/teardown.yml
+
+                - name: Run the teardown hooks
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs }}"
                   loop_control:
                     loop_var: hookdir
-                  when: dci_teardown_on_failure|bool
+              when: dci_teardown_on_failure|bool
               ignore_unreachable: true
               ignore_errors: true
 
@@ -169,12 +172,15 @@
               tags: [dci]
 
             - block:
-                - name: Run the teardown process
+                - name: Run the teardown play
+                  include_tasks: plays/teardown.yml
+
+                - name: Run the teardown hooks
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs }}"
                   loop_control:
                     loop_var: hookdir
-                  when: dci_teardown_on_failure|bool
+              when: dci_teardown_on_failure|bool
               ignore_unreachable: true
               ignore_errors: true
 
@@ -356,11 +362,14 @@
           loop_control:
             loop_var: hookdir
 
-        - name: Run the teardown process
+        - name: Run the teardown play
+          include_tasks: plays/teardown.yml
+
+        - name: Run the teardown hooks
           include_tasks: "{{ hookdir }}/hooks/teardown.yml"
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
-          when: dci_teardown_on_success|bool
+      when: dci_teardown_on_success|bool
       ignore_unreachable: true
       ignore_errors: true

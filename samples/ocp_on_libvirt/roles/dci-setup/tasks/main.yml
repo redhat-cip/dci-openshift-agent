@@ -1,4 +1,0 @@
----
-- block:
-    - include_tasks: dci_setup.yml
-  when: hook_action == 'install'

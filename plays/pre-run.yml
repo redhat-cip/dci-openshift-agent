@@ -155,4 +155,11 @@
   with_items: "{{ groups['masters'] + groups['workers'] }}"
   ignore_unreachable: true
   ignore_errors: true
+
+- name: Empty Console log files if present
+  command: dd if=/dev/null of="{{ item }}"
+  with_fileglob:
+      - "/var/consoles/{{ hostvars.localhost.cluster }}/{{ hostvars.localhost.cluster }}*"
+  when: hostvars.localhost.cluster is defined
+  become: true
 ...

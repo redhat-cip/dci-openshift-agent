@@ -211,6 +211,7 @@ if [ -d dci-openshift-agent ]; then
     sed -e "s@include_tasks:\s*plays/@include_tasks: $PWD/dci-openshift-agent/plays/@" < $PWD/dci-openshift-agent/dci-openshift-agent.yml > $PWD/dci-openshift-agent.yml
     # force to use the roles from the change
     sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/roles/:@" ansible.cfg
+    sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/roles/:@" $PWD/dci-openshift-agent/samples/ocp_on_libvirt/ansible.cfg
     CMD=$PWD/dci-openshift-agent/dci-openshift-agent-ctl
     if [ $VIRT = virt ]; then
         VIRTDIR=$PWD/dci-openshift-agent/samples/ocp_on_libvirt

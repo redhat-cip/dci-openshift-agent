@@ -71,12 +71,6 @@ for cmd in extract-dependencies send-feedback test-runner; do
     install -p -D -m 755 $cmd %{buildroot}%{_datadir}/dci-openshift-agent/
 done
 
-%if 0%{?rhel} && 0%{?rhel} < 8
-pathfix.py -pni "%{__python2}" %{buildroot}%{_sharedstatedir}/dci-openshift-agent/samples/ocp_on_libvirt/roles/bridge-setup/library/nmcli.py
-%else
-pathfix.py -pni "%{__python3}" %{buildroot}%{_sharedstatedir}/dci-openshift-agent/samples/ocp_on_libvirt/roles/bridge-setup/library/nmcli.py
-%endif
-
 %pre
 getent group dci-openshift-agent >/dev/null || groupadd -r dci-openshift-agent
 getent passwd dci-openshift-agent >/dev/null || \

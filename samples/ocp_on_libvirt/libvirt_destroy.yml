@@ -3,16 +3,6 @@
   hosts: localhost
   tasks:
     - include_role:
-        name: bootstrap-libvirt
+        name: ocp-on-libvirt
       vars:
-        hook_action: cleanup
-    - include_role:
-        name: dns-setup
-      vars:
-        hook_action: cleanup
-    - include_role:
-        name: vbmc
-      vars:
-        vbmc_host: localhost
-        vbmc_nodes: "{{ resources }}"
         hook_action: cleanup
