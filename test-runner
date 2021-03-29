@@ -14,8 +14,41 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-cleanup() {
+finish() {
+    echo "finish $*"
+
+    if [ -n "$PID" ]; then
+        kill $PID
+
+        wait $PID
+        RET=$?
+    fi
+
+    if [ -n "$PID2" ]; then
+        kill $PID2
+    fi
+
+    JOBIDS=$(sed -n -e 's/^.*Scheduled DCI job //p' < output)
+
+    if [ $RET = 0 ]; then
+        RESULT="dci-check-change $URL $@ SUCCESS"
+    else
+        RESULT="dci-check-change $URL $@ FAILURE"
+    fi
+
+    for ID in $JOBIDS; do
+        RESULT="$RESULT https://www.distributed-ci.io/jobs/$ID/jobStates"
+    done
+
+    $BASEDIR/send-feedback $DIR "$RESULT"
+
+    cd
+
+    # Workaround to delete any temporary directory created without u+w
+    find "${DIR}" -type d -not -perm -u=w -exec chmod u+w {} \;
     rm -rf $DIR
+
+    exit $RET
 }
 
 BASEDIR=$(cd $(dirname $0); pwd)
@@ -37,7 +70,7 @@ if [ ! -x $BASEDIR/extract-dependencies ]; then
     BASEDIR=/usr/share/dci-openshift-agent
 fi
 
-trap cleanup 0
+trap finish 0
 
 set -x
 
@@ -108,24 +141,18 @@ for d in $(ls -d ansible-role-dci-* 2> /dev/null); do
     fi
 done
 
-$CMD -v -s "$@" -- -e "$COMMENT" -e dci_tags="['debug']" 2>&1 | tee output
+$CMD -v -s "$@" -- -e "$COMMENT" -e dci_tags="['debug']" >& output &
+PID=$!
 
-RET=${PIPESTATUS[0]}
-JOBIDS=$(sed -n -e 's/^.*Scheduled DCI job //p' < output)
+# make everything read-only to mimic what is delivered as rpm or in
+# the system
+chmod -R a-w $DIR
 
-if [ $RET = 0 ]; then
-    RESULT="dci-check-change $URL $@ SUCCESS"
-else
-    RESULT="dci-check-change $URL $@ FAILURE"
-fi
+tail -f output&
+PID2=$!
 
-for ID in $JOBIDS; do
-    RESULT="$RESULT https://www.distributed-ci.io/jobs/$ID/jobStates"
-done
-
-$BASEDIR/send-feedback $DIR "$RESULT"
-
-cd
+wait $PID
+RET=$?
 
 exit $RET
 
