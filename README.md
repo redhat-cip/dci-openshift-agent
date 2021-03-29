@@ -144,8 +144,8 @@ cache_enabled=True
 
 # Master nodes
 [masters]
-master-0 name=master-0 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_address=ipmi-master-0.dciokd.example.com provision_mac=ac:1f:6b:7d:dd:44 hardware_profile=default
-master-1 name=master-1 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_address=ipmi-master-1.dciokd.example.com provision_mac=ac:1f:6b:6c:ff:ee hardware_profile=default
+master-0 name=master-0 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_address=ipmi-master-0.dciokd.example.com provision_mac=ac:1f:6b:7d:dd:44 hardware_profile=default labels='[ { "name":"node-role.kubernetes.io.foo", "value":"" }, { "name":"node-role.kubernetes.io.bar", "value":"something" }]'
+master-1 name=master-1 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_address=ipmi-master-1.dciokd.example.com provision_mac=ac:1f:6b:6c:ff:ee hardware_profile=default labels='[ { "name":"node-role.kubernetes.io.bar", "value":"something_else" }]'
 master-2 name=master-2 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_address=ipmi-master-2.dciokd.example.com provision_mac=ac:1f:6b:29:33:3c hardware_profile=default
 
 # Worker nodes

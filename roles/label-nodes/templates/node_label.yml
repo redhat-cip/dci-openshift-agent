@@ -1,0 +1,8 @@
+apiversion: v1
+kind: Node
+metadata:
+  name: {{ item }}
+  labels:
+    {% for label in hostvars[item].labels %}
+    {{ label.name }}: {{ label.value }}
+    {% endfor %}
