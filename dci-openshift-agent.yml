@@ -138,7 +138,11 @@
               delegate_to: localhost
 
             - block:
-                - name: Run the teardown process
+                - name: Run the teardown play
+                  include_tasks: plays/teardown.yml
+                  when: dci_teardown_on_failure|bool
+
+                - name: Run the teardown hook
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs }}"
                   loop_control:

@@ -1,0 +1,6 @@
+---
+- block:
+    - include_tasks: config.yml
+  when:
+    - enable_conserver
+...

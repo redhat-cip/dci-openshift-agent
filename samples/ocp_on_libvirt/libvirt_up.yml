@@ -13,7 +13,7 @@
       vars:
         hook_action: install
     - include_role:
-        name:  dns-setup
+        name: dns-setup
       vars:
         hook_action: install
     - include_role:
@@ -23,6 +23,8 @@
         vbmc_nodes: "{{ resources }}"
         hook_action: install
     - include_role:
-        name:  dci-setup
+        name: dci-setup
       vars:
         hook_action: install
+    - include_role:
+        name: conserver-libvirt

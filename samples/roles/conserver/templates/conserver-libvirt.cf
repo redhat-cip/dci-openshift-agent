@@ -1,0 +1,9 @@
+default libvirt {
+    type exec;
+    exec "/usr/local/bin/socat_retry.sh STDIN UNIX-CONNECT:/tmp/Q";
+    execsubst Q=hs;
+}
+
+{% for host in hosts %}
+console {{ cluster }}-{{ host.name }} { include libvirt; host {{ host.name }}.console; }
+{% endfor %}
