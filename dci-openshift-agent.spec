@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
-Version:       0.2.0
-Release:       3.VERS%{?dist}
+Version:       0.3.0
+Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -66,6 +66,7 @@ install -p -D -m 644 systemd/%{name}.timer %{buildroot}%{_unitdir}/%{name}.timer
 install -p -D -m 440 dci-openshift-agent.sudo %{buildroot}%{_sysconfdir}/sudoers.d/%{name}
 install -p -d -m 755 %{buildroot}/%{_sharedstatedir}/%{name}
 find samples -type f -exec install -Dm 644 "{}" "%{buildroot}%{_sharedstatedir}/dci-openshift-agent/{}" \;
+chmod 755 "%{buildroot}%{_sharedstatedir}/dci-openshift-agent/samples//ocp_on_libvirt/ci.sh"
 install -p -D -m 755 dci-openshift-agent-ctl %{buildroot}%{_bindir}/dci-openshift-agent-ctl
 
 install -p -D -m 755 dci-check-change %{buildroot}%{_bindir}/dci-check-change
@@ -134,6 +135,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Tue Apr  6 2021 Frederic Lepied <flepied@redhat.com> 0.3.0-1
+- add ci.sh
+
 * Thu Apr 01 2021 Jorge A Gallegos <jgallego@redhat.com> - 0.2.0-3
 - Set ansible.cfg as a config file
 
