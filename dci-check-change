@@ -50,12 +50,12 @@ if [ "$1" = "-f" ]; then
         DIR=$(dirname $(dirname $BASEDIR))
         DIR=$(sed -e 's/\.bootstrap//' <<< $DIR)
     else
-        SUFFIX=-$$
+        SUFFIX=-$(echo "$@"|md5sum|cut -f1|cut -f1 -d ' ')-$$
     fi
     CHANGEID=$2
     shift 2
 else
-    SUFFIX=
+    SUFFIX=-$(echo "$@"|md5sum|cut -f1|cut -f1 -d ' ')
     DIR=
     CHANGEID=$1
     shift
@@ -78,8 +78,21 @@ case $CHANGEID in
 esac
 
 if [ -d $DIR ]; then
-    $BASEDIR/send-feedback $DIR "A job is already scheduled or running in $DIR. Aborting."
-    exit
+    if [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
+         jobid="$(dci-queue searchdir $QUEUE $DIR)"
+         if [ -z "$jobid" ]; then
+             $BASEDIR/send-feedback $DIR "A job is already scheduled or running in $DIR (unable to find job id). Aborting."
+             exit
+         fi
+         dci-queue unschedule $QUEUE $jobid
+         if [ -d $DIR ]; then
+             find $DIR -type d -not -perm -u=w -exec chmod u+w {} \;
+             rm -rf $DIR
+         fi        
+    else
+        $BASEDIR/send-feedback $DIR "A job is already scheduled or running in $DIR. Aborting."
+        exit 1
+    fi
 fi
 
 trap cleanup 0
