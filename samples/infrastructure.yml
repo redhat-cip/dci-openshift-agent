@@ -20,4 +20,10 @@
     - mirror
     include_role:
       name: reposync
+
+  - name: Install conserver
+    tags:
+    - console
+    include_role:
+      name: conserver
 ...
