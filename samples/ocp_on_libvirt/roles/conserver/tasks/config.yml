@@ -1,0 +1,18 @@
+---
+- name: Create conserver.cf
+  become: true
+  template:
+    dest: /etc/conserver.cf
+    src: conserver.cf
+    owner: "root"
+    group: "root"
+    mode: 0644
+
+- name: Copy socat_retry/sh to /usr/local/bin
+  become: true
+  copy:
+    dest: /usr/local/bin/socat_retry.sh
+    src: socat_retry.sh
+    owner: "root"
+    group: "root"
+    mode: 0755

@@ -71,6 +71,7 @@ all:
         networks:
           - name: provisioning
           - name: baremetal
+        conserver: true
       - name: master-1
         domain: localhost
         users: []
@@ -88,6 +89,7 @@ all:
         networks:
           - name: provisioning
           - name: baremetal
+        conserver: true
       - name: master-2
         domain: localhost
         users: []
@@ -105,3 +107,4 @@ all:
         networks:
           - name: provisioning
           - name: baremetal
+        conserver: true
