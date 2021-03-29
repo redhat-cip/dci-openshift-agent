@@ -14,15 +14,57 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-cleanup() {
+finish() {
+    echo "finish $*"
+
+    if [ -n "$PID" ]; then
+        PGID=$(ps -o pgid= $PID | grep -o [0-9]*)
+        
+        kill -KILL -$PGID
+
+        wait $PID
+        RET=$?
+    fi
+
+    if [ -n "$PID2" ]; then
+        kill $PID2
+    fi
+
+    JOBIDS=$(sed -n -e 's/^.*Scheduled DCI job //p' < output)
+
+    if [ $RET = 0 ]; then
+        RESULT="dci-check-change $URL $@ SUCCESS"
+    else
+        RESULT="dci-check-change $URL $@ FAILURE"
+    fi
+
+    for ID in $JOBIDS; do
+        RESULT="$RESULT https://www.distributed-ci.io/jobs/$ID/jobStates"
+    done
+
+    $BASEDIR/send-feedback $DIR "$RESULT"
+
+    cd
+
+    # Workaround to delete any temporary directory created without u+w
+    find "${DIR}" -type d -not -perm -u=w -exec chmod u+w {} \;
     rm -rf $DIR
+
+    exit $RET
 }
 
 BASEDIR=$(cd $(dirname $0); pwd)
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <change directory> [<dci-openshift-agent-ctl options>]" 1>&2
+    echo "Usage: $0 (--virt) <change directory> [<dci-openshift-agent-ctl options>]" 1>&2
     exit 1
+fi
+
+if [ $1 = --virt ]; then
+    VIRT=1
+    shift
+else
+    VIRT=
 fi
 
 DIR=$1
@@ -37,11 +79,12 @@ if [ ! -x $BASEDIR/extract-dependencies ]; then
     BASEDIR=/usr/share/dci-openshift-agent
 fi
 
-trap cleanup 0
+trap finish 0
 
 set -x
 
 CHANGEID=$(basename $DIR)
+CHANGEID=${CHANGEID%%-*}
 
 # extract github or gerrit from the path
 KIND=$(basename $(dirname $DIR))
@@ -52,7 +95,7 @@ if [ $KIND = gerrit ]; then
     CURREV=$(jq -r .current_revision $CHANGEID.json)
     PATCHSET=$(jq -r ".revisions[\"$CURREV\"]._number" $CHANGEID.json)
     TAGS="ansible_extravars=dci_tags:debug,gerrit:$PROJECT-$CHANGEID"
-    COMMENT="dci_comment=https://softwarefactory-project.io/r/#/c/$CHANGEID/"
+    COMMENT="dci_comment=\"https://softwarefactory-project.io/r/#/c/$CHANGEID/\""
     URL="https://softwarefactory-project.io/r/#/c/$CHANGEID/"
 else
     PR=${CHANGEID##*-pr}
@@ -60,7 +103,7 @@ else
     PR=${PR%-*}
     TAGS="ansible_extravars=dci_tags:debug,github:$CHANGEID"
     REPO=$(jq -r .head.repo.full_name github.json)
-    COMMENT="dci_comment=https://github.com/$REPO/pull/$PR"
+    COMMENT="dci_comment=\"https://github.com/$REPO/pull/$PR\""
     URL=$(jq -r .html_url github.json)
 fi
 
@@ -74,10 +117,12 @@ if [ -d dci-openshift-agent ]; then
     sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/roles/:@" ansible.cfg
     CMD=$PWD/dci-openshift-agent/dci-openshift-agent-ctl
     ln -s $PWD/dci-openshift-agent/group_vars .
+    VIRTDIR=$PWD/dci-openshift-agent/samples/ocp_on_libvirt
 else
     cp /usr/share/dci-openshift-agent/ansible.cfg /usr/share/dci-openshift-agent/dci-openshift-agent.yml .
     CMD=dci-openshift-agent-ctl
     ln -s /usr/share/dci-openshift-agent/group_vars .
+    VIRTDIR=/var/lib/dci-openshift-agent/samples/ocp_on_libvirt
 fi
 
 export DCI_OPENSHIFT_AGENT_DIR=$PWD
@@ -108,24 +153,30 @@ for d in $(ls -d ansible-role-dci-* 2> /dev/null); do
     fi
 done
 
-$CMD -v -s "$@" -- -e "$COMMENT" -e dci_tags="['debug']" 2>&1 | tee output
-
-RET=${PIPESTATUS[0]}
-JOBIDS=$(sed -n -e 's/^.*Scheduled DCI job //p' < output)
-
-if [ $RET = 0 ]; then
-    RESULT="dci-check-change $URL $@ SUCCESS"
-else
-    RESULT="dci-check-change $URL $@ FAILURE"
+if [ -n "$VIRT" ]; then
+    cd $VIRTDIR
+    setsid ansible-playbook -v libvirt_destroy.yml &
+    PID=$!
+    wait $PID
+    setsid ansible-playbook -v libvirt_up.yml &
+    PID=$!
+    wait $PID
+    sudo cp hosts /etc/dci-openshift-agent/
+    cd $DIR
 fi
 
-for ID in $JOBIDS; do
-    RESULT="$RESULT https://www.distributed-ci.io/jobs/$ID/jobStates"
-done
+setsid $CMD -v -s "$@" -- -e "$COMMENT" >& output &
+PID=$!
 
-$BASEDIR/send-feedback $DIR "$RESULT"
+# make everything read-only to mimic what is delivered as rpm or in
+# the system
+chmod -R a-w $DIR
 
-cd
+tail -f output&
+PID2=$!
+
+wait $PID
+RET=$?
 
 exit $RET
 
