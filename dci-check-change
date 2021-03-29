@@ -22,6 +22,8 @@ cleanup() {
     fi
 }
 
+VIRT=
+
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
 fi
@@ -29,8 +31,13 @@ fi
 BASEDIR=$(cd $(dirname $0); pwd)
 
 if [ $# = 0 -o "$1" = -h ]; then
-    echo "Usage: $0 [-f] (<GitHub PR URL>|<Gerrit review id>)" 1>&2
+    echo "Usage: $0 [--virt] [-f] (<GitHub PR URL>|<Gerrit review id>)" 1>&2
     exit 1
+fi
+
+if [ $1 = --virt ]; then
+    VIRT=--virt
+    shift
 fi
 
 if [ ! -x $BASEDIR/extract-dependencies ]; then
@@ -41,6 +48,8 @@ set -x
 
 ARGS="$@"
 
+SUFFIX=-$(echo "$@"|md5sum|cut -f1|cut -f1 -d ' ')
+
 # force a suffix to be added on -f
 if [ "$1" = "-f" ]; then
     # manage recursive call (bootstrap): extract the directory name
@@ -50,12 +59,11 @@ if [ "$1" = "-f" ]; then
         DIR=$(dirname $(dirname $BASEDIR))
         DIR=$(sed -e 's/\.bootstrap//' <<< $DIR)
     else
-        SUFFIX=-$$
+        SUFFIX=-$SUFFIX-$$
     fi
     CHANGEID=$2
     shift 2
 else
-    SUFFIX=
     DIR=
     CHANGEID=$1
     shift
@@ -78,8 +86,21 @@ case $CHANGEID in
 esac
 
 if [ -d $DIR ]; then
-    $BASEDIR/send-feedback $DIR "A job is already scheduled or running in $DIR. Aborting."
-    exit
+    if [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
+         jobid="$(dci-queue searchdir $DCI_QUEUE $DIR || :)"
+         if [ -z "$jobid" ]; then
+             $BASEDIR/send-feedback $DIR "A job is already scheduled or running in $DIR (unable to find job id). Aborting."
+             exit
+         fi
+         dci-queue unschedule $DCI_QUEUE $jobid
+         if [ -d $DIR ]; then
+             find $DIR -type d -not -perm -u=w -exec chmod u+w {} \;
+             rm -rf $DIR
+         fi        
+    else
+        $BASEDIR/send-feedback $DIR "A job is already scheduled or running in $DIR. Aborting."
+        exit 1
+    fi
 fi
 
 trap cleanup 0
@@ -122,12 +143,12 @@ fi
 
 if [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
     if [ -n "$USE_PREFIX" ]; then
-        dci-queue schedule $DCI_QUEUE -- $BASEDIR/test-runner $DIR -p @RESOURCE "$@"
+        dci-queue schedule $DCI_QUEUE -- $BASEDIR/test-runner $VIRT $DIR -p @RESOURCE "$@"
     else
-        dci-queue schedule $DCI_QUEUE -- bash -c "echo @RESOURCE; $BASEDIR/test-runner $DIR $@"
+        dci-queue schedule $DCI_QUEUE -- bash -c "echo @RESOURCE; $BASEDIR/test-runner $VIRT $DIR $@"
     fi
 else
-    $BASEDIR/test-runner $DIR "$@"
+    $BASEDIR/test-runner $VIRT $DIR "$@"
 fi
 
 # dci-check-change ends here
