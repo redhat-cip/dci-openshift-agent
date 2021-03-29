@@ -26,3 +26,5 @@
         name:  dci-setup
       vars:
         hook_action: install
+    - include_role:
+        name: conserver-setup
