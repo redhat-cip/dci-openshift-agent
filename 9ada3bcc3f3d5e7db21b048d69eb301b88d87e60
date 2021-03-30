@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "574c0c39_5859ea12",
+        "filename": "dci-check-change",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2021-03-30T07:29:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fbead82e_4d14a8c3",
+      "revId": "9ada3bcc3f3d5e7db21b048d69eb301b88d87e60",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c998d6f8_ba90cb87",
         "filename": "dci-check-change",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "9ada3bcc3f3d5e7db21b048d69eb301b88d87e60",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79f90663_a5c3b2f0",
+        "filename": "dci-check-change",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 20
+      },
+      "writtenOn": "2021-03-30T07:29:18Z",
+      "side": 1,
+      "message": "in fact, that\u0027s the opposite: I forgot to put everything read-only. Done in the next iteration.",
+      "parentUuid": "c998d6f8_ba90cb87",
+      "revId": "9ada3bcc3f3d5e7db21b048d69eb301b88d87e60",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     },
     {
       "key": {
