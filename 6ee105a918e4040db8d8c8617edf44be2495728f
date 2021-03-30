@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2ce14ca3_7bcacc0a",
+        "filename": "docs/disconnected_en.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 642
+      },
+      "writtenOn": "2021-03-30T15:41:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ff6ea7e6_455b4c6e",
+      "revId": "6ee105a918e4040db8d8c8617edf44be2495728f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a5921213_5d6de041",
         "filename": "docs/disconnected_en.md",
         "patchSetId": 3
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "31eb8f78_3e1221da",
+        "filename": "docs/disconnected_en.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 642
+      },
+      "writtenOn": "2021-03-30T15:41:39Z",
+      "side": 1,
+      "message": "the webserver_url it\u0027s at line 44, is it not enough ?",
+      "parentUuid": "a5921213_5d6de041",
+      "revId": "6ee105a918e4040db8d8c8617edf44be2495728f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "67b064cf_8034293e",
         "filename": "samples/ansible.cfg",
         "patchSetId": 3
@@ -47,6 +83,24 @@
       "writtenOn": "2021-03-30T15:22:59Z",
       "side": 1,
       "message": "not sure this is actually needed? there is another ansible.cfg in the next level up, ansible picks up the ansible conf files upwards before attempting /etc/ansible/ansible.cfg, right?",
+      "revId": "6ee105a918e4040db8d8c8617edf44be2495728f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dc33ae2_fbfbe4f3",
+        "filename": "samples/ansible.cfg",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 642
+      },
+      "writtenOn": "2021-03-30T15:41:39Z",
+      "side": 1,
+      "message": "If i removed this file, it\u0027s not checking the ansible.cfg file in the next level up: http://pastebin.test.redhat.com/951679",
+      "parentUuid": "67b064cf_8034293e",
       "revId": "6ee105a918e4040db8d8c8617edf44be2495728f",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
