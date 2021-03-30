@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff6ea7e6_455b4c6e",
+        "filename": "docs/disconnected_en.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-30T15:22:59Z",
+      "side": 1,
+      "message": "title should read \"Deploying the Registry (optional)\"",
+      "revId": "6ee105a918e4040db8d8c8617edf44be2495728f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5921213_5d6de041",
+        "filename": "docs/disconnected_en.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-30T15:22:59Z",
+      "side": 1,
+      "message": "needs webserver_url too",
+      "revId": "6ee105a918e4040db8d8c8617edf44be2495728f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67b064cf_8034293e",
+        "filename": "samples/ansible.cfg",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-30T15:22:59Z",
+      "side": 1,
+      "message": "not sure this is actually needed? there is another ansible.cfg in the next level up, ansible picks up the ansible conf files upwards before attempting /etc/ansible/ansible.cfg, right?",
+      "revId": "6ee105a918e4040db8d8c8617edf44be2495728f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c0e6b3f_2a563dc8",
+        "filename": "samples/roles/local-registry/tasks/service.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 648
+      },
+      "writtenOn": "2021-03-30T15:22:59Z",
+      "side": 1,
+      "message": "\u003c3 much better!",
+      "revId": "6ee105a918e4040db8d8c8617edf44be2495728f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
