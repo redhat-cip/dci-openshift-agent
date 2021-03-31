@@ -34,6 +34,8 @@
 - import_role:
     name: prepare-cnf
     tasks_from: nodes-ok.yml
+  vars:
+    call_from: "install"
 
 - name: "Setup openshift access"
   include_role:
