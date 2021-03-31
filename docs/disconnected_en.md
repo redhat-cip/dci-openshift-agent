@@ -5,8 +5,9 @@ Frequently, portions of a data center might not have access to the Internet, eve
 ## Table of Contents
 
 - [Requirements](#requirements)
-- [Configuration](#configuration)
+- [Configurations](#configurations)
 - [Deploying the Registry (optional)](#deploying-the-registry-(optional))
+- [Running dci-openshift-agent](#running-dci-openshift-agent)
 - [License](#license)
 - [Contact](#contact)
 
@@ -39,8 +40,10 @@ provision_cache_store="/opt/cache"
 local_repo=ocp4/openshift4
 ```
 The variables needed by the disconnected environment:
-| Group | Variable | Required | Type | Description |
-| [registry_host] | | True | String | Define a host here to create or use a local registry |
+
+| Group                   | Variable | Required      | Type   | Description                                   |
+| ----------------------- | -------- | ------------- | ------ |---------------------------------------------------- |
+| [registry_host]         |          | True          | String | Define a host here to create or use a local registry |
 | [all:vars] | webserver_url | True | String | URL of the webserver hosting the qcow images |
 | [registry_host:vars] | disconnected_registry_auths_file | True | String | File that contains extra auth tokens to include in the pull-secret. This file will be generated if it doesn't exist. |
 | [registry_host:vars] | disconnected_registry_mirrors_file | True | String | File that contains the addition trust bundle and image content sources for the local registry. The contents of this file will be appended to the install-config.yml file. This file will be generated if it doesn't exist. |
