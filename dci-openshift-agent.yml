@@ -21,6 +21,7 @@
         comment: "{{ dci_comment | default('') }}"
       register: job_info
       when: job_info is not defined
+      no_log: true
 
     - name: set job id
       set_fact:

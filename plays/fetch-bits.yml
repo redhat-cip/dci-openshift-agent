@@ -31,6 +31,7 @@
 - name: Set pullsecret from job_info
   set_fact:
     pullsecret: "{{ openshift_secret | default(job_info.job.topic.data.pull_secret) }}"
+  no_log: true
 
 - name: Ensure proper directories are created
   file:
