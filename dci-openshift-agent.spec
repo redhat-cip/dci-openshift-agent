@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
 Version:       0.2.0
-Release:       2.VERS%{?dist}
+Release:       3.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -101,6 +101,7 @@ exit 0
 %files
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/*.yml
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/settings.yml
+%config(noreplace) %{_datadir}/dci-openshift-agent/ansible.cfg
 %{_bindir}/dci-openshift-agent-ctl
 
 %{_bindir}/dci-check-change
@@ -108,7 +109,6 @@ exit 0
 %{_datadir}/dci-openshift-agent/send-feedback
 %{_datadir}/dci-openshift-agent/test-runner
 
-%{_datadir}/dci-openshift-agent/ansible.cfg
 %{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
 %{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 
@@ -134,7 +134,10 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
-* Tue Mar 02 2021 Tony Garcia <tonyg@redhat.com> - 0.2.0-2.VERS
+* Thu Apr 01 2021 Jorge A Gallegos <jgallego@redhat.com> - 0.2.0-3
+- Set ansible.cfg as a config file
+
+* Tue Mar 02 2021 Tony Garcia <tonyg@redhat.com> - 0.2.0-2
 - Remove unused template
 
 * Tue Feb 23 2021 Frederic Lepied <flepied@redhat.com> 0.2.0-1
