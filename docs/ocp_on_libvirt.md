@@ -82,6 +82,9 @@ $ cd ~/samples/ocp_on_libvirt/
 $ ansible-playbook -v libvirt_destroy.yml
 ```
 
+### Demo
+[![demo](https://asciinema.org/a/Rv35FeMi5CADVsaBUhdu3f6d0.svg)](https://asciinema.org/a/Rv35FeMi5CADVsaBUhdu3f6d0?autoplay=1)
+
 ### Additional resources
 
 We have provided dnsmasq config templates in the samples directory to serve dhcp/dns from the dci jumpbox if you don’t already have a dns/dhcp server on your bare metal network.
