@@ -63,11 +63,17 @@ cd samples
 ansible-playbook infrastructure.yml
 ```
 
+### Demo
+[![demo](https://asciinema.org/a/vUVI3w23OBqQaM0Ux7IDOlaiq.svg)](https://asciinema.org/a/vUVI3w23OBqQaM0Ux7IDOlaiq?autoplay=1)
+
 ## Running dci-openshift-agent
 After the configuration and the registry are setup, we can deploy openshift using the dci-openshift-agent:
 ```
 systemctl start dci-openshift-agent
 ```
+
+### Demo
+[![demo](https://asciinema.org/a/NPzhkoN68b1rpY0N0PEHrnYG1.svg)](https://asciinema.org/a/NPzhkoN68b1rpY0N0PEHrnYG1?autoplay=1)
 
 ## License
 
