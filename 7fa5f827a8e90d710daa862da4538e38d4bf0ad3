@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b41586b4_7be47bf5",
+        "filename": "docs/disconnected_en.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-04-01T14:21:46Z",
+      "side": 1,
+      "message": "I\u0027m a bit concerned that secrets are exposed in the demo, (e.g. 0:26), sadly the benefits of asciinema is to be able to copy paste easily, so those secrets are quite easy to extract.\nI think this one will need to be re-done and perhaps would require some `no_log`?",
+      "revId": "7fa5f827a8e90d710daa862da4538e38d4bf0ad3",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
