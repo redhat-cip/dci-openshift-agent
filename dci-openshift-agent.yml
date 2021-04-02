@@ -10,6 +10,7 @@
         dci_client_id="{{ lookup('env','DCI_CLIENT_ID') }}"
         dci_api_secret="{{ lookup('env','DCI_API_SECRET') }}"
         dci_cs_url="{{ lookup('env','DCI_CS_URL') }}"
+        dci_ui_url="{{ lookup('env','DCI_UI_URL') | default('https://www.distributed-ci.io', True) }}"
       no_log: true
 
     # Schedule a new job only if not passed via dci-pipeline
@@ -26,10 +27,9 @@
       set_fact:
         job_id: '{{ job_info.job.id }}'
 
-    - name: set job state
-      dci_job:
-        id: "{{ job_id }}"
-        status: "new"
+    - name: Fail properly
+      debug:
+        msg: 'Follow the log at: {{ dci_ui_url }}/jobs/{{ hostvars.localhost.job_info.job.id }}/jobStates' # noqa 204
 
     - name: Set DCI tags for the current job
       dci_job:
