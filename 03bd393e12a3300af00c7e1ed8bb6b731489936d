@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "233082a4_9185bf9d",
+        "filename": "docs/disconnected_en.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-04-06T18:59:46Z",
+      "side": 1,
+      "message": "Thanks for adding `no_log` to that task, but I´m afraid there are more that need it, I spotted at 8:51 another task that is showing the pull secrets. I´d suggest to look to any other task that interacts with secrets to be changed to `no_log` as well",
+      "range": {
+        "startLine": 76,
+        "startChar": 9,
+        "endLine": 76,
+        "endChar": 114
+      },
+      "revId": "03bd393e12a3300af00c7e1ed8bb6b731489936d",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
