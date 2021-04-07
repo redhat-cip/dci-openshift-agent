@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.3.0
+Version:       0.3.1
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -115,13 +115,7 @@ exit 0
 
 %{_datadir}/dci-openshift-agent/plays/*.yml
 %{_datadir}/dci-openshift-agent/plays/scripts/*
-%{_datadir}/dci-openshift-agent/roles/oc-setup/*
-%{_datadir}/dci-openshift-agent/roles/redhat-tests/*
-%{_datadir}/dci-openshift-agent/roles/prepare-cnf/*
-%{_datadir}/dci-openshift-agent/roles/operator-performance-profile/*
-%{_datadir}/dci-openshift-agent/roles/operator-sriov/*
-%{_datadir}/dci-openshift-agent/roles/operators-mirror/*
-%{_datadir}/dci-openshift-agent/roles/cnv-setup/*
+%{_datadir}/dci-openshift-agent/roles/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 
@@ -135,6 +129,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Apr  7 2021 Frederic Lepied <flepied@redhat.com> 0.3.1-1
+- fix packaging of roles (label-nodes was missing)
+
 * Tue Apr  6 2021 Frederic Lepied <flepied@redhat.com> 0.3.0-1
 - add ci.sh
 
