@@ -76,9 +76,9 @@
   - name: Rename junit xml files with the feature name
     shell: |
       for d in sctp ptp performance sriov dpdk; do
-        if [ -d "{{ dci_cluster_configs_dir }}/{{ date.stdout }}/$d" ]; then
-          cd "{{ dci_cluster_configs_dir }}/{{ date.stdout }}/$d"
-          for i in *; do mv "$i" "$d_$i"; done
+        if [ -d "{{ dci_cluster_configs_dir }}/{{ date.stdout }}/${d}" ]; then
+          cd "{{ dci_cluster_configs_dir }}/{{ date.stdout }}/${d}"
+          for i in *; do mv "${i}" "${d}_${i}"; done
         fi
       done
 
