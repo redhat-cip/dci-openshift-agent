@@ -14,8 +14,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-set -e
-
 cleanup() {
     ssh-agent -k
 }
@@ -32,25 +30,22 @@ if [ -n "$GERRIT_USER" ]; then
     while :; do
         ssh -p 29418 $GERRIT_USER gerrit stream-events|while read -r data; do
             type=$(jq -r .type <<< $data)
+            project=$(jq -r .change.project <<< $data)
+            number=$(jq -r .change.number <<< $data)
+            url="$(jq -r .change.url <<< $data | tr -d '\r' | sed 's/[;|&$]//g')"
             if [ "$type" = "patchset-created" ]; then
-                project=$(jq -r .change.project <<< $data)
-                number=$(jq -r .change.number <<< $data)
                 subject="$(jq -r .change.subject <<< $data)"
-                url="$(jq -r .change.url <<< $data | tr -d '\r' | sed 's/[;|&$]//g')"
                 echo "$type $project $number \"$subject\" $url =============================="
                 case $project in
-                    dci-openshift-agent|dci-ansible|ansible-role-dci-*)
+                    dci-openshift-agent|dci-ansible|ansible-role-dci-import-keys|ansible-role-dci-retrieve-component|ansible-role-dci-sync-registry|ansible-role-dci-podman|ansible-role-dci-ocp-imagesideload|ansible-collection-community-kubernetes)
                         dci-check-change $number
                         ;;
                 esac
             elif [ "$type" = "comment-added" ]; then
-                project=$(jq -r .change.project <<< $data)
-                number=$(jq -r .change.number <<< $data)
                 comment="$(jq -r .comment <<< $data)"
-                url="$(jq -r .change.url <<< $data | tr -d '\r' | sed 's/[;|&$]//g')"
                 echo "$type $project $number \"$comment\" $url =============================="
                 case $project in
-                    dci-openshift-agent|dci-ansible|ansible-role-dci-*)
+                    dci-openshift-agent|dci-ansible|ansible-role-dci-import-keys|ansible-role-dci-retrieve-component|ansible-role-dci-sync-registry|ansible-role-dci-podman|ansible-role-dci-ocp-imagesideload|ansible-collection-community-kubernetes)
                         if egrep -qi '^\s*recheck\s*$' <<< "$comment"; then
                             dci-check-change $number                            
                         fi

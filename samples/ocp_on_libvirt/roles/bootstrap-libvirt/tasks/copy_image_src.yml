@@ -77,8 +77,5 @@
   when: lismt.stat.mimetype == "application/x-xz" and ismt.stat.exists == false
 
 - name: "cp img_src to match node name"
-  copy:
-    src: "{{ img_src }}"
-    dest: "{{ local_image_path }}/{{ host['name'] }}.qcow2"
-    remote_src: false
+  command: "cp --sparse=always {{ img_src }} {{ local_image_path }}/{{ host['name'] }}.qcow2"
   become: "{{ libvirt_become }}"

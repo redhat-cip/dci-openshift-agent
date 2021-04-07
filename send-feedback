@@ -18,6 +18,8 @@ set -x
 
 DIR="$1"
 BODY="$2"
+# pass all the other parameters to gerrit
+shift 2
 
 for json in $(ls $DIR/*.json); do
     # gerrit
@@ -26,7 +28,7 @@ for json in $(ls $DIR/*.json); do
         CURREV=$(jq -r .current_revision $json)
         PATCHSET=$(jq -r ".revisions[\"$CURREV\"]._number" $json)
         if [ -n "$GERRIT_USER" ]; then
-            ssh -p 29418 $GERRIT_USER gerrit review -m "\"$BODY\"" $CHANGEID,$PATCHSET
+            ssh -p 29418 $GERRIT_USER gerrit review -m "\"$BODY\"" "$@" $CHANGEID,$PATCHSET
         fi
     # github
     else
