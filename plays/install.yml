@@ -56,11 +56,11 @@
       include_role:
         name: prepare-cnf
 
-    - name: Increase maxUnavailable count to 2 which will fasten the node update
+    - name: Increase maxUnavailable count to half of workers which will fasten the node update
       environment:
         KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
       shell: |
-        {{ dci_cluster_configs_dir }}/oc patch mcp worker --type=merge -p '{"spec":{"maxUnavailable":2} }'
+        {{ dci_cluster_configs_dir }}/oc patch mcp worker --type=merge -p '{"spec":{"maxUnavailable":{{ hostvars.localhost.groups['workers']|length // 2 }}} }'
       delegate_to: localhost
 
     - name: "Install performance profile operator"
