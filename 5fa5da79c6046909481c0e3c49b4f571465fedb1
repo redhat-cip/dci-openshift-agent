@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6ffb0ed9_1a718d5e",
+        "filename": "plays/install.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-04-12T08:11:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c3a5816_1448c1c9",
+      "revId": "5fa5da79c6046909481c0e3c49b4f571465fedb1",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5355b3a7_bd1d6d59",
         "filename": "roles/olm-operator/defaults/main.yml",
         "patchSetId": 3
