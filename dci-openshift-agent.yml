@@ -44,6 +44,10 @@
         tags: '{{ dci_tags }}'
       when: dci_tags is defined
 
+    - name: Set hooks_dirs
+      set_fact:
+        hooks_dirs: '{{ dci_config_dirs }}/{{ hooks_folder | default('hooks') }}'
+
 # Step 1 : pre run
 - name: 'Launch pre-run'
   hosts: localhost
@@ -61,8 +65,8 @@
           include_tasks: plays/pre-run.yml
 
         - name: Run the pre-run hook
-          include_tasks: '{{ hookdir }}/hooks/pre-run.yml'
-          loop: "{{ dci_config_dirs }}"
+          include_tasks: '{{ hookdir }}/pre-run.yml'
+          loop: "{{ hooks_dirs }}"
           loop_control:
             loop_var: hookdir
 
@@ -76,8 +80,8 @@
 
             - block:
                 - name: Run the teardown process
-                  include_tasks: "{{ hookdir }}/hooks/teardown.yml"
-                  loop: "{{ dci_config_dirs }}"
+                  include_tasks: "{{ hookdir }}/teardown.yml"
+                  loop: "{{ hooks_dirs }}"
                   loop_control:
                     loop_var: hookdir
                   when: dci_teardown_on_failure|bool
@@ -109,8 +113,8 @@
           include_tasks: plays/configure-provisioner.yml
 
         - name: Launch configure
-          include_tasks: '{{ hookdir }}/hooks/configure.yml'
-          loop: "{{ dci_config_dirs }}"
+          include_tasks: '{{ hookdir }}/configure.yml'
+          loop: "{{ hooks_dirs }}"
           loop_control:
             loop_var: hookdir
 
@@ -128,8 +132,8 @@
           include_tasks: plays/install.yml
 
         - name: "dci-openshift-agent : Launch partner install"
-          include_tasks: '{{ hookdir }}/hooks/install.yml'
-          loop: "{{ dci_config_dirs }}"
+          include_tasks: '{{ hookdir }}/install.yml'
+          loop: "{{ hooks_dirs }}"
           loop_control:
             loop_var: hookdir
 
@@ -146,8 +150,8 @@
 
             - block:
                 - name: Run the teardown process
-                  include_tasks: "{{ hookdir }}/hooks/teardown.yml"
-                  loop: "{{ dci_config_dirs }}"
+                  include_tasks: "{{ hookdir }}/teardown.yml"
+                  loop: "{{ hooks_dirs }}"
                   loop_control:
                     loop_var: hookdir
                   when: dci_teardown_on_failure|bool
@@ -178,8 +182,8 @@
           vars:
             local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
             local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
-          include_tasks: '{{ hookdir }}/hooks/upgrade.yml'
-          loop: "{{ dci_config_dirs }}"
+          include_tasks: '{{ hookdir }}/upgrade.yml'
+          loop: "{{ hooks_dirs }}"
           loop_control:
             loop_var: hookdir
 
@@ -213,8 +217,8 @@
     - block:
         # Launch user tests
         - name: Run the partner tests
-          include_tasks: '{{ hookdir }}/hooks/tests.yml'
-          loop: "{{ dci_config_dirs }}"
+          include_tasks: '{{ hookdir }}/tests.yml'
+          loop: "{{ hooks_dirs }}"
           loop_control:
             loop_var: hookdir
 
@@ -235,8 +239,8 @@
         - include_tasks: plays/post-run.yml
 
         - name: Run the partner post-run
-          include_tasks: '{{ hookdir }}/hooks/post-run.yml'
-          loop: "{{ dci_config_dirs }}"
+          include_tasks: '{{ hookdir }}/post-run.yml'
+          loop: "{{ hooks_dirs }}"
           loop_control:
             loop_var: hookdir
 
@@ -255,14 +259,14 @@
 
     - block:
         - name: Run the success hook
-          include_tasks: '{{ hookdir }}/hooks/success.yml'
-          loop: "{{ dci_config_dirs }}"
+          include_tasks: '{{ hookdir }}/success.yml'
+          loop: "{{ hooks_dirs }}"
           loop_control:
             loop_var: hookdir
 
         - name: Run the teardown process
-          include_tasks: "{{ hookdir }}/hooks/teardown.yml"
-          loop: "{{ dci_config_dirs }}"
+          include_tasks: "{{ hookdir }}/teardown.yml"
+          loop: "{{ hooks_dirs }}"
           loop_control:
             loop_var: hookdir
           when: dci_teardown_on_failure|bool
