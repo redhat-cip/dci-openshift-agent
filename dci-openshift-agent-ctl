@@ -92,6 +92,11 @@ if [ -n "$prefix" ]; then
         echo "Missing $hosts"
         exit 1
     fi
+    hooks_folder="${prefix}-hooks"
+    if [ -e "$hooks_folder" ]; then
+        echo "Warning: You are using --prefix command, your hooks folder is now ${hooks_folder}"
+        prefix_args=" -e \"hooks_folder=$hooks_folder\" "
+    fi
 fi
 
 if [ "$start" -eq 1 ]; then
