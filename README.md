@@ -5,8 +5,19 @@
 ## Table of Contents
 
 - [Requirements](#requirements)
-- [Installation of DCI Jumpbox](#installation-of-DCI-Jumpbox)
+  * [Systems requirements](#systems-requirements)
+    + [Jumpbox requirements](#jumpbox-requirements)
+    + [Systems under test](#systems-under-test)
+    + [Optional](#optional)
+- [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
 - [Configuration](#configuration)
+  * [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
+- [Copying the ssh key to your provisionhost](#copying-the-ssh-key-to-your-provisionhost)
+- [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
+- [dci-openshift-agent workflow](#dci-openshift-agent-workflow)
+- [Getting Involved](#getting-involved)
+  * [Testing a change](#testing-a-change)
+  * [Local dev environment](#local-dev-environment)
 - [Create your DCI account on distributed-ci.io](#create-your-dci-account-on-distributed-ciio)
 - [License](#license)
 - [Contact](#contact)
@@ -21,9 +32,12 @@ Therefore, the simplest working setup must be composed of at least **5** systems
 
 Please follow the [OpenShift Baremetal Deploy Guide (a.k.a. `openshift-kni`)](https://openshift-kni.github.io/baremetal-deploy/) for how to properly configure the OCP networks and systems.
 
-Choose the OCP version you want to install and follow steps 1 to 4 to configure the networks and install RHEL 8 on the provisioning host.
+Choose the OCP version you want to install and follow steps 1 to 3 to configure the networks and install RHEL 8 on the provisioning host. Steps from 4 on will be handled by the `dci-openshift-agent`.
 
-Steps from 5 on will be handled by the `dci-openshift-agent`.
+1. [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
+2. [Configuration](#configuration)
+3. [Copying the ssh key to your provisionhost](#copying-the-ssh-key-to-your-provisionhost)
+4. [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
 
 As mentioned before, the **DCI Jumpbox** is NOT part of the RHOCP cluster. It is only dedicated to download `RHOCP` artifacts from `DCI` public infrastructure and to schedule the RHOCP cluster deployment across all systems under test (1x OpenShift Provisioning node and several OCP nodes).
 
@@ -156,33 +170,7 @@ master-2 name=master-2 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_addr
 provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 ```
 
-### Copying the ssh key to your provisionhost
-
-```console
-# su - dci-openshift-agent
-% ssh-keygen
-% ssh-copy-id kni@provisionhost
-```
-
-### Starting the DCI OCP Agent
-
-Now that you have configured the `DCI OpenShift Agent`, you can start the service.
-
-Please note that the service is a systemd `Type=oneshot`. This means that if you need to run a DCI job periodically, you have to configure a `systemd timer` or a `crontab`.
-
-```
-$ systemctl start dci-openshift-agent
-```
-
-If you need to run the `dci-openshift-agent` manually in foreground,
-you can use this command line:
-
-```
-# su - dci-openshift-agent
-% dci-openshift-agent-ctl -s -- -v
-```
-
-#### Overloading settings and hooks directories
+### Overloading settings and hooks directories
 
 To allow storing the settings and the hooks in a different directory,
 you can set `/etc/dci-openshift-agent/config` like this:
@@ -202,65 +190,33 @@ dci_topic: OCP-4.6
 dci_config_dirs: [/var/lib/dci-openshift-agent/config]
 ```
 
-#### Testing a change
+## Copying the ssh key to your provisionhost
 
-If you want to test a change from a Gerrit review or from a Github PR,
-use the `dci-check-change` command. Example:
-
-```ShellSession
-$ dci-check-change 21136
+```console
+# su - dci-openshift-agent
+% ssh-keygen
+% ssh-copy-id kni@provisionhost
 ```
 
-to check https://softwarefactory-project.io/r/#/c/21136/ or from a Github:
+## Starting the DCI OCP Agent
 
-```ShellSession
-$ dci-check-change https://github.com/myorg/config/pull/42
-```
+Now that you have configured the `DCI OpenShift Agent`, you can start the service.
 
-Regarding Github, you will need a token to access private repositories
-stored in `~/.github_token`.
-
-By convention, the `settings.yml` and `hosts` files are searched in
-directories ending in `config`.
-
-You can use `dci-queue` from the `dci-pipeline` package to manage a
-queue of changes. To enable it, add the name of the queue into
-`/etc/dci-openshift-agent/config`:
-
-```Shell
-DCI_QUEUE=<queue name>
-```
-
-If you have multiple prefixes, you can also enable it in
-`/etc/dci-openshift-agent/config`:
-
-```Shell
-USE_PREFIX=1
-```
-
-### Local dev environment
-
-For dev purposes, it is important to be able to run and test the code directly on your dev environment so without using the package manager.
-
-In order to run the agent without using the RPM package, you need to move the three configuration files (`settings.yml`, `dcirc.sh` and `hosts`) in the directory of the git repo.
-
-Then, you need to modify dev-ansible.cfg two variables: `inventory` and `roles_path` (baremetal_deploy_repo).
-
-Also, in order to install package with the ansible playbook, you need to add rights to `dci-openshift-agent` user:
+Please note that the service is a systemd `Type=oneshot`. This means that if you need to run a DCI job periodically, you have to configure a `systemd timer` or a `crontab`.
 
 ```
-# cp dci-openshift-agent.sudo /etc/sudoers.d/dci-openshift-agent
+$ systemctl start dci-openshift-agent
 ```
 
-Finally, you can run the script:
+If you need to run the `dci-openshift-agent` manually in foreground,
+you can use this command line:
 
 ```
-# Option -d for dev mode
-# Overrides variables with group_vars/dev
-% ./dci-openshift-agent-ctl -s -c settings.yml -d -- -e @group_vars/dev
+# su - dci-openshift-agent
+% dci-openshift-agent-ctl -s -- -v
 ```
 
-### dci-openshift-agent workflow
+## dci-openshift-agent workflow
 
 _Step 0 :_ “New DCI job”
 
@@ -335,6 +291,66 @@ The following playbooks are executed sequentially at any step that fail:
 - Failure: `/plays/failure.yml` during the `running` steps and `/plays/error.yml` during the other steps.
 
 _All the task files located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized by the user._
+
+## Getting Involved
+
+### Testing a change
+
+If you want to test a change from a Gerrit review or from a Github PR,
+use the `dci-check-change` command. Example:
+
+```ShellSession
+$ dci-check-change 21136
+```
+
+to check https://softwarefactory-project.io/r/#/c/21136/ or from a Github:
+
+```ShellSession
+$ dci-check-change https://github.com/myorg/config/pull/42
+```
+
+Regarding Github, you will need a token to access private repositories
+stored in `~/.github_token`.
+
+By convention, the `settings.yml` and `hosts` files are searched in
+directories ending in `config`.
+
+You can use `dci-queue` from the `dci-pipeline` package to manage a
+queue of changes. To enable it, add the name of the queue into
+`/etc/dci-openshift-agent/config`:
+
+```Shell
+DCI_QUEUE=<queue name>
+```
+
+If you have multiple prefixes, you can also enable it in
+`/etc/dci-openshift-agent/config`:
+
+```Shell
+USE_PREFIX=1
+```
+
+### Local dev environment
+
+For dev purposes, it is important to be able to run and test the code directly on your dev environment so without using the package manager.
+
+In order to run the agent without using the RPM package, you need to move the three configuration files (`settings.yml`, `dcirc.sh` and `hosts`) in the directory of the git repo.
+
+Then, you need to modify dev-ansible.cfg two variables: `inventory` and `roles_path` (baremetal_deploy_repo).
+
+Also, in order to install package with the ansible playbook, you need to add rights to `dci-openshift-agent` user:
+
+```
+# cp dci-openshift-agent.sudo /etc/sudoers.d/dci-openshift-agent
+```
+
+Finally, you can run the script:
+
+```
+# Option -d for dev mode
+# Overrides variables with group_vars/dev
+% ./dci-openshift-agent-ctl -s -c settings.yml -d -- -e @group_vars/dev
+```
 
 ## Create your DCI account on distributed-ci.io
 
