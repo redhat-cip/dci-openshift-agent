@@ -5,8 +5,19 @@
 ## Table of Contents
 
 - [Requirements](#requirements)
-- [Installation of DCI Jumpbox](#installation-of-DCI-Jumpbox)
+  - [Systems requirements](#systems-requirements)
+    - [Jumpbox requirements](#jumpbox-requirements)
+    - [Systems under test](#systems-under-test)
+    - [Optional](#optional)
+- [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
 - [Configuration](#configuration)
+  - [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
+- [Copying the ssh key to your provisionhost](#copying-the-ssh-key-to-your-provisionhost)
+- [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
+- [dci-openshift-agent workflow](#dci-openshift-agent-workflow)
+- [Getting Involved](#getting-involved)
+  - [Testing a change](#testing-a-change)
+  - [Local dev environment](#local-dev-environment)
 - [Create your DCI account on distributed-ci.io](#create-your-dci-account-on-distributed-ciio)
 - [License](#license)
 - [Contact](#contact)
@@ -21,9 +32,12 @@ Therefore, the simplest working setup must be composed of at least **5** systems
 
 Please follow the [OpenShift Baremetal Deploy Guide (a.k.a. `openshift-kni`)](https://openshift-kni.github.io/baremetal-deploy/) for how to properly configure the OCP networks and systems.
 
-Choose the OCP version you want to install and follow steps 1 to 4 to configure the networks and install RHEL 8 on the provisioning host.
+Choose the OCP version you want to install and follow steps 1 to 3 to configure the networks and install RHEL 8 on the provisioning host. Steps from 4 on will be handled by the `dci-openshift-agent`.
 
-Steps from 5 on will be handled by the `dci-openshift-agent`.
+1. [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
+2. [Configuration](#configuration)
+3. [Copying the ssh key to your provisionhost](#copying-the-ssh-key-to-your-provisionhost)
+4. [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
 
 As mentioned before, the **DCI Jumpbox** is NOT part of the RHOCP cluster. It is only dedicated to download `RHOCP` artifacts from `DCI` public infrastructure and to schedule the RHOCP cluster deployment across all systems under test (1x OpenShift Provisioning node and several OCP nodes).
 
@@ -112,15 +126,15 @@ export DCI_CS_URL
 
 - `/etc/dci-openshift-agent/settings.yml`
 
-This is the dci openshift agent settings (format is `.ini`).  Use this to specify which version of OCP to install.
+This is the dci openshift agent settings (format is `.ini`). Use this to specify which version of OCP to install.
 
-| Variable                | Required | Type          | Description                                          |
-| ----------------------- | -------- | ------------- | ---------------------------------------------------- |
-| topic                   | True     | String        | Name of the topic.  `OCP-4.5` and up. |
-| dci_components_by_query | False    | List          | Component by query. ['name:4.5.9']                          |
-| dci_components          | False    | List          | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f'] |
-| dci_openshift_agent_conformance | False | String | If defined we will run that category of conformance test |
-| baremetal_deploy_version | False | String | Allows you to lock upstream baremetal repo to specific version |
+| Variable                        | Required | Type   | Description                                                    |
+| ------------------------------- | -------- | ------ | -------------------------------------------------------------- |
+| topic                           | True     | String | Name of the topic. `OCP-4.5` and up.                           |
+| dci_components_by_query         | False    | List   | Component by query. ['name:4.5.9']                             |
+| dci_components                  | False    | List   | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
+| dci_openshift_agent_conformance | False    | String | If defined we will run that category of conformance test       |
+| baremetal_deploy_version        | False    | String | Allows you to lock upstream baremetal repo to specific version |
 
 - `/etc/dci-openshift-agent/hosts`
 
@@ -156,33 +170,7 @@ master-2 name=master-2 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_addr
 provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 ```
 
-### Copying the ssh key to your provisionhost
-
-```console
-# su - dci-openshift-agent
-% ssh-keygen
-% ssh-copy-id kni@provisionhost
-```
-
-### Starting the DCI OCP Agent
-
-Now that you have configured the `DCI OpenShift Agent`, you can start the service.
-
-Please note that the service is a systemd `Type=oneshot`. This means that if you need to run a DCI job periodically, you have to configure a `systemd timer` or a `crontab`.
-
-```
-$ systemctl start dci-openshift-agent
-```
-
-If you need to run the `dci-openshift-agent` manually in foreground,
-you can use this command line:
-
-```
-# su - dci-openshift-agent
-% dci-openshift-agent-ctl -s -- -v
-```
-
-#### Overloading settings and hooks directories
+### Overloading settings and hooks directories
 
 To allow storing the settings and the hooks in a different directory,
 you can set `/etc/dci-openshift-agent/config` like this:
@@ -202,7 +190,111 @@ dci_topic: OCP-4.6
 dci_config_dirs: [/var/lib/dci-openshift-agent/config]
 ```
 
-#### Testing a change
+## Copying the ssh key to your provisionhost
+
+```console
+# su - dci-openshift-agent
+% ssh-keygen
+% ssh-copy-id kni@provisionhost
+```
+
+## Starting the DCI OCP Agent
+
+Now that you have configured the `DCI OpenShift Agent`, you can start the service.
+
+Please note that the service is a systemd `Type=oneshot`. This means that if you need to run a DCI job periodically, you have to configure a `systemd timer` or a `crontab`.
+
+```
+$ systemctl start dci-openshift-agent
+```
+
+If you need to run the `dci-openshift-agent` manually in foreground,
+you can use this command line:
+
+```
+# su - dci-openshift-agent
+% dci-openshift-agent-ctl -s -- -v
+```
+
+## dci-openshift-agent workflow
+
+_Step 0 :_ “New DCI job”
+
+- Create a DCI job
+
+_tags: job_
+_runs on localhost_
+
+_Step 1 :_ “Pre-run”
+
+- Prepare the `Jumpbox`: `/plays/pre-run.yml`
+- Deploy infrastructure if needed: `/hooks/pre-run.yml`
+
+_tags: pre-run_
+_runs on localhost_
+
+_Step 2 :_ “Configure”
+
+- Prepare provisioner: `/plays/configure-provisioner.yml` and `/hooks/configure.yml`
+
+_tags: running, configure_
+_runs on provisioner_
+
+_Step 3a :_ “Installing”
+
+- Start OpenShift install: `/plays/install.yml` and `/hooks/install.yml`. This is launched the variable `dci_main` is undefined or equal to `install`.
+
+_tags: running, installing_
+_runs on provisioner_
+
+_Step 3b :_ “Upgrading”
+
+- Start OpenShift upgrade: `/plays/upgrade.yml` and `/hooks/upgrade.yml`. This is launched when the variable `dci_main` is set to `upgrade`.
+
+_tags: running, upgrading_
+_runs on provisioner_
+
+_Step 4 :_ “Red Hat tests”
+
+- start Red Hat tests: `/plays/tests.yml`
+
+_tags: running, testing, redhat-testing_
+_runs on localhost_
+
+_Step 5 :_ “Partner tests”
+
+- start partner tests: `/hooks/tests.yml`
+
+_tags: running, testing, partner-testing_
+_runs on localhost_
+
+_Step 6 :_ “Post-run”
+
+- Start post-run to collect results: `/plays/post-run.yml` and `/hooks/post-run.yml`
+- Note: All results files (logs, tests, ...) must be stored within the {{ dci_cluster_configs_dir }}/ directory in order to be properly uploaded
+  to the DCI server. Test result files must follow the Junit format and the file name must follow the pattern "junit\_\*.xml".
+
+_tags: post-run_
+_runs on localhost_
+
+_Step 7 :_ “Success”
+
+- Launch additional tasks when the job is successful: `/hooks/success.yml`
+
+_tags: success_
+_runs on localhost_
+
+_Exit playbooks:_
+The following playbooks are executed sequentially at any step that fail:
+
+- Teardown: `/hooks/teardown.yml`
+- Failure: `/plays/failure.yml` during the `running` steps and `/plays/error.yml` during the other steps.
+
+_All the task files located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized by the user._
+
+## Getting Involved
+
+### Testing a change
 
 If you want to test a change from a Gerrit review or from a Github PR,
 use the `dci-check-change` command. Example:
@@ -259,82 +351,6 @@ Finally, you can run the script:
 # Overrides variables with group_vars/dev
 % ./dci-openshift-agent-ctl -s -c settings.yml -d -- -e @group_vars/dev
 ```
-
-### dci-openshift-agent workflow
-
-_Step 0 :_ “New DCI job”
-
-- Create a DCI job
-
-_tags: job_
-_runs on localhost_
-
-_Step 1 :_ “Pre-run”
-
-- Prepare the `Jumpbox`: `/plays/pre-run.yml`
-- Deploy infrastructure if needed: `/hooks/pre-run.yml`
-
-_tags: pre-run_
-_runs on localhost_
-
-_Step 2 :_ “Configure”
-
-- Prepare provisioner: `/plays/configure-provisioner.yml` and `/hooks/configure.yml`
-
-_tags: running, configure_
-_runs on provisioner_
-
-_Step 3a :_ “Installing”
-
-- Start OpenShift install: `/plays/install.yml` and `/hooks/install.yml`. This is launched the variable `dci_main` is undefined or equal to `install`.
-
-_tags: running, installing_
-_runs on provisioner_
-
-_Step 3b :_ “Upgrading”
-
-- Start OpenShift upgrade: `/plays/upgrade.yml` and `/hooks/upgrade.yml`. This is launched when the variable `dci_main` is set to `upgrade`.
-
-_tags: running, upgrading_
-_runs on provisioner_
-
-_Step 4 :_ “Red Hat tests”
-
-- start Red Hat tests: `/plays/tests.yml`
-
-_tags: running, testing, redhat-testing_
-_runs on localhost_
-
-_Step 5 :_ “Partner tests”
-
-- start partner tests: `/hooks/tests.yml`
-
-_tags: running, testing, partner-testing_
-_runs on localhost_
-
-_Step 6 :_ “Post-run”
-
-- Start post-run to collect results:  `/plays/post-run.yml` and `/hooks/post-run.yml`
-- Note: All results files (logs, tests, ...) must be stored within the {{ dci_cluster_configs_dir }}/ directory in order to be properly uploaded
-        to the DCI server. Test result files must follow the Junit format and the file name must follow the pattern "junit_*.xml".
-
-_tags: post-run_
-_runs on localhost_
-
-_Step 7 :_ “Success”
-
-- Launch additional tasks when the job is successful: `/hooks/success.yml`
-
-_tags: success_
-_runs on localhost_
-
-_Exit playbooks:_
-The following playbooks are executed sequentially at any step that fail:
-
-- Teardown: `/hooks/teardown.yml`
-- Failure: `/plays/failure.yml` during the `running` steps and `/plays/error.yml` during the other steps.
-
-_All the task files located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized by the user._
 
 ## Create your DCI account on distributed-ci.io
 
