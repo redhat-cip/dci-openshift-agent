@@ -89,4 +89,46 @@
     name: cnv-setup
   when:
     - hostvars.localhost.cnv_version is defined
+
+- block:
+  - name: "dci-openshift-agent: Define OCS CatalogSource"
+    include_role:
+      name: olm-catalog-source
+    vars:
+      catalog: ocs-catalog
+      image: "{{ hostvars.localhost.ocs_operator_image }}"
+
+  - name: "dci-openshift-agent : Install OCS Operator"
+    include_role:
+      name: olm-operator
+    vars:
+      operator: ocs-operator
+      channel: alpha
+      source: ocs-catalog
+      namespace: openshift-storage
+      ns_labels:
+        openshift.io/cluster-monitoring: "true"
+
+  when:
+    - hostvars.localhost.ocs_operator_image is defined
+
+- block:
+  - name: "dci-openshift-agent : Define LocalStorage CatalogSource"
+    include_role:
+      name: olm-catalog-source
+    vars:
+      catalog: local-storage-catalog
+      image: "{{ hostvars.localhost.local_storage_operator_image }}"
+
+  - name: "dci-openshift-agent : Install LocalStorage Operator"
+    include_role:
+      name: olm-operator
+    vars:
+      operator: local-storage-operator
+      channel: "{{ hostvars.localhost.local_storage_operator_channel | default('preview') }}"
+      source: local-storage-catalog
+      namespace: openshift-local-storage
+
+  when:
+    - hostvars.localhost.local_storage_operator_image is defined
 ...
