@@ -18,9 +18,6 @@
       metadata:
         name: openshift-performance-addon-operatorgroup
         namespace: openshift-performance-addon
-      spec:
-        targetNamespaces:
-          - openshift-performance-addon
 
 - name: Create subscription for Performance Addon operator without channel
   k8s:
@@ -81,8 +78,7 @@
 
 - name: Create PerformanceProfile
   k8s:
-    api: "performance.openshift.io/v1alpha1"
-    definition: "{{ lookup('file', performance_definition) }}"
+    definition: "{{ lookup('file', 'files/' + performance_definition + '-' + ocp_version + '.yml') }}"
   when: enable_performance_profiling|default(true)|bool
   register: profile_state
 
