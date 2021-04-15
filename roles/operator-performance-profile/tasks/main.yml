@@ -20,7 +20,6 @@
         namespace: openshift-performance-addon
       spec:
         targetNamespaces:
-          - openshift-performance-addon
 
 - name: Create subscription for Performance Addon operator without channel
   k8s:
