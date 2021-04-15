@@ -62,7 +62,7 @@
   register: csv
   retries: 30
   delay: 5
-  no_log: true
+  #no_log: true
   until:
     - "csv.resources|length == 1"
     - "'status' in csv.resources[0]"
@@ -130,14 +130,14 @@
   k8s_info:
     kind: Node
   register: nodes
-  no_log: true
+  #no_log: true
 
 - name: Get one worker node
   set_fact:
     worker_node: "{{ item.metadata.name }}"
   when: "'node-role.kubernetes.io/worker' in item.metadata.labels"
   loop: "{{ nodes.resources }}"
-  no_log: true
+  #no_log: true
 
 - name: Get SriovNetworkNodeState for one of the worker node
   k8s_info:
