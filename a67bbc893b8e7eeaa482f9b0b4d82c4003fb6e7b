@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "94b68b0c_a8daa624",
+        "filename": "roles/deploy-cr/tasks/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-04-16T08:01:26Z",
+      "side": 1,
+      "message": "hum is 1h not a bit too long?",
+      "revId": "a67bbc893b8e7eeaa482f9b0b4d82c4003fb6e7b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
