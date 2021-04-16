@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "474b9fd4_100c7874",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-04-16T07:55:07Z",
+      "side": 1,
+      "message": "Do we need the \u0027specs\u0027 in the yaml definition if they are empty?",
+      "revId": "4fad8ecfca829377bffd996125fcb230bdb261ac",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
