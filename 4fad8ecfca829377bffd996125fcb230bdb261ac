@@ -16,6 +16,24 @@
       "revId": "4fad8ecfca829377bffd996125fcb230bdb261ac",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "779a7a91_4c49cf84",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-04-16T18:20:32Z",
+      "side": 1,
+      "message": "Good observation, we don\u0027t, but I\u0027m going to refactor this to use static files, since there are differences between versions.",
+      "parentUuid": "474b9fd4_100c7874",
+      "revId": "4fad8ecfca829377bffd996125fcb230bdb261ac",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
     }
   ]
 }
