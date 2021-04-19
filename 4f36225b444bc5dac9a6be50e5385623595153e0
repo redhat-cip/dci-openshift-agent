@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4829b8eb_41e8eee5",
+        "filename": "plays/install.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-04-19T20:52:36Z",
+      "side": 1,
+      "message": "Can you complement this one by making note that is calling nodes-ok only?",
+      "revId": "4f36225b444bc5dac9a6be50e5385623595153e0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
