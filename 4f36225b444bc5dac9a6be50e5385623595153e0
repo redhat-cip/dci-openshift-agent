@@ -16,6 +16,24 @@
       "revId": "4f36225b444bc5dac9a6be50e5385623595153e0",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c118146b_57b5e9c3",
+        "filename": "plays/install.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-04-19T21:32:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4829b8eb_41e8eee5",
+      "revId": "4f36225b444bc5dac9a6be50e5385623595153e0",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
