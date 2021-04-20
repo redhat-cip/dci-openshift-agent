@@ -10,6 +10,15 @@
     register: result
     until: result.rc == 0
 
+  # tmp solution as the image 4.8-snapshot does not exist yet
+  # see https://quay.io/repository/openshift-kni/performance-addon-operator-registry?tab=tags
+  - name: set cnf_operator_version for OCP-4.8
+    set_fact:
+      cnf_operator_channel="4.7"
+    when:
+      - ocp_version_maj|int == 4
+      - ocp_version_min|int >= 8
+
   - name: Create images.json file
     shell: |
       echo '[
