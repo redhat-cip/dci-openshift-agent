@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "27d2eb8d_26c36286",
+        "filename": "plays/cnf-tests-mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-04-20T14:58:31Z",
+      "side": 1,
+      "message": "Good idea!\nLet\u0027s add in the comment the place where it can be found once it\u0027s ready:\nhttps://quay.io/repository/openshift-kni/performance-addon-operator-registry?tab\u003dtags",
+      "revId": "2ab58db3862e164a630fff92a317517c1790b00b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
