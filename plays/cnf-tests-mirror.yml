@@ -1,5 +1,21 @@
 # Mirror images needed for running cnf-tests
 ---
+  - name: Get oc version output
+    environment:
+      KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
+    shell: |
+      {{ dci_cluster_configs_dir }}/oc version
+    register: oc_version_str
+    delegate_to: localhost
+
+  - name: Get OCP version
+    set_fact:
+      ocp_version: "{{ '.'.join(item.split(':')[1].strip().split('.')[0:2]) }}"
+      ocp_version_maj: "{{ item.split(':')[1].strip().split('.')[0] }}"
+      ocp_version_min: "{{ item.split(':')[1].strip().split('.')[1] }}"
+    when: "'Server Version' in item"
+    loop: "{{ oc_version_str.stdout_lines }}"
+
   - name: Login as admin user for cnf-tests
     environment:
       KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
@@ -9,6 +25,15 @@
     delay: 10
     register: result
     until: result.rc == 0
+
+  # tmp solution as the image 4.8-snapshot does not exist yet
+  # see https://quay.io/repository/openshift-kni/performance-addon-operator-registry?tab=tags
+  - name: set cnf_operator_version for OCP-4.8
+    set_fact:
+      cnf_operator_channel="4.7"
+    when:
+      - ocp_version_maj|int == 4
+      - ocp_version_min|int >= 8
 
   - name: Create images.json file
     shell: |
