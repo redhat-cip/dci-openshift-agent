@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2020 Red Hat, Inc.
+# Copyright (C) 2020-2021 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -112,6 +112,20 @@ else
         $rem oc get nodes > $dir/nodes.txt
         $rem oc get events --all-namespaces > $dir/events.txt
 
+        # OCP version
+        ocp_version=$($rem oc version -o json |
+                           jq -r '.openshiftVersion' |
+                           cut -d. -f1-2)
+        ocp_ver_maj=${ocp_version/.*}
+        ocp_ver_min=${ocp_version/*.}
+        must_gather_tag=v${ocp_version}
+
+        # Currently there's no 4.8 tag for must-gather, thus using latest
+        # (https://catalog.redhat.com/software/containers/openshift4/ose-must-gather/5cd9da9abed8bd5717d50430?tag=all)
+        if (( ${oc_ver_min} >= 8 )); then
+            must_gather_tag=latest
+        fi
+
         # must-gather
         # When a policy is defined, use the same mirror (local registry)
         must_gather_opts=""
@@ -119,7 +133,7 @@ else
                             jq -r '.spec.repositoryDigestMirrors[].mirrors[]' |
                             grep -Pom1 '(\w+[.:])+\d+')
         if [[ -n "${registry}" ]]; then
-            must_gather_opts="--image=${registry}/openshift/origin-must-gather"
+            must_gather_opts="--image=${registry}/openshift${ocp_ver_maj}/ose-must-gather:${must_gather_tag}"
         fi
 
         must_gather_dir="${remdir}/must_gather"
