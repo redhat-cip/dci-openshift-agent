@@ -16,6 +16,24 @@
       "revId": "4734a72330c01dc31d9f90cb86c60b9f299ea5d1",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc9cbb82_4384a4ed",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2021-04-20T15:18:14Z",
+      "side": 1,
+      "message": "Thanks Bill, that\u0027s totally fair, I\u0027m finding more and more pieces that need to be touched so I need to make sure I document all those changes as well.  In the meantime I\u0027m going to switch this one to WIP until all the pieces have been covered.",
+      "parentUuid": "f3580a98_40e3054d",
+      "revId": "4734a72330c01dc31d9f90cb86c60b9f299ea5d1",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
     }
   ]
 }
