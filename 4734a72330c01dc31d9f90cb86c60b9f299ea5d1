@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f3580a98_40e3054d",
+        "filename": "roles/operator-performance-profile/tasks/main.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 606
+      },
+      "writtenOn": "2021-04-20T13:54:53Z",
+      "side": 1,
+      "message": "I like this but we need to document it for our partners.  This will break Intel if we don\u0027t let them know the format of the var has changed.",
+      "revId": "4734a72330c01dc31d9f90cb86c60b9f299ea5d1",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
