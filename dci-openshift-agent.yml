@@ -189,7 +189,19 @@
 
       rescue: *teardown_failure
 
-# Step 4 : redhat testing
+# Step 4 : deploy operators
+- name: 'Deploy operators to OCP cluster'
+  hosts: localhost
+  tags:
+    - running
+    - operator-deployment
+  tasks:
+    - block:
+        - include_tasks: plays/deploy-operators.yml
+
+      rescue: *teardown_failure
+
+# Step 5 : redhat testing
 - name: 'Launch Red Hat tests'
   hosts: localhost
   tags:
@@ -202,7 +214,7 @@
 
       rescue: *teardown_failure
 
-# Step 5 : partner testing
+# Step 6 : partner testing
 - name: 'Launch partner tests'
   hosts: localhost
   tags:
@@ -220,7 +232,7 @@
 
       rescue: *teardown_failure
 
-# Step 6 : post run
+# Step 7 : post run
 - name: Launch post run
   hosts: localhost
   tags:
@@ -242,7 +254,7 @@
 
       rescue: *teardown_error
 
-# Step 7 : state "success"
+# Step 8 : state "success"
 - name: 'Success'
   hosts: localhost
   tags:
