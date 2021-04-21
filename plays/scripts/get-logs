@@ -22,7 +22,7 @@ if [ $# -lt 3 ]; then
     exit 1
 fi
 
-rem="timeout -v 2m ssh $log"
+rem="timeout -v 2m ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $log"
 
 shift 2
 masters=()
@@ -67,8 +67,8 @@ rm $myscript
 domain=$($rem hostname -d)
 
 # Copy openshift install log and rendered install config
-scp $log:clusterconfigs/.openshift_install.log $dir/openshift_install.log
-scp $log:clusterconfigs/install-config.yaml.bkup $dir/install-config-yaml.txt
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $log:clusterconfigs/.openshift_install.log $dir/openshift_install.log
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $log:clusterconfigs/install-config.yaml.bkup $dir/install-config-yaml.txt
 
 if [ -n "$ip" ]; then
     echo "found VM IPv4 $ip"
