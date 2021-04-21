@@ -16,6 +16,24 @@
       "revId": "2ab58db3862e164a630fff92a317517c1790b00b",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17b43b60_7684eaaa",
+        "filename": "plays/cnf-tests-mirror.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 673
+      },
+      "writtenOn": "2021-04-21T07:55:04Z",
+      "side": 1,
+      "message": "Sure! I have added the link in the playbook",
+      "parentUuid": "27d2eb8d_26c36286",
+      "revId": "2ab58db3862e164a630fff92a317517c1790b00b",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
