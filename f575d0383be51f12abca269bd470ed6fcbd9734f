@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25f04951_19431a4a",
+        "filename": "plays/scripts/get-logs",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 724
+      },
+      "writtenOn": "2021-04-21T20:38:20Z",
+      "side": 1,
+      "message": "There is a missing space",
+      "range": {
+        "startLine": 125,
+        "startChar": 32,
+        "endLine": 125,
+        "endChar": 33
+      },
+      "revId": "f575d0383be51f12abca269bd470ed6fcbd9734f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a42cd26f_250fca8d",
+        "filename": "plays/scripts/get-logs",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 724
+      },
+      "writtenOn": "2021-04-21T20:38:20Z",
+      "side": 1,
+      "message": "Expecting that there will be Openshift version 5, can we use ${ocp_ver_maj} here?",
+      "range": {
+        "startLine": 136,
+        "startChar": 59,
+        "endLine": 136,
+        "endChar": 60
+      },
+      "revId": "f575d0383be51f12abca269bd470ed6fcbd9734f",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
