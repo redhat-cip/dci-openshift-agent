@@ -16,6 +16,24 @@
       "revId": "aea03d15519b63f4ddcc19dc2ccec1e7fea55da6",
       "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "302139f1_113eb86e",
+        "filename": "samples/ansible.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 724
+      },
+      "writtenOn": "2021-04-22T02:53:49Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3e85b974_0e013e0d",
+      "revId": "aea03d15519b63f4ddcc19dc2ccec1e7fea55da6",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": false
     }
   ]
 }
