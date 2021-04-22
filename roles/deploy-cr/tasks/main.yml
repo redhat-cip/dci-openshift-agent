@@ -36,8 +36,8 @@
   until: result is not failed
 
 - name: Check that the CR is ready
-  k8s_info:
-    api_version: "{{ api_version }}"
+  community.kubernetes.k8s_info:
+    name: "{{ name }}"
     namespace: "{{ namespace }}"
     kind: "{{ kind }}"
     wait: true
@@ -49,3 +49,4 @@
   retries: 180
   delay: 10
   until: result is not failed
+...
