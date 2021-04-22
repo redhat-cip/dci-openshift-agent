@@ -40,12 +40,11 @@
     api_version: "{{ api_version }}"
     namespace: "{{ namespace }}"
     kind: "{{ kind }}"
-    wait: true
-    wait_condition:
-      type: Available
-      status: "True"
-    wait_timeout: 10
+    name: "{{ name }}"
+    field_selectors:
+      - status.phase=Available
   register: result
   retries: 180
   delay: 10
   until: result is not failed
+...
