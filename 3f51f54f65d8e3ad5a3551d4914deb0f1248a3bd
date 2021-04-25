@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6cced3d4_761c8ee6",
+        "filename": "roles/deploy-cr/tasks/main.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 687
+      },
+      "writtenOn": "2021-04-25T08:55:26Z",
+      "side": 1,
+      "message": "I don\u0027t think that \"phase\" and \"conditions\" are the same thing. Can we use the \n\"phase\" field in this case?",
+      "revId": "3f51f54f65d8e3ad5a3551d4914deb0f1248a3bd",
+      "serverId": "6c1dc8ef-8b94-40e4-bd83-c2359d45ecc0",
+      "unresolved": true
+    }
+  ]
+}
