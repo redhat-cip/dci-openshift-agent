@@ -21,7 +21,7 @@
   find:
     paths: "{{ dci_cluster_configs_dir }}"
     recurse: true
-    patterns: "junit_*.xml"
+    patterns: "*junit*.xml"
   register: junit_matched
 
 - name: "Upload Junit files to DCI Control Server"
