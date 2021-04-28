@@ -35,18 +35,15 @@
 # Setup and run cnf-tests
 - block:
 
-#     - name: Create local git repo on jumphost for disconnected cnf-tests
-#       include_tasks: cnf-tests-git.yml
-#       when:
-#         - "'registry_host' in groups"
-#         - groups['registry_host'] | length > 0
-#         - cnf_tests_mode == "offline"
+    - name: "Set dci_pullsecret_file variable"
+      set_fact:
+        dci_pullsecret_file: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
 
-    - name: Mirror images to local registry for disconnected cnf-tests
+    - name: "Mirror images to local registry for disconnected cnf-tests"
       include_tasks: cnf-tests-mirror.yml
       when: cnf_tests_mode == "offline"
 
-    - name: Run cnf tests
+    - name: "Run cnf tests"
       include_tasks: cnf-tests-run.yml
       when: >
         cnf_tests_mode == "online" or cnf_tests_mode == "offline"
