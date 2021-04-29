@@ -292,6 +292,11 @@ The following playbooks are executed sequentially at any step that fail:
 
 _All the task files located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized by the user._
 
+All the tasks prefixed with `test_` will get exported in Junit using
+the [Ansible Junit
+callback](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/junit_callback.html)
+and submitted automatically to the DCI control server.
+
 ## Getting Involved
 
 ### Testing a change

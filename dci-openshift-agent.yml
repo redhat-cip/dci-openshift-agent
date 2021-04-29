@@ -33,6 +33,10 @@
         id: "{{ job_id }}"
         status: "new"
 
+    - name: copy the job_id to the JOB_ID_FILE if it exists
+      copy: content="{{ job_id }}" dest={{ JOB_ID_FILE }}
+      when: JOB_ID_FILE is defined
+
     # Keep in sync with test-runner parsing
     - name: UI URL
       debug:
