@@ -104,7 +104,7 @@
       | jq -r '.status.history[] | select(.version == "{{ version }}").state'
   register: upgrade_progress
   until: upgrade_progress.stdout.find("Completed") > -1
-  retries: 90
+  retries: 120
   delay: 60
 
 - name: "upgrader : Check the master nodes managed by MCP are updated and ready"
@@ -112,7 +112,7 @@
     kind: MachineConfigPool
     name: master
   register: mcp_master
-  retries: 240
+  retries: 60
   delay: 10
   until:
   - "'resources' in mcp_master"
@@ -126,7 +126,7 @@
     kind: MachineConfigPool
     name: worker
   register: mcp_worker
-  retries: 300
+  retries: 90
   delay: 10
   until:
   - "'resources' in mcp_worker"
@@ -134,4 +134,12 @@
   - "'status' in mcp_worker.resources[0]"
   - "mcp_worker.resources[0].status.readyMachineCount == mcp_worker.resources[0].status.machineCount"
   - "mcp_worker.resources[0].status.updatedMachineCount == mcp_worker.resources[0].status.machineCount"
+
+- name: "test_ upgrader: check if all cluster-operators are running correctly"
+  shell:
+    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
+    cmd: >
+      oc get clusteroperator -o json | jq -r '  { "op": [.items[].status.conditions[]] }'
+  register: cluster_operators
+  failed_when: "cluster_operators.stdout | from_json | json_query('length(op[?(type==\"Degraded\" && status==\"True\")])') > 0"
 ...
