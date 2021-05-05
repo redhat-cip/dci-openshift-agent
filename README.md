@@ -186,7 +186,7 @@ specify `dci_config_dirs` in your `settings.yml`. Example:
 
 ```YAML
 ---
-dci_topic: OCP-4.6
+dci_topic: OCP-4.7
 dci_config_dirs: [/var/lib/dci-openshift-agent/config]
 ```
 
