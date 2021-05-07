@@ -34,9 +34,10 @@
     # On RHEL8 git clone can sporadically fail with OpenSSL SSL_read:
     # SSL_ERROR_SYSCALL, errno 104. This is a workaround to try cloning the repo
     # multiple times.
-    register: cnf_features_deploy_local_clone
+    register: cnf_features_deploy_gitref
     retries: 3
     delay: 10
+    until: not cnf_features_deploy_gitref.failed
 
   - name: Create a git.conf file
     shell: |
