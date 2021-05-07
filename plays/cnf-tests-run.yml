@@ -13,7 +13,7 @@
        cnf_tests_image_registry: 'quay.io/openshift-kni'
     when: cnf_tests_mode == "online"
 
-  - name: test_ Run SCTP tests
+  - name: Run SCTP tests
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
     shell:
@@ -25,7 +25,7 @@
     ignore_errors: yes
     when: cnf_test_suites is defined and  "sctp" in cnf_test_suites
 
-  - name: test_ Run PTP tests
+  - name: Run PTP tests
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
     shell:
@@ -37,7 +37,7 @@
     ignore_errors: yes
     when: cnf_test_suites is defined and "ptp" in cnf_test_suites
 
-  - name: test_ Run performance tests
+  - name: Run performance tests
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
     shell:
@@ -49,7 +49,7 @@
     ignore_errors: yes
     when: cnf_test_suites is defined and "performance" in cnf_test_suites
 
-  - name: test_ Run SRIOV tests
+  - name: Run SRIOV tests
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
     shell:
@@ -61,7 +61,7 @@
     ignore_errors: yes
     when: cnf_test_suites is defined and "sriov" in cnf_test_suites
 
-  - name: test_ Run DPDK tests
+  - name: Run DPDK tests
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
     shell:
