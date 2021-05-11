@@ -93,4 +93,21 @@
   when:
   - hostvars.localhost.local_storage_operator_image is defined
 ### End LocalStorage
+
+
+### Begin deploy all CRs
+- name: "deploy-operators : Create all Custom Resources"
+  include_role:
+    name: deploy-cr
+  vars:
+    api_version: "{{ item.api_version }}"
+    kind: "{{ item.kind }}"
+    namespace: "{{ item.namespace }}"
+    name: "{{ item.name }}"
+    spec: "{{ item.spec }}"
+  with_list: "{{ hostvars.localhost.dci_ocp_custom_resources }}"
+  when:
+  - hostvars.localhost.dci_ocp_custom_resources is defined
+  - hostvars.localhost.dci_ocp_custom_resources is list
+### End Deploy all CRs
 ...
