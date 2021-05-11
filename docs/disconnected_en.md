@@ -38,6 +38,9 @@ disconnected_registry_auths_file=/opt/cache/pctt-hv1-auths.json
 disconnected_registry_mirrors_file=/opt/cache/pctt-hv1-trust-bundle.yml
 provision_cache_store="/opt/cache"
 local_repo=ocp4/openshift4
+# The following mirror entries are the default ones. If you want to add more mirror
+#   you can uncomment this parameter and add it here.
+#registry_source_mirrors=["quay.io/openshift-release-dev/ocp-v4.0-art-dev", "registry.svc.ci.openshift.org/ocp/release", "quay.io/openshift-release-dev/ocp-release"]
 ```
 The variables needed by the disconnected environment:
 
@@ -50,7 +53,8 @@ The variables needed by the disconnected environment:
 | [registry_host:vars] | provision_cache_store | True | String | Folder using for the caching |
 | [registry_host:vars] | registry_dir | True | String | Folder where to store the openshift container images |
 | [registry_host:vars] | local_registry | True | String | URL of the local registry hosting the openshift container images |
-| [registry_host:vars] | local_repo | True | String | Specify the name of the repository to create in your registry, |
+| [registry_host:vars] | local_repo | True | String | Specify the name of the repository to create in your registry |
+| [registry_host:vars] | registry_source_mirrors | False | String | List of the mirror entries pointing to the registry_host |
 
 ## Deploying the registry (Optional)
 

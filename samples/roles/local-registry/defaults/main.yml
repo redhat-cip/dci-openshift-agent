@@ -48,4 +48,8 @@ registry_services:
     --publish {{ registry_cache_http_port }}:8080
     --volume {{ registry_cache_dir }}:/var/www/html:z
     {{ registry_cache_container_image }}
+registry_source_mirrors:
+  - 'quay.io/openshift-release-dev/ocp-v4.0-art-dev'
+  - 'registry.svc.ci.openshift.org/ocp/release'
+  - 'quay.io/openshift-release-dev/ocp-release'
 ...

@@ -73,4 +73,10 @@
     content: |
       additionalTrustBundle: |
         {{ registry_generated_ssl.content | b64decode | indent(width=2) }}
+      imageContentSources:
+      {% for mirror in registry_source_mirrors %}
+      - mirrors:
+        - {{ local_registry }}/{{ local_repo }}
+        source: {{ mirror }}
+      {% endfor %}
 ...
