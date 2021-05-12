@@ -4,6 +4,7 @@
   hosts: localhost
   tags:
     - job
+    - dci
   tasks:
     - name: Read credentials from env vars
       set_fact:
@@ -28,11 +29,6 @@
       set_fact:
         job_id: '{{ job_info.job.id }}'
 
-    - name: set job state
-      dci_job:
-        id: "{{ job_id }}"
-        status: "new"
-
     - name: copy the job_id to the JOB_ID_FILE if it exists
       copy: content="{{ job_id }}" dest={{ JOB_ID_FILE }}
       when: JOB_ID_FILE is defined
@@ -48,17 +44,17 @@
         tags: '{{ dci_tags }}'
       when: dci_tags is defined
 
+    - name: pre-run
+      dci_job:
+        id: "{{ job_id }}"
+        status: "pre-run"
+
 # Step 1 : pre run
 - name: 'Launch pre-run'
   hosts: localhost
   tags:
     - pre-run
   tasks:
-    - name: pre-run
-      dci_job:
-        id: "{{ job_id }}"
-        status: "pre-run"
-
     - block:
         # prepare infrastructure
         - name: Run the pre-run
@@ -76,6 +72,7 @@
               dci_job:
                 id: "{{ hostvars.localhost.job_id }}"
                 status: "error"
+              tags: [dci]
               delegate_to: localhost
 
             - block:
@@ -94,6 +91,13 @@
 
           ignore_unreachable: true
 
+    - name: running
+      dci_job:
+        id: "{{ hostvars.localhost.job_id }}"
+        status: "running"
+      delegate_to: localhost
+      tags: [dci]
+
 # Step 2 : configure
 - name: 'Launch configure'
   hosts: provisioner
@@ -101,12 +105,6 @@
     - running
     - configure
   tasks:
-    - name: running
-      dci_job:
-        id: "{{ hostvars.localhost.job_id }}"
-        status: "running"
-      delegate_to: localhost
-
     - block:
         # Prepare provisioner host
         - name: Configure provisioner
@@ -147,6 +145,7 @@
                 id: "{{ hostvars.localhost.job_id }}"
                 status: "failure"
               delegate_to: localhost
+              tags: [dci]
 
             - block:
                 - name: Run the teardown process
@@ -236,17 +235,18 @@
 
       rescue: *teardown_failure
 
+    - name: post-run
+      dci_job:
+        id: "{{ job_id }}"
+        status: "post-run"
+      tags: [dci]
+
 # Step 7 : post run
 - name: Launch post run
   hosts: localhost
   tags:
     - post-run
   tasks:
-    - name: post-run
-      dci_job:
-        id: "{{ job_id }}"
-        status: "post-run"
-
     - block:
         - include_tasks: plays/post-run.yml
 
@@ -258,17 +258,18 @@
 
       rescue: *teardown_error
 
+    - name: success
+      dci_job:
+        id: "{{ job_id }}"
+        status: "success"
+      tags: [dci]
+
 # Step 8 : state "success"
 - name: 'Success'
   hosts: localhost
   tags:
     - success
   tasks:
-    - name: success
-      dci_job:
-        id: "{{ job_id }}"
-        status: "success"
-
     - block:
         - name: Run the success hook
           include_tasks: '{{ hookdir }}/hooks/success.yml'

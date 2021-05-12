@@ -216,6 +216,28 @@ you can use this command line:
 % dci-openshift-agent-ctl -s -- -v
 ```
 
+### Launching the agent without doing DCI calls
+
+The `dci` tag can be used to skip all DCI calls. You will need to
+provide fake `job_id` and `job_info` variables in a `myvars.yml` file
+like this:
+
+```YAML
+job_id: fake-id
+job_info:
+  job:
+    components:
+    - name: 1.0.0
+      type: my-component
+```
+
+and then call the agent like this:
+
+```ShellSession
+# su - dci-openshift-agent
+$ dci-openshift-agent-ctl -s -- --skip-tags dci -e @myvars.yml
+```
+
 ## dci-openshift-agent workflow
 
 _Step 0 :_ “New DCI job”
