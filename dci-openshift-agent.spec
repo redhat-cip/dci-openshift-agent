@@ -18,6 +18,7 @@ Requires: ansible-role-dci-podman
 Requires: ansible-role-dci-ocp-imagesideload
 Requires: ansible-collection-community-kubernetes
 Requires: python3-pyyaml python3-openshift
+Requires: ansible-role-dci-cvp
 Requires: jq
 
 %{?systemd_requires}
