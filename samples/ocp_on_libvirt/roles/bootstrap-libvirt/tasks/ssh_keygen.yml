@@ -1,7 +1,7 @@
 ---
 - name: "Set_ssh_key_name"
   set_fact:
-    ssh_key_path: "{{ default_ssh_key_path | default('~/.ssh/') }}/{{ ssh_key }}"
+    ssh_key_path: "{{ default_ssh_key_path | default('~/.ssh') }}/{{ ssh_key }}"
 
 - name: "Does ssh key already exists ?"
   stat:
