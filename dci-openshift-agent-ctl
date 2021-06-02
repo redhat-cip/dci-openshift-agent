@@ -42,7 +42,7 @@ function finish ()
         fi
 
         wait ${ANSIBLE_PID}
-        exit $?
+        RET=$?
     fi
 
     if [ -n "${JOB_ID_FILE}" -a -n "${OUTPUT_DIR}" ]; then
@@ -57,6 +57,7 @@ function finish ()
         echo "removing output dir: ${OUTPUT_DIR}"
         rm -rf ${OUTPUT_DIR}
     fi
+    exit $RET
 }
 
 trap finish 0
@@ -154,22 +155,22 @@ if [ "$start" -eq 1 ]; then
     ANSIBLE_PID=$!
 
     wait ${ANSIBLE_PID}
+    RET=$?
     ANSIBLE_PID=
-    exit $?
+    exit $RET
 else
     echo "Dry-Run: pass -s or --start to actually execute"
     if [ -z "$dev" ]; then
         echo ". /etc/dci-openshift-agent/dcirc.sh"
         echo "cd /usr/share/dci-openshift-agent"
     else
-        echo "$DIR/dcirc.sh"
+        echo ". $DIR/dcirc.sh"
         echo "ANSIBLE_CONFIG=$DIR/dev-ansible.cfg"
     fi
     if [ -z "${OUTPUT_DIR}" ]; then
-        echo "setsid ansible-playbook dci-openshift-agent.yml -e @$config ${prefix_args} "$@" &"
+        echo "setsid ansible-playbook dci-openshift-agent.yml -e @$config ${prefix_args} $@ &"
     else
         JOB_ID_FILE="$(mktemp /tmp/job.XXXXX)"
-        echo "setsid ansible-playbook dci-openshift-agent.yml -e JOB_ID_FILE="${JOB_ID_FILE}" -e @$config ${prefix_args} "$@" &"
+        echo "setsid ansible-playbook dci-openshift-agent.yml -e JOB_ID_FILE=${JOB_ID_FILE} -e @$config ${prefix_args} $@ &"
     fi
-    exit 1
 fi
