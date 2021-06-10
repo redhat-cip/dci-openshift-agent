@@ -5,6 +5,10 @@
   tags:
     - job
     - dci
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
   tasks:
     - name: Read credentials from env vars
       set_fact:
@@ -54,6 +58,10 @@
   hosts: localhost
   tags:
     - pre-run
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
         # prepare infrastructure
@@ -104,6 +112,10 @@
   tags:
     - running
     - configure
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
         # Prepare provisioner host
@@ -124,6 +136,10 @@
   tags:
     - running
     - installing
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
         - name: "dci-openshift-agent : Launch install"
@@ -169,6 +185,10 @@
   tags:
     - running
     - upgrading
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
         - name: "dci-openshift-agent : Launch upgrade"
@@ -198,6 +218,10 @@
   tags:
     - running
     - operator-deployment
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
         - include_tasks: plays/deploy-operators.yml
@@ -211,6 +235,10 @@
     - running
     - testing
     - redhat-testing
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
         - include_tasks: plays/tests.yml
@@ -224,6 +252,10 @@
     - running
     - testing
     - partner-testing
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
         # Launch user tests
@@ -246,6 +278,10 @@
   hosts: localhost
   tags:
     - post-run
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
         - include_tasks: plays/post-run.yml
@@ -269,6 +305,10 @@
   hosts: localhost
   tags:
     - success
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
         - name: Run the success hook
