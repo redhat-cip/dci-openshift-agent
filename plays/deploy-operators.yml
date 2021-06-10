@@ -36,7 +36,7 @@
     shell: >
       oc patch mcp worker
       --type=merge
-      -p '{"spec":{"maxUnavailable":1}}'
+      -p '{ "spec": { "maxUnavailable": 1 } }'
 
   when: hostvars.localhost.dci_prepare_cnf|bool
 ### End CNF

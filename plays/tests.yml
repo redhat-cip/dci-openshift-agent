@@ -21,9 +21,7 @@
       - "us.gcr.io/k8s-artifacts-prod/e2e-test-images/agnhost:2.12"
   include_role:
     name: ansible-role-dci-ocp-imagesideload
-  when:
-    - local_registry is defined
-    - local_registry != ""
+  when: local_registry is defined
 
 - name: "dci-openshift-agent : Run Red Hat test suite"
   include_role:
