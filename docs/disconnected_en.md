@@ -20,6 +20,13 @@ All the configuration needs to be done in the ansible hosts file `/etc/dci-opens
 Following an example of the configuration file highlighting the variables needed by the disconnected environment:
 ```
 [all:vars]
+
+# Local registry
+local_registry_host=registry.example.com
+local_registry_port=5000
+local_registry_user=MY_REGISTRY_USER
+local_registry_password=MY_REGISTRY_PASSWORD
+
 [...]
 webserver_url=http://pctt-hv1:8080
 
@@ -48,6 +55,10 @@ The variables needed by the disconnected environment:
 | ----------------------- | -------- | ------------- | ------ |---------------------------------------------------- |
 | [registry_host]         |          | True          | String | Define a host here to create or use a local registry |
 | [all:vars] | webserver_url | True | String | URL of the webserver hosting the qcow images |
+| [all:vars] | local_registry_host | True | String | FQDN or IP for the registry server acting as a mirror |
+| [all:vars] | local_registry_port | True | String | Listening Port for the registry server |
+| [all:vars] | local_registry_user | True | String | Username for the registry server |
+| [all:vars] | local_registry_password | True | String | Password of the registry user for the registry server |
 | [registry_host:vars] | disconnected_registry_auths_file | True | String | File that contains extra auth tokens to include in the pull-secret. This file will be generated if it doesn't exist. |
 | [registry_host:vars] | disconnected_registry_mirrors_file | True | String | File that contains the addition trust bundle and image content sources for the local registry. The contents of this file will be appended to the install-config.yml file. This file will be generated if it doesn't exist. |
 | [registry_host:vars] | provision_cache_store | True | String | Folder using for the caching |
