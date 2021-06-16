@@ -16,7 +16,7 @@ The provided example will create 4 systems (1 provisionner and 3 OCP masters) on
 
 This example will help you to run the `dci-openshift-agent` within one single system by running `libvirt` virtual machines. This example is a good path to understand the `dci-openshift-agent` (all different steps, hooks, settings) and to be used as a development environment.
 
-At this point, the `DCI Jumpbox` is installed with all above prerequisites [add link to how to install the DCI-JB].
+At this point, the `DCI Jumpbox` is installed with all above prerequisites ([learn how to install the DCI Jumpbox](../README.md#installation-of-dci-jumpbox)).
 
 The following documentation covers how to configure deploy virtual systems, virtual networks and the according `/etc/dci-openshift-agent/hooks/` configuration.
 
