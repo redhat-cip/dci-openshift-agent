@@ -1,0 +1,13 @@
+[Unit]
+Description=CI bot service
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/var/lib/dci-openshift-agent/samples/ocp_on_libvirt/ci.sh
+User=dci-openshift-agent
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
