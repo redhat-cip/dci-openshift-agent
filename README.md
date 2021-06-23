@@ -126,18 +126,36 @@ export DCI_CS_URL
 
 - `/etc/dci-openshift-agent/settings.yml`
 
-This is the dci openshift agent settings (format is `.ini`). Use this to specify which version of OCP to install.
+This is the dci openshift agent settings (format is YAML). Use this to specify which version of OCP to install.
 
-| Variable                        | Required | Type   | Default | Description                                                    |
-| ------------------------------- | -------- | ------ | ------- | -------------------------------------------------------------- |
-| topic                           | True     | String |         | Name of the topic. `OCP-4.5` and up.                           |
-| dci_components_by_query         | False    | List   | []      | Component by query. ['name:4.5.9']                             |
-| dci_components                  | False    | List   | []      | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
-| dci_openshift_agent_conformance | False    | String |         | If defined we will run that category of conformance test       |
-| baremetal_deploy_version        | False    | String | HEAD    | Allows you to lock upstream baremetal repo to specific version |
-| http_proxy                      | False    | String |         | http proxy to use                                              |
-| https_proxy                     | False    | String |         | https proxy to use                                             |
-| no_proxy_list                   | False    | String |         | comma separated list of hosts not going through the proxies    |
+| Variable                          | Required | Type   | Default   | Description                                                    |
+| --------------------------------- | -------- | ------ | --------- | -------------------------------------------------------------- |
+| dci\_topic                        | True     | String |           | Name of the topic. `OCP-4.5` and up.                           |
+| dci\_tags                         | False    | List   | ["debug"] | List of tags to set on the job                                 |
+| dci\_name                         | False    | String |           | Name of the job                                                |
+| dci\_configuration                | False    | String |           | String representing the configuration of the job               |
+| dci\_comment                      | False    | String |           | Comment to associate with the job                              |
+| dci\_url                          | False    | URL    |           | URL to associate with the job                                  |
+| dci\_components\_by\_query        | False    | List   | []        | Component by query. ['name:4.5.9']                             |
+| dci\_component                    | False    | List   | []        | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
+| dci_openshift\_agent\_conformance | False    | String |           | If defined it will run that category of conformance test       |
+| baremetal\_deploy\_version        | False    | String | HEAD      | Allows you to lock upstream baremetal repo to specific version |
+| http\_proxy                       | False    | String |           | http proxy to use                                              |
+| https\_proxy                      | False    | String |           | https proxy to use                                             |
+| no\_proxy\_list                   | False    | String |           | Comma separated list of hosts not going through the proxies    |
+
+Example:
+
+```YAML
+---
+dci_topic: "OCP-4.7"
+dci_name: "ocp-4.7-job"
+dci_configuration: "baremetal"
+dci_url: "https://softwarefactory-project.io/r/c/dci-openshift-agent/+/22195"
+dci_comment: "test-runner: use the new url metadata for jobs"
+dci_tags: ["debug", "gerrit:22195"]
+...
+```
 
 - `/etc/dci-openshift-agent/hosts`
 

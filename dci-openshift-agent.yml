@@ -25,11 +25,22 @@
         components_by_query: "{{ dci_components_by_query }}"
         topic: "{{ dci_topic }}"
         comment: "{{ dci_comment | default('') }}"
+        url: "{{ dci_url | default('') }}"
+        name: "{{ dci_name | default('') }}"
+        configuration: "{{ dci_configuration | default('') }}"
       register: job_info
       when: job_info is not defined
       no_log: true
 
-    - name: set job id
+    - name: Assertions
+      assert:
+        that:
+          - dci_comment is not defined or job_info.job.comment == dci_comment
+          - dci_configuration is not defined or job_info.job.configuration == dci_configuration
+          - dci_name is not defined or job_info.job.name == dci_name
+          - dci_url is not defined or job_info.job.url == dci_url
+
+    - name: Set the job id
       set_fact:
         job_id: '{{ job_info.job.id }}'
 

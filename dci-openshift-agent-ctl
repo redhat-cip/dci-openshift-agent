@@ -47,12 +47,14 @@ function finish ()
 
     if [ -n "${JOB_ID_FILE}" -a -n "${OUTPUT_DIR}" ]; then
         JOB_ID=$(cat ${JOB_ID_FILE})
-        for junit_file in $(ls ${OUTPUT_DIR}/*.xml); do
-            junit_filename=$(basename ${junit_file} .xml)
-            dcictl job-upload-file --name ${junit_filename} --path ${junit_file} --mime application/junit ${JOB_ID}
-        done
-        if [ -r ${OUTPUT_DIR}/ansible.log ]; then
-            dcictl job-upload-file --name ansible.log --path ${OUTPUT_DIR}/ansible.log ${JOB_ID}
+        if [ -n "$JOB_ID" ]; then
+            for junit_file in $(ls ${OUTPUT_DIR}/*.xml); do
+                junit_filename=$(basename ${junit_file} .xml)
+                dcictl job-upload-file --name ${junit_filename} --path ${junit_file} --mime application/junit ${JOB_ID}
+            done
+            if [ -r ${OUTPUT_DIR}/ansible.log ]; then
+                dcictl job-upload-file --name ansible.log --path ${OUTPUT_DIR}/ansible.log ${JOB_ID}
+            fi
         fi
         echo "removing output dir: ${OUTPUT_DIR}"
         rm -rf ${OUTPUT_DIR}

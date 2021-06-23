@@ -1,6 +1,11 @@
 ---
 dci_topic: OCP-4.7
 
+# -- Atttributes of the job --
+#dci_name: "my job"
+#dci_configuration: "my conf"
+#dci_tags: ["debug"]
+
 # -- Components --
 # If you don't specify dci_components or dci_components_by_query
 # you will get the latest components associated with that topic.
@@ -37,3 +42,4 @@ dci_topic: OCP-4.7
 #   api_version: v1
 #   spec:
 #     ExampleAuthenticationKey: "password"
+...
