@@ -212,7 +212,7 @@
 
       rescue: *teardown_failure
 
-# Step 4 : deploy operators, run on the provisioner so OC is automatically set
+# Step 4 : deploy operators and custom CRs, run on the provisioner so OC is automatically set
 - name: 'Deploy operators to OCP cluster'
   hosts: provisioner
   tags:

@@ -21,3 +21,19 @@ dci_topic: OCP-4.7
 
 # By default we do not run cnf tests
 # dci_openshift_agent_cnf_tests_mode: non-disconnected
+
+# If you want, you can define a custom resource definition list
+# dci_ocp_custom_resources:
+# - name: my-custom-cr1
+#   namespace: ns1
+#   kind: CustomResource
+#   api_version: v1
+#   spec:
+#     SomeSpecKey: true
+#     AnotherSpecKey: "string"
+# - name: my-custom-cr2
+#   namespace: ns2
+#   kind: CustomResource
+#   api_version: v1
+#   spec:
+#     ExampleAuthenticationKey: "password"
