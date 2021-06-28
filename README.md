@@ -131,10 +131,10 @@ This is the dci openshift agent settings (format is `.ini`). Use this to specify
 | Variable                        | Required | Type   | Default | Description                                                    |
 | ------------------------------- | -------- | ------ | ------- | -------------------------------------------------------------- |
 | topic                           | True     | String |         | Name of the topic. `OCP-4.5` and up.                           |
-| dci_components_by_query         | False    | List   |   []    | Component by query. ['name:4.5.9']                             |
-| dci_components                  | False    | List   |   []    | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
+| dci_components_by_query         | False    | List   | []      | Component by query. ['name:4.5.9']                             |
+| dci_components                  | False    | List   | []      | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
 | dci_openshift_agent_conformance | False    | String |         | If defined we will run that category of conformance test       |
-| baremetal_deploy_version        | False    | String |  HEAD   | Allows you to lock upstream baremetal repo to specific version |
+| baremetal_deploy_version        | False    | String | HEAD    | Allows you to lock upstream baremetal repo to specific version |
 | http_proxy                      | False    | String |         | http proxy to use                                              |
 | https_proxy                     | False    | String |         | https proxy to use                                             |
 | no_proxy_list                   | False    | String |         | comma separated list of hosts not going through the proxies    |
