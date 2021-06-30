@@ -1,11 +1,78 @@
 ---
+- name: Validate we have all the pieces to run in disconnected mode
+  assert:
+    that:
+      - webserver_url is defined
+      - groups['registry_host'] is defined
+      - groups['registry_host'] | length > 0
+      - hostvars[groups['registry_host'][0]].local_registry is defined
+      - hostvars[groups['registry_host'][0]].local_repo is defined
+      - hostvars[groups['registry_host'][0]].provision_cache_store is defined
+  when:
+    - dci_disconnected | default(false) | bool
+
 # Prepare host
 - name: Configure jumpbox
   include_tasks: configure-jumpbox.yml
 
+- name: Import remoteci SSL keys
+  vars:
+    dci_import_keys_remoteci_id: '{{ job_info.job.remoteci.id }}'
+  include_role:
+    name: dci-import-keys
+
+- name: Get openshift_version from job.components
+  set_fact:
+    version: "{{ item['name'] }}"
+    tags: "{{ item['tags'] }}"
+  with_items: "{{ job_info.job.components }}"
+  when: item["type"] == "ocp"
+
+- name: Get build from tag
+  set_fact:
+    build: "{{ item.split(':')[1] }}"
+  with_items: "{{ tags }}"
+  when: item.split(":")[0] == "build"
+
+- name: Set pullsecret from job_info
+  set_fact:
+    pullsecret: "{{ openshift_secret | default(job_info.job.topic.data.pull_secret) }}"
+  no_log: true
+
+- name: Read Disconnected auths
+  include_vars:
+    file: "{{ hostvars[groups['registry_host'][0]].disconnected_registry_auths_file }}"
+    name: disconnected_auths
+  no_log: true
+  when:
+    - dci_disconnected | default(false) | bool
+
 # Download Openshift from DCI
-- name: Import Openshift files from DCI
-  include_tasks: fetch-bits.yml
+- name: Mirror release
+  include_role:
+    name: mirror-ocp-release
+  vars:
+    version: "{{ hostvars.localhost.version }}"
+    build: "{{ hostvars.localhost.build }}"
+    cache_dir: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}"
+    webserver_url: "{{ hostvars.localhost.webserver_url }}"
+    registry_url: "docker://{{ hostvars[groups['registry_host'][0]].local_registry }}/{{ hostvars[groups['registry_host'][0]].local_repo }}"
+    auths: "{{ hostvars.localhost.pullsecret | combine({'auths': hostvars.localhost.disconnected_auths}, recursive=True) }}"
+    git_repo: "{{ hostvars.localhost.baremetal_deploy_repo }}"
+    git_ref: "{{ hostvars.localhost.baremetal_deploy_version }}"
+    force_mirroring: "{{ (hostvars.localhost.dci_force_mirroring | default(false)) or (build == 'candidate') | bool }}"
+  when:
+    - dci_disconnected | default(false) |  bool
+
+# Candidate builds are ga builds that haven't gone ga quite yet.
+# The following changes the build and version vars to look like ga
+# for the upstream install playbooks. The dci-feeder adds '-0.rc-$TIMESTAMP'
+# to the version, we have to strip it here.
+- name: Set build:ga when build:candidate
+  set_fact:
+    build: "ga"
+    version: "{{ version.split('-0.rc-')[0] }}"
+  when: build == "candidate"
 
 - name: Gather the package facts
   package_facts:
@@ -20,11 +87,15 @@
 # Mirror Operators for offline mode
 - name: "dci-openshift-agent : Mirror Operators"
   vars:
-    dci_pullsecret_file: "{{ hostvars.localhost.provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+    version: "{{ hostvars.localhost.version }}"
+    provision_cache_store: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}"
+    dci_pullsecret_file: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+    local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
   include_role:
     name: operators-mirror
   when:
-  - hostvars.localhost.provision_cache_store is defined
+    - dci_disconnected | default(false) | bool
+    - opm_mirror_list is defined
 
 - name: Get provisioner SSH identity
   delegate_to: "{{ groups['provisioner'][0] }}"

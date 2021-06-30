@@ -17,12 +17,12 @@
     pullsecret: "{{ hostvars.localhost.pullsecret | to_json }}"
   no_log: true
 
-- name: "installer : Populate clusterosimage from fetch_bits"
+- name: "installer : Populate clusterosimage"
   set_fact:
     clusterosimage: "{{ hostvars.localhost.clusterosimage }}"
   when: hostvars.localhost.clusterosimage is defined
 
-- name: "installer : Populate bootstraposimage from fetch_bits"
+- name: "installer : Populate bootstraposimage"
   set_fact:
     bootstraposimage: "{{ hostvars.localhost.bootstraposimage }}"
   when: hostvars.localhost.bootstraposimage is defined

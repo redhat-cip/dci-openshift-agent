@@ -27,13 +27,6 @@
   failed_when: false
   become: true
 
-- name: Drop existing repo files
-  file:
-    path: '{{ item }}'
-    state: absent
-  with_fileglob: '{{ dci_mirror_location }}/dci_repo/dci_repo*.repo'
-  become: true
-
 - name: Ensure proper directories are created
   file:
     path: '{{ item }}'
@@ -42,7 +35,6 @@
     group: '{{ ansible_user_gid }}'
   with_items:
     - '{{ dci_cache_dir }}'
-    - '{{ dci_mirror_location }}/dci_repo'
   become: true
 
 - name: "Clean up {{ dci_cluster_configs_dir }}"

@@ -3,6 +3,11 @@
   command:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
     cmd: oc get clusterversion
+  register: current_version
+
+- name: "upgrader : Print current version"
+  debug:
+    var: current_version.stdout_lines
 
 - name: "upgrader : Get target openshift version from job.components"
   set_fact:
@@ -73,28 +78,41 @@
         oc wait --timeout=10m --for=condition=RetrievedUpdates clusterversion/version
 
   when:
-  - webserver_url is defined
-  - webserver_url | length > 0
+  - dci_disconnected | default(false) | bool
 
-- name: "upgrader : Patch clusterversion to point to fast channel"
+- name: "upgrader : Patch clusterversion pointing to fast channel and refresh"
   shell:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
     cmd: >
       oc patch clusterversion/version
       --patch '{"spec": {"channel": "fast-{{ major }}"} }'
-      --type merge &&
-      oc wait --timeout=10m --for=condition=RetrievedUpdates clusterversion/version
+      --type=merge &&
+      oc delete pod
+      --namespace=openshift-cluster-version
+      --selector=k8s-app=cluster-version-operator &&
+      sleep 1 &&
+      oc wait pod
+      --for=condition=Ready
+      --namespace=openshift-cluster-version
+      --timeout=5m
+      --selector=k8s-app=cluster-version-operator &&
+      oc wait clusterversion/version
+      --for=condition=RetrievedUpdates
+      --timeout=10m
 
 - name: "upgrader : Execute the upgrade"
   command:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
     cmd: oc adm upgrade --to {{ version }}
+  register: start_upgrade
 
 - name: "upgrader : Wait for upgrade to start"
   command:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
     cmd: oc wait --timeout=1m --for=condition=Progressing clusterversion/version
   retries: 5
+  when:
+    - start_upgrade.stdout.find("Cluster is already at version") == -1
 
 - name: "upgrader : Monitor upgrade until complete"
   shell:

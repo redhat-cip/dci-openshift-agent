@@ -21,43 +21,38 @@
       - "us.gcr.io/k8s-artifacts-prod/e2e-test-images/agnhost:2.12"
   include_role:
     name: ansible-role-dci-ocp-imagesideload
-  when: local_registry is defined
+  when:
+    - (dci_openshift_agent_conformance | string | length) > 0
+    - dci_disconnected | default(false) | bool
 
 - name: "dci-openshift-agent : Run Red Hat test suite"
   include_role:
     name: redhat-tests
   when:
-    - dci_openshift_agent_conformance is defined
-    - dci_openshift_agent_conformance | length > 0
+    - (dci_openshift_agent_conformance | string | length) > 0
 
 # Setup and run cnf-tests
 - block:
-
-#     - name: Create local git repo on jumphost for disconnected cnf-tests
-#       include_tasks: cnf-tests-git.yml
-#       when:
-#         - "'registry_host' in groups"
-#         - groups['registry_host'] | length > 0
-#         - cnf_tests_mode == "offline"
-
     - name: Mirror images to local registry for disconnected cnf-tests
+      vars:
+        dci_pullsecret_file: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
       include_tasks: cnf-tests-mirror.yml
       when: cnf_tests_mode == "offline"
 
     - name: Run cnf tests
+      vars:
+        dci_pullsecret_file: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
       include_tasks: cnf-tests-run.yml
-      when: >
-        cnf_tests_mode == "online" or cnf_tests_mode == "offline"
-
   when:
     - cnf_tests_mode is defined
+    - cnf_tests_mode in ['online', 'offline']
 
 - name: Run CVP/OVP tests if bundle_spec is defined
   include_role:
     name: dci-cvp
   vars:
-    dci_cvp_bundle_spec:  "{{ cvp_bundle_spec }}"
-    dci_cvp_bundle_tag:  "{{ cvp_bundle_tag }}"
+    dci_cvp_bundle_spec: "{{ cvp_bundle_spec }}"
+    dci_cvp_bundle_tag: "{{ cvp_bundle_tag }}"
     dci_cvp_pullsecret_file: "{{ dci_pullsecret_file }}"
     dci_cvp_registry_host: "{{ local_registry }}"
     dci_cvp_cache_dir: "{{ dci_cache_dir }}"
