@@ -52,6 +52,14 @@
   when:
     - cnf_tests_mode is defined
 
+- name: create CVP namespace
+  k8s:
+    api_version: v1
+    name: "{{ cvp_namespace }}"
+    kind: Namespace
+  when:
+    - cvp_namespace is defined
+
 - name: Run CVP/OVP tests if bundle_spec is defined
   include_role:
     name: dci-cvp
@@ -68,6 +76,7 @@
     dci_cvp_pyxis_apikey: "{{ pyxis_apikey| default(omit) }}"
     dci_cvp_pyxis_identifier: "{{ pyxis_identifier| default(omit) }}"
     dci_cvp_kubeconfig: "{{ dci_cluster_configs_dir }}/kubeconfig"
+    dci_cvp_namespace: "{{ cvp_namespace | default(omit) }}"
   when:
     - cvp_bundle_spec is defined
     - cvp_bundle_tag is defined
