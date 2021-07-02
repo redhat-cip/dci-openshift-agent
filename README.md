@@ -268,15 +268,17 @@ _runs on provisioner_
 _Step 3a :_ “Installing”
 
 - Start OpenShift install: `/plays/install.yml` and `/hooks/install.yml`. This is launched the variable `dci_main` is undefined or equal to `install`.
+This step is split into three part: 3a-1 is the installation of OCP itself (tag `installing`), 3a-2 is the deployment of operators (tag `operator-deployment`), and the last part 3a-3 is the installation of partner hooks (tag `hook-installing`).
+  Each part can be called separately using the associated tag.
 
-_tags: running, installing_
+_tags: running, installing, hook-installing_
 _runs on provisioner_
 
 _Step 3b :_ “Upgrading”
 
 - Start OpenShift upgrade: `/plays/upgrade.yml` and `/hooks/upgrade.yml`. This is launched when the variable `dci_main` is set to `upgrade`.
 
-_tags: running, upgrading_
+_tags: running, upgrading, hook-upgrading_
 _runs on provisioner_
 
 _Step 4 :_ “Red Hat tests”
