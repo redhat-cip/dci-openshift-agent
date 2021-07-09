@@ -89,6 +89,27 @@ $ ansible-playbook -v libvirt_destroy.yml
 
 We have provided dnsmasq config templates in the samples directory to serve dhcp/dns from the dci jumpbox if you don’t already have a dns/dhcp server on your bare metal network.
 
+## Troubleshooting
+
+The [kni](https://openshift-kni.github.io/baremetal-deploy/latest/Troubleshooting.html) page offers a good start to understand and debug your libvirt environments.
+
+Furthermore, some issues (see below) are specific to a libvirt(or small) environment.
+
+### Timeout
+
+Due to the lack of hardware (cpu, memory), the installation may take longer to complete. A recurring timeout is reached during the bootstrap.
+Two parameters are available to increase this timeout, *increase_bootstrap_timeout* and *increase_install_timeout*.
+
+
+```
+- name: "installer : Run IPI installer"
+  import_role:
+    name: installer
+  vars:
+    increase_bootstrap_timeout: 2
+    increase_install_timeout: 2
+```
+
 ## License
 
 Apache License, Version 2.0 (see [LICENSE](LICENSE) file)
