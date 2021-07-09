@@ -24,9 +24,15 @@
       - "python{{ ansible_python.version.major }}-pip"
       - "python{% if ansible_python.version.major == 3 %}3{% endif %}-virtualenv"
 
+- name: Get processor family
+  set_fact:
+    proc_family: >-
+      {{ ('AMD' in (ansible_processor | join()))|
+      ternary ('amd','intel') }}
+
 - name: Check on nested KVM status
   command: |
-    cat /sys/module/kvm_intel/parameters/nested
+    cat /sys/module/kvm_{{ proc_family }}/parameters/nested
   ignore_errors: true
   register: nested_kvm
 
@@ -34,18 +40,18 @@
   become: true
   copy:
     content: |
-      options kvm-intel nested=1
-      options kvm-intel enable_shadow_vmcs=1
-      options kvm-intel enable_apicv=1
-      options kvm-intel ept=1
+      options kvm-{{ proc_family }} nested=1
+      options kvm-{{ proc_family }} enable_shadow_vmcs=1
+      options kvm-{{ proc_family }} enable_apicv=1
+      options kvm-{{ proc_family }} ept=1
     dest: /etc/modprobe.d/kvm_nested.conf
   when: nested_kvm.stdout != 'Y'
 
 - name: Reload KVM module
   become: true
   shell: |
-    modprobe -r kvm_intel
-    modprobe -a kvm_intel
+    modprobe -r kvm_{{ proc_family }}
+    modprobe -a kvm_{{ proc_family }}
   when: nested_kvm.stdout != 'Y'
 
 - name: Enable and Start libvirtd
