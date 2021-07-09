@@ -3,12 +3,11 @@
 - block:
   - name: Install packages needed for testing
     package:
-      name: "{{ item }}"
+      name:
+        - git
+        - httpd-tools
+        - httpd
       state: present
-    with_items:
-      - git
-      - httpd-tools
-      - httpd
 
   - name: Create root directory for git repo
     file:

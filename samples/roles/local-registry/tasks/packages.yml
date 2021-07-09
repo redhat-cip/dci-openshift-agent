@@ -1,7 +1,6 @@
 ---
 - name: Install additional packages
   package:
-    name: "{{ item }}"
+    name: "{{ registry_extra_packages }}"
     state: present
-  with_items: "{{ registry_extra_packages }}"
 ...
