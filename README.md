@@ -281,21 +281,28 @@ _Step 3b :_ “Upgrading”
 _tags: running, upgrading, hook-upgrading_
 _runs on provisioner_
 
-_Step 4 :_ “Red Hat tests”
+_Step 4 :_ “Deploy operators”
+
+- start Deploy operators: `/plays/deploy-operators.yml`
+
+_tags: running, operator-deployment_
+_runs on provisioner_
+
+_Step 5 :_ “Red Hat tests”
 
 - start Red Hat tests: `/plays/tests.yml`
 
 _tags: running, testing, redhat-testing_
 _runs on localhost_
 
-_Step 5 :_ “Partner tests”
+_Step 6 :_ “Partner tests”
 
 - start partner tests: `/hooks/tests.yml`
 
 _tags: running, testing, partner-testing_
 _runs on localhost_
 
-_Step 6 :_ “Post-run”
+_Step 7 :_ “Post-run”
 
 - Start post-run to collect results: `/plays/post-run.yml` and `/hooks/post-run.yml`
 - Note: All results files (logs, tests, ...) must be stored within the {{ dci_cluster_configs_dir }}/ directory in order to be properly uploaded
@@ -304,7 +311,7 @@ _Step 6 :_ “Post-run”
 _tags: post-run_
 _runs on localhost_
 
-_Step 7 :_ “Success”
+_Step 8 :_ “Success”
 
 - Launch additional tasks when the job is successful: `/hooks/success.yml`
 
