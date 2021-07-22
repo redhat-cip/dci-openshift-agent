@@ -92,10 +92,11 @@ if [ -n "$ip" ]; then
 else
     remdir=$($rem mktemp -d)
 
+    # Get nodes journals and outputs
     if [ -n "$remdir" ]; then
-        # Ignition logs
         for h in $($rem oc get nodes|tail -n +2|awk '{print $1;}'); do
-            $rem ssh core@$h.$domain sudo journalctl --identifier=ignition --all > $dir/ignition-$h.log
+          # Journal logs
+            $rem ssh core@$h.$domain sudo journalctl --all > $dir/journal-$h.log
         done
 
         # Ironic logs
@@ -110,7 +111,8 @@ else
         $rem oc get clusterversion/version > $dir/clusterversion.txt
         $rem oc get clusteroperator > $dir/clusteroperator.txt
         $rem oc get nodes > $dir/nodes.txt
-        $rem oc get events --all-namespaces > $dir/events.txt
+        $rem oc get events --all-namespaces --sort-by='.metadata.creationTimestamp' > $dir/events.txt
+        $rem oc get pods --all-namespaces -o wide > $dir/pods.txt
 
         # must-gather
         # When a policy is defined, use the same mirror (local registry)
