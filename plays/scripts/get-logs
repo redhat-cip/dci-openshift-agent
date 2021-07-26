@@ -89,6 +89,24 @@ if [ -n "$ip" ]; then
     for pod in $($rem ssh core@$ip sudo podman ps 2>&1 | sed 's/.* //'|egrep -v '^(hosts\.|NAMES$)'); do
         $rem ssh core@$ip sudo podman logs $pod > $dir/$pod.log
     done
+
+    # If API lists nodes then SSH to them and get the journal logs
+    nodes=$(oc get nodes -o custom-columns=NAME:.metadata.name --no-headers 2>/dev/null | wc -l)
+    if [ "$nodes" -gt 0 ]; then
+
+      # Get nodes journals and outputs
+      for h in $($rem oc get nodes -o custom-columns=NAME:.metadata.name --no-headers -l node-role.kubernetes.io/master= 2>/dev/null); do
+        # Journal logs
+        $rem ssh core@$h.$domain sudo journalctl --all > $dir/journal-$h.log
+      done
+
+      # Get the output of various oc commands
+      $rem oc get nodes > $dir/nodes.txt
+      $rem oc get csr > $dir/csr.txt
+      $rem oc get clusteroperator > $dir/clusteroperator.txt
+
+    fi
+
 else
     remdir=$($rem mktemp -d)
 
