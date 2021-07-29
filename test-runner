@@ -209,6 +209,8 @@ if [ -d dci-openshift-agent ]; then
     sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/roles/:@" ansible.cfg
     CMD=$PWD/dci-openshift-agent/dci-openshift-agent-ctl
     VIRTDIR=$PWD/dci-openshift-agent/samples/ocp_on_libvirt
+    # needed for ctl to take the settings.yml from the change
+    export CONFIG_DIR=$PWD
 else
     ln -s /usr/share/dci-openshift-agent/* .
     rm -f ansible.cfg
@@ -289,7 +291,7 @@ fi
 export DCI_OPENSHIFT_AGENT_DIR=$PWD
 export ANSIBLE_CONFIG=$PWD/ansible.cfg
 
-setsid $CMD -vvv -s "$@" -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" >& output &
+setsid $CMD -s -v -- -vv $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" "$@" >& output &
 PID=$!
 
 # make everything read-only to mimic what is delivered as rpm or in
