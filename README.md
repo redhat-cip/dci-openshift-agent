@@ -14,6 +14,7 @@
   - [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
 - [Copying the ssh key to your provisionhost](#copying-the-ssh-key-to-your-provisionhost)
 - [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
+- [Keep the DCI OCP Agent Updated](#keep-the-dci-ocp-agent-updated)
 - [dci-openshift-agent workflow](#dci-openshift-agent-workflow)
 - [Getting Involved](#getting-involved)
   - [Testing a change](#testing-a-change)
@@ -58,7 +59,7 @@ The 3 remaining systems will run the freshly installed OCP Cluster. “3” is t
 The `Jumpbox` can be a physical server or a virtual machine.
 In any case, it must:
 
-- Be running the latest stable RHEL release (**8.2 or higher**) and registered via RHSM.
+- Be running the latest stable RHEL release (**8.4 or higher**) and registered via RHSM.
 - Have at least 160GB of free space available in `/var`
 - Have access to Internet
 - Be able to connect the following Web urls:
@@ -76,6 +77,8 @@ In any case, it must:
   - DHCP
   - PXE
   - HTTP/HTTPS
+
+NOTE: Make sure rhel-8-for-x86_64-appstream-rpms repo provides access to libvirt => 6.0.0 packages
 
 #### Systems under test
 
@@ -156,8 +159,8 @@ Example:
 
 ```YAML
 ---
-dci_topic: "OCP-4.7"
-dci_name: "ocp-4.7-job"
+dci_topic: "OCP-4.8"
+dci_name: "ocp-4.8-job"
 dci_configuration: "baremetal"
 dci_url: "https://softwarefactory-project.io/r/c/dci-openshift-agent/+/22195"
 dci_comment: "test-runner: use the new url metadata for jobs"
@@ -181,7 +184,7 @@ masters_prov_nic=eno1 # The provisioning NIC (NIC1) used on the master nodes
 prov_ip=172.22.0.3 # Provisioning IP address
 dir="{{ ansible_user_dir }}/clusterconfigs" # The directory used to store the cluster configuration files (install-config.yaml, pull-secret.txt, metal3-config.yaml)
 ipv6_enabled=false # Enable IPv6 addressing instead of IPv4 addressing
-cache_enabled=True # Enable playbook to pre-download RHCOS images prior to cluster deployment and use them as a local cache
+disable_bmc_certificate_verification=True # Disable TLS verification of BMC certificates
 
 # Master nodes
 [masters]
@@ -196,6 +199,7 @@ master-2 name=master-2 role=master ipmi_user=ADMIN ipmi_password=ADMIN ipmi_addr
 [provisioner]
 provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 ```
+NOTE: If the jumpbox server is in a different network than the baremetal network, then include extcirdnet=<baremetal-network/mask> in the all:vars section of the inventory
 
 ### Overloading settings and hooks directories
 
@@ -213,7 +217,7 @@ specify `dci_config_dirs` in your `settings.yml`. Example:
 
 ```YAML
 ---
-dci_topic: OCP-4.7
+dci_topic: OCP-4.8
 dci_config_dirs: [/var/lib/dci-openshift-agent/config]
 ```
 
@@ -263,6 +267,32 @@ and then call the agent like this:
 ```ShellSession
 # su - dci-openshift-agent
 $ dci-openshift-agent-ctl -s -- --skip-tags dci -e @myvars.yml
+```
+
+## Keep the DCI OCP Agent Updated
+
+It is recommended to keep the jumphost server updated, enable dnf-automatic updates to make sure system is using latest dci-openshift-agent
+
+Install dnf-automatic
+
+```ShellSession
+# dnf install -y dnf-automatic
+```
+
+Modify the default configuration to enable automatic downloads and apply updates
+
+```ShellSession
+# vi /etc/dnf/automatic.conf
+...
+download_updates = yes
+apply_updates = yes
+...
+```
+
+Enable the dnf-automatic.timer
+
+```ShellSession
+# systemctl enable --now dnf-automatic.timer
 ```
 
 ## dci-openshift-agent workflow
