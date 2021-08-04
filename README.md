@@ -30,7 +30,7 @@
 
 Therefore, the simplest working setup must be composed of at least **5** systems (1 system for DCI and 4 systems to match OCP minimum requirements).
 
-Please follow the [OpenShift Baremetal Deploy Guide (a.k.a. `openshift-kni`)](https://openshift-kni.github.io/baremetal-deploy/) for how to properly configure the OCP networks and systems.
+Please follow the [OpenShift Baremetal Deploy Guide (a.k.a. `openshift-kni`)](https://openshift-kni.github.io/baremetal-deploy/) for how to properly configure the OCP networks, systems and DNS.
 
 Choose the OCP version you want to install and follow steps 1 to 3 to configure the networks and install RHEL 8 on the **OpenShift Provisioning node**. Steps after 4 will be handled by the `dci-openshift-agent`.
 
@@ -44,6 +44,14 @@ As mentioned before, the **DCI Jumpbox** is NOT part of the RHOCP cluster. It is
 The **OpenShift Provisioning node** is used by the OpenShift installer to provision the OpenShift cluster nodes.
 
 The 3 remaining systems will run the freshly installed OCP Cluster. “3” is the minimum required number of nodes to run RHOCP but it can be more if you need to.
+
+#### Prerequisites
+
+- Each server needs 2 NICs pre-configured. NIC1 for the private network and NIC2 for the baremetal network. NIC interface names must be identical across all nodes
+- Each server must have IPMI configured
+- Each server must have DHCP setup for the baremetal NICs
+- Each server must have DNS setup for the API, wildcard applications. Please follow the [Openshift Baremetal DNS server configuration](https://openshift-kni.github.io/baremetal-deploy/latest/Deployment#DNS)
+- Optional - Include DNS entries for the hostnames for each of the servers
 
 #### Jumpbox requirements
 
@@ -165,17 +173,15 @@ Example:
 
 ```console
 [all:vars]
-prov_nic=eno1
-pub_nic=eno2
-domain=example.com
-cluster=dciokd
-dnsvip=192.168.10.41
-cluster_pro_if=eno1
-masters_prov_nic=eno1
-prov_ip=172.22.0.3
-dir="{{ ansible_user_dir }}/clusterconfigs"
-ipv6_enabled=false
-cache_enabled=True
+prov_nic=eno1 # The provisioning NIC (NIC1) used on all baremetal nodes
+pub_nic=eno2 # The public NIC (NIC2) used on all baremetal nodes
+domain=example.com # Base domain
+cluster=dciokd # Name of the cluster
+masters_prov_nic=eno1 # The provisioning NIC (NIC1) used on the master nodes
+prov_ip=172.22.0.3 # Provisioning IP address
+dir="{{ ansible_user_dir }}/clusterconfigs" # The directory used to store the cluster configuration files (install-config.yaml, pull-secret.txt, metal3-config.yaml)
+ipv6_enabled=false # Enable IPv6 addressing instead of IPv4 addressing
+cache_enabled=True # Enable playbook to pre-download RHCOS images prior to cluster deployment and use them as a local cache
 
 # Master nodes
 [masters]
