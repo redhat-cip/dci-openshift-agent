@@ -134,19 +134,24 @@ else
 
         # must-gather
         # When a policy is defined, use the same mirror (local registry)
-        must_gather_opts=""
         registry=$($rem oc get imageContentSourcePolicy image-policy-0 -o json |
                             jq -r '.spec.repositoryDigestMirrors[].mirrors[]' |
                             grep -Pom1 '(\w+[.:])+\d+')
-        if [[ -n "${registry}" ]]; then
-            must_gather_opts="--image=${registry}/openshift/origin-must-gather"
-        fi
+        for image in ${DCI_MUST_GATHER_IMAGES:-"registry.redhat.io/openshift4/ose-must-gather"}
+        do
+            if [[ -n "${registry}" ]]
+            then
+                image="${registry}/${image#*/}"
+            fi
+
+            must_gather_opts="${must_gather_opts} --image=${image}"
+        done
 
         must_gather_dir="${remdir}/must_gather"
         $rem mkdir "${must_gather_dir}"
         $rem oc adm must-gather \
-                 --dest-dir=${must_gather_dir} \
-                 ${must_gather_opts}
+             --dest-dir=${must_gather_dir} \
+             ${must_gather_opts}
 
         # Compress must-gather data, using a friendly name
         $rem tar \
