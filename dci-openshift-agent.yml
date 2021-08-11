@@ -361,6 +361,6 @@
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
-          when: dci_teardown_on_failure|bool
+          when: dci_teardown_on_success|bool
       ignore_unreachable: true
       ignore_errors: true

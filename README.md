@@ -139,22 +139,24 @@ export DCI_CS_URL
 
 This is the dci openshift agent settings (format is YAML). Use this to specify which version of OCP to install.
 
-| Variable                          | Required | Type   | Default   | Description                                                    |
-| --------------------------------- | -------- | ------ | --------- | -------------------------------------------------------------- |
-| dci\_topic                        | True     | String |           | Name of the topic. `OCP-4.5` and up.                           |
-| dci\_tags                         | False    | List   | ["debug"] | List of tags to set on the job                                 |
-| dci\_name                         | False    | String |           | Name of the job                                                |
-| dci\_configuration                | False    | String |           | String representing the configuration of the job               |
-| dci\_comment                      | False    | String |           | Comment to associate with the job                              |
-| dci\_url                          | False    | URL    |           | URL to associate with the job                                  |
-| dci\_components\_by\_query        | False    | List   | []        | Component by query. ['name:4.5.9']                             |
-| dci\_component                    | False    | List   | []        | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
-| dci\_must\_gather\_images           | False    | List   |["registry.redhat.io/openshift4/ose-must-gather"] | List of the registry names for the must-gather images to use when getting the logs.\* |
-| dci\_openshift\_agent\_conformance | False    | String |           | If defined it will run that category of conformance test       |
-| baremetal\_deploy\_version        | False    | String | HEAD      | Allows you to lock upstream baremetal repo to specific version |
-| http\_proxy                       | False    | String |           | http proxy to use                                              |
-| https\_proxy                      | False    | String |           | https proxy to use                                             |
-| no\_proxy\_list                   | False    | String |           | Comma separated list of hosts not going through the proxies    |
+| Variable                           | Required | Type    | Default                                          | Description                                                    |
+| ---------------------------------- | -------- | ------- | ------------------------------------------------ | -------------------------------------------------------------- |
+| dci\_topic                         | True     | String  |                                                  | Name of the topic. `OCP-4.5` and up.                           |
+| dci\_tags                          | False    | List    | ["debug"]                                        | List of tags to set on the job                                 |
+| dci\_name                          | False    | String  |                                                  | Name of the job                                                |
+| dci\_configuration                 | False    | String  |                                                  | String representing the configuration of the job               |
+| dci\_comment                       | False    | String  |                                                  | Comment to associate with the job                              |
+| dci\_url                           | False    | URL     |                                                  | URL to associate with the job                                  |
+| dci\_components\_by\_query         | False    | List    | []                                               | Component by query. ['name:4.5.9']                             |
+| dci\_component                     | False    | List    | []                                               | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
+| dci\_must\_gather\_images          | False    | List    |["registry.redhat.io/openshift4/ose-must-gather"] | List of the must-gather images to use when retrieving logs.\*  |
+| dci\_teardown\_on\_failure         | False    | Boolean | False                                            | Whether or not execute the teardown hook on a failure          |
+| dci\_teardown\_on\_success         | False    | Boolean | True                                             | Whether or not execute the teardown hook on success            |
+| dci\_openshift\_agent\_conformance | False    | String  |                                                  | If defined it will run that category of conformance test       |
+| baremetal\_deploy\_version         | False    | String  | HEAD                                             | Allows you to lock upstream baremetal repo to specific version |
+| http\_proxy                        | False    | String  |                                                  | http proxy to use                                              |
+| https\_proxy                       | False    | String  |                                                  | https proxy to use                                             |
+| no\_proxy\_list                    | False    | String  |                                                  | Comma separated list of hosts not going through the proxies    |
 
 \* [Here](https://docs.openshift.com/container-platform/4.7/support/gathering-cluster-data.html) you can find information on the available must-gather images. Also, bear in mind that authentication is required to retrieve the images.
 

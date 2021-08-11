@@ -5,7 +5,8 @@ dci_baseurl: "http://{{ dci_base_ip }}"
 dci_mirror_location: /var/www/html
 dci_config_dirs: [/etc/dci-openshift-agent]
 dci_cache_dir: /var/lib/dci-openshift-agent
-dci_teardown_on_failure: true
+dci_teardown_on_failure: false
+dci_teardown_on_success: true
 dci_tags: ['debug']
 baremetal_deploy_repo: https://github.com/openshift-kni/baremetal-deploy
 baremetal_deploy_version: HEAD
