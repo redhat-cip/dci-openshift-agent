@@ -54,6 +54,8 @@ The 3 remaining systems will run the freshly installed OCP Cluster. “3” is t
 - Each server must have DNS setup for the API, wildcard applications. Please follow the [Openshift Baremetal DNS server configuration](https://openshift-kni.github.io/baremetal-deploy/latest/Deployment#DNS)
 - Optional - Include DNS entries for the hostnames for each of the servers
 
+![Proposed network diagram](https://lucid.app/publicSegments/view/bedb0b3c-0cca-43ef-9dc6-7ed40ac35506/image.png "Proposed network diagram")
+
 #### Jumpbox requirements
 
 The `Jumpbox` can be a physical server or a virtual machine.
