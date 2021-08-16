@@ -17,48 +17,64 @@
     pullsecret: "{{ hostvars.localhost.pullsecret | to_json }}"
   no_log: true
 
-- name: "installer: Check if .cache directory exists"
-  stat:
-    path: "{{ ansible_user_dir }}/.cache"
-  register: cache_directory
-
-- name: "installer: Cleanup old images"
+- name: IPI Installer tasks
   block:
-    - name: "installer: Retrieve images older than max_images_age"
-      find:
-        paths: "{{ ansible_user_dir }}/.cache/openshift-installer/image_cache"
-        file_type: file
-        age: "{{ max_images_age | default('26w') | string }}"
-        recurse: no
-        use_regex: yes
-      register: old_images_to_delete
+  - name: "installer: Check if .cache directory exists"
+    stat:
+      path: "{{ ansible_user_dir }}/.cache"
+    register: cache_directory
 
-    - name: "installer: Delete images older than max_images_age"
-      file:
-        path: "{{ item.path }}"
-        state: absent
-      loop: "{{ old_images_to_delete.files }}"
+  - name: "installer: Cleanup old images"
+    block:
+      - name: "installer: Retrieve images older than max_images_age"
+        find:
+          paths: "{{ ansible_user_dir }}/.cache/openshift-installer/image_cache"
+          file_type: file
+          age: "{{ max_images_age | default('26w') | string }}"
+          recurse: no
+          use_regex: yes
+        register: old_images_to_delete
+
+      - name: "installer: Delete images older than max_images_age"
+        file:
+          path: "{{ item.path }}"
+          state: absent
+        loop: "{{ old_images_to_delete.files }}"
+    when:
+      - cleanup_old_images | default(false) | bool
+      - cache_directory.stat.exists
+
+  - name: "installer : Populate clusterosimage"
+    set_fact:
+      clusterosimage: "{{ hostvars.localhost.clusterosimage }}"
+    when: hostvars.localhost.clusterosimage is defined
+
+  - name: "installer : Populate bootstraposimage"
+    set_fact:
+      bootstraposimage: "{{ hostvars.localhost.bootstraposimage }}"
+    when: hostvars.localhost.bootstraposimage is defined
+
+  - name: "installer : Node preparation"
+    import_role:
+      name: node-prep
+
+  - name: "installer : Run IPI installer"
+    import_role:
+      name: installer
+  when: install_type is undefined or install_type == 'ipi'
+
+- name: SNO Installer tasks
+  block:
+  - name: "installer : SNO Node preparation"
+    import_role:
+      name: sno-node-prep
+
+  - name: "installer : SNO Run IPI installer"
+    import_role:
+      name: sno-installer
   when:
-    - cleanup_old_images | default(false) | bool
-    - cache_directory.stat.exists
-
-- name: "installer : Populate clusterosimage"
-  set_fact:
-    clusterosimage: "{{ hostvars.localhost.clusterosimage }}"
-  when: hostvars.localhost.clusterosimage is defined
-
-- name: "installer : Populate bootstraposimage"
-  set_fact:
-    bootstraposimage: "{{ hostvars.localhost.bootstraposimage }}"
-  when: hostvars.localhost.bootstraposimage is defined
-
-- name: "installer : Node preparation"
-  import_role:
-    name: node-prep
-
-- name: "installer : Run IPI installer"
-  import_role:
-    name: installer
+    - install_type is defined 
+    - install_type == 'sno'
 
 - name: "installer : Setup openshift access in jumphost"
   include_role:

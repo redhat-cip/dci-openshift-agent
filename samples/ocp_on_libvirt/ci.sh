@@ -46,10 +46,16 @@ if [ -n "$GERRIT_USER" ]; then
                 echo "$type $project $number \"$comment\" $url =============================="
                 case $project in
                     dci-openshift-agent|dci-ansible|ansible-role-dci-import-keys|ansible-role-dci-retrieve-component|ansible-role-dci-sync-registry|ansible-role-dci-podman|ansible-role-dci-ocp-imagesideload|ansible-collection-community-kubernetes)
-                        if egrep -qi '^\s*recheck\s*$' <<< "$comment"; then
+                        if grep -Eqi '^\s*recheck\s*$' <<< "$comment"; then
                             dci-check-change $number
                         elif [ -n "$DCI_CHECK_NAME" ] && egrep -qi "^\s*check\s+$DCI_CHECK_NAME" <<< "$comment"; then
-                            dci-check-change $number $(egrep -i "check\s+$DCI_CHECK_NAME" <<< "$comment"|head -1|sed -e "s/^\s*check\s*$DCI_CHECK_NAME\s*//i")
+                            ARGS=$(grep -Ei "check\s+$DCI_CHECK_NAME" <<< "$comment"|head -1|sed -e "s/^\s*check\s*$DCI_CHECK_NAME\s*//i")
+                            if grep -q -- "--sno" <<< "$ARGS"; then
+                                ARGS=${ARGS/--sno/}
+                                dci-check-change --sno $number $ARGS
+                            else
+                                dci-check-change $number $ARGS
+                            fi
                         fi
                         ;;
                 esac
