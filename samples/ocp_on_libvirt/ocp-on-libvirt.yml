@@ -16,7 +16,6 @@
   vars:
     dci_cs_url: "https://api.distributed-ci.io/"
     extra_pkgs:
-      - byobu
       - rsync
       - tcpdump
 
@@ -96,15 +95,6 @@
       yum:
         name: dci-openshift-agent
         state: present
-
-    - name: Enable byobu for the dci-openshift-agent user
-      tags:
-        - setup
-        - install
-      become_user: dci-openshift-agent
-      shell: |
-        byobu-enable
-        byobu-ctrl-a screen
 
     - name: Copy SSH key to the dci-openshift-agent user
       tags:
