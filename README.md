@@ -70,6 +70,9 @@ In any case, it must:
   - DCI Repository, https://repo.distributed-ci.io
   - EPEL, https://dl.fedoraproject.org/pub/epel/
   - QUAY.IO, https://quay.io
+  - RED HAT REGISTRY, https://registry.redhat.io
+  - RED HAT SSO, https://access.redhat.com
+  - RED HAT CATALOG, https://catalog.redhat.com
 - Have a static internal (network lab) IP
 - Be able to reach all systems under test (SUT) using (mandatory, but not limited to):
   - SSH
