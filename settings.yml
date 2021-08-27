@@ -21,6 +21,9 @@ dci_topic: OCP-4.7
 # By default we don't run the conformance tests
 #dci_openshift_agent_conformance: openshift-conformance-minimal
 
+# By default disconnected mode is disabled
+#dci_disconnected: False
+
 # Specify version of baremetal deploy repo, default is HEAD
 #baremetal_deploy_version: HEAD
 

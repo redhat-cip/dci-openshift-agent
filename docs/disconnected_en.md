@@ -15,6 +15,9 @@ Frequently, portions of a data center might not have access to the Internet, eve
 * The registry host needs to have access to the Internet and at least 110 GB of disk space. You will download the required software repositories and container images to this computer. The registry host will usually be the Jumphost but it can be another server.
 
 ## Configurations:
+
+First you have to set the 'dci_disconnected' option to 'True' in the settings file `/etc/dci-openshift-agent/settings.yml`.
+
 All the configuration needs to be done in the ansible hosts file `/etc/dci-openshift-agent/hosts`.
 
 Following an example of the configuration file highlighting the variables needed by the disconnected environment:
