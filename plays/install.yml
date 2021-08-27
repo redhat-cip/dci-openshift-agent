@@ -17,6 +17,31 @@
     pullsecret: "{{ hostvars.localhost.pullsecret | to_json }}"
   no_log: true
 
+- name: "installer: Check if .cache directory exists"
+  stat:
+    path: "{{ ansible_user_dir }}/.cache"
+  register: cache_directory
+
+- name: "installer: Cleanup old images"
+  block:
+    - name: "installer: Retrieve images older than max_images_age"
+      find:
+        paths: "{{ ansible_user_dir }}/.cache/openshift-installer/image_cache"
+        file_type: file
+        age: "{{ max_images_age | default('26w') | string }}"
+        recurse: no
+        use_regex: yes
+      register: old_images_to_delete
+
+    - name: "installer: Delete images older than max_images_age"
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ old_images_to_delete.files }}"
+  when:
+    - cleanup_old_images | default(false) | bool
+    - cache_directory.stat.exists
+
 - name: "installer : Populate clusterosimage"
   set_fact:
     clusterosimage: "{{ hostvars.localhost.clusterosimage }}"
