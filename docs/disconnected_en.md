@@ -1,6 +1,9 @@
 # Disconnected environment
 
-Frequently, portions of a data center might not have access to the Internet, even via proxy servers. You can still install OpenShift Container Platform in these environments, but you must download required software and images and make them available to the disconnected environment.
+Frequently, portions of a data center might not have access to the Internet,
+even via proxy servers. You can still install OpenShift Container Platform in
+these environments, but you must download required software and images and make
+them available to the disconnected environment.
 
 ## Table of Contents
 
@@ -12,15 +15,22 @@ Frequently, portions of a data center might not have access to the Internet, eve
 - [Contact](#contact)
 
 ## Requirements:
-* The registry host needs to have access to the Internet and at least 110 GB of disk space. You will download the required software repositories and container images to this computer. The registry host will usually be the Jumphost but it can be another server.
+* The registry host needs to have access to the Internet and at least 110 GB of
+  disk space. You will download the required software repositories and
+  container images to this computer. The registry host will usually be the
+  jumpbox but it can be another server.
 
 ## Configurations:
 
-First you have to set the 'dci_disconnected' option to 'True' in the settings file `/etc/dci-openshift-agent/settings.yml`.
+First you have to set the 'dci_disconnected' option to 'True' in the settings
+file `/etc/dci-openshift-agent/settings.yml`.
 
-All the configuration needs to be done in the ansible hosts file `/etc/dci-openshift-agent/hosts`.
+All the configuration needs to be done in the ansible hosts file
+`/etc/dci-openshift-agent/hosts`.
 
-Following an example of the configuration file highlighting the variables needed by the disconnected environment:
+Following an example of the configuration file highlighting the variables
+needed by the disconnected environment:
+
 ```
 [all:vars]
 
@@ -72,9 +82,10 @@ The variables needed by the disconnected environment:
 
 ## Deploying the registry (Optional)
 
-A playbook exist to deploy the registry and the webserver storing the QCOW images
+A playbook exist to deploy the registry and the webserver storing the QCOW
+images
 
-On the Jumphost:
+On the jumpbox:
 ```
 su - dci-openshift-agent
 cd samples
@@ -85,19 +96,12 @@ ansible-playbook infrastructure.yml
 [![demo](https://asciinema.org/a/vUVI3w23OBqQaM0Ux7IDOlaiq.svg)](https://asciinema.org/a/vUVI3w23OBqQaM0Ux7IDOlaiq?autoplay=1)
 
 ## Running dci-openshift-agent
-After the configuration and the registry are setup, we can deploy openshift using the dci-openshift-agent:
+After the configuration and the registry are setup, we can deploy openshift
+using the dci-openshift-agent:
+
 ```
 systemctl start dci-openshift-agent
 ```
 
 ### Demo
 [![demo](https://asciinema.org/a/zbrwiulDWgtV2ABzJ6pK4Uez3.svg)](https://asciinema.org/a/zbrwiulDWgtV2ABzJ6pK4Uez3?autoplay=1)
-
-## License
-
-Apache License, Version 2.0 (see [LICENSE](LICENSE) file)
-
-## Contact
-
-Email: Distributed-CI Team <distributed-ci@redhat.com>
-IRC: #distributed-ci on Freenode
