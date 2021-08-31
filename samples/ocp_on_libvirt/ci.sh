@@ -47,12 +47,13 @@ if [ -n "$GERRIT_USER" ]; then
                 case $project in
                     dci-openshift-agent|dci-ansible|ansible-role-dci-import-keys|ansible-role-dci-retrieve-component|ansible-role-dci-sync-registry|ansible-role-dci-podman|ansible-role-dci-ocp-imagesideload|ansible-collection-community-kubernetes)
                         if egrep -qi '^\s*recheck\s*$' <<< "$comment"; then
-                            dci-check-change $number                            
+                            dci-check-change $number
                         fi
                         ;;
                 esac
             fi
         done
+        sleep 30
    done
 fi
 
