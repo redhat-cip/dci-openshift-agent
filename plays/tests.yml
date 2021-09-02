@@ -7,29 +7,34 @@
   include_role:
     name: ansible-role-dci-podman
 
-- name: "dci-openshift-agent : Side-load podman images prior to testing"
-  vars:
-    sideload_ocp_cluster: "{{ cluster }}"
-    sideload_ocp_provisioner: "{{ groups['provisioner'][0] }}"
-    sideload_ocp_cluster_nodes: "{{ groups['masters'] + groups['workers'] }}"
-    sideload_images:
-      - "mirror.gcr.io/library/busybox:1.29"
-      - "docker.io/library/httpd:2.4.38-alpine"
-      - "mirror.gcr.io/library/nginx:1.14-alpine"
-      - "gcr.io/kubernetes-e2e-test-images/mounttest:1.0"
-      - "k8s.gcr.io/pause:3.2"
-      - "us.gcr.io/k8s-artifacts-prod/e2e-test-images/agnhost:2.12"
-  include_role:
-    name: ansible-role-dci-ocp-imagesideload
-  when:
-    - (dci_openshift_agent_conformance | string | length) > 0
-    - dci_disconnected | default(false) | bool
+- name: Get oc version output
+  environment:
+    KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
+  shell: |
+    {{ dci_cluster_configs_dir }}/oc version
+  register: oc_version_str
+  delegate_to: localhost
+
+- name: Get OCP version
+  set_fact:
+    ocp_version: "{{ '.'.join(item.split(':')[1].strip().split('.')[0:2]) }}"
+    ocp_version_major: "{{ item.split(':')[1].strip().split('.')[0] }}"
+    ocp_version_minor: "{{ item.split(':')[1].strip().split('.')[1] }}"
+  when: "'Server Version' in item"
+  loop: "{{ oc_version_str.stdout_lines }}"
 
 - name: "dci-openshift-agent : Run Red Hat test suite"
+  vars:
+    ocp_version_maj: "{{ ocp_version_major | int }}"
+    ocp_version_min: "{{ ocp_version_minor | int }}"
+    conformance_registry_certificate: "{{ registry_certificate }}"
+    conformance_registry_auth: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+    conformance_local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
   include_role:
     name: redhat-tests
   when:
     - (dci_openshift_agent_conformance | string | length) > 0
+    - registry_certificate is defined
 
 # Setup and run cnf-tests
 - block:

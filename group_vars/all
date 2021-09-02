@@ -19,7 +19,6 @@ cnf_features_deploy_dir: "{{ dci_cache_dir }}/cnf_features_deploy_repo"
 cnf_tests_image: ''
 cnf_operator_channel: ''
 dci_cluster_configs_dir: "{{'~/clusterconfigs' | expanduser}}-{{ cluster }}"
-dci_ose_tests_image: quay.io/eminguez/ose-tests-full:latest
 dci_prepare_cnf: false
 dci_rpms_to_components:
   - dci-openshift-agent
