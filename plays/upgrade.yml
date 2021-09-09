@@ -56,7 +56,9 @@
           oc wait --timeout=1m --for=condition=Updated ${mcp} &
         done
         wait -n
+    register: wait_for_mcp
     retries: 5
+    until: wait_for_mcp.rc == 0
 
   - name: "upgrader : Wait for nodes to become Ready"
     shell:
@@ -66,7 +68,9 @@
           oc wait --timeout=5m --for=condition=Ready ${node} &
         done
         wait -n
+    register: wait_for_nodes
     retries: 4
+    until: wait_for_nodes.rc == 0
 
   - name: "upgrader : Patch clusterversion to point to custom upstream graph"
     shell:
@@ -110,7 +114,9 @@
   command:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
     cmd: oc wait --timeout=1m --for=condition=Progressing clusterversion/version
+  register: wait_for_upgrade
   retries: 5
+  until: wait_for_upgrade.rc == 0
   when:
     - start_upgrade.stdout.find("Cluster is already at version") == -1
 
