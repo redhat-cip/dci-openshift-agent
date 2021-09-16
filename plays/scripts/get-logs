@@ -128,6 +128,7 @@ else
         $rem oc version > $dir/version.txt
         $rem oc get clusterversion/version > $dir/clusterversion.txt
         $rem oc get clusteroperator > $dir/clusteroperator.txt
+        $rem oc get network cluster -o yaml > $dir/clusternetwork.txt
         $rem oc get nodes > $dir/nodes.txt
         $rem oc get events --all-namespaces --sort-by='.metadata.creationTimestamp' > $dir/events.txt
         $rem oc get pods --all-namespaces -o wide > $dir/pods.txt
