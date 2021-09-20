@@ -189,7 +189,7 @@ fi
 
 # make sure the change is only on dci-openshift-agent
 if [ -d dci-openshift-agent -a $(ls|wc -l) -eq 2 ]; then
-    NUMBER_CODE_FILES=$(cd dci-openshift-agent; git diff-tree --no-commit-id --name-only -r HEAD|egrep '(ansible.cfg|group_vars/all|dci-check-change|test-runner|send-feedback|extract-dependencies|dci-openshift-agent-ctl|\.(yml|j2|py))'|wc -l)
+    NUMBER_CODE_FILES=$(cd dci-openshift-agent; git diff-tree --no-commit-id --name-only -r HEAD|egrep '(ansible.cfg|group_vars/all|plays/scripts/get-logs|dci-check-change|test-runner|send-feedback|extract-dependencies|dci-openshift-agent-ctl|\.(yml|j2|py))'|wc -l)
     if [ "$NUMBER_CODE_FILES" -eq 0 ]; then
         PID=
         LOCATION="no-check"
