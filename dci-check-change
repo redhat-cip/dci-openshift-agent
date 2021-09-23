@@ -31,7 +31,14 @@ fi
 BASEDIR=$(cd $(dirname $0); pwd)
 
 if [ $# = 0 -o "$1" = -h ]; then
-    echo "Usage: $0 [--virt] [-f] (<GitHub PR URL>|<Gerrit review id>)" 1>&2
+  name=$(basename -- "$0")
+    cat << EOF
+    echo "Usage: $name [--virt|--sno] [-f] (<GitHub PR URL>|<Gerrit review id>)" 1>&2
+    arguments:
+    --virt       Use OCP on Libvirt.
+    --sno        Use SNO on Libvirt.
+    -f           Force a suffix to be added.
+EOF
     exit 1
 fi
 
@@ -43,12 +50,15 @@ set -x
 
 ARGS="$@"
 
+SUFFIX=-$(echo "$@"|md5sum|cut -f1|cut -f1 -d ' ')
+
 if [ $1 = --virt ]; then
     VIRT=--virt
     shift
+elif [ $1 = --sno ]; then
+    VIRT=--sno
+    shift
 fi
-
-SUFFIX=-$(echo "$@"|md5sum|cut -f1|cut -f1 -d ' ')
 
 # force a suffix to be added on -f
 if [ "$1" = "-f" ]; then

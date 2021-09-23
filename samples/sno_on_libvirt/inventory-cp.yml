@@ -1,0 +1,10 @@
+---
+- name: 'Play to copy the default inventory for SNO deployment'
+  hosts: provisioner
+  gather_facts: false
+  tasks:
+    - name: Copy the hosts file
+      copy:
+        src: ~dci-openshift-agent/samples/sno_on_libvirt/hosts
+        dest: /etc/dci-openshift-agent/hosts
+        remote_src: true

@@ -1,0 +1,219 @@
+#!/usr/bin/env -S ansible-playbook sno-on-libvirt.yml -e @~/sno-node-settings.yml -i /etc/ansible/hosts
+#
+# Short-hand to install an sno-on-libvirt lab. You would run this from your
+# workstation pointing to the host in your /etc/ansible/hosts.
+# Create your ~/sno-node-settings.yml file to declare your variables, then run
+# it as an executable. Example:
+# echo "[sno_host]" | sudo tee -a /etc/ansible/hosts
+# echo "myserver ansible_user=user-with-sudo-priv ansible_host=some-server" | sudo tee -a /etc/ansible/hosts
+# $EDITOR ~/sno-node-settings.yml # add the variables under assert tasks down below
+# ./sno-on-libvirt.yml -l myserver
+#
+# NOTE: playbook will fail if you haven't defined the secret variables required
+---
+- name: Prepare sno-on-libvirt lab in a fresh host
+  hosts: 'sno_host'
+  become: true
+  vars:
+    dci_cs_url: "https://api.distributed-ci.io/"
+    extra_pkgs:
+      - tmux
+      - rsync
+      - tcpdump
+      - git
+      - tig
+      - python3-netaddr
+      - python3-jmespath
+      - ansible
+  # If required uncomment and define proxy variables
+  #environment:
+  #  http_proxy: "{{ http_proxy }}"
+  #  https_proxy: "{{ https_proxy }}"
+  #  no_proxy: "{{ no_proxy_list }}"
+
+  tasks:
+    - name: Assert all required fields exist
+      assert:
+        that: "{{ item }} != ''"
+      with_items:
+        - dci_client_id
+        - dci_api_secret
+        - rhn_user
+        - rhn_pass
+        - github_user
+
+    - name: Confirm whether or not internet connectivity on sno-on-libvirt host
+      tags:
+        - setup
+      uri:
+        url: https://www.redhat.com
+        status_code: [-1,200]
+        timeout: 1
+      register: internet_url
+
+    - name: Subscribe system to RHN
+      tags:
+        - setup
+      redhat_subscription:
+        state: present
+        username: "{{ rhn_user }}"
+        password: "{{ rhn_pass }}"
+        auto_attach: true
+      when:
+        - (internet_url.status == 200)
+        - ansible_distribution == "RedHat"
+
+    - name: Install EPEL Release
+      tags:
+        - setup
+      yum:
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+      when:
+        - (internet_url.status == 200)
+
+    - name: Install DCI Release
+      tags:
+        - setup
+      yum:
+        name: "https://packages.distributed-ci.io/dci-release.el{{ ansible_distribution_major_version }}.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+      when:
+        - (internet_url.status == 200)
+
+    - name: Install extra packages
+      tags:
+        - setup
+        - pkgs
+      yum:
+        name: "{{ extra_pkgs }}"
+        state: present
+
+    - name: Install dci-openshift-agent
+      tags:
+        - setup
+        - install
+      yum:
+        name: dci-openshift-agent
+        state: present
+
+    - name: Copy SSH key to the dci-openshift-agent user
+      tags:
+        - setup
+        - install
+      authorized_key:
+        user: dci-openshift-agent
+        state: present
+        key: "https://github.com/{{ github_user }}.keys"
+      when:
+        - (internet_url.status == 200)
+
+    - name: Ensure there is a ~/tmp directory for d-o-a
+      tags:
+        - setup
+        - install
+      become_user: dci-openshift-agent
+      file:
+        path: ~/tmp
+        state: directory
+
+    - name: Copy the hosts file
+      tags:
+        - install
+        - create
+        - config
+      copy:
+        src: ~dci-openshift-agent/samples/sno_on_libvirt/hosts
+        dest: /etc/dci-openshift-agent/hosts
+        remote_src: true
+
+    - name: Create the dcirc file
+      tags:
+        - install
+        - create
+        - config
+      copy:
+        dest: /etc/dci-openshift-agent/dcirc.sh
+        content: |
+          export DCI_CLIENT_ID='{{ dci_client_id }}'
+          export DCI_API_SECRET='{{ dci_api_secret }}'
+          export DCI_CS_URL='{{ dci_cs_url }}'
+          export ANSIBLE_LOG_PATH='/tmp/dci-openshift-agent.log'
+
+    - name: Add dcirc variables in .bashrc of dci-openshift-agent user
+      tags:
+        - install
+        - create
+        - config
+        - bashrc
+      copy:
+        dest: /var/lib/dci-openshift-agent/.bashrc
+        content: |
+          export DCI_CLIENT_ID='{{ dci_client_id }}'
+          export DCI_API_SECRET='{{ dci_api_secret }}'
+          export DCI_CS_URL='{{ dci_cs_url }}'
+        mode: u+rw,g+rw,o+r
+        owner: dci-openshift-agent
+        group: dci-openshift-agent
+
+    - name: Create .ssh directory for dci-openshift-agent user
+      file:
+        path: /var/lib/dci-openshift-agent/.ssh
+        state: directory
+        mode: u+rw,g-rwx,o-rwx
+        owner: dci-openshift-agent
+        group: dci-openshift-agent
+      tags: ssh
+
+    - name: Create SSH keys
+      openssh_keypair:
+        path: /var/lib/dci-openshift-agent/.ssh/id_rsa
+        type: ed25519
+      tags: ssh
+
+    - name: Set owner to dci-openshift-agent SSH keys
+      file:
+        path: "{{ item }}"
+        state: file
+        owner: dci-openshift-agent
+        group: dci-openshift-agent
+      loop:
+        - /var/lib/dci-openshift-agent/.ssh/id_rsa
+        - /var/lib/dci-openshift-agent/.ssh/id_rsa.pub
+      tags: ssh
+
+    - name: Get the contents of the ssh key for {{ ansible_user_id }}
+      slurp:
+        src: "/var/lib/dci-openshift-agent/.ssh/id_rsa.pub"
+      register: dcisshkey
+      tags: ssh
+
+    - name: Set Fact for the ssh key of dci-openshift-agent
+      set_fact:
+        dcissh_pubkey: "{{ dcisshkey['content'] | b64decode }}"
+      tags: ssh
+
+    - name: Set authorized_keys for dci-openshift-agent
+      copy:
+        content: |
+          {{ dcissh_pubkey }}
+        dest: /var/lib/dci-openshift-agent/.ssh/authorized_keys
+        mode: u+rw,g+r,o+r
+        owner: dci-openshift-agent
+        group: dci-openshift-agent
+      tags: ssh
+
+    - name: Set default ssh client settings
+      copy:
+        content: |
+          Host *
+               StrictHostKeyChecking no
+               UserKnownHostsFile /dev/null
+        dest: /var/lib/dci-openshift-agent/.ssh/config
+        mode: u+rw,g-rwx,o-rwx
+        owner: dci-openshift-agent
+        group: dci-openshift-agent
+      tags: ssh
+...
