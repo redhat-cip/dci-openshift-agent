@@ -1,15 +1,34 @@
 # Playbooks to deploy Single Node Openshift on a libvirt VM
 
+Single Node OpenShift is a Red Hat Openshift deployment designed to have a small footprint that fits constrained environments and Edge computing needs.
+
+The deployment consists on  a Single Cluster Node playing the Master and Worker Node at the same time. Single-node OpenShift deployment does not have an option to add additional hosts Single-node OpenShift isn’t highly-available. It explicitly does not assume zero downtime of the Kubernetes API.
+
 ## Pre-requisites
 
 - A RHEL 8.4 server with direct internet access
-  - Access to `rhel-8-for-x86_64-baseos-rpms` and `rhel-8-for-x86_64-appstream-rpms` repos required
-  - If the vars activation_key and org_id are provided registration is done during the deployment
-- Tested in Fedora 34 using play `deploy-sno-standalone.yml`
+- Ansible >= 2.9
+- A valid Red Hat subscription
+  - Access to `rhel-8-for-x86_64-baseos-rpms` and `rhel-8-for-x86_64-appstream-rpms` repositories is required
+  - If the vars activation_key and org_id are provided, the system registration to the proper subscriptions is done during the deployment
+
+The playbook `deploy-sno-standalone.yml` has been also tested in Fedora 34.
+
+## Hardware Requirements
+
+These are the pseudo-official requirements to run:
+- vCPU: 8
+- RAM: 32 GB
+- Storage: 120 GB
+
+But we have been able to get it deployed with:
+- vCPU: 6
+- RAM: 16 GB
+- Storage: 20 GB
 
 ## Prepare SNO node
 
-This is where the OCP/SNO installation will be launched, and where the VM will be running.
+This is where the OCP/SNO installation will be launched, and where the VM will be running OpenShift.
 
 ### 1. Configuration
 
@@ -26,6 +45,8 @@ rhn_pass: !vault |
           VAULTED_RHN_PASSWORD
 github_user: your-github-user
 ```
+
+* Please engage the DCI team if you do not have the proper access keys and you want to use the Red Hat Distributed CI service during your deployments.
 
 ### 2. Prepare the inventory
 
@@ -72,7 +93,7 @@ dci-openshift-agent-ctl -s -- -v
 ### 1. Inventory Notes
 
 If you run the playbook sno-on-libvirt.yml, it copies the default inventory `samples/sno_on_libvirt/hosts` to `/etc/dci-openshift-agent/hosts`.
-This inventory contains defaults values for the SNO/OCP cluster setup, and SNO plays will validate if they are not provided:
+This inventory contains defaults values for the SNO/OCP cluster setup, and SNO plays will validate if they are provided:
 
 - pull secret
 - domain
@@ -86,18 +107,18 @@ Additionally the following groups are defined:
 - master group and host entry
 - worker group (no need to add hosts to this group
 
-If you did not run sno-on-libvirt.yml playbook, you can copy the default inventory and adapt it to your setup, make sure you include the variables above. 
+If you did not run sno-on-libvirt.yml playbook, you can copy the default inventory and adapt it to your setup, make sure you include the variables above.
 
 ```bash
 cp samples/sno_on_libvirt/hosts /etc/dci-openshift-agent/hosts
 ```
 
-If you use the default inventory, then you only need to provide the pullsecret variable.
+If you use the default inventory, then you only need to provide the pullsecret variable. A pull secret can be obtained from the [Red Hat Console](https://console.redhat.com/openshift/downloads) under Token > pullsecret section.
 
 ```bash
 $ sudo vi /etc/dci-openshift-agent/hosts
 ...
-pullsecret="Add-pull-secret-in-json"
+pullsecret="{{ lookup('file', '<PATH_TO_PULLSECRET>')|string }}"
 ...
 ```
 ### 2. Set OCP/SNO version
@@ -131,3 +152,4 @@ sudo su - dci-openshift-agent
 cd ~/samples/sno_on_libvirt/
 ansible-playbook deploy-sno-standalone.yml -t cleanup
 ```
+
