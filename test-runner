@@ -21,16 +21,16 @@ finish() {
     echo "finish $*"
 
     if [ -n "$PID" ]; then
-        PGID=$(ps -o pgid= $PID | grep -o [0-9]*)
+        PGID=$(ps -o pgid= "$PID" | grep -o '[0-9]*')
 
         if [ -n "$PGID" ]; then
-            kill -KILL -$PGID
+            kill -KILL -"$PGID"
         else
             echo "Unable to find process group for $PID"
-            kill $PID
+            kill "$PID"
         fi
 
-        wait $PID
+        wait "$PID"
         RET=$?
     fi
 
@@ -167,17 +167,15 @@ trap finish 0
 
 set -x
 
-CHANGEID=$(basename $DIR)
+CHANGEID=$(basename "$DIR")
 CHANGEID=${CHANGEID%%-*}
 
 # extract github or gerrit from the path
-KIND=$(basename $(dirname $DIR))
-cd $DIR
+KIND=$(basename $(dirname "$DIR"))
+cd "$DIR"
 
-if [ $KIND = gerrit ]; then
-    PROJECT=$(jq -r .project $CHANGEID.json)
-    CURREV=$(jq -r .current_revision $CHANGEID.json)
-    PATCHSET=$(jq -r ".revisions[\"$CURREV\"]._number" $CHANGEID.json)
+if [ "$KIND" = gerrit ]; then
+    PROJECT=$(jq -r .project "$CHANGEID.json")
     TAG="gerrit:$PROJECT-$CHANGEID"
     URL="https://softwarefactory-project.io/r/#/c/$CHANGEID/"
 else
@@ -192,7 +190,7 @@ fi
 # do not run checks on doc only changes in dci-openshift-agent
 
 # make sure the change is only on dci-openshift-agent
-if [ -d dci-openshift-agent -a $(ls|wc -l) -eq 2 ]; then
+if [ -d dci-openshift-agent ] && [ $(ls|wc -l) -eq 2 ]; then
     NUMBER_CODE_FILES=$(cd dci-openshift-agent; git diff-tree --no-commit-id --name-only -r HEAD|egrep '(ansible.cfg|group_vars/all|plays/scripts/get-logs|dci-check-change|test-runner|send-feedback|extract-dependencies|dci-openshift-agent-ctl|\.(yml|j2|py))'|wc -l)
     if [ "$NUMBER_CODE_FILES" -eq 0 ]; then
         PID=
@@ -205,21 +203,21 @@ fi
 # directories
 
 if [ -d dci-openshift-agent ]; then
-    ln -s $PWD/dci-openshift-agent/* .
+    ln -s "$PWD"/dci-openshift-agent/* .
     rm -f ansible.cfg dci-openshift-agent.yml
     cp dci-openshift-agent/ansible.cfg .
-    sed -e "s@include_tasks:\s*plays/@include_tasks: $PWD/dci-openshift-agent/plays/@" < $PWD/dci-openshift-agent/dci-openshift-agent.yml > $PWD/dci-openshift-agent.yml
+    sed -e "s@include_tasks:\s*plays/@include_tasks: $PWD/dci-openshift-agent/plays/@" < "$PWD"/dci-openshift-agent/dci-openshift-agent.yml > "$PWD"/dci-openshift-agent.yml
     # force to use the roles from the change
     sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/roles/:@" ansible.cfg
-    sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/roles/:@" $PWD/dci-openshift-agent/samples/ocp_on_libvirt/ansible.cfg
-    CMD=$PWD/dci-openshift-agent/dci-openshift-agent-ctl
-    if [ $VIRT = virt ]; then
-        VIRTDIR=$PWD/dci-openshift-agent/samples/ocp_on_libvirt
-    elif [ $VIRT = sno ]; then
-        VIRTDIR=$PWD/dci-openshift-agent/samples/sno_on_libvirt
+    sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/roles/:@" "$PWD"/dci-openshift-agent/samples/ocp_on_libvirt/ansible.cfg
+    CMD="$PWD/dci-openshift-agent/dci-openshift-agent-ctl"
+    if [ "$VIRT" = virt ]; then
+        VIRTDIR="$PWD"/dci-openshift-agent/samples/ocp_on_libvirt
+    elif [ "$VIRT" = sno ]; then
+        VIRTDIR="$PWD"/dci-openshift-agent/samples/sno_on_libvirt
     fi
     # needed for ctl to take the settings.yml from the change
-    export CONFIG_DIR=$PWD
+    export CONFIG_DIR="$PWD"
 else
     ln -s /usr/share/dci-openshift-agent/* .
     rm -f ansible.cfg
@@ -238,11 +236,11 @@ fi
 
 for conf in $(ls -d *config 2> /dev/null); do
     sed -i -e "s@/var/lib/dci-openshift-agent/$conf/@$PWD/$conf/@g" ansible.cfg
-    if [ -r $conf/settings.yml ]; then
-        sed -i -e "s@/var/lib/dci-openshift-agent/$conf/@$PWD/$conf/@g" $conf/settings.yml
-        export CONFIG_DIR=$PWD/$conf
+    if [ -r "$conf/settings.yml" ]; then
+        sed -i -e "s@/var/lib/dci-openshift-agent/$conf/@$PWD/$conf/@g" "$conf/settings.yml"
+        export CONFIG_DIR="$PWD/$conf"
     fi
-    if [ -r $conf/hosts ]; then
+    if [ -r "$conf/hosts" ]; then
         sed -i -e "s@/etc/dci-openshift-agent/hosts@$PWD/$conf/hosts@g" ansible.cfg
     fi
 done
@@ -252,7 +250,7 @@ if [ -d dci-ansible ]; then
 fi
 
 for d in $(ls -d ansible-role-dci-* 2> /dev/null); do
-    if [ -r $d/tasks/main.yml ]; then
+    if [ -r "$d/tasks/main.yml" ]; then
         sed -i -e "s@\(roles_path\s*=\s*\)@\1${PWD}:@" ansible.cfg
     fi
 done
@@ -268,7 +266,7 @@ if [ -n "$REQS" ]; then
 
     # substitute dependencies from the changes into requirements.txt
     for req in $REQS; do
-        reqdir=$(dirname $req)
+        reqdir=$(dirname "$req")
         if [ -r $reqdir/setup.py ]; then
             module=$(sed -n -e 's/\s*name="\(.*\)",/\1/p' $reqdir/setup.py)
             if [ -n "$module" ]; then
@@ -279,8 +277,8 @@ if [ -n "$REQS" ]; then
 
     # install python dependencies into the virtualenv
     for req in $REQS; do
-        pip install -r $req
-        cd $(dirname $req)
+        pip install -r "$req"
+        cd $(dirname "$req")
         python setup.py develop || :
         cd -
     done
@@ -291,27 +289,27 @@ FEEDBACK="Starting dci-check-change job."
 $BASEDIR/send-feedback $DIR "$FEEDBACK" --tag autogenerated:dci-check-change --verified 0
 
 if [ -n "$VIRT" ]; then
-    cd $VIRTDIR
-    if [ $VIRT = virt ]; then
+    cd "$VIRTDIR"
+    if [ "$VIRT" = virt ]; then
       setsid ansible-playbook -v libvirt_destroy.yml &
       do_wait
       setsid ansible-playbook -v libvirt_up.yml &
       do_wait
     fi
     sudo cp hosts /etc/dci-openshift-agent/
-    cd $DIR
+    cd "$DIR"
 fi
 
 # needed for dci-openshift-agent-ctl
-export DCI_OPENSHIFT_AGENT_DIR=$PWD
-export ANSIBLE_CONFIG=$PWD/ansible.cfg
+export DCI_OPENSHIFT_AGENT_DIR="$PWD"
+export ANSIBLE_CONFIG="$PWD/ansible.cfg"
 
 setsid $CMD -s -v -- -v $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" "$@" >& output &
 PID=$!
 
 # make everything read-only to mimic what is delivered as rpm or in
 # the system
-chmod -R a-w $DIR || :
+chmod -R a-w "$DIR" || :
 
 tail -f output&
 PID2=$!
