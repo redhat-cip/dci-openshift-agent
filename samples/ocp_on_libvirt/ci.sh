@@ -37,7 +37,7 @@ if [ -n "$GERRIT_USER" ]; then
                 subject="$(jq -r .change.subject <<< $data)"
                 echo "$type $project $number \"$subject\" $url =============================="
                 case $project in
-                    dci-openshift-agent|dci-ansible|ansible-role-dci-import-keys|ansible-role-dci-retrieve-component|ansible-role-dci-sync-registry|ansible-role-dci-podman|ansible-role-dci-ocp-imagesideload|ansible-collection-community-kubernetes)
+                    dci-openshift-*|dci-ansible|ansible-role-dci-import-keys|ansible-role-dci-retrieve-component|ansible-role-dci-sync-registry|ansible-role-dci-podman|ansible-role-dci-ocp-imagesideload|ansible-collection-community-kubernetes)
                         dci-check-change $number
                         ;;
                 esac
