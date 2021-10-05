@@ -330,6 +330,9 @@ fi
 # test the deployed cluster with the basic_example from dci-openshift-app-agent
 EXAMPLE=${EXAMPLE:=basic_example}
 
+# to allow d-o-a-a-ctl to run as dci-openshift-agent
+export DCI_USER=dci-openshift-agent
+
 OC=oc
 for p in /usr/local/bin "$HOME"/clusterconfigs-*; do
     if [ -x "$p/oc" ]; then
