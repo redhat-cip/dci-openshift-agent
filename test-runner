@@ -344,6 +344,7 @@ done
 # get the name of the cluster from the ansible output
 CLUSTER=$(sed -n -e 's@changed:.*/clusterconfigs-\([^\"]*\)/kubeconfig.*@\1@p' output)
 export KUBECONFIG="$HOME/clusterconfigs-$CLUSTER/kubeconfig"
+unset ANSIBLE_CONFIG
 
 if [ -r "$KUBECONFIG" ]; then
     OCPVERS=$($OC version -o json|jq -r .openshiftVersion)
@@ -364,10 +365,12 @@ if [ -r "$KUBECONFIG" ]; then
     if [ -d dci-openshift-app-agent ]; then
         cd dci-openshift-app-agent
         ln -s /etc/dci-openshift-app-agent/dcirc.sh .
-        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="/var/lib/dci-openshift-app-agent/samples/$EXAMPLE" -e dci_topic="$OCP_TOPIC" -e dci_name="$EXAMPLE" &>> ../output &
+        export CONFIG_DIR="$PWD"
+        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="$PWD/dci-openshift-app-agent/samples/$EXAMPLE" -e dci_topic="$OCP_TOPIC" -e dci_name="$EXAMPLE" &>> ../output &
         cd ..
     else
-        setsid dci-openshift-app-agent-ctl -s -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="$PWD/samples/$EXAMPLE" -e dci_topic="$OCP_TOPIC" -e dci_name="$EXAMPLE" &>> output &
+        unset CONFIG_DIR
+        setsid dci-openshift-app-agent-ctl -s -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="/var/lib/dci-openshift-app-agent/samples/$EXAMPLE" -e dci_topic="$OCP_TOPIC" -e dci_name="$EXAMPLE" &>> output &
     fi
     do_wait
 else
