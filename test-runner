@@ -366,7 +366,7 @@ if [ -r "$KUBECONFIG" ]; then
         cd dci-openshift-app-agent
         ln -s /etc/dci-openshift-app-agent/dcirc.sh .
         export CONFIG_DIR="$PWD"
-        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="$PWD/dci-openshift-app-agent/samples/$EXAMPLE" -e dci_topic="$OCP_TOPIC" -e dci_name="$EXAMPLE" &>> ../output &
+        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="$PWD/samples/$EXAMPLE" -e dci_topic="$OCP_TOPIC" -e dci_name="$EXAMPLE" &>> ../output &
         cd ..
     else
         unset CONFIG_DIR
