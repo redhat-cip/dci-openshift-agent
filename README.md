@@ -244,6 +244,7 @@ which version of OCP to install.
 | dci\_url                           | False    | URL     |                                                  | URL to associate with the job                                  |
 | dci\_components\_by\_query         | False    | List    | []                                               | Component by query. ['name:4.5.9']                             |
 | dci\_component                     | False    | List    | []                                               | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
+| dci\_previous\_job\_id             | False    | String  | ""                                               | Previous job UUID
 | dci\_must\_gather\_images          | False    | List    |["registry.redhat.io/openshift4/ose-must-gather"] | List of the must-gather images to use when retrieving logs.\*  |
 | dci\_teardown\_on\_failure         | False    | Boolean | False                                            | Whether or not execute the teardown hook on a failure          |
 | dci\_teardown\_on\_success         | False    | Boolean | True                                             | Whether or not execute the teardown hook on success            |
