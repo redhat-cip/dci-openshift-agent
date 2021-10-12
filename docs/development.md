@@ -43,18 +43,17 @@ Finally, you can run the script:
 Please refer to the [full libvirt documentation](ocp_on_libvirt.md) to setup
 your own local libvirt environment
 
-# Continuous integration
+# Testing a change
 
-## Testing a change
-
-If you want to test a change from a Gerrit review or from a Github PR,
+If you want to test a change from a Gerrit review or from a GitHub PR,
 use the `dci-check-change` command. Example:
 
 ```console
 $ dci-check-change 21136
 ```
 
-to check https://softwarefactory-project.io/r/#/c/21136/ or from a Github:
+to check https://softwarefactory-project.io/r/#/c/21136/ or from a
+GitHub PR:
 
 ```console
 $ dci-check-change https://github.com/myorg/config/pull/42
@@ -63,8 +62,10 @@ $ dci-check-change https://github.com/myorg/config/pull/42
 Regarding Github, you will need a token to access private repositories
 stored in `~/.github_token`.
 
-By convention, the `settings.yml` and `hosts` files are searched in
-directories ending in `config`.
+`dci-check-change` will launch a DCI job to perform an OCP
+installation using `dci-openshift-agent-ctl` and then launch another
+DCI job to run an OCP workload using `dci-openshift-app-agent-ctl` if
+`dci-openshift-app-agent-ctl` is present on the system.
 
 You can use `dci-queue` from the `dci-pipeline` package to manage a
 queue of changes. To enable it, add the name of the queue into
@@ -80,6 +81,40 @@ If you have multiple prefixes, you can also enable it in
 ```console
 USE_PREFIX=1
 ```
+
+## Advanced
+
+### Dependencies
+
+If the change you want to test has a `Depends-On:` or `Build-Depends:`
+field, `dci-check-change` will install the corresponding change and
+make sure all the changes are tested together.
+
+### Hints
+
+You can also specify a `Test-Hints:` field in the description of your
+change. This will direct `dci-check-change` to test in a specific way:
+
+* `Test-Hints: sno` validate the change in SNO mode.
+* `Test-Hints: libvirt` validate in libvirt mode (3 masters).
+* `Test-Hints: no-check` do not run a check (useful in CI mode).
+
+`Test-Args-Hints:` can also be used to specify extra parameters to
+pass to `dci-check-change`.
+
+# Continuous integration
+
+You can use
+`/var/lib/dci-openshift-agent/samples/ocp_on_libvirt/ci.sh` to setup
+your own CI system to validate changes.
+
+To do so, you need to set the `GERRIT_SSH_ID` variable to set the ssh
+key file to use to read the stream of Gerrit events from
+`softwarefactory-project.io`. And `GERRIT_USER` to the Gerrit user to
+use.
+
+The `ci.sh` script will then monitor the Gerrit events for new changes
+to test with `dci-check-change` and to report results to Gerrit.
 
 # Agent troubleshooting
 
