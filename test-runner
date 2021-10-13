@@ -337,6 +337,11 @@ if [ -z "$KCFG" ]; then
     do_wait 1
 fi
 
+# do not continue if d-o-a-a-ctl is not installed
+if ! type -p dci-openshift-app-agent-ctl; then
+    exit $RET
+fi
+
 # test the deployed cluster with the basic_example from dci-openshift-app-agent
 EXAMPLE=${EXAMPLE:=basic_example}
 
