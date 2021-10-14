@@ -17,14 +17,15 @@
 set -ex
 
 cleanup() {
-    if [ -d $DIR.bootstrap ]; then
-        rm -rf $DIR.bootstrap
+    if [ -d "$DIR.bootstrap" ]; then
+        rm -rf "$DIR.bootstrap"
     fi
 }
 
 VIRT=
 DCI_QUEUE=
 SNO_DCI_QUEUE=
+SUPPORTED_HINTS=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -32,14 +33,19 @@ fi
 
 BASEDIR=$(cd $(dirname $0); pwd)
 
-if [ $# = 0 -o "$1" = -h ]; then
+if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno] [-f] (<GitHub PR URL>|<Gerrit review id>)" 1>&2
+    echo "Usage: $name [--virt|--sno] [-s] [-f] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
+
     arguments:
-    --virt       Use OCP on Libvirt.
-    --sno        Use SNO on Libvirt.
-    -f           Force a suffix to be added.
+    --virt            Use OCP on Libvirt.
+    --sno             Use SNO on Libvirt.
+    -s                Force a suffix to be added.
+    -f                Force to run without obeying hints.
+    <kubeconfig path> To avoid running an OCP installation.
+    <ctl args>        Arguments passed to the ctl.
 EOF
     exit 1
 fi
@@ -63,8 +69,8 @@ elif [ $1 = --sno ]; then
     shift
 fi
 
-# force a suffix to be added on -f
-if [ "$1" = "-f" ]; then
+# force a suffix to be added on -s
+if [ "$1" = "-s" ]; then
     # manage recursive call (bootstrap): extract the directory name
     # from the path of the command
     if grep -Fq '.bootstrap' <<< $BASEDIR; then
@@ -80,6 +86,11 @@ else
     DIR=
     CHANGEID=$1
     shift
+fi
+
+# disable hints
+if [ "$1" = "-f" ]; then
+    SUPPORTED_HINTS=
 fi
 
 case $CHANGEID in
@@ -99,29 +110,23 @@ case $CHANGEID in
 esac
 
 if [ -d $DIR ]; then
-    if [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then        
-        # if there is an alternative queue, get the hints from the old
-        # directory to find if we are in sno mode
-        if [ -n "$SNO_DCI_QUEUE" ] && [ "$DCI_QUEUE" != "$SNO_DCI_QUEUE" ]; then
-            if [ "$TYPE" = "github" ]; then
-                OLD_DESC=$(jq -r .body github.json)
-            else
-                OLD_DESC=$(cd $(jq -r .project "$CHANGEID.json"); git log -1)
-            fi
-            if grep -qi "^\s*Test-Hints:\s*sno\s*" <<< $OLD_DESC; then
-                DCI_QUEUE="$SNO_DCI_QUEUE"
-            fi
-            unset OLD_DESC
-        fi
+    if [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
         jobid="$(dci-queue searchdir $DCI_QUEUE $DIR || :)"
         if [ -n "$jobid" ]; then
             dci-queue unschedule $DCI_QUEUE $jobid
+        else
+            if [ -n "$SNO_DCI_QUEUE" ] && [ "$DCI_QUEUE" != "$SNO_DCI_QUEUE" ]; then
+                jobid="$(dci-queue searchdir $SNO_DCI_QUEUE $DIR || :)"
+                if [ -n "$jobid" ]; then
+                    dci-queue unschedule $SNO_DCI_QUEUE $jobid
+                fi
+            fi
         fi
      fi
      if [ -d "$DIR" ]; then
         find "$DIR" -type d -not -perm -u=w -exec chmod u+w {} \;
         rm -rf "$DIR"
-     fi        
+     fi
 fi
 
 trap cleanup 0
@@ -155,24 +160,28 @@ fi
 echo "$DESC" | tr -d '\r' | sort -u | $BASEDIR/extract-dependencies $DIR
 
 # process Test-Hints (only no-check, sno or libvirt for now)
-if grep -qi "^\s*Test-Hints:\s*sno\s*" <<< $DESC; then
+if [[ "sno" =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno\s*" <<< $DESC; then
     VIRT=--sno
     if [ -n "$SNO_DCI_QUEUE" ]; then
         DCI_QUEUE="$SNO_DCI_QUEUE"
     fi
 fi
 
-if grep -qi "^\s*Test-Hints:\s*libvirt\s*" <<< $DESC; then
+if [[ "sno" =~ "$SUPPORTED_HINTS" ]] && grep -qi "^\s*Test-Hints:\s*libvirt\s*" <<< $DESC; then
     VIRT=--virt
 fi
 
-if grep -qi "^\s*Test-Hints:\s*no-check\s*" <<< $DESC; then
+if [[ "no-check" =~ "$SUPPORTED_HINTS" ]] && grep -qi "^\s*Test-Hints:\s*no-check\s*" <<< $DESC; then
     VIRT=--no-check
     NO_DCI_QUEUE=1
 fi
 
 # process Test-Args-Hints
-OPTS=$(sed -n -e "s/^\s*Test-Args-Hints:\s*//pi" <<< $DESC)
+if [[ "args" =~ "$SUPPORTED_HINTS" ]]; then
+    OPTS=$(sed -n -e "s/^\s*Test-Args-Hints:\s*//pi" <<< $DESC)
+else
+    OPTS=
+fi
 
 # take test-runner from the local dir
 if [ -d dci-openshift-agent ]; then

@@ -102,6 +102,13 @@ change. This will direct `dci-check-change` to test in a specific way:
 `Test-Args-Hints:` can also be used to specify extra parameters to
 pass to `dci-check-change`.
 
+Hints need to be activated in the `SUPPORTED_HINTS` variable in
+`/etc/dci-openshift-agent/config` like this:
+
+```Shell
+SUPPORTED_HINTS="sno|libvirt|no-check|args"
+```
+
 # Continuous integration
 
 You can use
@@ -115,6 +122,13 @@ use.
 
 The `ci.sh` script will then monitor the Gerrit events for new changes
 to test with `dci-check-change` and to report results to Gerrit.
+
+For the CI to vote in Gerrit and comment in GitHub, you need to set
+the `DO_VOTE` variable in `/etc/dci-openshift-agent/config` like this:
+
+```Shell
+DO_VOTE=1
+```
 
 # Agent troubleshooting
 

@@ -16,6 +16,8 @@
 
 set -x
 
+[ -z "$DO_VOTE" ] && exit 0
+
 DIR="$1"
 BODY="$2"
 # pass all the other parameters to gerrit

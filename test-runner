@@ -124,6 +124,7 @@ fi
 VIRT=
 DCI_NAME=
 KCFG=
+DO_VOTE=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -131,6 +132,7 @@ fi
 
 # needed by send-feddback
 export GERRIT_USER
+export DO_VOTE
 
 if [ "$1" = "--virt" ]; then
     VIRT="virt"
