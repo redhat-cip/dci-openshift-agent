@@ -147,6 +147,10 @@ ansible-playbook ~/samples/sno_on_libvirt/deploy-sno-standalone.yml -i /etc/dci-
 
 ### 4. Access the GUI
 
+If SNO is deployed using DCI, the dci-openshift-agent will create 2 users for the API/GUI. Please review /home/`<user>`/`<clusterconfigs-path>`/ocp_creds.txt file in the jumphost for details and change the passwords if needed.
+
+In case SNO is deployed using the standalone mode, please follow the process below to create a local user for the GUI/API.
+
 * Adding the admin user to the httpassd Identity provider and assign to to the cluster-admin role.
 
 ```bash

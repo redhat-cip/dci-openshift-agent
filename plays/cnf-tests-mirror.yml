@@ -1,15 +1,5 @@
 # Mirror images needed for running cnf-tests
 ---
-- name: Login as admin user for cnf-tests
-  environment:
-    KUBECONFIG: "{{ dci_cluster_configs_dir | expanduser }}/kubeconfig"
-  shell: |
-    {{ dci_cluster_configs_dir }}/oc login --insecure-skip-tls-verify=true -u admin -p admin https://api.{{ cluster }}.{{ domain }}:6443
-  retries: 10
-  delay: 10
-  register: result
-  until: result.rc == 0
-
 - name: Create images.json file
   shell: |
     echo '[

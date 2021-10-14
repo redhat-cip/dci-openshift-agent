@@ -1,8 +1,4 @@
 ---
-- name: "dci-openshift-agent : Setup openshift access"
-  include_role:
-    name: oc-setup
-
 - name: "dci-openshift-agent : Setup podman on the jumphost"
   include_role:
     name: ansible-role-dci-podman
