@@ -69,7 +69,9 @@ your-user@your-workstation ~$ ansible-playbook sno-on-libvirt.yml -e "@~/sno-nod
 
 NOTE: The playbook sno-on-libvirt.yml, it copies the default inventory `samples/sno_on_libvirt/hosts` to `/etc/dci-openshift-agent/hosts` which contains required variables, including a very important one: `install_type=sno` this will allow DCI agent to define which install to perform.
 
-## Deploy with DCI from the SNO provisioner node
+Choose one deployment method:
+
+## A) Deploy with DCI from the SNO provisioner node
 
 SNO only works on OCP 4.8 and above. Please ensure your `/etc/dci-openshift-agent/settings.yml` has only 4.8 references.
 
@@ -88,7 +90,7 @@ source /etc/dci-openshift-agent/dcirc.sh
 dci-openshift-agent-ctl -s -- -v
 ```
 
-## Deploy without DCI from the SNO provisioner node
+## B) Deploy without DCI from the SNO provisioner node
 
 ### 1. Inventory Notes
 
@@ -142,6 +144,40 @@ sudo su - dci-openshift-agent
 cd /usr/share/dci-openshift-agent
 ansible-playbook ~/samples/sno_on_libvirt/deploy-sno-standalone.yml -i /etc/dci-openshift-agent/hosts
 ```
+
+### 4. Access the GUI
+
+* Adding the admin user to the httpassd Identity provider and assign to to the cluster-admin role.
+
+```bash
+touch htpasswd
+htpasswd -Bb htpasswd admin <your_password>
+oc --user=admin create secret generic htpasswd --from-file=htpasswd -n openshift-config
+oc replace -f - <<API
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - name: Local Password
+    mappingMethod: claim
+    type: HTPasswd
+    htpasswd:
+      fileData:
+        name: htpasswd
+API
+
+oc adm policy add-cluster-role-to-group cluster-admin admin
+```
+
+* Add the following entries to you local host file:
+```bash
+192.168.126.10 api.dcisno.example.com console-openshift-console.apps.dcisno.example.com oauth-openshift.apps.dcisno.example.com
+```
+
+* The OCP GUI should be ready at: https://console-openshift-console.apps.dcisno.example.com
+
 
 ## Destroy the SNO VM and perform some cleanup
 
