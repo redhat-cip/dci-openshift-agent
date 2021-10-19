@@ -29,6 +29,7 @@ There are some benefits of running the DCI OCP Agent:
   - [Jumpbox Configuration](#jumpbox-configuration)
   - [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
 - [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
+- [Interacting with your RHOCP Cluster](#interacting-with-your-rhocp-cluster)
 - [Troubleshooting common issues](#troubleshooting-common-issues)
 - [Keep the DCI OCP Agent Updated](#keep-the-dci-ocp-agent-updated)
 - [dci-openshift-agent workflow](#dci-openshift-agent-workflow)
@@ -388,6 +389,27 @@ you can use this command line:
 # su - dci-openshift-agent
 % dci-openshift-agent-ctl -s -- -v
 ```
+
+## Interacting with your RHOCP Cluster
+
+After you run a DCI job you will be able to interact with the RHOCP cluster using the OC client, the API, or the GUI.
+
+1. Using the OC client
+  ```bash
+  $ export KUBECONFIG=/home/<user>/<clusterconfigs-path>/kubeconfig
+  $ oc get nodes
+  ```
+2. Using the GUI/API
+
+Obtain the credentials generated during the installation from /home/`<user>`/`<clusterconfigs-path>`/ocp_creds.txt in the jumphost.
+
+Get the the URL of the cluster GUI:
+```bash
+$ oc whoami --show-console
+https://console-openshift-console.apps.<cluster>.<domain>
+```
+
+Note: The dci-openshift-agent is part of a [Continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) tool aimed to perform OCP deployments, should not be considered for production workloads. Use the above connection methods if some troubleshooting is required.
 
 ## Troubleshooting common issues
 
