@@ -24,8 +24,8 @@
     ocp_version_maj: "{{ ocp_version_major | int }}"
     ocp_version_min: "{{ ocp_version_minor | int }}"
     conformance_registry_certificate: "{{ registry_certificate }}"
-    conformance_registry_auth: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
-    conformance_local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
+    conformance_registry_auth: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+    conformance_local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
   include_role:
     name: redhat-tests
   when:
@@ -36,13 +36,13 @@
 - block:
     - name: Mirror images to local registry for disconnected cnf-tests
       vars:
-        dci_pullsecret_file: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+        dci_pullsecret_file: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
       include_tasks: cnf-tests-mirror.yml
       when: cnf_tests_mode == "offline"
 
     - name: Run cnf tests
       vars:
-        dci_pullsecret_file: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+        dci_pullsecret_file: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
       include_tasks: cnf-tests-run.yml
   when:
     - cnf_tests_mode is defined
@@ -63,7 +63,7 @@
     dci_cvp_bundle_spec: "{{ cvp_bundle_spec }}"
     dci_cvp_bundle_tag: "{{ cvp_bundle_tag }}"
     dci_cvp_pullsecret_file: "{{ dci_pullsecret_file }}"
-    dci_cvp_registry_host: "{{ local_registry }}"
+    dci_cvp_registry_host: "{{ local_registry_host }}:{{ local_registry_port }}"
     dci_cvp_cache_dir: "{{ dci_cache_dir }}"
     dci_cvp_cs_url: "{{ dci_cs_url }}"
     dci_cvp_client_id: "{{ dci_client_id }}"
@@ -76,6 +76,7 @@
   when:
     - cvp_bundle_spec is defined
     - cvp_bundle_tag is defined
-    - local_registry is defined
+    - local_registry_host is defined
+    - local_registry_port is defined
     - dci_pullsecret_file is defined
 ...

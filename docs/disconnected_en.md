@@ -39,6 +39,7 @@ local_registry_host=registry.example.com
 local_registry_port=5000
 local_registry_user=MY_REGISTRY_USER
 local_registry_password=MY_REGISTRY_PASSWORD
+provision_cache_store="/opt/cache"
 
 [...]
 webserver_url=http://pctt-hv1:8080
@@ -56,7 +57,6 @@ pctt-hv1 ansible_user=dci-openshift-agent
 #   an existing disconnected registry.
 disconnected_registry_auths_file=/opt/cache/pctt-hv1-auths.json
 disconnected_registry_mirrors_file=/opt/cache/pctt-hv1-trust-bundle.yml
-provision_cache_store="/opt/cache"
 local_repo=ocp4/openshift4
 # The following mirror entries are the default ones. If you want to add more mirror
 #   you can uncomment this parameter and add it here.
@@ -72,11 +72,10 @@ The variables needed by the disconnected environment:
 | [all:vars] | local_registry_port | True | String | Listening Port for the registry server |
 | [all:vars] | local_registry_user | True | String | Username for the registry server |
 | [all:vars] | local_registry_password | True | String | Password of the registry user for the registry server |
+| [all:vars] | provision_cache_store | True | String | Folder using for the caching |
 | [registry_host:vars] | disconnected_registry_auths_file | True | String | File that contains extra auth tokens to include in the pull-secret. This file will be generated if it doesn't exist. |
 | [registry_host:vars] | disconnected_registry_mirrors_file | True | String | File that contains the addition trust bundle and image content sources for the local registry. The contents of this file will be appended to the install-config.yml file. This file will be generated if it doesn't exist. |
-| [registry_host:vars] | provision_cache_store | True | String | Folder using for the caching |
 | [registry_host:vars] | registry_dir | True | String | Folder where to store the openshift container images |
-| [registry_host:vars] | local_registry | True | String | URL of the local registry hosting the openshift container images |
 | [registry_host:vars] | local_repo | True | String | Specify the name of the repository to create in your registry |
 | [registry_host:vars] | registry_source_mirrors | False | String | List of the mirror entries pointing to the registry_host |
 

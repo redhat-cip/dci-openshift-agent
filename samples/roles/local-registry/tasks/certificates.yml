@@ -76,7 +76,7 @@
       imageContentSources:
       {% for mirror in registry_source_mirrors %}
       - mirrors:
-        - {{ local_registry }}/{{ local_repo }}
+        - {{ registry_fqdn }}:{{ registry_http_port }}/{{ local_repo }}
         source: {{ mirror }}
       {% endfor %}
 ...

@@ -185,7 +185,8 @@
         - disconnected_registry_mirrors_file
         - provision_cache_store
         - registry_dir
-        - local_registry
+        - local_registry_host
+        - local_registry_port
         - local_repo
       when:
         - with_local_registry is defined

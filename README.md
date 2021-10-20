@@ -313,8 +313,10 @@ dnsvip=1.2.3.4
 ;disconnected_registry_mirrors_file=/path/to/trust-bundle.yml
 # Path on the jumpbox, must have enough space to hold your qcow images
 ;provision_cache_store="/path/to/qcow/cache"
-# Registry that will mirror all container images
-;local_registry=local-registry:5000
+# Registry host that will mirror all container images
+;local_registry_host=local-registry
+# Registry port
+;local_registry_port=5000
 # Registry namespace
 ;local_repo=ocp4/openshift4
 

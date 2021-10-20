@@ -5,9 +5,10 @@
       - webserver_url is defined
       - groups['registry_host'] is defined
       - groups['registry_host'] | length > 0
-      - hostvars[groups['registry_host'][0]].local_registry is defined
+      - local_registry_host is defined
+      - local_registry_port is defined
+      - provision_cache_store is defined
       - hostvars[groups['registry_host'][0]].local_repo is defined
-      - hostvars[groups['registry_host'][0]].provision_cache_store is defined
   when:
     - dci_disconnected | default(false) | bool
 
@@ -65,9 +66,9 @@
     version: "{{ hostvars.localhost.version }}"
     url: "{{ hostvars.localhost.url }}"
     build: "{{ hostvars.localhost.build }}"
-    cache_dir: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}"
+    cache_dir: "{{ hostvars.localhost.provision_cache_store }}"
     webserver_url: "{{ hostvars.localhost.webserver_url }}"
-    registry_url: "docker://{{ hostvars[groups['registry_host'][0]].local_registry }}/{{ hostvars[groups['registry_host'][0]].local_repo }}"
+    registry_url: "docker://{{ local_registry_host }}:{{ local_registry_port }}/{{ hostvars[groups['registry_host'][0]].local_repo }}"
     auths: "{{ hostvars.localhost.pullsecret | combine({'auths': hostvars.localhost.disconnected_auths}, recursive=True) }}"
     force_mirroring: "{{ (hostvars.localhost.dci_force_mirroring | default(false)) or (build == 'candidate') | bool }}"
   when:
@@ -103,9 +104,8 @@
 - name: "dci-openshift-agent : Mirror Operators"
   vars:
     version: "{{ hostvars.localhost.version }}"
-    provision_cache_store: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}"
-    dci_pullsecret_file: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
-    local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
+    dci_pullsecret_file: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+    local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
   include_role:
     name: operators-mirror
   when:
@@ -120,8 +120,8 @@
       --dest-tls-verify=false docker://{{ item }}
       docker://{{ local_image_location }}
   vars:
-    dci_pullsecret_file: "{{ hostvars[groups['registry_host'][0]].provision_cache_store }}/{{ cluster }}-pull-secret.txt"
-    local_registry: "{{ hostvars[groups['registry_host'][0]].local_registry }}"
+    dci_pullsecret_file: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+    local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
     local_image_location: "{{ local_registry }}/{{ item | regex_replace('^[^/]*/', '') }}"
   register: skopeo_copy
   retries: 5
