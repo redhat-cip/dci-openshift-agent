@@ -29,6 +29,8 @@
     name: operators-catalog
   when:
   - dci_disconnected | default(false) | bool
+  - opm_mirror_list is defined
+
 
 ### Begin CNF
 - name: "deploy-operators : Validate nodes for CNF"

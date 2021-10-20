@@ -118,11 +118,6 @@ do
     esac
 done
 
-if [ "$( id -u dci-openshift-agent )" != "$( id -u )" ]; then
-    echo "must be run as the dci-openshift-agent user"
-    usage 1
-fi
-
 if [ -n "$prefix" ]; then
     hosts="$config_dir/${prefix}-hosts"
     settings="$config_dir/${prefix}-settings.yml"
