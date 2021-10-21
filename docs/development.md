@@ -102,11 +102,14 @@ change. This will direct `dci-check-change` to test in a specific way:
 `Test-Args-Hints:` can also be used to specify extra parameters to
 pass to `dci-check-change`.
 
+`Test-App-Hints:` can also be used to change the default app to be
+used (`basic_example`).
+
 Hints need to be activated in the `SUPPORTED_HINTS` variable in
 `/etc/dci-openshift-agent/config` like this:
 
 ```Shell
-SUPPORTED_HINTS="sno|libvirt|no-check|args"
+SUPPORTED_HINTS="sno|libvirt|no-check|args|app"
 ```
 
 # Continuous integration

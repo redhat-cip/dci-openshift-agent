@@ -160,27 +160,36 @@ fi
 echo "$DESC" | tr -d '\r' | sort -u | $BASEDIR/extract-dependencies $DIR
 
 # process Test-Hints (only no-check, sno or libvirt for now)
-if [[ "sno" =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno\s*" <<< $DESC; then
+if [[ sno =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno\s*" <<< $DESC; then
     VIRT=--sno
     if [ -n "$SNO_DCI_QUEUE" ]; then
         DCI_QUEUE="$SNO_DCI_QUEUE"
     fi
 fi
 
-if [[ "sno" =~ "$SUPPORTED_HINTS" ]] && grep -qi "^\s*Test-Hints:\s*libvirt\s*" <<< $DESC; then
+if [[ libvirt =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*libvirt\s*" <<< $DESC; then
     VIRT=--virt
 fi
 
-if [[ "no-check" =~ "$SUPPORTED_HINTS" ]] && grep -qi "^\s*Test-Hints:\s*no-check\s*" <<< $DESC; then
+if [[ no-check =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*no-check\s*" <<< $DESC; then
     VIRT=--no-check
     NO_DCI_QUEUE=1
 fi
 
 # process Test-Args-Hints
-if [[ "args" =~ "$SUPPORTED_HINTS" ]]; then
+if [[ args =~ $SUPPORTED_HINTS ]]; then
     OPTS=$(sed -n -e "s/^\s*Test-Args-Hints:\s*//pi" <<< $DESC)
 else
     OPTS=
+fi
+
+# process Test-App-Hints
+if [[ app =~ $SUPPORTED_HINTS ]]; then
+    APP_NAME=$(sed -n -e "s/^\s*Test-App-Hints:\s*//pi" <<< $DESC)
+fi
+
+if [ -z "$APP_NAME" ]; then
+    APP_NAME=basic_example
 fi
 
 # take test-runner from the local dir
@@ -190,12 +199,12 @@ fi
 
 if [ -z "$NO_DCI_QUEUE" ] && [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
     if [ -n "$USE_PREFIX" ]; then
-        dci-queue schedule $DCI_QUEUE -- $BASEDIR/test-runner $VIRT $DIR -p @RESOURCE "$@" $OPTS
+        dci-queue schedule $DCI_QUEUE -- env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $DIR -p @RESOURCE "$@" $OPTS
     else
-        dci-queue schedule $DCI_QUEUE -- bash -c "echo @RESOURCE; exec $BASEDIR/test-runner $VIRT $DIR $@ $OPTS"
+        dci-queue schedule $DCI_QUEUE -- bash -c "echo @RESOURCE; export APP_NAME=$APP_NAME; exec $BASEDIR/test-runner $VIRT $DIR $@ $OPTS"
     fi
 else
-    $BASEDIR/test-runner $VIRT $DIR "$@" $OPTS
+    env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $DIR "$@" $OPTS
 fi
 
 # dci-check-change ends here
