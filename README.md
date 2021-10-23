@@ -255,6 +255,9 @@ which version of OCP to install.
 | http\_proxy                        | False    | String  |                                                  | http proxy to use                                              |
 | https\_proxy                       | False    | String  |                                                  | https proxy to use                                             |
 | no\_proxy\_list                    | False    | String  |                                                  | Comma separated list of hosts not going through the proxies    |
+| openshift\_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |
+|                                    |          |         |   quay.io/rhceph-dev:                            | You can also override the default auths provided by DCI        |
+|                                    |          |         |     auth: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx    | Any dict entry with the same name will override default values |
 
 [Here](https://docs.openshift.com/container-platform/4.7/support/gathering-cluster-data.html)
 you can find information on the available must-gather images. Also, bear in
