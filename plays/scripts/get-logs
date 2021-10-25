@@ -22,7 +22,7 @@ if [ $# -lt 3 ]; then
     exit 1
 fi
 
-rem="timeout -v 2m ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $log"
+rem="timeout -v 5m ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $log"
 
 shift 2
 masters=()
