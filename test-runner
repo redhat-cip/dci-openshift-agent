@@ -344,13 +344,12 @@ if ! type -p dci-openshift-app-agent-ctl; then
     exit $RET
 fi
 
-# test the deployed cluster with the basic_example from dci-openshift-app-agent
-EXAMPLE=${EXAMPLE:=basic_example}
-
 # to allow d-o-a-a-ctl to run as dci-openshift-agent
 export DCI_USER=dci-openshift-agent
 # no side effect from d-o-a
 unset ANSIBLE_CONFIG
+# default app if not specified in the env
+APP_NAME=${APP_NAME:=basic_example}
 
 OC=oc
 for p in /usr/local/bin "$HOME"/clusterconfigs-*; do
@@ -395,11 +394,11 @@ if [ -s "$KUBECONFIG" ]; then
         cd dci-openshift-app-agent
         ln -s /etc/dci-openshift-app-agent/dcirc.sh .
         export CONFIG_DIR="$PWD"
-        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="$PWD/samples/$EXAMPLE" -e dci_topic="$OCP_TOPIC" -e dci_name="$EXAMPLE" &>> ../output &
+        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="$PWD/samples/$APP_NAME" -e dci_topic="$OCP_TOPIC" -e dci_name="$APP_NAME" "$@" &>> ../output &
         cd ..
     else
         unset CONFIG_DIR
-        setsid dci-openshift-app-agent-ctl -s -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="/var/lib/dci-openshift-app-agent/samples/$EXAMPLE" -e dci_topic="$OCP_TOPIC" -e dci_name="$EXAMPLE" &>> output &
+        setsid dci-openshift-app-agent-ctl -s -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="/var/lib/dci-openshift-app-agent/samples/$APP_NAME" -e dci_topic="$OCP_TOPIC" -e dci_name="$APP_NAME" "$@" &>> output &
     fi
 
     if [ -n "$KCFG" ]; then
