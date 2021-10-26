@@ -1,5 +1,5 @@
 ---
-dci_topic: OCP-4.8
+dci_topic: OCP-4.9
 
 # -- Atttributes of the job --
 #dci_name: "my job"
@@ -13,8 +13,8 @@ dci_topic: OCP-4.8
 # You can specify components via the ID found from dcictl component-list
 #dci_components: ['c364f2a7-2d25-4b91-9773-3448fb48d0a0']
 # Or you can query by name or type and tags
-#dci_components_by_query: ['name:4.8.2']
-#dci_components_by_query: ['type:ocp,tags:ocp-vanilla-4.8-simple-ok']
+#dci_components_by_query: ['name:4.9.3']
+#dci_components_by_query: ['type:ocp,tags:ocp-vanilla-4.9-simple-ok']
 #dci_components_by_query: ['tags:build:ga']
 #If you specify both the components list will be combined.
 
