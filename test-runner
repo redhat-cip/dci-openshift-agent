@@ -96,10 +96,15 @@ finish() {
     exit $RET
 }
 
+# If passed an argument, do a tail -f on the output file in the
+# background
 do_wait() {
     PID=$!
 
     if [ -n "$1" ]; then
+        while [ ! -r output ]; do
+            sleep 10
+        done
         tail -f output&
         PID2=$!
     fi
@@ -183,6 +188,7 @@ trap finish 0
 
 set -x
 
+PIPELINEID="pipeline-id:${DCI_QUEUE_JOBID:=noqueue.$$}"
 CHANGEID=$(basename "$DIR")
 CHANGEID=${CHANGEID%%-*}
 
@@ -334,7 +340,7 @@ if [ -z "$KCFG" ]; then
     export DCI_OPENSHIFT_AGENT_DIR="$PWD"
     export ANSIBLE_CONFIG="$PWD/ansible.cfg"
     
-    setsid $CMD -s -v -- -v $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" "$@" >& output &
+    setsid $CMD -s -v -- -v $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" "$@" >& output &
 
     do_wait 1
 fi
@@ -344,8 +350,6 @@ if ! type -p dci-openshift-app-agent-ctl; then
     exit $RET
 fi
 
-# to allow d-o-a-a-ctl to run as dci-openshift-agent
-export DCI_USER=dci-openshift-agent
 # no side effect from d-o-a
 unset ANSIBLE_CONFIG
 # default app if not specified in the env
@@ -378,11 +382,11 @@ if [ -s "$KUBECONFIG" ]; then
         cd dci-openshift-app-agent
         ln -s /etc/dci-openshift-app-agent/dcirc.sh .
         export CONFIG_DIR="$PWD"
-        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="$PWD/samples/$APP_NAME" -e dci_name="$APP_NAME" "$@" &>> ../output &
+        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" -e dci_config_dir="$PWD/samples/$APP_NAME" -e dci_name="$APP_NAME" "$@" &>> ../output &
         cd ..
     else
         unset CONFIG_DIR
-        setsid dci-openshift-app-agent-ctl -s -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="/var/lib/dci-openshift-app-agent/samples/$APP_NAME" -e dci_name="$APP_NAME" "$@" &>> output &
+        setsid dci-openshift-app-agent-ctl -s -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" -e dci_config_dir="/var/lib/dci-openshift-app-agent/samples/$APP_NAME" -e dci_name="$APP_NAME" "$@" &>> output &
     fi
 
     if [ -n "$KCFG" ]; then
