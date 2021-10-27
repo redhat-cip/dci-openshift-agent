@@ -38,7 +38,7 @@
 
 - name: Set pullsecret from job_info
   set_fact:
-    pullsecret: "{{ openshift_secret | default(job_info.job.topic.data.pull_secret) }}"
+    pullsecret: "{{ job_info.job.topic.data.pull_secret | default({}) | combine(openshift_secret | default({}), recursive=True) }}"
   no_log: true
 
 - name: Read Disconnected auths
