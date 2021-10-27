@@ -374,31 +374,15 @@ if [ -s "/var/tmp/$CLUSTER.dci.job_id" ]; then
 fi
 
 if [ -s "$KUBECONFIG" ]; then
-    OCPVERS=$($OC version -o json|jq -r .openshiftVersion)
-    OCPVERS=${OCPVERS%%-*}
-    # extract the DCI topic
-    case "$OCPVERS" in
-        *.*.*)
-            OCP_TOPIC="OCP-${OCPVERS%.*}"
-            ;;
-        *.*)
-            OCP_TOPIC="OCP-$OCPVERS"
-            ;;
-        *)
-            "$BASEDIR"/send-feedback "$DIR" "Unsupported OCP version scheme: $OCPVERS"
-            exit 1
-            ;;
-    esac
-
     if [ -d dci-openshift-app-agent ]; then
         cd dci-openshift-app-agent
         ln -s /etc/dci-openshift-app-agent/dcirc.sh .
         export CONFIG_DIR="$PWD"
-        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="$PWD/samples/$APP_NAME" -e dci_topic="$OCP_TOPIC" -e dci_name="$APP_NAME" "$@" &>> ../output &
+        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="$PWD/samples/$APP_NAME" -e dci_name="$APP_NAME" "$@" &>> ../output &
         cd ..
     else
         unset CONFIG_DIR
-        setsid dci-openshift-app-agent-ctl -s -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="/var/lib/dci-openshift-app-agent/samples/$APP_NAME" -e dci_topic="$OCP_TOPIC" -e dci_name="$APP_NAME" "$@" &>> output &
+        setsid dci-openshift-app-agent-ctl -s -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\"]}" -e dci_config_dir="/var/lib/dci-openshift-app-agent/samples/$APP_NAME" -e dci_name="$APP_NAME" "$@" &>> output &
     fi
 
     if [ -n "$KCFG" ]; then

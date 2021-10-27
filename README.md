@@ -268,8 +268,8 @@ Example:
 
 ```YAML
 ---
-dci_topic: "OCP-4.8"
-dci_name: "ocp-4.8-job"
+dci_topic: "OCP-4.9"
+dci_name: "ocp-4.9-job"
 dci_configuration: "baremetal"
 dci_url: "https://softwarefactory-project.io/r/c/dci-openshift-agent/+/22195"
 dci_comment: "test-runner: use the new url metadata for jobs"
@@ -370,7 +370,7 @@ specify `dci_config_dirs` in your `settings.yml`. Example:
 
 ```YAML
 ---
-dci_topic: OCP-4.8
+dci_topic: OCP-4.9
 dci_config_dirs: [/var/lib/dci-openshift-agent/config]
 ```
 
