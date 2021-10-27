@@ -46,29 +46,18 @@
     - '{{ dci_cache_dir }}'
   become: true
 
-- name: "Clean up {{ dci_cluster_configs_dir }}"
-  file:
-    path: "{{ dci_cluster_configs_dir }}"
-    state: absent
-
 - block:
-  - name: "Create a temp dir where the cluster configs will live"
-    register: cluster_config_temp_dir
-    tempfile:
+  - name: "Clean up {{ dci_cluster_configs_dir }}"
+    file:
+      path: "{{ dci_cluster_configs_dir }}"
+      state: absent
+
+  - name: "Create {{ dci_cluster_configs_dir }}"
+    file:
+      path: "{{ dci_cluster_configs_dir }}"
       state: directory
-      prefix: dci.
-      suffix: .conf.d
-
-  - name: "Set the fact for the temp dir"
-    set_fact:
-      dci_cluster_configs_dir: "{{ cluster_config_temp_dir.path }}"
   when:
-    - dci_cluster_configs_dir is undefined
-
-- name: "Create {{ dci_cluster_configs_dir }}"
-  file:
-    path: "{{ dci_cluster_configs_dir }}"
-    state: directory
+    - dci_main is undefined or dci_main == 'install'
 
 - name: "Setup podman on the jumphost"
   include_role:
