@@ -17,6 +17,7 @@ Requires: ansible-role-dci-sync-registry
 Requires: ansible-role-dci-podman
 Requires: ansible-role-dci-ocp-imagesideload
 Requires: ansible-collection-community-kubernetes
+Requires: ansible-collection-containers-podman
 Requires: python3-pyyaml python3-openshift
 Requires: ansible-role-dci-cvp
 Requires: jq
