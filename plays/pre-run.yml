@@ -90,15 +90,17 @@
   delay: 10
   until: not git_clone.failed
 
+- include_tasks: track_git_repo.yml
+  with_items:
+    - "{{ dci_gits_to_components }}"
+    - "{{ dev_gits_to_components }}"
+
 - name: Gather the package facts
   package_facts:
     manager: auto
 
 - include_tasks: track_rpm.yml
   with_items: "{{ dci_rpms_to_components }}"
-
-- include_tasks: track_git_repo.yml
-  with_items: "{{ dci_gits_to_components }}"
 
 # Mirror Operators for offline mode
 - name: "dci-openshift-agent : Mirror Operators"
