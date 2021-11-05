@@ -45,7 +45,7 @@ if [ -n "$GERRIT_USER" ]; then
                 comment="$(jq -r .comment <<< $data)"
                 echo "$type $project $number \"$comment\" $url =============================="
                 case $project in
-                    dci-openshift-agent|dci-ansible|ansible-role-dci-import-keys|ansible-role-dci-retrieve-component|ansible-role-dci-sync-registry|ansible-role-dci-podman|ansible-role-dci-ocp-imagesideload|ansible-collection-community-kubernetes)
+                    dci-openshift-*|dci-ansible|ansible-role-dci-import-keys|ansible-role-dci-retrieve-component|ansible-role-dci-sync-registry|ansible-role-dci-podman|ansible-role-dci-ocp-imagesideload|ansible-collection-community-kubernetes)
                         if grep -Eqi '^\s*recheck\s*$' <<< "$comment"; then
                             dci-check-change $number
                         elif [ -n "$DCI_CHECK_NAME" ] && egrep -qi "^\s*check\s+$DCI_CHECK_NAME" <<< "$comment"; then
