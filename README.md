@@ -695,9 +695,8 @@ Enable the dnf-automatic.timer
 _Exit playbooks:_
 The following playbooks are executed sequentially at any step that fail:
 
-- Teardown: `/hooks/teardown.yml`
-- Failure: `/plays/failure.yml` during the `running` steps and
-  `/plays/error.yml` during the other steps.
+- Teardown: `/hooks/teardown.yml` which is executed only when the boolean `dci_teardown_on_success` is set to `true` (set to `true` by default)
+- Failure: `/plays/failure.yml` and `/hooks/failure.yml` during the `running` steps and `/plays/error.yml` during the other steps. `/hooks/failure.yml` was added to allow custom debug command to gather more meaningful logs.
 
 **NOTE**: All the task files located in directory
 `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized
