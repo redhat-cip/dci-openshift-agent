@@ -186,6 +186,13 @@
               ignore_errors: true
 
           always:
+            - name: Run the failure process for partners
+              include_tasks: "{{ hookdir }}/hooks/failure.yml"
+              loop: "{{ dci_config_dirs }}"
+              loop_control:
+                loop_var: hookdir
+              ignore_errors: true
+
             - name: Run the failure process
               include_tasks: plays/failure.yml
 

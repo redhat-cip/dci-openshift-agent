@@ -5,6 +5,7 @@
     recurse: true
     patterns: "*.txt,*.html"
   register: logs_matched
+  delegate_to: localhost
 
 - name: "Upload test text files results to DCI Control Server"
   environment:
@@ -23,6 +24,7 @@
     recurse: true
     patterns: "*junit*.xml"
   register: junit_matched
+  delegate_to: localhost
 
 - name: "Upload Junit files to DCI Control Server"
   environment:
