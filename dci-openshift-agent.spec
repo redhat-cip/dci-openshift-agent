@@ -21,6 +21,7 @@ Requires: ansible-collection-containers-podman
 Requires: python3-pyyaml python3-openshift
 Requires: ansible-role-dci-cvp
 Requires: jq
+Requires: git
 
 %{?systemd_requires}
 Requires(pre): shadow-utils
