@@ -377,6 +377,10 @@ if [ -s "/var/tmp/$CLUSTER.dci.job_id" ]; then
     OPTS="$OPTS -e dci_previous_job_id=$(cat /var/tmp/$CLUSTER.dci.job_id)"
 fi
 
+if [ -d test-network-function ]; then
+    OPTS="$OPTS -e test_network_function_repo=$PWD"
+fi
+
 if [ -s "$KUBECONFIG" ]; then
     if [ -d dci-openshift-app-agent ]; then
         cd dci-openshift-app-agent
