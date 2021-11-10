@@ -52,7 +52,7 @@ while read line; do
 
           cd $dir
           git stash || :
-          git checkout master
+          git checkout master || git checkout main
           # remove old branch if it exists
           git branch -D pr$pr || :
           if [ -r $HOME/.ssh/id_github ]; then
@@ -62,15 +62,15 @@ while read line; do
           fi
           # check if branch is already merged
           if git branch -d pr$pr; then
-              git checkout master
+              git checkout master || git checkout main
           else
               git checkout pr$pr
               if [ -r $HOME/.ssh/id_github ]; then
-                  ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git fetch origin master"
+                  ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git fetch origin master" || ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git fetch origin main"
               else
-                  git fetch origin master
+                  git fetch origin master || git fetch origin main
               fi
-              if ! git rebase origin/master; then
+              if ! git rebase origin/master && ! git rebase origin/main; then
                   $BASEDIR/send-feedback $TARGET "error in check dallas: unable to rebase PR $pr from $proj"
                   rm -rf $TARGET
                   exit 1
