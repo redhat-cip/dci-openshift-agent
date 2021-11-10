@@ -27,6 +27,7 @@ DCI_QUEUE=
 SNO_DCI_QUEUE=
 SUPPORTED_HINTS=
 NO_DCI_QUEUE=
+NO_COMMENT=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -37,12 +38,13 @@ BASEDIR=$(cd $(dirname $0); pwd)
 if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    echo "Usage: $name [--virt|--sno] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
     Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
 
     arguments:
     --virt            Use OCP on Libvirt.
     --sno             Use SNO on Libvirt.
+    -n                Do not vote or comment on Gerrit reviews or GitHub PR.
     -f                Force to run without obeying hints.
     -s                Force a suffix to be added.
     <kubeconfig path> To avoid running an OCP installation.
@@ -67,6 +69,12 @@ elif [ $1 = --sno ]; then
     if [ -n "$SNO_DCI_QUEUE" ]; then
         DCI_QUEUE="$SNO_DCI_QUEUE"
     fi
+    shift
+fi
+
+# no comment
+if [ "$1" = "-n" ]; then
+    NO_COMMENT=-n
     shift
 fi
 
@@ -210,12 +218,12 @@ fi
 
 if [ -z "$NO_DCI_QUEUE" ] && [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
     if [ -n "$USE_PREFIX" ]; then
-        dci-queue schedule $DCI_QUEUE -- env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $DIR -p @RESOURCE "$@" $OPTS
+        dci-queue schedule $DCI_QUEUE -- env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
     else
-        dci-queue schedule $DCI_QUEUE -- bash -c "echo @RESOURCE; export APP_NAME=$APP_NAME; exec $BASEDIR/test-runner $VIRT $DIR $@ $OPTS"
+        dci-queue schedule $DCI_QUEUE -- bash -c "echo @RESOURCE; export APP_NAME=$APP_NAME; exec $BASEDIR/test-runner $VIRT $NO_COMMENT $DIR $@ $OPTS"
     fi
 else
-    env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $DIR "$@" $OPTS
+    env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $NO_COMMENT $DIR "$@" $OPTS
 fi
 
 # dci-check-change ends here

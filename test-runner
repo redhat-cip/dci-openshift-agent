@@ -122,7 +122,7 @@ do_wait() {
 BASEDIR=$(cd $(dirname $0); pwd)
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 (--virt|--sno|--no-check) <change directory> [<kubeconfig path>] [<dci-openshift-agent-ctl options>]" 1>&2
+    echo "Usage: $0 (--virt|--sno|--no-check) (-n) <change directory> [<kubeconfig path>] [<dci-openshift-agent-ctl options>]" 1>&2
     exit 1
 fi
 
@@ -149,6 +149,11 @@ elif [ "$1" = "--sno" ]; then
     shift
 elif [ "$1" = "--no-check" ]; then
     VIRT="no-check"
+    shift
+fi
+
+if [ "$1" = "-n" ]; then
+    unset DO_VOTE
     shift
 fi
 
@@ -381,16 +386,25 @@ if [ -d test-network-function ]; then
     OPTS="$OPTS -e test_network_function_repo=$PWD"
 fi
 
+# support the none app to use the default from the system
+APP_OPT=
+
 if [ -s "$KUBECONFIG" ]; then
     if [ -d dci-openshift-app-agent ]; then
         cd dci-openshift-app-agent
         ln -s /etc/dci-openshift-app-agent/dcirc.sh .
         export CONFIG_DIR="$PWD"
-        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" -e dci_config_dir="$PWD/samples/$APP_NAME" -e dci_name="$APP_NAME" "$@" &>> ../output &
+        if [ "$APP_NAME" != "none" ]; then
+            APP_OPT="-e dci_config_dir=$PWD/samples/$APP_NAME"
+        fi
+        setsid $PWD/dci-openshift-app-agent-ctl -s -d -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> ../output &
         cd ..
     else
         unset CONFIG_DIR
-        setsid dci-openshift-app-agent-ctl -s -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" -e dci_config_dir="/var/lib/dci-openshift-app-agent/samples/$APP_NAME" -e dci_name="$APP_NAME" "$@" &>> output &
+        if [ "$APP_NAME" != "none" ]; then
+            APP_OPT="-e dci_config_dir=/var/lib/dci-openshift-app-agent/samples/$APP_NAME"
+        fi
+        setsid dci-openshift-app-agent-ctl -s -- $OPTS -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> output &
     fi
 
     if [ -n "$KCFG" ]; then

@@ -103,7 +103,8 @@ change. This will direct `dci-check-change` to test in a specific way:
 pass to `dci-check-change`.
 
 `Test-App-Hints:` can also be used to change the default app to be
-used (`basic_example`).
+used (`basic_example`). If `none` is specified in `Test-App-Hints:`,
+the configuration is taken from the system.
 
 Hints need to be activated in the `SUPPORTED_HINTS` variable in
 `/etc/dci-openshift-agent/config` like this:
