@@ -118,6 +118,10 @@ do
     esac
 done
 
+if [ -r ${config_dir}/hosts ] && [ -z "$prefix" ] ; then
+    hosts_args="-i ${config_dir}/hosts"
+fi
+
 if [ -n "$prefix" ]; then
     hosts="$config_dir/${prefix}-hosts"
     settings="$config_dir/${prefix}-settings.yml"
@@ -154,7 +158,7 @@ if [ "$start" -eq 1 ]; then
     export JUNIT_TEST_CASE_PREFIX=test_
     export JUNIT_TASK_CLASS=yes
     cat ${ANSIBLE_CONFIG}
-    setsid ansible-playbook -v ${DCI_OPENSHIFT_AGENT_DIR}/dci-openshift-agent.yml -e JOB_ID_FILE="${JOB_ID_FILE}" -e @$config ${prefix_args} "$@" &
+    setsid ansible-playbook -v ${DCI_OPENSHIFT_AGENT_DIR}/dci-openshift-agent.yml -e JOB_ID_FILE="${JOB_ID_FILE}" -e @$config ${prefix_args} ${hosts_args} "$@" &
     ANSIBLE_PID=$!
 
     wait ${ANSIBLE_PID}
@@ -171,9 +175,9 @@ else
         echo "ANSIBLE_CONFIG=$DIR/dev-ansible.cfg"
     fi
     if [ -z "${OUTPUT_DIR}" ]; then
-        echo "setsid ansible-playbook dci-openshift-agent.yml -e @$config ${prefix_args} $@ &"
+        echo "setsid ansible-playbook dci-openshift-agent.yml -e @$config ${prefix_args} ${hosts_args} $@ &"
     else
         JOB_ID_FILE="$(mktemp /tmp/job.XXXXX)"
-        echo "setsid ansible-playbook dci-openshift-agent.yml -e JOB_ID_FILE=${JOB_ID_FILE} -e @$config ${prefix_args} $@ &"
+        echo "setsid ansible-playbook dci-openshift-agent.yml -e JOB_ID_FILE=${JOB_ID_FILE} -e @$config ${prefix_args} ${hosts_args} $@ &"
     fi
 fi
