@@ -17,6 +17,7 @@
     name: "{{ item.path | basename }}"
     job_id: "{{ hostvars.localhost.job_id }}"
   with_items: "{{ logs_matched.files }}"
+  delegate_to: localhost
 
 - name: "Find test Junit files"
   find:
@@ -37,6 +38,7 @@
     job_id: "{{ hostvars.localhost.job_id }}"
     mime: "application/junit"
   with_items: "{{ junit_matched.files }}"
+  delegate_to: localhost
 
 - name: Generate temp dir for deployment logs
   tempfile:
