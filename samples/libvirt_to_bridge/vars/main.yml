@@ -1,0 +1,8 @@
+provisioning_bridge: provisioning
+baremetal_bridge: baremetal
+baremetal_network: 192.168.100.0/24
+networks:
+  - name: baremetal
+    bridge: baremetal
+  - name: provisioning
+    bridge: provisioning

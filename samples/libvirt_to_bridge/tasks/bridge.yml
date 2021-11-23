@@ -1,0 +1,133 @@
+---
+- name: Setup Bridge Creation
+  block:
+    - name: Get the provision connection name
+      shell: |
+        nmcli device show {{ provisioning_nic }} | grep GENERAL.CONNECTION | awk '{sub(/[^ ]+[ ]+/,"")}1'
+      register: prov_con_name
+
+    - name: Get the public connection name
+      shell: |
+        nmcli device show {{ baremetal_nic }} | grep GENERAL.CONNECTION | awk '{sub(/[^ ]+[ ]+/,"")}1'
+      register: pub_con_name
+
+    - name: Disconnect baremetal bridge connection
+      command: |
+        nmcli device disconnect "{{ baremetal_bridge }}"
+      ignore_errors: yes
+
+    - name: Disconnect provisioning_nic bridge connection
+      command: |
+        nmcli device disconnect "{{ provisioning_bridge }}"
+      ignore_errors: yes
+
+    - name: Delete {{ pub_con_name.stdout }} due to modify nmcli bug
+      nmcli:
+        conn_name: "{{ pub_con_name.stdout }}"
+        type: ethernet
+        state: absent
+      when:
+      - pub_con_name.stdout != '--'
+
+    - name: Delete {{ prov_con_name.stdout }} due to modify nmcli bug
+      nmcli:
+        conn_name: "{{ prov_con_name.stdout }}"
+        type: ethernet
+        state: absent
+      when:
+      - prov_con_name.stdout != '--'
+
+    - name: Delete {{ baremetal_nic }} due to modify nmcli bug
+      nmcli:
+        conn_name: "{{ item }}"
+        type: ethernet
+        state: absent
+      with_items:
+        - "{{ baremetal_nic }}"
+        - "System {{ baremetal_nic }}"
+      when:
+      - pub_con_name.stdout != '--'
+
+    - name: Delete {{ provisioning_nic }} due to modify nmcli bug
+      nmcli:
+        conn_name: "{{ item }}"
+        type: ethernet
+        state: absent
+      with_items:
+        - "{{ provisioning_nic }}"
+        - "System {{ provisioning_nic }}"
+      when:
+      - prov_con_name.stdout != '--'
+
+    - name: Delete provisioning bridge if it exists
+      nmcli:
+        conn_name: "{{ provisioning_bridge }}"
+        state: absent
+
+    - name: Create Bridge labeled {{ provisioning_bridge }}
+      nmcli:
+        conn_name: "{{ provisioning_bridge }}"
+        type: bridge
+        ifname: "{{ provisioning_bridge }}"
+        autoconnect: yes
+        zone: libvirt
+        method4: disabled
+        method6: disabled
+        stp: off
+        state: present
+
+    - name: Create Bridge slave on {{ provisioning_nic }}
+      nmcli:
+        conn_name: "{{ provisioning_nic }}"
+        type: bridge-slave
+        hairpin: no
+        ifname: "{{ provisioning_nic }}"
+        master: "{{ provisioning_bridge }}"
+        autoconnect: yes
+        state: present
+
+    - name: Delete baremetal bridge if it exists
+      nmcli:
+        conn_name: "{{ baremetal_bridge }}"
+        state: absent
+
+    - name: Create Bridge labeled {{ baremetal_bridge }}
+      nmcli:
+        conn_name: "{{ baremetal_bridge }}"
+        type: bridge
+        ifname: "{{ baremetal_bridge }}"
+        autoconnect: yes
+        zone: libvirt
+        method4: manual
+        method6: disabled
+        stp: off
+        ip4: "{{ baremetal_network | nthhost(1) }}/{{ baremetal_network | ipaddr('prefix') }}"
+        state: present
+
+    - name: Create Bridge slave on {{ baremetal_nic }}
+      nmcli:
+        conn_name: "{{ baremetal_nic }}"
+        type: bridge-slave
+        hairpin: no
+        ifname: "{{ baremetal_nic }}"
+        master: "{{ baremetal_bridge }}"
+        autoconnect: yes
+        state: present
+
+    - name: Reload {{ baremetal_bridge }} bridge and slave interfaces
+      shell: |
+        /usr/bin/nmcli connection reload {{ item }}
+        /usr/bin/nmcli connection up {{ item }}
+      with_items:
+        - "{{ baremetal_bridge }}"
+        - "{{ baremetal_nic }}"
+
+    - name: Reload provisioning bridge and slave interfaces
+      shell: |
+        /usr/bin/nmcli connection reload {{ item }}
+        /usr/bin/nmcli connection up {{ item }}
+      with_items:
+        - "{{ provisioning_bridge }}"
+        - "{{ provisioning_nic }}"
+  become: yes
+  tags: network

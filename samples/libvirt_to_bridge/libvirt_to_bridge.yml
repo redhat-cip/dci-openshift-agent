@@ -1,0 +1,112 @@
+#!/usr/bin/env -S ansible-playbook
+---
+- name: Convert libvirt networks to bridges
+  hosts: localhost
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/libexec/platform-python
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: Verify config
+      assert:
+        that:
+          - groups['masters'] is defined
+          - groups['masters'] | length > 0
+          - groups['workers'] is defined
+          - groups['provisioner'] is defined
+          - groups['provisioner'] | length > 0
+          - provisioning_nic is defined
+          - provisioning_nic | length > 0
+          - baremetal_nic is defined
+          - baremetal_nic | length > 0
+          - cluster is defined
+          - cluster | length > 0
+          - domain is defined
+          - domain | length > 0
+
+    - name: Shutdown virtual hosts
+      include_tasks: tasks/host_destroy.yml
+      loop: "{{ groups['masters'] + groups['workers'] + groups['provisioner'] }}"
+      loop_control:
+        loop_var: host
+
+    - name: Check for baremetal.conf
+      stat:
+        path: "/var/lib/libvirt/dnsmasq/baremetal.conf"
+        get_checksum: false
+      register: baremetal_conf
+
+    - name: Migrate libvirt/dnsmasq to /etc/dnsmasq.d
+      block:
+
+      - name: Generate /etc/dnsmasq.d/baremetal.conf
+        template:
+          src: "baremetal.conf.j2"
+          dest: "/etc/dnsmasq.d/baremetal.conf"
+
+      - name: Read /var/lib/libvirt/dnsmasq/baremetal.hostsfile
+        set_fact:
+          hostsfile: "{{ lookup('file', '/var/lib/libvirt/dnsmasq/baremetal.hostsfile').splitlines() }}"
+
+      - name: Generate hosts list
+        set_fact:
+          hosts: "{{ hosts| default([]) + [{ 'host': item.split(',')[2], 'mac' : item.split(',')[0] }] }}"
+        loop: "{{ hostsfile | default([]) }}"
+
+      - name: Generate /var/lib/dnsmasq/baremetal.hostsfile
+        template:
+          src: "baremetal.hostsfile.j2"
+          dest: /var/lib/dnsmasq/baremetal.hostsfile
+
+      - name: Generate /var/lib/dnsmasq/baremetal.addnhosts
+        template:
+          src: "baremetal.addnhosts.j2"
+          dest: /var/lib/dnsmasq/baremetal.addnhosts
+
+      - name: Generate /etc/NetworkManager/dnsmasq.d/openshift.conf
+        template:
+          src: "openshift.conf.j2"
+          dest: /etc/NetworkManager/dnsmasq.d/openshift.conf
+
+      when: baremetal_conf.stat.exists
+
+    - include_role:
+        name: ocp-on-libvirt
+        tasks_from: libvirt_network_destroy.yml
+      loop: "{{ networks }}"
+      loop_control:
+        loop_var: network
+
+    - name: "node-prep: Convert to bridge"
+      include_tasks: tasks/bridge.yml
+
+    - name: "Define libvirt networks"
+      include_tasks: tasks/libvirt_network_up.yml
+      loop: "{{ networks }}"
+      loop_control:
+        loop_var: network
+
+    - name: Setup and enable nat for jumphost network
+      firewalld:
+        zone: public
+        masquerade: true
+        immediate: true
+        permanent: true
+        state: enabled
+
+    - name: Restart dnsmasq and enable the service
+      systemd:
+        name: "dnsmasq.service"
+        state: restarted
+        enabled: true
+
+    - name: Reload NetworkManager
+      service:
+        name: NetworkManager
+        state: reloaded
+
+    - name: Start provisionhost
+      virt:
+        name: "provisionhost"
+        state: "running"

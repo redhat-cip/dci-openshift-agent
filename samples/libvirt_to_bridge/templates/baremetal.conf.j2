@@ -1,0 +1,14 @@
+strict-order
+server=/apps.{{ cluster }}.{{ domain }}/127.0.0.1
+local=/{{ cluster }}.{{ domain }}/
+domain={{ cluster }}.{{ domain }}
+expand-hosts
+except-interface=lo
+bind-dynamic
+interface=baremetal
+dhcp-range={{ baremetal_network | nthhost(100) }},{{ baremetal_network | nthhost(150) }},{{ baremetal_network | ipaddr('netmask') }}
+dhcp-no-override
+dhcp-authoritative
+dhcp-lease-max=51
+dhcp-hostsfile=/var/lib/dnsmasq/baremetal.hostsfile
+addn-hosts=/var/lib/dnsmasq/baremetal.addnhosts

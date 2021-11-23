@@ -1,0 +1,5 @@
+address=/.apps.{{ cluster }}.{{ domain }}/{{ baremetal_network | nthhost(10) }}
+address=/api.{{ cluster }}.{{ domain }}/{{ baremetal_network | nthhost(5) }}
+{% for item in hosts %}
+address=/{{ item.host.split('.')[0] }}/{{ baremetal_network | nthhost(loop.index + 100) }}
+{% endfor %}
