@@ -38,6 +38,7 @@
   - name: "deploy-operators : Prepare cluster for CNF"
     include_role:
       name: prepare-cnf
+    when: install_type is undefined or install_type != 'sno'
 
   # Rendering the definition in a variable to avoid jinja templating type issues
   - name: "deploy-operators : Increase maxUnavailable count to n-1"

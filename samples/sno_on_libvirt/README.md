@@ -1,34 +1,33 @@
 # Playbooks to deploy Single Node Openshift on a libvirt VM
 
-Single Node OpenShift is a Red Hat Openshift deployment designed to have a small footprint that fits constrained environments and Edge computing needs.
+This directory includes playbooks, inventories and configuration files to faciliate the deployment of OCP SNO on virtual machines
 
-The deployment consists on  a Single Cluster Node playing the Master and Worker Node at the same time. Single-node OpenShift deployment does not have an option to add additional hosts Single-node OpenShift isn’t highly-available. It explicitly does not assume zero downtime of the Kubernetes API.
+Virtual SNO can be deployed either with DCI on standalone mode (without DCI)
 
 ## Pre-requisites
 
-- A RHEL 8.4 server with direct internet access
+A provisioner node with the following:
+- A RHEL >= 8.4 server
 - Ansible >= 2.9
 - A valid Red Hat subscription
   - Access to `rhel-8-for-x86_64-baseos-rpms` and `rhel-8-for-x86_64-appstream-rpms` repositories is required
-  - If the vars activation_key and org_id are provided, the system registration to the proper subscriptions is done during the deployment
+  - If the vars activation_key and org_id are provided, the system registration to the proper subscriptions is done during the deployme
 
-The playbook `deploy-sno-standalone.yml` has been also tested in Fedora 34.
+This is where the OCP/SNO installation will be launched, and where the VM will be running OpenShift.
 
-## Hardware Requirements
-
-These are the pseudo-official requirements to run:
-- vCPU: 8
-- RAM: 32 GB
-- Storage: 120 GB
-
-But we have been able to get it deployed with:
+Virtual SNO implementation can be deployed in a VM with the following resources:
 - vCPU: 6
 - RAM: 16 GB
 - Storage: 20 GB
+NOTE: More are required to be able to install operators and apps.
 
-## Prepare SNO node
+The playbook `deploy-sno-standalone.yml` has been also tested in Fedora 34. It means no need to RHEL OS or Red Hat subscriptions
 
-This is where the OCP/SNO installation will be launched, and where the VM will be running OpenShift.
+Choose one deployment method:
+
+## A) Deploy with DCI from the SNO provisioner node
+
+Note: You can run steps 1, 2, and 3 manually if you prefer to do so. The steps are just to help you configure the provisioner host quickly. See the [hosts](https://github.com/redhat-cip/dci-openshift-agent/blob/master/samples/sno_on_libvirt/hosts) file as a example of the variables you need.
 
 ### 1. Configuration
 
@@ -43,7 +42,6 @@ rhn_user: your-rhn-user
 rhn_pass: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           VAULTED_RHN_PASSWORD
-github_user: your-github-user
 ```
 
 * Please engage the DCI team if you do not have the proper access keys and you want to use the Red Hat Distributed CI service during your deployments.
@@ -69,9 +67,7 @@ your-user@your-workstation ~$ ansible-playbook sno-on-libvirt.yml -e "@~/sno-nod
 
 NOTE: The playbook sno-on-libvirt.yml, it copies the default inventory `samples/sno_on_libvirt/hosts` to `/etc/dci-openshift-agent/hosts` which contains required variables, including a very important one: `install_type=sno` this will allow DCI agent to define which install to perform.
 
-Choose one deployment method:
-
-## A) Deploy with DCI from the SNO provisioner node
+### 4. Source the credentials and run the main d-o-a playbook.
 
 SNO only works on OCP 4.8 and above. Please ensure your `/etc/dci-openshift-agent/settings.yml` has only 4.8 references.
 
@@ -145,7 +141,7 @@ cd /usr/share/dci-openshift-agent
 ansible-playbook ~/samples/sno_on_libvirt/deploy-sno-standalone.yml -i /etc/dci-openshift-agent/hosts
 ```
 
-### 4. Access the GUI
+##  Access the GUI
 
 If SNO is deployed using DCI, the dci-openshift-agent will create 2 users for the API/GUI. Please review /home/`<user>`/`<clusterconfigs-path>`/ocp_creds.txt file in the jumphost for details and change the passwords if needed.
 
