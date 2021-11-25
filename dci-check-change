@@ -105,7 +105,8 @@ fi
 
 # validate kubeconfig or stop
 if [[ "$1" =~ .*/kubeconfig ]]; then
-    if ! oc --kubeconfig "$1" version || ! oc --kubeconfig "$1" get nodes; then
+    OC_CLIENT="${1/%kubeconfig/oc}"
+    if ! $OC_CLIENT --kubeconfig "$1" version || ! $OC_CLIENT --kubeconfig "$1" get nodes; then
         echo "Unable to use $1 to connect to OCP" 1>&2
         exit 1
     fi
