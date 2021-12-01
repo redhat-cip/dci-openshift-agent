@@ -11,6 +11,7 @@ dci_tags: ['debug']
 baremetal_deploy_repo: https://github.com/openshift-kni/baremetal-deploy
 baremetal_deploy_version: HEAD
 dci_openshift_agent_conformance: ''
+dci_openshift_csi_test_manifest: ''
 cnf_features_deploy_repo: https://github.com/openshift-kni/cnf-features-deploy.git
 cnf_features_deploy_branch: release-4.5
 cnf_features_deploy_dir: "{{ dci_cache_dir }}/cnf_features_deploy_repo"

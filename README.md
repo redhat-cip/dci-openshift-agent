@@ -251,6 +251,7 @@ which version of OCP to install.
 | dci\_teardown\_on\_success         | False    | Boolean | True                                             | Whether or not execute the teardown hook on success            |
 | dci\_openshift\_agent\_conformance | False    | String  |                                                  | If defined it will run that category of conformance test       |
 | dci\_disconnected                  | False    | Boolean | False                                            | Signals that the OCP agent will run in disconnected            |
+| dci\_openshift\_csi_test\_manifest | False    | String  | ""                                               | Manifest file that contains the tests for CSI validation. <br>Please review [test-parameters](https://redhat-connect.gitbook.io/openshift-badges/badges/container-storage-interface-csi-1/workflow/setup-test-parameters) and [csi-e2e](https://github.com/kubernetes/kubernetes/tree/v1.16.0/test/e2e/storage/external) <br> for details about drivers capabilities |
 | baremetal\_deploy\_version         | False    | String  | HEAD                                             | Allows you to lock upstream baremetal repo to specific version |
 | http\_proxy                        | False    | String  |                                                  | http proxy to use                                              |
 | https\_proxy                       | False    | String  |                                                  | https proxy to use                                             |

@@ -19,18 +19,20 @@
   when: "'Server Version' in item"
   loop: "{{ oc_version_str.stdout_lines }}"
 
-- name: "dci-openshift-agent : Run Red Hat test suite"
+- name: "dci-openshift-agent : Run the Red Hat Test Suites"
   vars:
-    ocp_version_maj: "{{ ocp_version_major | int }}"
-    ocp_version_min: "{{ ocp_version_minor | int }}"
-    conformance_registry_certificate: "{{ registry_certificate }}"
-    conformance_registry_auth: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
-    conformance_local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
+    ts_e2e_image: "quay.io/openshift/origin-tests"
+    ts_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
+    ts_registry_auth: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+    ts_ocp_version_maj: "{{ ocp_version_major | int }}"
+    ts_ocp_version_min: "{{ ocp_version_minor | int }}"
+    ts_registry_certificate: "{{ registry_certificate }}"
+    ts_conformance_tests: "{{ dci_openshift_agent_conformance }}"
+    ts_configs_dir: "{{ dci_cluster_configs_dir }}"
+    ts_csi_tests_dir: "{{ dci_cluster_tests_dir }}"
+    ts_csi_test_manifest: "{{ dci_openshift_csi_test_manifest }}"
   include_role:
     name: redhat-tests
-  when:
-    - (dci_openshift_agent_conformance | string | length) > 0
-    - registry_certificate is defined
 
 # Setup and run cnf-tests
 - block:
