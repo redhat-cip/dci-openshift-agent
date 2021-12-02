@@ -77,7 +77,7 @@
   include_role:
     name: cnv-setup
   when:
-  - hostvars.localhost.cnv_version is defined
+    - hostvars.localhost.enable_cnv|default(false)|bool
 ### End CNV
 
 ### Begin OCS
