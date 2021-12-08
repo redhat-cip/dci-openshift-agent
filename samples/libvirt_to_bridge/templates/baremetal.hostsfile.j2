@@ -1,0 +1,3 @@
+{% for item in hosts %}
+{{ item.mac }},{{ baremetal_network | nthhost(loop.index + 100) }},{{ item.host }}
+{% endfor %}
