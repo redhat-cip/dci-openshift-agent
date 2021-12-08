@@ -122,7 +122,7 @@ do_wait() {
 BASEDIR=$(cd $(dirname $0); pwd)
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 (--virt|--sno|--no-check) (-n) <change directory> [<kubeconfig path>] [<dci-openshift-agent-ctl options>]" 1>&2
+    echo "Usage: $0 (--virt|--sno|--no-check) (-n) <change directory> (-p <prefix>) (-p2 <prefix>) (<kubeconfig path>)] (<options for agents>)" 1>&2
     exit 1
 fi
 
@@ -130,6 +130,8 @@ VIRT=
 DCI_NAME=
 KCFG=
 DO_VOTE=
+PREFIX=
+PREFIX2=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -159,6 +161,18 @@ fi
 
 DIR=$1
 shift
+
+if [ "$1" = "-p" ]; then
+    shift
+    PREFIX="-p $1"
+    shift
+fi
+
+if [ "$1" = "-p2" ]; then
+    shift
+    PREFIX2="-p $1"
+    shift
+fi
 
 if [ -r "$1" ] && [[ "$1" =~ /.*/kubeconfig ]]; then
     KCFG="$1"
@@ -250,6 +264,7 @@ if [ -d dci-openshift-agent ]; then
     fi
     # needed for ctl to take the settings.yml from the change
     export CONFIG_DIR="$PWD"
+    ln -s /etc/dci-openshift-agent/*-settings.yml /etc/dci-openshift-agent/*hosts . || :
 else
     ln -s /usr/share/dci-openshift-agent/* .
     rm -f ansible.cfg
@@ -268,12 +283,10 @@ fi
 
 for conf in $(ls -d *config 2> /dev/null); do
     sed -i -e "s@/var/lib/dci-openshift-agent/$conf/@$PWD/$conf/@g" ansible.cfg
-    if [ -r "$conf/settings.yml" ]; then
-        sed -i -e "s@/var/lib/dci-openshift-agent/$conf/@$PWD/$conf/@g" "$conf/settings.yml"
+    settings="$(find $conf -name '*settings.yml')"
+    if [ -n "$settings" ]; then
+        sed -i -e "s@/var/lib/dci-openshift-agent/$conf/@$PWD/$conf/@g" $settings
         export CONFIG_DIR="$PWD/$conf"
-    fi
-    if [ -r "$conf/hosts" ]; then
-        sed -i -e "s@/etc/dci-openshift-agent/hosts@$PWD/$conf/hosts@g" ansible.cfg
     fi
 done
 
@@ -355,7 +368,7 @@ if [ -z "$KCFG" ]; then
     export DCI_OPENSHIFT_AGENT_DIR="$PWD"
     export ANSIBLE_CONFIG="$PWD/ansible.cfg"
 
-    setsid $CMD -s -v -- -v "${OPTS[@]}" -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" "$@" >& output &
+    setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" "$@" >& output &
 
     do_wait 1
 fi
@@ -393,7 +406,7 @@ if [ -s "/var/tmp/$CLUSTER.dci.job_id" ]; then
 fi
 
 if [ -d test-network-function ]; then
-    OPTS="$OPTS -e test_network_function_repo=$PWD"
+    OPTS+=(-e "test_network_function_repo=$PWD")
 fi
 
 # support the none app to use the default from the system
@@ -403,18 +416,19 @@ if [ -s "$KUBECONFIG" ]; then
     if [ -d dci-openshift-app-agent ]; then
         cd dci-openshift-app-agent
         ln -s /etc/dci-openshift-app-agent/dcirc.sh .
+        ln -s /etc/dci-openshift-app-agent/*-settings.yml /etc/dci-openshift-app-agent/*hosts . || :
         export CONFIG_DIR="$PWD"
         if [ "$APP_NAME" != "none" ]; then
             APP_OPT="-e dci_config_dir=$PWD/samples/$APP_NAME"
         fi
-        setsid $PWD/dci-openshift-app-agent-ctl -s -d -v -- -v "${OPTS[@]}" -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> ../output &
+        setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -v "${OPTS[@]}" -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> ../output &
         cd ..
     else
         unset CONFIG_DIR
         if [ "$APP_NAME" != "none" ]; then
             APP_OPT="-e dci_config_dir=/var/lib/dci-openshift-app-agent/samples/$APP_NAME"
         fi
-        setsid dci-openshift-app-agent-ctl -s -v -- -v "${OPTS[@]}" -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> output &
+        setsid dci-openshift-app-agent-ctl $PREFIX2 -s -v -- -v "${OPTS[@]}" -e "{\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$PIPELINEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> output &
     fi
 
     if [ -n "$KCFG" ]; then

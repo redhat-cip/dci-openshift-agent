@@ -63,7 +63,7 @@ function finish ()
         fi
 
         echo "removing output dir: ${OUTPUT_DIR}"
-        rm -rf ${OUTPUT_DIR}
+        rm -rf "${OUTPUT_DIR}"
     fi
     exit $RET
 }
@@ -118,25 +118,36 @@ do
     esac
 done
 
-if [ -r ${config_dir}/hosts ] && [ -z "$prefix" ] ; then
-    hosts_args="-i ${config_dir}/hosts"
-fi
-
 if [ -n "$prefix" ]; then
-    hosts="$config_dir/${prefix}-hosts"
     settings="$config_dir/${prefix}-settings.yml"
-    if [ -e "$settings" ]; then
-        prefix_args="${prefix_args} -e @$settings"
+    if [ -r "$settings" ]; then
+        settings_args="-e @$settings"
     else
         echo "Missing $settings, will only use $config."
+        settings_args="-e @$config"
     fi
 
-    if [ -e "$hosts" ]; then
-        prefix_args="-i $hosts"
+    hosts="$config_dir/${prefix}-hosts"
+    if [ -r "$hosts" ]; then
+        hosts_args="-i $hosts"
+    elif [ -r "${hosts}.yml" ]; then
+        hosts_args="-i $hosts.yml"
+    elif [ -r "${config_dir}/hosts" ]; then
+        hosts_args="-i ${config_dir}/hosts"
+    elif [ -r "${config_dir}/hosts.yml" ]; then
+        hosts_args="-i ${config_dir}/hosts.yml"
     else
-        echo "Missing $hosts"
-        exit 1
+        echo "Missing $hosts(.yml) or ${config_dir}/hosts(.yml)"
     fi
+else
+    if [ -r "${config_dir}/hosts" ]; then
+        hosts_args="-i ${config_dir}/hosts"
+    elif [ -r "${config_dir}/hosts.yml" ]; then
+        hosts_args="-i ${config_dir}/hosts.yml"
+    else
+        echo "Missing ${config_dir}/hosts(.yml)"
+    fi
+    settings_args="-e @$config"
 fi
 
 if [ "$start" -eq 1 ]; then
@@ -151,14 +162,14 @@ if [ "$start" -eq 1 ]; then
     fi
 
     OUTPUT_DIR="$(mktemp -d /tmp/dci-openshift-agent.XXXXX)"
-    cd ${OUTPUT_DIR}
+    cd "${OUTPUT_DIR}" || exit 1
     JOB_ID_FILE="$OUTPUT_DIR/dci-openshift-agent.job"
     export ANSIBLE_LOG_PATH=${OUTPUT_DIR}/ansible.log
     export JUNIT_OUTPUT_DIR=${OUTPUT_DIR}
     export JUNIT_TEST_CASE_PREFIX=test_
     export JUNIT_TASK_CLASS=yes
     cat ${ANSIBLE_CONFIG}
-    setsid ansible-playbook -v ${DCI_OPENSHIFT_AGENT_DIR}/dci-openshift-agent.yml -e JOB_ID_FILE="${JOB_ID_FILE}" -e @$config ${prefix_args} ${hosts_args} "$@" &
+    setsid ansible-playbook -v ${DCI_OPENSHIFT_AGENT_DIR}/dci-openshift-agent.yml -e JOB_ID_FILE="${JOB_ID_FILE}" ${settings_args} ${hosts_args} "$@" &
     ANSIBLE_PID=$!
 
     wait ${ANSIBLE_PID}
