@@ -26,10 +26,10 @@
         dest: /usr/local/bin
         remote_src: yes
         mode: 0755
-      register: grpcurl_install
+      register: result
       retries: 3
       delay: 10
-      until: grpcurl_installed is not failed
+      until: result is not failed
       become: true
       when: not grpcurl_path.stat.exists
 
