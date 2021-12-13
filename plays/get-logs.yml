@@ -5,7 +5,6 @@
     recurse: true
     patterns: "*.txt,*.html"
   register: logs_matched
-  delegate_to: localhost
 
 - name: "Upload test text files results to DCI Control Server"
   environment:
@@ -17,7 +16,6 @@
     name: "{{ item.path | basename }}"
     job_id: "{{ hostvars.localhost.job_id }}"
   with_items: "{{ logs_matched.files }}"
-  delegate_to: localhost
 
 - name: "Find test Junit files"
   find:
@@ -25,7 +23,6 @@
     recurse: true
     patterns: "*junit*.xml"
   register: junit_matched
-  delegate_to: localhost
 
 - name: "Upload Junit files to DCI Control Server"
   environment:
@@ -38,20 +35,17 @@
     job_id: "{{ hostvars.localhost.job_id }}"
     mime: "application/junit"
   with_items: "{{ junit_matched.files }}"
-  delegate_to: localhost
 
 - name: Generate temp dir for deployment logs
   tempfile:
     state: directory
     suffix: logdir
   register: logdir
-  delegate_to: localhost
 
 - name: Get logs from OCP deployment
   environment:
     - DCI_MUST_GATHER_IMAGES: '{{ dci_must_gather_images | default(["registry.redhat.io/openshift4/ose-must-gather"]) | join(" ") }}'
   script: ./scripts/get-logs "{{ hostvars[groups['provisioner'][0]]['ansible_user'] }}@{{ groups['provisioner'][0] }}" "{{ logdir.path }}" "{{ groups['masters'] }}"
-  delegate_to: localhost
   ignore_errors: true
 
 - name: Find deployment logs (text)
@@ -60,7 +54,6 @@
     recurse: yes
     patterns: "*.log,*.txt,*.html"
   register: logs_matched
-  delegate_to: localhost
 
 - name: "Upload text logs"
   vars:
@@ -74,7 +67,6 @@
     recurse: yes
     patterns: "*.gz"
   register: logs_matched
-  delegate_to: localhost
 
 - name: "Upload compressed logs"
   vars:
@@ -86,6 +78,5 @@
   file:
     path: "{{ logdir.path }}"
     state: absent
-  delegate_to: localhost
 
 ...

@@ -11,7 +11,6 @@
       name: "{{ item.path | basename }}"
       job_id: "{{ hostvars.localhost.job_id }}"
       mime: "{{ mime_type }}"
-    delegate_to: localhost
 
   rescue:
     - name: Create a local log directory
@@ -19,13 +18,11 @@
         path: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}"
         state: directory
       when: dci_local_log_dir is defined
-      delegate_to: localhost
 
     - name: "Copy {{ item.path | basename }} locally"
       copy:
         src: "{{ item.path }}"
         dest: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}/"
       when: dci_local_log_dir is defined
-      delegate_to: localhost
 
 ...

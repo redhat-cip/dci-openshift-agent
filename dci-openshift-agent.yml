@@ -97,6 +97,7 @@
                   loop_control:
                     loop_var: hookdir
               when: dci_teardown_on_failure|bool
+              delegate_to: localhost
               ignore_unreachable: true
               ignore_errors: true
 
@@ -104,6 +105,7 @@
             - name: Run the error process
               include_tasks: plays/failure.yml
 
+          delegate_to: localhost
           ignore_unreachable: true
 
     - name: running
@@ -181,6 +183,7 @@
                   loop_control:
                     loop_var: hookdir
               when: dci_teardown_on_failure|bool
+              delegate_to: localhost
               ignore_unreachable: true
               ignore_errors: true
 
@@ -188,6 +191,7 @@
             - name: Run the failure process
               include_tasks: plays/failure.yml
 
+          delegate_to: localhost
           ignore_unreachable: true
 
 # Step 3a-2 : deploy operators, run on the provisioner so OC is automatically set
