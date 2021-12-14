@@ -30,7 +30,7 @@
         find:
           paths: "{{ ansible_user_dir }}/.cache/openshift-installer/image_cache"
           file_type: file
-          age: "{{ max_images_age | default('26w') | string }}"
+          age: "{{ max_images_age | default('4w') | string }}"
           recurse: no
           use_regex: yes
         register: old_images_to_delete
