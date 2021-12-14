@@ -22,7 +22,7 @@ if [ $# -lt 3 ]; then
     exit 1
 fi
 
-rem="timeout -v 5m ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $log"
+rem="timeout -v 10m ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR $log"
 
 shift 2
 masters=()
@@ -67,8 +67,8 @@ rm $myscript
 domain=$($rem hostname -d)
 
 # Copy openshift install log and rendered install config
-scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $log:clusterconfigs/.openshift_install.log $dir/openshift_install.log
-scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $log:clusterconfigs/install-config.yaml.bkup $dir/install-config-yaml.txt
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR $log:clusterconfigs/.openshift_install.log $dir/openshift_install.log
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR $log:clusterconfigs/install-config.yaml.bkup $dir/install-config-yaml.txt
 
 if [ -n "$ip" ]; then
     echo "found VM IPv4 $ip"
@@ -79,7 +79,7 @@ if [ -n "$ip" ]; then
     done
     # dump an archive with bootstrap logs
     $rem openshift-baremetal-install gather bootstrap --dir=/tmp/gatherBootstrap --bootstrap $ip $master_param
-    scp $log:/tmp/gatherBootstrap/* $dir/
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR $log:/tmpatherBootstrap/* $dir/
     $rem rm -rf /tmp/gatherBootstrap
 
     for serv in release-image bootkube; do
@@ -164,7 +164,7 @@ else
         $rem rm -rf "${must_gather_dir}"
 
         # Get remote logs
-        scp $log:$remdir/* $dir/
+        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR $log:$remdir/* $dir/
         $rem rm -rf $remdir
 
         # Post processing
