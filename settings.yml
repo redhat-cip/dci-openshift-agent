@@ -1,10 +1,15 @@
 ---
+
+dci_agent: openshift            # needed for dci-agent-ctl
 dci_topic: OCP-4.9
 
 # -- Atttributes of the job --
-#dci_name: "my job"
-#dci_configuration: "my conf"
-#dci_tags: ["debug"]
+#dci_name: "ocp-install"
+#dci_configuration: "my-conf"
+
+# Remove "debug" when your jobs are working to get them in the
+# statistics:
+dci_tags: ["debug"]
 
 # -- Components --
 # If you don't specify dci_components or dci_components_by_query
@@ -17,6 +22,9 @@ dci_topic: OCP-4.9
 #dci_components_by_query: ['type:ocp,tags:ocp-vanilla-4.9-simple-ok']
 #dci_components_by_query: ['tags:build:ga']
 #If you specify both the components list will be combined.
+
+# dci-openshift-agent settings
+# defaults from /usr/share/dci-openshift-agent/group_vars/all
 
 # By default we don't run the conformance tests
 #dci_openshift_agent_conformance: openshift-conformance-minimal
@@ -45,4 +53,5 @@ dci_topic: OCP-4.9
 #   api_version: v1
 #   spec:
 #     ExampleAuthenticationKey: "password"
+
 ...

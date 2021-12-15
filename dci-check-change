@@ -221,7 +221,7 @@ if [ -z "$NO_DCI_QUEUE" ] && [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/nu
     if [ -n "$USE_PREFIX" ]; then
         dci-queue schedule $DCI_QUEUE -- env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
     else
-        dci-queue schedule $DCI_QUEUE -- bash -c "echo @RESOURCE; export APP_NAME=$APP_NAME; exec $BASEDIR/test-runner $VIRT $NO_COMMENT $DIR $@ $OPTS"
+        dci-queue schedule $DCI_QUEUE -- env RES=@RESOURCE APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $NO_COMMENT $DIR "$@" $OPTS
     fi
 else
     env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $NO_COMMENT $DIR "$@" $OPTS

@@ -56,7 +56,7 @@ to check https://softwarefactory-project.io/r/#/c/21136/ or from a
 GitHub PR:
 
 ```console
-$ dci-check-change https://github.com/myorg/config/pull/42
+$ dci-check-change https://github.com/myorg/lab-config/pull/42
 ```
 
 Regarding Github, you will need a token to access private repositories
@@ -82,6 +82,9 @@ If you have multiple prefixes, you can also enable it in
 USE_PREFIX=1
 ```
 
+This way, the resource from `dci-queue` is passed as the prefix for
+`dci-openshift-app-agent-ctl`.
+
 ## Advanced
 
 ### Dependencies
@@ -89,6 +92,16 @@ USE_PREFIX=1
 If the change you want to test has a `Depends-On:` or `Build-Depends:`
 field, `dci-check-change` will install the corresponding change and
 make sure all the changes are tested together.
+
+### Prefix
+
+If you want to pass a prefix to the `dci-openshift-agent` use the `-p`
+option and if you want to pass a prefix to the
+`dci-openshift-app-agent` use the `-p2` option. For example:
+
+```console
+$ dci-check-change https://github.com/myorg/lab-config/pull/42 -p prefix -p2 app-prefix
+```
 
 ### Hints
 
