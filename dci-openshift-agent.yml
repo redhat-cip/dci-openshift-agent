@@ -33,14 +33,6 @@
       when: job_info is not defined
       no_log: true
 
-    - name: Assertions
-      assert:
-        that:
-          - dci_comment is not defined or job_info.job.comment == dci_comment
-          - dci_configuration is not defined or job_info.job.configuration == dci_configuration
-          - dci_name is not defined or job_info.job.name == dci_name
-          - dci_url is not defined or job_info.job.url == dci_url
-
     - name: Set the job id
       set_fact:
         job_id: '{{ job_info.job.id }}'
