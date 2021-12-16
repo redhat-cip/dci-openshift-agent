@@ -164,6 +164,13 @@
               delegate_to: localhost
               tags: [dci]
 
+            - name: Run the failure process for partners
+              include_tasks: "{{ hookdir }}/hooks/failure.yml"
+              loop: "{{ dci_config_dirs }}"
+              loop_control:
+                loop_var: hookdir
+              ignore_errors: true
+
             - block:
                 - name: Run the teardown play
                   include_tasks: plays/teardown.yml
@@ -178,13 +185,6 @@
               ignore_errors: true
 
           always:
-            - name: Run the failure process for partners
-              include_tasks: "{{ hookdir }}/hooks/failure.yml"
-              loop: "{{ dci_config_dirs }}"
-              loop_control:
-                loop_var: hookdir
-              ignore_errors: true
-
             - name: Run the failure process
               include_tasks: plays/failure.yml
 
