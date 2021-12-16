@@ -1,4 +1,3 @@
-dci_name: "ocp-install"
 dci_components: []
 dci_components_by_query: []
 dci_base_ip: "{{ ansible_default_ipv4.address }}"
