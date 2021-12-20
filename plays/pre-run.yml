@@ -138,7 +138,7 @@
 - name: Get provisioner SSH identity
   delegate_to: "{{ groups['provisioner'][0] }}"
   fetch:
-    src: "~{{ ansible_user }}/.ssh/id_rsa"
+    src: "~{{ hostvars[groups['provisioner'][0]].ansible_user }}/.ssh/id_rsa"
     dest: "~/.ssh/{{ cluster }}-provisioner_rsa"
     flat: true
 
