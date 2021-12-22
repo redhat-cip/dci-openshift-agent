@@ -404,6 +404,8 @@ After you run a DCI job you will be able to interact with the RHOCP cluster usin
   $ export KUBECONFIG=/home/<user>/<clusterconfigs-path>/kubeconfig
   $ oc get nodes
   ```
+A copy of the generated kubeconfig file will be attached to the job files section in DCI.
+
 2. Using the GUI/API
 
 Obtain the credentials generated during the installation from /home/`<user>`/`<clusterconfigs-path>`/ocp_creds.txt in the jumphost.
