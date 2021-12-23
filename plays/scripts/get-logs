@@ -31,39 +31,12 @@ for name in "$@"; do
       masters+=($mod)
 done
 
-myscript=$(mktemp)
-
-if [ ! -w $myscript ]; then
-    echo "Unable to create a temporary file" 1>&2
-fi
+# Get IP from Bootstrap VM if it's running
+vm=$(LANG=en_US.UTF-8 $rem sudo virsh list | awk '/.*-bootstrap\s+running/ {print $2}')
+ip=$($rem sudo virsh domifaddr --source arp $vm 2>/dev/null | grep -m1 -oP '(\d{1,3}\.){3}\d{1,3}')
 
 set -x
 
-cat > $myscript <<EOF
-# do not display the output of the spawn process
-log_user 0
-
-spawn ssh $log sudo virsh list
-
-expect {
-    -re "\\\\d+\\\\s+(.*)\\\\s+running" {set nodename \$expect_out(1,string)}
-    eof {puts stderr "Unable to find the vm name"; exit 1}
-}
-
-spawn ssh -t $log sudo virsh console \$nodename
-
-expect "Escape character is"
-send "\n"
-
-expect {
-    -re ".*: ((?:\\\\d+\\.){3}\\\\d+) " {puts \$expect_out(1,string); exit}
-    ogin: {puts stderr "No IPv4 found"; exit 1}
-}
-EOF
-
-ip=$(expect -f $myscript)
-
-rm $myscript
 domain=$($rem hostname -d)
 
 # Copy openshift install log and rendered install config
@@ -81,13 +54,14 @@ if [ -n "$ip" ]; then
     $rem openshift-baremetal-install gather bootstrap --dir=/tmp/gatherBootstrap --bootstrap $ip $master_param
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR $log:/tmpatherBootstrap/* $dir/
     $rem rm -rf /tmp/gatherBootstrap
+    core="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR core@$ip"
 
     for serv in release-image bootkube; do
-        $rem ssh core@$ip journalctl -b -u $serv.service > $dir/$serv.log
+        $rem $core journalctl -b -u $serv.service > $dir/$serv.log
     done
 
-    for pod in $($rem ssh core@$ip sudo podman ps 2>&1 | sed 's/.* //'|egrep -v '^(hosts\.|NAMES$)'); do
-        $rem ssh core@$ip sudo podman logs $pod > $dir/$pod.log
+    for pod in $($rem $core sudo podman ps 2>&1 | sed 's/.* //'|egrep -v '^(hosts\.|NAMES$)'); do
+        $rem $core sudo podman logs $pod > $dir/$pod.log
     done
 
     # If API lists nodes then SSH to them and get the journal logs
@@ -97,7 +71,8 @@ if [ -n "$ip" ]; then
       # Get nodes journals and outputs
       for h in $($rem oc get nodes -o custom-columns=NAME:.metadata.name --no-headers -l node-role.kubernetes.io/master= 2>/dev/null); do
         # Journal logs
-        $rem ssh core@$h.$domain sudo journalctl --all > $dir/journal-$h.log
+        $rem ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
+          core@$h.$domain sudo journalctl --all > $dir/journal-$h.log
       done
 
       # Get the output of various oc commands
@@ -114,14 +89,19 @@ else
     if [ -n "$remdir" ]; then
         for h in $($rem oc get nodes|tail -n +2|awk '{print $1;}'); do
           # Journal logs
-            $rem ssh core@$h.$domain sudo journalctl --all > $dir/journal-$h.log
+            $rem ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
+              core@$h.$domain sudo journalctl --all > $dir/journal-$h.log
         done
 
         # Ironic logs
-        metal3_pod=$($rem oc -n openshift-machine-api get pods | awk '/metal3/ { print $1 }')
+        metal3_pod=$($rem oc \
+                        -n openshift-machine-api \
+                        get pods \
+                        -l baremetal.openshift.io/cluster-baremetal-operator=metal3-state \
+                        -o jsonpath='{.items[0].metadata.name}' )
         if [ -n "$metal3_pod" ]; then
             echo "Downloading ironic logs from $metal3_pod"
-            $rem oc cp openshift-machine-api/$metal3_pod:shared/log/ironic/deploy/. $remdir -c metal3-ironic-conductor
+            $rem oc cp openshift-machine-api/$metal3_pod:/var/log/ironic/. $remdir -c metal3-ironic-conductor
         fi
 
         # Get the output of various oc commands
@@ -136,7 +116,7 @@ else
 
         # must-gather
         # When a policy is defined, use the same mirror (local registry)
-        registry=$($rem oc get imageContentSourcePolicy image-policy-0 -o json |
+        registry=$($rem oc get imageContentSourcePolicy image-policy-0 -o json 2>/dev/null |
                             jq -r '.spec.repositoryDigestMirrors[].mirrors[]' |
                             grep -Pom1 '(\w+[.:])+\d+')
         for image in ${DCI_MUST_GATHER_IMAGES:-"registry.redhat.io/openshift4/ose-must-gather"}
@@ -170,9 +150,11 @@ else
         # Post processing
         cd $dir
         for f in $(ls *.tar.gz 2> /dev/null); do
-            hostname=$(tar xOf $f journal|grep 'set hostname'|sed -e "s/.*set hostname to '//" -e "s/'.*//")
-            if [ -n "$hostname" ]; then
-                mv $f $hostname-files.tar.gz
+            if grep -q journal <<<$(tar tzf $f); then
+                hostname=$(tar xOf $f journal|grep 'set hostname'|sed -e "s/.*set hostname to '//" -e "s/'.*//")
+                if [ -n "$hostname" ]; then
+                    mv $f $hostname-files.tar.gz
+                fi
             fi
         done
     else
