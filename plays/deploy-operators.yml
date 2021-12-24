@@ -44,10 +44,13 @@
       name: prepare-cnf
 
   - name: "deploy-operators : Increase maxUnavailable count to n-1"
-    shell: >
-      oc patch mcp worker
-      --type=merge
-      -p '{"spec":{"maxUnavailable":{{ hostvars.localhost.groups['workers']|length - 1 }}}}'
+    k8s:
+      definition:
+        kind: MachineConfigPool
+        metadata:
+          name: worker
+        spec:
+          maxUnavailable: "{{ hostvars.localhost.groups['workers']|length - 1 }}"
     when:
     - hostvars.localhost.groups['workers']|length > 1
 
@@ -64,10 +67,13 @@
     - hostvars.localhost.enable_sriov|default(true)|bool
 
   - name: "deploy-operators : Reset maxUnavailable count to default value 1"
-    shell: >
-      oc patch mcp worker
-      --type=merge
-      -p '{ "spec": { "maxUnavailable": 1 } }'
+    k8s: 
+      definition:
+        kind: MachineConfigPool
+        metadata:
+          name: worker
+        spec:
+          maxUnavailable: 1
 
   when: hostvars.localhost.dci_prepare_cnf|bool
 ### End CNF
