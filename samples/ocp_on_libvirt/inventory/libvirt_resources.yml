@@ -31,7 +31,7 @@ all:
         bridge: provisioning
     hosts:
       - name: provisionhost
-        domain: "{{ domain }}"
+        domain: "{{ cluster_domain }}"
         users:
           - name: "{{ provisionhost_user }}"
             gecos: Admin User
@@ -55,7 +55,7 @@ all:
           - name: provisioning
           - name: baremetal
       - name: master-0
-        domain: localhost
+        domain: "{{ cluster_domain }}"
         users: []
         run_commands: []
         driver: kvm
@@ -72,7 +72,7 @@ all:
           - name: provisioning
           - name: baremetal
       - name: master-1
-        domain: localhost
+        domain: "{{ cluster_domain }}"
         users: []
         run_commands: []
         driver: kvm
@@ -89,7 +89,7 @@ all:
           - name: provisioning
           - name: baremetal
       - name: master-2
-        domain: localhost
+        domain: "{{ cluster_domain }}"
         users: []
         run_commands: []
         driver: kvm
