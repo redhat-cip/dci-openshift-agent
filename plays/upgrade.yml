@@ -48,17 +48,22 @@
       chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
       cmd: oc apply -f ../imagecontentsourcepolicy-{{ version }}.yaml
 
-  - name: "upgrader : Wait for machineconfigpools to update"
-    shell:
-      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-      cmd: |
-        for mcp in $(oc get mcp -o name); do
-          oc wait --timeout=1m --for=condition=Updated ${mcp} &
-        done
-        wait -n
-    register: wait_for_mcp
-    retries: 5
-    until: wait_for_mcp.rc == 0
+  - name: Pause for Machine Config to be created
+    pause:
+      seconds: 60
+
+  - name: Wait for updated machine configs to be applied on the nodes
+    k8s_info:
+      api_version: machineconfiguration.openshift.io/v1
+      kind: MachineConfigPool
+    register: reg_mcpool_status
+    vars:
+      status_query: "resources[*].status.conditions[?type=='Updated'].status"
+      update_status: "{{ reg_mcpool_status | json_query(status_query) | flatten | unique }}"
+    until:
+      - update_status == ['True']
+    retries: 60
+    delay: 60
 
   - name: "upgrader : Wait for nodes to become Ready"
     shell:
