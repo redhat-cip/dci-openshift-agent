@@ -1,0 +1,8 @@
+---
+- name: Get CSR's to approve
+  command:
+    cmd: "{{ lookup('first_found', findme) }} {{ ocp_binary_path }} {{ groups['workers'] | length }}"
+  vars:
+    findme:
+      - approve_workers.sh
+...

@@ -1,0 +1,25 @@
+$TTL 1W
+@	IN	SOA	ns1.ocp4.example.com.	root (
+			2021121803	; serial
+			3H		; refresh (3 hours)
+			30M		; retry (30 minutes)
+			2W		; expiry (2 weeks)
+			1W )		; minimum (1 week)
+	IN	NS	ns1.ocp4.example.com.
+;
+; syntax is "last octet" and the host must have fqdn with trailing dot
+1       IN      PTR     helper.ocp4.example.com.
+
+21	IN	PTR	master0.ocp4.example.com.
+22	IN	PTR	master1.ocp4.example.com.
+23	IN	PTR	master2.ocp4.example.com.
+;
+20	IN	PTR	bootstrap.ocp4.example.com.
+;
+1	IN	PTR	api.ocp4.example.com.
+1	IN	PTR	api-int.ocp4.example.com.
+;
+11	IN	PTR	worker0.ocp4.example.com.
+12	IN	PTR	worker1.ocp4.example.com.
+;
+;EOF

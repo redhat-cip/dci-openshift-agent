@@ -1,0 +1,38 @@
+variant: fcos
+version: 1.1.0
+
+storage:
+  files:
+    - path: /usr/local/bin/post-install-hook
+      mode: 0755
+      contents:
+        inline: |
+          #!/bin/bash
+
+          set -xeuo pipefail
+          for i in $(cat /proc/cmdline)
+          do
+            if [ ${i#*dci.install_callback=*} != $i ]
+            then
+              install_callback=${i#dci.install_callback=};
+            fi
+          done
+          curl "$install_callback/post"
+          echo "post-hook"
+
+systemd:
+  units:
+    - name: post-install-hook.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Run after install
+        After=coreos-installer.service
+        Before=coreos-installer.target
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/local/bin/post-install-hook
+
+        [Install]
+        RequiredBy=coreos-installer.target
