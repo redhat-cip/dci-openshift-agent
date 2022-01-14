@@ -68,14 +68,16 @@ The variables needed by the disconnected environment:
 
 Group                   | Variable | Required      | Type   | Description
 ----------------------- | -------- | ------------- | ------ |----------------------------------------------------
-[registry_host]         |          | True          | String | Define a host here to create or use a local registry
+[all:vars] | dci_disconnected | True | Boolean | Main variable to specify this is a disconnected environment
 [all:vars] | webserver_url | True | String | URL of the webserver hosting the qcow images
 [all:vars] | local_registry_host | True | String | FQDN or IP for the registry server acting as a mirror
 [all:vars] | local_registry_port | True | String | Listening Port for the registry server
 [all:vars] | local_registry_user | True | String | Username for the registry server
 [all:vars] | local_registry_password | True | String | Password of the registry user for the registry server
 [all:vars] | provision_cache_store | True | String | Folder using for the caching
-[registry_host:vars] | disconnected_registry_auths_file | True | String | File that contains extra auth tokens to include in the pull-secret. This file will be generated if it doesn't exist.
+[all:vars] | pullsecret_file | Optional | String | Path of the file in the jumpbox with the pull secret and registry auths in json format. If not provided the content of disconnected_registry_auths_file and pullsecret variable (pulled from DCI components) will be combined to be used by all disconnected tasks.
+[registry_host]         |          | True          | String | Define a host here to create or use a local registry
+[registry_host:vars] | disconnected_registry_auths_file | Optional | String | File that contains extra auth tokens to include in the pull-secret. This file will be generated if it doesn't exist. And only required if pullsecret_file var not provided)
 [registry_host:vars] | disconnected_registry_mirrors_file | True | String | File that contains the addition trust bundle and image content sources for the local registry. The contents of this file will be appended to the install-config.yml file. This file will be generated if it doesn't exist.
 [registry_host:vars] | registry_dir | True | String | Folder where to store the openshift container images
 [registry_host:vars] | local_repo | True | String | Specify the name of the repository to create in your registry

@@ -24,7 +24,7 @@
   vars:
     ts_e2e_image: "quay.io/openshift/origin-tests"
     ts_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
-    ts_registry_auth: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
+    ts_registry_auth: "{{ dci_pullsecret_file }}"
     ts_ocp_version_maj: "{{ ocp_version_major | int }}"
     ts_ocp_version_min: "{{ ocp_version_minor | int }}"
     ts_registry_certificate: "{{ registry_certificate }}"
@@ -38,14 +38,10 @@
 # Setup and run cnf-tests
 - block:
     - name: Mirror images to local registry for disconnected cnf-tests
-      vars:
-        dci_pullsecret_file: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
       include_tasks: cnf-tests-mirror.yml
       when: cnf_tests_mode == "offline"
 
     - name: Run cnf tests
-      vars:
-        dci_pullsecret_file: "{{ provision_cache_store }}/{{ cluster }}-pull-secret.txt"
       include_tasks: cnf-tests-run.yml
   when:
     - cnf_tests_mode is defined
