@@ -63,7 +63,7 @@
     - hostvars.localhost.enable_sriov|default(true)|bool
 
   - name: "deploy-operators : Reset maxUnavailable count to default value 1"
-    k8s: 
+    k8s:
       definition:
         kind: MachineConfigPool
         metadata:

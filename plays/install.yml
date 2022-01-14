@@ -73,7 +73,7 @@
     import_role:
       name: sno-installer
   when:
-    - install_type is defined 
+    - install_type is defined
     - install_type == 'sno'
 
 - name: "installer : Setup openshift access in jumphost"
