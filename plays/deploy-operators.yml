@@ -39,14 +39,19 @@
     include_role:
       name: prepare-cnf
 
+  # Rendering the definition in a variable to avoid jinja templating type issues
   - name: "deploy-operators : Increase maxUnavailable count to n-1"
-    k8s:
-      definition:
+    vars:
+      mcp_def: |
+        apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfigPool
         metadata:
           name: worker
         spec:
-          maxUnavailable: "{{ hostvars.localhost.groups['workers']|length - 1 }}"
+          maxUnavailable: {{ hostvars.localhost.groups['workers'] | length - 1 }}
+    k8s:
+      state: present
+      definition: "{{ mcp_def }}"
     when:
     - hostvars.localhost.groups['workers']|length > 1
 
