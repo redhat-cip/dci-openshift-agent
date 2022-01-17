@@ -654,7 +654,7 @@ Enable the dnf-automatic.timer
 
 3. "DCI Main"
     1. "Install" (`dci_main` is "install" or undefined)
-        - Start OpenShift install: `/plays/install.yml` 
+        - Start OpenShift install: `/plays/install.yml`
         - Trigger partner install hook if needed: `/hooks/install.yml`.
         - _tags: running, installing, hook-installing_
         - _runs on: provisioner_

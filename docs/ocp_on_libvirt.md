@@ -22,7 +22,7 @@ Please note that systems are [nested virtual
 machines](#https://www.linux-kvm.org/page/Nested_Guests) at least in the case
 of the provision host: provisioner will spawn a bootstrap VM inside itself, in
 our case that would be a VM inside a VM. Please remember to enable `nested_kvm`
-in your Jumpbox. 
+in your Jumpbox.
 
 The full virtualized environment scenario requires the DCI Jumpbox to have at
 least 64 Gi of memory and 200 Gi of storage to host a virtual provision machine

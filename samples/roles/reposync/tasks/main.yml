@@ -6,7 +6,7 @@
         state: directory
         recurse: true
       with_list: "{{ reposync_repos }}"
-    
+
     - name: Create script to mirror
       template:
         src: sync-repos.sh.j2
