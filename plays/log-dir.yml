@@ -1,0 +1,11 @@
+---
+- name: "Create a temporary directory for job_logs"
+  tempfile:
+    state: directory
+    prefix: dci_logs.
+  register: job_logs
+
+- name: "Job logs path"
+  debug:
+    msg: "{{ job_logs.path }}"
+...

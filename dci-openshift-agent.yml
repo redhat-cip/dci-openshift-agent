@@ -67,8 +67,14 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
   tasks:
+
     - block:
         # prepare infrastructure
+
+        - name: "Setup job_logs directory"
+          include_tasks: plays/log-dir.yml
+          when: job_logs is undefined
+
         - name: Run the pre-run
           include_tasks: plays/pre-run.yml
 
@@ -290,7 +296,13 @@
     no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
-        - include_tasks: plays/tests.yml
+
+        - name: "Setup job_logs directory"
+          include_tasks: plays/log-dir.yml
+          when: job_logs is undefined
+
+        - name: "Launch Red Hat tests"
+          include_tasks: plays/tests.yml
 
       rescue: *teardown_failure
 
@@ -307,6 +319,11 @@
     no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
+
+        - name: "Setup job_logs directory"
+          include_tasks: plays/log-dir.yml
+          when: job_logs is undefined
+
         # Launch user tests
         - name: Run the partner tests
           include_tasks: '{{ hookdir }}/hooks/tests.yml'

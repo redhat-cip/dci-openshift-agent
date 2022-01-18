@@ -1,27 +1,20 @@
 ---
-- name: "Find test text files"
-  find:
-    paths: "{{ dci_cluster_configs_dir }}"
-    recurse: true
-    patterns: "*.txt,*.html"
-  register: logs_matched
 
-- name: "Upload test text files results to DCI Control Server"
+- name: "Setup job_logs directory"
+  include_tasks: plays/log-dir.yml
+  when: job_logs is undefined
+
+- name: Get logs from OCP deployment
   environment:
-    - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
-    - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
-    - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
-  dci_file:
-    path: "{{ item.path }}"
-    name: "{{ item.path | basename }}"
-    job_id: "{{ hostvars.localhost.job_id }}"
-  with_items: "{{ logs_matched.files }}"
+    - DCI_MUST_GATHER_IMAGES: '{{ dci_must_gather_images | default(["registry.redhat.io/openshift4/ose-must-gather"]) | join(" ") }}'
+  script: ./scripts/get-logs "{{ hostvars[groups['provisioner'][0]]['ansible_user'] }}@{{ groups['provisioner'][0] }}" "{{ job_logs.path }}" "{{ groups['masters'] }}"
+  ignore_errors: true
 
 - name: "Find test Junit files"
   find:
-    paths: "{{ dci_cluster_configs_dir }}"
+    paths: "{{ job_logs.path }}"
     recurse: true
-    patterns: "*junit*.xml"
+    patterns: "*junit,*.xml"
   register: junit_matched
 
 - name: "Upload Junit files to DCI Control Server"
@@ -36,23 +29,11 @@
     mime: "application/junit"
   with_items: "{{ junit_matched.files }}"
 
-- name: Generate temp dir for deployment logs
-  tempfile:
-    state: directory
-    suffix: logdir
-  register: logdir
-
-- name: Get logs from OCP deployment
-  environment:
-    - DCI_MUST_GATHER_IMAGES: '{{ dci_must_gather_images | default(["registry.redhat.io/openshift4/ose-must-gather"]) | join(" ") }}'
-  script: ./scripts/get-logs "{{ hostvars[groups['provisioner'][0]]['ansible_user'] }}@{{ groups['provisioner'][0] }}" "{{ logdir.path }}" "{{ groups['masters'] }}"
-  ignore_errors: true
-
 - name: Find deployment logs (text)
   find:
-    paths: "{{ logdir.path }}"
+    paths: "{{ job_logs.path }}"
     recurse: yes
-    patterns: "*.log,*.txt,*.html"
+    patterns: "*.log,*.txt,*.html,*.yaml"
   register: logs_matched
 
 - name: "Upload text logs"
@@ -63,7 +44,7 @@
 
 - name: Find deployment logs (compressed)
   find:
-    paths: "{{ logdir.path }}"
+    paths: "{{ job_logs.path }}"
     recurse: yes
     patterns: "*.gz"
   register: logs_matched
@@ -76,7 +57,7 @@
 
 - name: Clean up Temp dir
   file:
-    path: "{{ logdir.path }}"
+    path: "{{ job_logs.path }}"
     state: absent
 
 ...
