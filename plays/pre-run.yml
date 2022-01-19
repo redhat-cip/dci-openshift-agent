@@ -1,4 +1,5 @@
 ---
+
 - name: Validate we have all the pieces to run in disconnected mode
   assert:
     that:
@@ -27,8 +28,19 @@
     tags: "{{ item['tags'] }}"
     url: "{{ item['url']|default('') }}"
     version: "{{ item['data']['version'] }}"
+    ocp_product_id: "{{ item['id'] }}"
   with_items: "{{ job_info.job.components }}"
   when: item["type"] == "ocp"
+
+- name: Export the OCP component id into a file
+  delegate_to: "{{ groups['provisioner'][0] }}"
+  copy:
+    dest: "/tmp/{{ job_id }}.ocp_prod_id"
+    content: "{{ ocp_product_id }}"
+  when:
+    - job_info is defined
+    - "'outputs' in job_info"
+    - "'ocp_comp' in job_info['outputs']"
 
 - name: Get build from tag
   set_fact:
@@ -164,4 +176,5 @@
       - "/var/consoles/{{ hostvars.localhost.cluster }}/{{ hostvars.localhost.cluster }}*"
   when: hostvars.localhost.cluster is defined
   become: true
+
 ...
