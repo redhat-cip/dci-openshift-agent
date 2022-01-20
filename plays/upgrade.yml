@@ -62,7 +62,7 @@
       update_status: "{{ reg_mcpool_status | json_query(status_query) | flatten | unique }}"
     until:
       - update_status == ['True']
-    retries: 120
+    retries: 60
     delay: 60
 
   - name: "upgrader : Wait for nodes to become Ready"
@@ -133,7 +133,7 @@
       | jq -r '.status.history[] | select(.version == "{{ version }}").state'
   register: upgrade_progress
   until: upgrade_progress.stdout.find("Completed") > -1
-  retries: 120
+  retries: 150
   delay: 60
 
 - name: "test_ upgrader: check if all cluster-operators are running correctly"
