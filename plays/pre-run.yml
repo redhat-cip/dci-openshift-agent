@@ -113,6 +113,11 @@
 
 - include_tasks: track_rpm.yml
   with_items: "{{ dci_rpms_to_components }}"
+  when: |
+    item is not in
+    ((dci_gits_to_components | list + dev_gits_to_components | list) |
+    map('regex_replace', '^(.*)/$', '\\1') |
+    map('regex_replace', '^.*/(.*)$', '\\1') | list)
 
 # Mirror Operators for offline mode
 - name: "dci-openshift-agent : Mirror Operators"
