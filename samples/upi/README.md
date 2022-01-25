@@ -86,8 +86,8 @@ The following examples assume eno1 is your internal network for the cluster and 
    Apply configuration
 
    ```bash
-   sudo cp ~dci-openshift-agentsamples/upi/dns/named.conf /etc/named.conf
-   sudo cp -R ~dci-openshift-agentsamples/upi/dns/zones /var/named/
+   sudo cp ~dci-openshift-agent/samples/upi/dns/named.conf /etc/named.conf
+   sudo cp -R ~dci-openshift-agent/samples/upi/dns/zones/* /var/named/
    ```
 
    Configure the firewall for DNS
@@ -138,7 +138,7 @@ The following examples assume eno1 is your internal network for the cluster and 
    Edit dhcpd.conf to have the correct mac address for each host and copy the conf file to the correct location for the DHCP service to use.  If your internal network is not eno1 then you will need to edit the interface entry in the file as well.
 
    ```bash
-   sudo cp ~dci-openshift-agentsamples/upi/dhcpd.conf /etc/dhcp/dhcpd.conf
+   sudo cp ~dci-openshift-agent/samples/upi/dhcpd.conf /etc/dhcp/dhcpd.conf
    ```
 
    Configure the Firewall
@@ -202,7 +202,7 @@ The following examples assume eno1 is your internal network for the cluster and 
    Copy HAProxy config
 
    ```bash
-   sudo cp ~dci-openshift-agentsamples/upi/haproxy.cfg /etc/haproxy/haproxy.cfg
+   sudo cp ~dci-openshift-agent/samples/upi/haproxy.cfg /etc/haproxy/haproxy.cfg
    ```
 
    Configure the Firewall
