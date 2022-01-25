@@ -1,0 +1,11 @@
+  
+default menu.c32
+ prompt 1
+ timeout 9
+ ONTIMEOUT 1
+ menu title ######## PXE Boot Menu ########
+ label 1
+ menu label ^1) Install Worker Node
+ menu default
+ kernel rhcos/kernel
+ append initrd=rhcos/initramfs.img nomodeset rd.neednet=1 ip=dhcp coreos.inst=yes coreos.inst.install_dev=vda  coreos.live.rootfs_url=http://192.168.7.1:8080/install/rootfs.img  coreos.inst.ignition_url=http://192.168.7.1:8080/ignition/worker.ign ignition.config.url=http://192.168.7.1:8080/ignition/dci_hooks.ign dci.install_callback=http://192.168.7.1:8000/worker0 ignition.firstboot ignition.platform.id=metal coreos.inst.skip_reboot

@@ -57,6 +57,10 @@ for role in $(ls roles); do
     find roles/$role -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 done
 
+for plugin in action_plugins/*.py; do
+    install -p -D -m 644 $plugin %{buildroot}%{_datadir}/dci-openshift-agent/$plugin
+done
+
 install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
 
 install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.service
@@ -109,6 +113,7 @@ exit 0
 %{_datadir}/dci-openshift-agent/plays/*.yml
 %{_datadir}/dci-openshift-agent/plays/scripts/*
 %{_datadir}/dci-openshift-agent/roles/*
+%{_datadir}/dci-openshift-agent/action_plugins/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 

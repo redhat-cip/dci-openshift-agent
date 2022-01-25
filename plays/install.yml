@@ -76,6 +76,15 @@
     - install_type is defined
     - install_type == 'sno'
 
+- name: UPI Installer tasks
+  block:
+  - name: "installer : Run UPI installer"
+    import_role:
+      name: upi-installer
+  when:
+    - install_type is defined
+    - install_type == 'upi'
+
 - name: "installer : Setup openshift access in jumphost"
   include_role:
     name: oc-setup
