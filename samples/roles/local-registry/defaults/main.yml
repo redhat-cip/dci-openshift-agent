@@ -12,7 +12,7 @@ registry_container_image: docker.io/library/registry:2
 registry_http_user: "dummy"
 registry_http_pass: "dummy"
 registry_http_secret: "SomeVeryRandomStringForSecret"
-registry_http_port: 5000
+registry_http_port: 4443
 registry_cert_self: true
 registry_cert_ca: "{{ registry_dir }}/certs/{{ registry_fqdn }}-ca.crt"
 registry_cert_crt: "{{ registry_dir }}/certs/{{ registry_fqdn }}.crt"
@@ -29,7 +29,7 @@ registry_services:
     podman create
     --name {{ registry_container }}
     --security-opt label=disable
-    --publish {{ registry_http_port }}:5000
+    --publish {{ registry_http_port }}:4443
     --volume {{ registry_dir }}/data:/var/lib/registry:z
     --volume {{ registry_dir }}/auth:/auth:z
     --volume {{ registry_dir }}/certs:/certs:z

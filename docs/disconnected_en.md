@@ -36,7 +36,7 @@ needed by the disconnected environment:
 
 # Local registry
 local_registry_host=registry.example.com
-local_registry_port=5000
+local_registry_port=4443
 local_registry_user=MY_REGISTRY_USER
 local_registry_password=MY_REGISTRY_PASSWORD
 provision_cache_store="/opt/cache"

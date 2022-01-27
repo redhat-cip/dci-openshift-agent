@@ -322,7 +322,7 @@ dnsvip=1.2.3.4
 # Registry host that will mirror all container images
 #local_registry_host=local-registry
 # Registry port
-#local_registry_port=5000
+#local_registry_port=4443
 # Registry namespace
 #local_repo=ocp4/openshift4
 
