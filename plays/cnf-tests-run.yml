@@ -20,7 +20,7 @@
       cmd: >
        podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
        -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
-       -v {{ dci_cluster_configs_dir }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+       -v {{ job_logs.path }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
        /usr/bin/test-run.sh  -ginkgo.focus="sctp" --junit /tests/{{ date.stdout }}/sctp
     ignore_errors: yes
     when: cnf_test_suites is defined and  "sctp" in cnf_test_suites
@@ -32,7 +32,7 @@
       cmd: >
        podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
        -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
-       -v {{ dci_cluster_configs_dir }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+       -v {{ job_logs.path }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
        /usr/bin/test-run.sh  -ginkgo.focus="ptp" --junit  /tests/{{ date.stdout }}/ptp
     ignore_errors: yes
     when: cnf_test_suites is defined and "ptp" in cnf_test_suites
@@ -44,7 +44,7 @@
       cmd: >
        podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
        -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
-       -v {{ dci_cluster_configs_dir }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+       -v {{ job_logs.path }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
        /usr/bin/test-run.sh  -ginkgo.focus="performance" --junit  /tests/{{ date.stdout }}/performance
     ignore_errors: yes
     when: cnf_test_suites is defined and "performance" in cnf_test_suites
@@ -56,7 +56,7 @@
       cmd: >
          podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig
          -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
-         -v {{ dci_cluster_configs_dir }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+         -v {{ job_logs.path }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
          /usr/bin/test-run.sh -ginkgo.focus="sriov" -ginkgo.skip="SCTP" -test.timeout 60m
          --junit  /tests/{{ date.stdout }}/sriov
     ignore_errors: yes
@@ -69,7 +69,7 @@
       cmd: >
         podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
         -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }} -e DPDK_TESTS_IMAGE=dpdk:{{ cnf_tests_image }}
-        -v {{ dci_cluster_configs_dir }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+        -v {{ job_logs.path }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
         /usr/bin/test-run.sh  -ginkgo.focus="dpdk" --junit  /tests/{{ date.stdout }}/dpdk
     ignore_errors: yes
     when: cnf_test_suites is defined and "dpdk" in cnf_test_suites
@@ -77,8 +77,8 @@
   - name: Rename junit xml files with the feature name
     shell: |
       for d in sctp ptp performance sriov dpdk; do
-        if [ -d "{{ dci_cluster_configs_dir }}/{{ date.stdout }}/${d}" ]; then
-          cd "{{ dci_cluster_configs_dir }}/{{ date.stdout }}/${d}"
+        if [ -d "{{ job_logs.path }}/{{ date.stdout }}/${d}" ]; then
+          cd "{{ job_logs.path }}/{{ date.stdout }}/${d}"
           for i in *; do mv "${i}" "${d}_${i}"; done
         fi
       done
