@@ -191,9 +191,11 @@ host are:
 
 - Provision with RHEL8
 - Subscribe to RHSM and make sure it is receiving updates
+- Install the EPEL RPM package
 - Must have 2 NICs: one for the baremetal public/routed network and another for
   the provisioning private network
 - Create a `kni` user
+- Create a ssh key for the `kni` user
 
 ### Copying the ssh key to your provisioner
 
@@ -301,28 +303,28 @@ dir="{{ ansible_user_dir }}/clusterconfigs"
 # Virtual IP for the cluster ingress
 dnsvip=1.2.3.4
 # Override which NIC masters use for the private/provisioning network
-;masters_prov_nic=eno1
+#masters_prov_nic=eno1
 # Disable TLS verification of BMC certificates
-;disable_bmc_certificate_verification=true
+#disable_bmc_certificate_verification=true
 # Enable some light caching on the provision host
-;cache_enabled=false
+#cache_enabled=false
 
 # Activate disconnected mode in DCI OCP agent, requires you to set the next variables as well
-;dci_disconnected=true
+#dci_disconnected=true
 # Must be reachable from the cluster
-;webserver_url="http://<jumpbox IP/DNS>:8080"
+#webserver_url="http://<jumpbox IP/DNS>:8080"
 # Path on the jumpbox
-;disconnected_registry_auths_file=/path/to/auths.json
+#disconnected_registry_auths_file=/path/to/auths.json
 # Path on the jumpbox
-;disconnected_registry_mirrors_file=/path/to/trust-bundle.yml
+#disconnected_registry_mirrors_file=/path/to/trust-bundle.yml
 # Path on the jumpbox, must have enough space to hold your qcow images
-;provision_cache_store="/path/to/qcow/cache"
+#provision_cache_store="/path/to/qcow/cache"
 # Registry host that will mirror all container images
-;local_registry_host=local-registry
+#local_registry_host=local-registry
 # Registry port
-;local_registry_port=5000
+#local_registry_port=5000
 # Registry namespace
-;local_repo=ocp4/openshift4
+#local_repo=ocp4/openshift4
 
 # Master nodes
 [masters]
@@ -334,7 +336,7 @@ master-2 name=master-2 ipmi_user=ADMIN ipmi_password=ADMIN ipmi_address=ipmi-mas
 role=master
 hardware_profile=default
 # If needed, you can set node labels too
-;labels='{"node-role.kubernetes.io.foo":"", "node-role.kubernetes.io.bar":""}' # example
+#labels='{"node-role.kubernetes.io.foo":"", "node-role.kubernetes.io.bar":""}' # example
 
 # Worker nodes
 [workers]
@@ -344,7 +346,7 @@ worker-0 name=worker-0 ipmi_user=ADMIN ipmi_password=ADMIN ipmi_address=ipmi-wor
 role=worker
 hardware_profile=default
 # If needed, you can set node labels too
-;labels='{"node-role.kubernetes.io.foo":"", "node-role.kubernetes.io.bar":""}' # example
+#labels='{"node-role.kubernetes.io.foo":"", "node-role.kubernetes.io.bar":""}' # example
 
 # Provision Host
 [provisioner]
