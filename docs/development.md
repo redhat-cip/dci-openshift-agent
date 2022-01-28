@@ -1,16 +1,16 @@
-# Getting Involved
+# Development
 
 ## Table of Contents
 
-- [Development](#development)
-  - [Local dev environment](#local-dev-environment)
-  - [Libvirt environment](#libvirt-environment)
-- [Continuous Integration](#continuous-integration)
-  - [Testing a change](#testing-a-change)
-- [Agent troubleshooting](#agent-troubleshooting)
-  - [Launching the agent without DCI calls](#launching-the-agent-without-dci-calls)
-
-# Development
+- [Local dev environment](#local-dev-environment)
+- [Libvirt environment](#libvirt-environment)
+- [Testing a change](#testing-a-change)
+  - [Advanced](#advanced)
+    - [Dependencies](#dependencies)
+    - [Prefix](#prefix)
+    - [Hints](#hints)
+- [Continuous integration](#continuous-integration)
+- [Launching the agent without DCI calls](#launching-the-agent-without-dci-calls)
 
 ## Local dev environment
 
@@ -27,36 +27,37 @@ Then, you need to modify dev-ansible.cfg two variables: `inventory` and
 Also, in order to install package with the ansible playbook, you need to add
 rights to `dci-openshift-agent` user:
 
-```
+```console
 # cp dci-openshift-agent.sudo /etc/sudoers.d/dci-openshift-agent
 ```
 
 Finally, you can run the script:
 
+```console
+## Option -d for dev mode
+## Overrides variables with group_vars/dev
+$ ./dci-openshift-agent-ctl -s -c settings.yml -d -- -e @group_vars/dev
 ```
-# Option -d for dev mode
-# Overrides variables with group_vars/dev
-% ./dci-openshift-agent-ctl -s -c settings.yml -d -- -e @group_vars/dev
-```
+
 ## Libvirt environment
 
 Please refer to the [full libvirt documentation](ocp_on_libvirt.md) to setup
 your own local libvirt environment
 
-# Testing a change
+## Testing a change
 
 If you want to test a change from a Gerrit review or from a GitHub PR,
 use the `dci-check-change` command. Example:
 
 ```console
-$ dci-check-change 21136
+dci-check-change 21136
 ```
 
 to check https://softwarefactory-project.io/r/#/c/21136/ or from a
 GitHub PR:
 
 ```console
-$ dci-check-change https://github.com/myorg/lab-config/pull/42
+dci-check-change https://github.com/myorg/lab-config/pull/42
 ```
 
 Regarding Github, you will need a token to access private repositories
@@ -85,32 +86,32 @@ USE_PREFIX=1
 This way, the resource from `dci-queue` is passed as the prefix for
 `dci-openshift-app-agent-ctl`.
 
-## Advanced
+### Advanced
 
-### Dependencies
+#### Dependencies
 
 If the change you want to test has a `Depends-On:` or `Build-Depends:`
 field, `dci-check-change` will install the corresponding change and
 make sure all the changes are tested together.
 
-### Prefix
+#### Prefix
 
 If you want to pass a prefix to the `dci-openshift-agent` use the `-p`
 option and if you want to pass a prefix to the
 `dci-openshift-app-agent` use the `-p2` option. For example:
 
 ```console
-$ dci-check-change https://github.com/myorg/lab-config/pull/42 -p prefix -p2 app-prefix
+dci-check-change https://github.com/myorg/lab-config/pull/42 -p prefix -p2 app-prefix
 ```
 
-### Hints
+#### Hints
 
 You can also specify a `Test-Hints:` field in the description of your
 change. This will direct `dci-check-change` to test in a specific way:
 
-* `Test-Hints: sno` validate the change in SNO mode.
-* `Test-Hints: libvirt` validate in libvirt mode (3 masters).
-* `Test-Hints: no-check` do not run a check (useful in CI mode).
+- `Test-Hints: sno` validate the change in SNO mode.
+- `Test-Hints: libvirt` validate in libvirt mode (3 masters).
+- `Test-Hints: no-check` do not run a check (useful in CI mode).
 
 `Test-Args-Hints:` can also be used to specify extra parameters to
 pass to `dci-check-change`.
@@ -122,11 +123,11 @@ the configuration is taken from the system.
 Hints need to be activated in the `SUPPORTED_HINTS` variable in
 `/etc/dci-openshift-agent/config` like this:
 
-```Shell
+```console
 SUPPORTED_HINTS="sno|libvirt|no-check|args|app"
 ```
 
-# Continuous integration
+## Continuous integration
 
 You can use
 `/var/lib/dci-openshift-agent/samples/ocp_on_libvirt/ci.sh` to setup
@@ -143,11 +144,9 @@ to test with `dci-check-change` and to report results to Gerrit.
 For the CI to vote in Gerrit and comment in GitHub, you need to set
 the `DO_VOTE` variable in `/etc/dci-openshift-agent/config` like this:
 
-```Shell
+```console
 DO_VOTE=1
 ```
-
-# Agent troubleshooting
 
 ## Launching the agent without DCI calls
 
@@ -170,4 +169,3 @@ and then call the agent like this:
 # su - dci-openshift-agent
 $ dci-openshift-agent-ctl -s -- --skip-tags dci -e @myvars.yml
 ```
-

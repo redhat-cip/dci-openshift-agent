@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.3.1
+Version:       0.3.2
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -97,6 +97,7 @@ exit 0
 %systemd_postun %{name}.timer
 
 %files
+%license LICENSE
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/*.yml
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/settings.yml
 %config(noreplace) %{_datadir}/dci-openshift-agent/ansible.cfg
@@ -127,6 +128,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Fri Jan 28 2022 Tony Garcia <tonyg@redhat.com> 0.3.2-1
+- Add LICENSE file
+
 * Wed Apr  7 2021 Frederic Lepied <flepied@redhat.com> 0.3.1-1
 - fix packaging of roles (label-nodes was missing)
 
