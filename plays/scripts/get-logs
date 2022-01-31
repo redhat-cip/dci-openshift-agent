@@ -52,7 +52,7 @@ if [ -n "$ip" ]; then
     done
     # dump an archive with bootstrap logs
     $rem openshift-baremetal-install gather bootstrap --dir=/tmp/gatherBootstrap --bootstrap $ip $master_param
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR $log:/tmpatherBootstrap/* $dir/
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR $log:/tmp/gatherBootstrap/* $dir/
     $rem rm -rf /tmp/gatherBootstrap
     core="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR core@$ip"
 
