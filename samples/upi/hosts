@@ -2,6 +2,7 @@
 dir="{{ ansible_user_dir }}/clusterconfigs"
 bootstrap_interface="192.168.7.1"
 cluster=ocp4
+domain=example.com
 install_type=upi
 
 # Master nodes

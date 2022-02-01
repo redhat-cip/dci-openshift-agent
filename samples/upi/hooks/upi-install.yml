@@ -1,4 +1,9 @@
 ---
+#
+# This is an example of one way to orchestrate a UPI install
+#
+# Modify this to match your way of installing or replace it entirely
+#
 - name: "Download kernel image"
   get_url:
     url: "{{ rhcos_pxe_kernel_path }}"
@@ -50,6 +55,30 @@
   become: true
   tags: rhcos_live
 
+- name: "Download live ISO image"
+  get_url:
+    url: "{{ rhcos_live_iso_path }}"
+    dest: "/var/www/html/rhcos-live.x86_64.iso"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
+    mode: "0644"
+    setype: virt_content_t
+    checksum: "sha256:{{ rhcos_live_iso_sha256 }}"
+    timeout: 1200
+  register: pxe_img_file
+  retries: 3
+  delay: 10
+  until: pxe_img_file is not failed
+  become: true
+  tags: rhcos_live
+
+- name: Extract UEFI shim
+  command:
+    cmd: "{{ lookup('first_found', findme) }} /var/www/html/rhcos-live.x86_64.iso /var/lib/tftpboot"
+  vars:
+    findme:
+      - extract_shimx64.sh
+
 - name: Generate install-config.yaml
   template:
     src: install-config.j2
@@ -92,4 +121,119 @@
     - "master"
     - "worker"
     - "bootstrap"
+
+- name: Power off nodes
+  ipmi_power:
+    name: "{{ hostvars[item]['ipmi_address'] }}"
+    user: "{{ hostvars[item]['ipmi_user'] }}"
+    password: "{{ hostvars[item]['ipmi_password'] }}"
+    port: "{{ hostvars[item]['ipmi_port'] | default(623) }}"
+    state: off
+  register: power_off_hosts
+  until: power_off_hosts is not failed
+  retries: 10
+  delay: 5
+  loop: "{{ groups['masters'] + groups['workers'] + groups['bootstrap'] }}"
+
+- name: Set boot to network
+  ipmi_boot:
+    name: "{{ hostvars[item]['ipmi_address'] }}"
+    user: "{{ hostvars[item]['ipmi_user'] }}"
+    password: "{{ hostvars[item]['ipmi_password'] }}"
+    port: "{{ hostvars[item]['ipmi_port'] | default(623) }}"
+    bootdev: network
+    uefiboot: "{{ hostvars[item]['ipmi_uefi'] | default(false) | bool }}"
+  register: network_boot_hosts
+  until: network_boot_hosts is not failed
+  retries: 10
+  delay: 5
+  loop: "{{ groups['masters'] + groups['workers'] + groups['bootstrap'] }}"
+
+- name: Power on nodes
+  ipmi_power:
+    name: "{{ hostvars[item]['ipmi_address'] }}"
+    user: "{{ hostvars[item]['ipmi_user'] }}"
+    password: "{{ hostvars[item]['ipmi_password'] }}"
+    port: "{{ hostvars[item]['ipmi_port'] | default(623) }}"
+    state: on
+  register: power_on_hosts
+  until: power_on_hosts is not failed
+  retries: 10
+  delay: 5
+  loop: "{{ groups['masters'] + groups['workers'] + groups['bootstrap'] }}"
+
+- name: Generate nodes var
+  set_fact:
+    nodes: "{{ nodes | default([]) + [{ 'node': item, 'ipmi_address': hostvars[item]['ipmi_address'], 'ipmi_user': hostvars[item]['ipmi_user'], 'ipmi_password': hostvars[item]['ipmi_password'], 'ipmi_port': hostvars[item]['ipmi_port'] | default(623), 'ipmi_uefi': hostvars[item]['ipmi_uefi'] | default(false) | bool }] }}"
+  loop: "{{ groups['masters'] + groups['workers'] + groups['bootstrap'] }}"
+
+- name: Wait for nodes to provision
+  upi_bootstrap:
+    nodes: "{{ nodes }}"
+    hostname: "{{ bootstrap_interface }}"
+    serverport: "{{ serverport }}"
+    timeout: "{{ timeout }}"
+  become: true
+
+- name: Power off nodes
+  ipmi_power:
+    name: "{{ hostvars[item]['ipmi_address'] }}"
+    user: "{{ hostvars[item]['ipmi_user'] }}"
+    password: "{{ hostvars[item]['ipmi_password'] }}"
+    port: "{{ hostvars[item]['ipmi_port'] | default(623) }}"
+    state: off
+  register: power_off_hosts
+  until: power_off_hosts is not failed
+  retries: 10
+  delay: 5
+  loop: "{{ groups['masters'] + groups['workers'] + groups['bootstrap'] }}"
+
+- name: Power on nodes
+  ipmi_power:
+    name: "{{ hostvars[item]['ipmi_address'] }}"
+    user: "{{ hostvars[item]['ipmi_user'] }}"
+    password: "{{ hostvars[item]['ipmi_password'] }}"
+    port: "{{ hostvars[item]['ipmi_port'] | default(623) }}"
+    state: on
+  register: power_on_hosts
+  until: power_on_hosts is not failed
+  retries: 10
+  delay: 5
+  loop: "{{ groups['masters'] + groups['workers'] + groups['bootstrap'] }}"
+
+- name: Wait for Bootstrap to Complete
+  shell: |
+    {{ ocp_binary_path }}/openshift-install --dir {{ dir }} --log-level debug wait-for bootstrap-complete
+  register: wait_for_bootstrap_result
+  until: wait_for_bootstrap_result is succeeded
+  retries: "{{ increase_bootstrap_timeout| default(1)| int }}"
+  delay: 1
+
+- name: Power off Bootstrap Node
+  ipmi_power:
+    name: "{{ hostvars[item]['ipmi_address'] }}"
+    user: "{{ hostvars[item]['ipmi_user'] }}"
+    password: "{{ hostvars[item]['ipmi_password'] }}"
+    port: "{{ hostvars[item]['ipmi_port'] | default(623) }}"
+    state: off
+  register: power_off_hosts
+  until: power_off_hosts is not failed
+  retries: 10
+  delay: 5
+  loop: "{{ groups['bootstrap'] }}"
+
+- name: Get CSR's to approve
+  command:
+    cmd: "{{ lookup('first_found', findme) }} {{ ocp_binary_path }} {{ groups['workers'] | length }} {{ dir }}/auth/kubeconfig"
+  vars:
+    findme:
+      - approve_workers.sh
+
+- name: Wait for Install to Complete
+  shell: |
+    {{ ocp_binary_path }}/openshift-install --dir {{ dir }} --log-level debug wait-for install-complete
+  register: wait_for_install_result
+  until: wait_for_install_result is succeeded
+  retries: "{{ increase_install_timeout| default(1)| int }}"
+  delay: 1
 ...
