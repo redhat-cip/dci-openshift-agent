@@ -9,18 +9,19 @@ them available to the disconnected environment.
 
 - [Requirements](#requirements)
 - [Configurations](#configurations)
-- [Deploying the Registry (optional)](#deploying-the-registry-(optional))
+- [Deploying the Registry (Optional)](#deploying-the-registry-optional)
+  - [Registry demo](#registry-demo)
 - [Running dci-openshift-agent](#running-dci-openshift-agent)
-- [License](#license)
-- [Contact](#contact)
+  - [Agent demo](#agent-demo)
 
-## Requirements:
-* The registry host needs to have access to the Internet and at least 110 GB of
+## Requirements
+
+- The registry host needs to have access to the Internet and at least 110 GB of
   disk space. You will download the required software repositories and
   container images to this computer. The registry host will usually be the
   jumpbox but it can be another server.
 
-## Configurations:
+## Configurations
 
 First you have to set the 'dci_disconnected' option to 'True' in the settings
 file `/etc/dci-openshift-agent/settings.yml`.
@@ -31,7 +32,7 @@ All the configuration needs to be done in the ansible hosts file
 Following an example of the configuration file highlighting the variables
 needed by the disconnected environment:
 
-```
+```INI
 [all:vars]
 
 # Local registry
@@ -62,22 +63,23 @@ local_repo=ocp4/openshift4
 #   you can uncomment this parameter and add it here.
 #registry_source_mirrors=["quay.io/openshift-release-dev/ocp-v4.0-art-dev", "registry.svc.ci.openshift.org/ocp/release", "quay.io/openshift-release-dev/ocp-release"]
 ```
+
 The variables needed by the disconnected environment:
 
-| Group                   | Variable | Required      | Type   | Description                                   |
-| ----------------------- | -------- | ------------- | ------ |---------------------------------------------------- |
-| [registry_host]         |          | True          | String | Define a host here to create or use a local registry |
-| [all:vars] | webserver_url | True | String | URL of the webserver hosting the qcow images |
-| [all:vars] | local_registry_host | True | String | FQDN or IP for the registry server acting as a mirror |
-| [all:vars] | local_registry_port | True | String | Listening Port for the registry server |
-| [all:vars] | local_registry_user | True | String | Username for the registry server |
-| [all:vars] | local_registry_password | True | String | Password of the registry user for the registry server |
-| [all:vars] | provision_cache_store | True | String | Folder using for the caching |
-| [registry_host:vars] | disconnected_registry_auths_file | True | String | File that contains extra auth tokens to include in the pull-secret. This file will be generated if it doesn't exist. |
-| [registry_host:vars] | disconnected_registry_mirrors_file | True | String | File that contains the addition trust bundle and image content sources for the local registry. The contents of this file will be appended to the install-config.yml file. This file will be generated if it doesn't exist. |
-| [registry_host:vars] | registry_dir | True | String | Folder where to store the openshift container images |
-| [registry_host:vars] | local_repo | True | String | Specify the name of the repository to create in your registry |
-| [registry_host:vars] | registry_source_mirrors | False | String | List of the mirror entries pointing to the registry_host |
+Group                   | Variable | Required      | Type   | Description
+----------------------- | -------- | ------------- | ------ |----------------------------------------------------
+[registry_host]         |          | True          | String | Define a host here to create or use a local registry
+[all:vars] | webserver_url | True | String | URL of the webserver hosting the qcow images
+[all:vars] | local_registry_host | True | String | FQDN or IP for the registry server acting as a mirror
+[all:vars] | local_registry_port | True | String | Listening Port for the registry server
+[all:vars] | local_registry_user | True | String | Username for the registry server
+[all:vars] | local_registry_password | True | String | Password of the registry user for the registry server
+[all:vars] | provision_cache_store | True | String | Folder using for the caching
+[registry_host:vars] | disconnected_registry_auths_file | True | String | File that contains extra auth tokens to include in the pull-secret. This file will be generated if it doesn't exist.
+[registry_host:vars] | disconnected_registry_mirrors_file | True | String | File that contains the addition trust bundle and image content sources for the local registry. The contents of this file will be appended to the install-config.yml file. This file will be generated if it doesn't exist.
+[registry_host:vars] | registry_dir | True | String | Folder where to store the openshift container images
+[registry_host:vars] | local_repo | True | String | Specify the name of the repository to create in your registry
+[registry_host:vars] | registry_source_mirrors | False | String | List of the mirror entries pointing to the registry_host
 
 ## Deploying the registry (Optional)
 
@@ -85,22 +87,26 @@ A playbook exist to deploy the registry and the webserver storing the QCOW
 images
 
 On the jumpbox:
-```
+
+```Shell
 su - dci-openshift-agent
 cd samples
 ansible-playbook infrastructure.yml
 ```
 
-### Demo
+### Registry demo
+
 [![demo](https://asciinema.org/a/vUVI3w23OBqQaM0Ux7IDOlaiq.svg)](https://asciinema.org/a/vUVI3w23OBqQaM0Ux7IDOlaiq?autoplay=1)
 
 ## Running dci-openshift-agent
+
 After the configuration and the registry are setup, we can deploy openshift
 using the dci-openshift-agent:
 
-```
+```Shell
 systemctl start dci-openshift-agent
 ```
 
-### Demo
+### Agent demo
+
 [![demo](https://asciinema.org/a/zbrwiulDWgtV2ABzJ6pK4Uez3.svg)](https://asciinema.org/a/zbrwiulDWgtV2ABzJ6pK4Uez3?autoplay=1)
