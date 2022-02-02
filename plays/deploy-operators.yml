@@ -35,10 +35,26 @@
 ### Begin CNF
 
 - block:
-  - name: "deploy-operators : Prepare cluster for CNF"
-    include_role:
-      name: prepare-cnf
-    when: install_type is undefined or install_type != 'sno'
+  # Verify a minimum amount of worker nodes are available
+  - name: "deploy-operators : Get all nodes"
+    k8s_info:
+      kind: Node
+    register: nodes
+    no_log: true
+
+  - name: "deploy-operators : Get worker node count"
+    set_fact:
+      worker_node_count: "{{ worker_node_count|default(0)|int + 1 }}"
+    when: "'node-role.kubernetes.io/worker' in item.metadata.labels"
+    loop: "{{ nodes.resources }}"
+    no_log: true
+
+  - name: test_ Check enough worker nodes availability
+    fail:
+      msg: "Not enough worker nodes ({{ worker_node_count }}) to perform required tasks"
+    when:
+      - worker_node_count|int <= 1
+      - install_type is undefined or install_type != 'sno'
 
   # Rendering the definition in a variable to avoid jinja templating type issues
   - name: "deploy-operators : Increase maxUnavailable count to n-1"
