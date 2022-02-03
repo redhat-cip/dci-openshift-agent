@@ -314,6 +314,11 @@ dnsvip=1.2.3.4
 #dci_disconnected=true
 # Must be reachable from the cluster
 #webserver_url="http://<jumpbox IP/DNS>:8080"
+# Path of the file with the pull secret and registry auths in json format.
+#pullsecret_file=/path/to/clusterX-pull-secret.txt
+# Content of the pull secret as downloaded from from https://cloud.redhat.com/openshift/install/metal/user-provisioned
+# *only* used when running a deployment without DCI.
+#pullsecret='content-in-json-format'
 # Path on the jumpbox
 #disconnected_registry_auths_file=/path/to/auths.json
 # Path on the jumpbox
@@ -357,6 +362,10 @@ provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_arg
 NOTE: If the jumpbox server is in a different network than the baremetal
 network, then include extcirdnet=<baremetal-network/mask> in the all:vars
 section of the inventory
+
+### Disconnected mode in DCI OCP agent
+
+When using the agent in a disconnected environment, special variables should be used. See the [disconnected doc](https://github.com/redhat-cip/dci-openshift-agent/blob/master/docs/disconnected_en.md) for more details.
 
 ### Overloading settings and hooks directories
 
