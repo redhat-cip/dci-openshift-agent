@@ -31,3 +31,8 @@
       -f - \
       -a {{ dci_pullsecret_file }} \
       --insecure=true
+  register: cnf_dpdk_images
+  retries: 5
+  delay: 10
+  until:
+    - cnf_dpdk_images is not failed
