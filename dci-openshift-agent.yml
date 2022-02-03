@@ -52,6 +52,44 @@
         tags: '{{ dci_tags }}'
       when: dci_tags is defined
 
+    - name: debug components
+      debug:
+        var: job_info.job.components
+
+    - name: Get openshift_version from job.components
+      set_fact:
+        tags: "{{ item['tags'] }}"
+        url: "{{ item['url']|default('') }}"
+        version: "{{ item['data']['version'] }}"
+        ocp_product_id: "{{ item['id'] }}"
+      with_items: "{{ job_info.job.components }}"
+      when: item["type"] == "ocp"
+    
+    - name: Get build from tag
+      set_fact:
+        build: "{{ item.split(':')[1] }}"
+      with_items: "{{ tags }}"
+      when: item.split(":")[0] == "build"
+
+    # Candidate builds are ga builds that haven't gone ga quite yet.
+    # The following changes the build and version vars to look like ga
+    # for the upstream install playbooks. The dci-feeder adds '-0.rc-$TIMESTAMP'
+    # to the version, we have to strip it here.
+    - name: Set build:ga when build:candidate
+      set_fact:
+        build: "ga"
+      when: build == "candidate"
+
+    - name: Export the OCP component id into a file
+      delegate_to: "{{ groups['provisioner'][0] }}"
+      copy:
+        dest: "/tmp/{{ job_id }}.ocp_prod_id"
+        content: "{{ ocp_product_id }}"
+      when:
+        - job_info is defined
+        - "'outputs' in job_info"
+        - "'ocp_comp' in job_info['outputs']"
+
     - name: pre-run
       dci_job:
         id: "{{ job_id }}"
@@ -344,6 +382,7 @@
   hosts: localhost
   tags:
     - post-run
+    - dci
   environment:
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
