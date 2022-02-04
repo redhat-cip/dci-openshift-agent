@@ -40,9 +40,9 @@
           openshift_release={{ dci_topic.split('-')[1] }}
           openshift_image_tag=v{{ dci_topic.split('-')[1] }}
           docker_version=1.13.1
-          openshift_docker_additional_registries={{ dci_base_ip }}:5000
-          openshift_docker_insecure_registries={{ dci_base_ip }}:5000
-          oreg_url={{ dci_base_ip }}:5000/openshift3/ose-${component}:${version}
+          openshift_docker_additional_registries={{ dci_base_ip }}:4443
+          openshift_docker_insecure_registries={{ dci_base_ip }}:4443
+          oreg_url={{ dci_base_ip }}:4443/openshift3/ose-${component}:${version}
           openshift_cluster_monitoring_operator_install=false
 
           [masters]
