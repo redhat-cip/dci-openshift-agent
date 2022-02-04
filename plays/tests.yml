@@ -78,4 +78,5 @@
     - local_registry_host is defined
     - local_registry_port is defined
     - dci_pullsecret_file is defined
+
 ...
