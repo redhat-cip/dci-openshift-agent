@@ -40,6 +40,7 @@
   vars:
     mime_type: "text/plain"
   include_tasks: upload-log.yml
+  when: not (item.path | regex_search(".*_sig-storage.*"))
   with_items: "{{ logs_matched.files }}"
 
 - name: Find deployment logs (compressed)
