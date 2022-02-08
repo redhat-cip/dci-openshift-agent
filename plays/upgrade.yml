@@ -62,8 +62,8 @@
       update_status: "{{ reg_mcpool_status | json_query(status_query) | flatten | unique }}"
     until:
       - update_status == ['True']
-    retries: 60
-    delay: 60
+    retries: 30
+    delay: 10
 
   - name: "upgrader : Wait for nodes to become Ready"
     shell:
