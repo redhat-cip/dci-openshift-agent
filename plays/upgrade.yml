@@ -48,22 +48,13 @@
       chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
       cmd: oc apply -f ../imagecontentsourcepolicy-{{ version }}.yaml
 
-  - name: Pause for Machine Config to be created
-    pause:
-      seconds: 60
-
-  - name: Wait for updated machine configs to be applied on the nodes
-    k8s_info:
-      api_version: machineconfiguration.openshift.io/v1
-      kind: MachineConfigPool
-    register: reg_mcpool_status
+  - name: "Wait for updated MCP after applying an ICSP"
+    include_role:
+      name: common
+      tasks_from: wait-mcp
     vars:
-      status_query: "resources[*].status.conditions[?type=='Updated'].status"
-      update_status: "{{ reg_mcpool_status | json_query(status_query) | flatten | unique }}"
-    until:
-      - update_status == ['True']
-    retries: 30
-    delay: 10
+      mcp_wait_retries: 30
+      mcp_wait_delay: 10
 
   - name: "upgrader : Wait for nodes to become Ready"
     shell:
@@ -196,4 +187,12 @@
       oc get clusteroperator -o json | jq -r '  { "op": [.items[].status.conditions[]] }'
   register: cluster_operators
   failed_when: "cluster_operators.stdout | from_json | json_query('length(op[?(type==\"Degraded\" && status==\"True\")])') > 0"
+
+- name: "Validate that nodes are Ready and MCPs are up to date"
+  include_role:
+    name: common
+    tasks_from: wait-mcp
+  vars:
+    mcp_wait_retries: 90
+    mcp_wait_delay: 10
 ...
