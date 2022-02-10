@@ -17,12 +17,9 @@
       file:
         path: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}"
         state: directory
-      when: dci_local_log_dir is defined
 
     - name: "Copy {{ item.path | basename }} locally"
       copy:
         src: "{{ item.path }}"
         dest: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}/"
-      when: dci_local_log_dir is defined
-
 ...
