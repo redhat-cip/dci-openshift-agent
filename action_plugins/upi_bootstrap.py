@@ -13,18 +13,21 @@ display = Display()
 
 class IPMI:
     # BOOT_DISK_CMD = "ipmitool -I lanplus -U admin -P password -H 127.0.0.1 -p 6230 chassis bootdev disk"
-    def __init__(self, node, ipmi_user, ipmi_password, ipmi_address, ipmi_port=623):
+    def __init__(self, node, ipmi_user, ipmi_password, ipmi_address, ipmi_port=623, ipmi_uefi=False):
         self.node = node
         self.user = ipmi_user
         self.password = ipmi_password
         self.host = ipmi_address
         self.port = ipmi_port
+        self.uefi = ipmi_uefi
 
     def __str__(self):
         return f"-U {self.user} -P {self.password} -H {self.host} -p {self.port}"
 
     def set_boot_disk(self):
         cmd = f"ipmitool -I lanplus -U {self.user} -P {self.password} -H {self.host} -p {self.port} chassis bootdev disk"
+        if self.uefi:
+            cmd = f"{cmd} options=efiboot"
         return os.system(cmd)
 
 class MyServer(BaseHTTPRequestHandler):
