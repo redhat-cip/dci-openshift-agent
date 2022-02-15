@@ -385,6 +385,9 @@
           loop_control:
             loop_var: hookdir
 
+        - name: Run the success
+          include_tasks: plays/success.yml
+
         - name: Run the teardown hooks
           include_tasks: "{{ hookdir }}/hooks/teardown.yml"
           loop: "{{ dci_config_dirs }}"
