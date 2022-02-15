@@ -94,14 +94,14 @@
               delegate_to: localhost
 
             - block:
-                - name: Run the teardown play
-                  include_tasks: plays/teardown.yml
-
                 - name: Run the teardown hooks
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs }}"
                   loop_control:
                     loop_var: hookdir
+
+                - name: Run the teardown play
+                  include_tasks: plays/teardown.yml
               when: dci_teardown_on_failure|bool
               delegate_to: localhost
               ignore_unreachable: true
@@ -180,14 +180,14 @@
               ignore_errors: true
 
             - block:
-                - name: Run the teardown play
-                  include_tasks: plays/teardown.yml
-
                 - name: Run the teardown hooks
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs }}"
                   loop_control:
                     loop_var: hookdir
+
+                - name: Run the teardown play
+                  include_tasks: plays/teardown.yml
               when: dci_teardown_on_failure|bool
               delegate_to: localhost
               ignore_unreachable: true
@@ -350,13 +350,15 @@
     no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
-        - include_tasks: plays/post-run.yml
 
         - name: Run the partner post-run
           include_tasks: '{{ hookdir }}/hooks/post-run.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
+
+        - name: Run the post-run
+          include_tasks: plays/post-run.yml
 
       rescue: *teardown_error
 
@@ -383,14 +385,16 @@
           loop_control:
             loop_var: hookdir
 
-        - name: Run the teardown play
-          include_tasks: plays/teardown.yml
-
         - name: Run the teardown hooks
           include_tasks: "{{ hookdir }}/hooks/teardown.yml"
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
+
+        - name: Run the teardown play
+          include_tasks: plays/teardown.yml
+
       when: dci_teardown_on_success|bool
       ignore_unreachable: true
       ignore_errors: true
+...

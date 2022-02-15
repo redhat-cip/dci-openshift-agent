@@ -33,7 +33,7 @@
   find:
     paths: "{{ job_logs.path }}"
     recurse: yes
-    patterns: "*.log,*.txt,*.html,*.yaml"
+    patterns: "*.log,*.txt,*.html,*.yaml,*.trace,*.pcap"
   register: logs_matched
 
 - name: "Upload text logs"
