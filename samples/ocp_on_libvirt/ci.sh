@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2021 Red Hat, Inc.
+# Copyright (C) 2021-2022 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,8 +14,46 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+PROJECTS=(
+    dci-openshift-agent
+    dci-openshift-app-agent
+    dci-ansible
+    ansible-role-dci-import-keys
+    ansible-role-dci-retrieve-component
+    ansible-role-dci-sync-registry
+    ansible-role-dci-podman
+    ansible-role-dci-ocp-imagesideload
+    ansible-collection-community-kubernetes
+)
+
 cleanup() {
     ssh-agent -k
+}
+
+unschedule_gerrit_change() {
+    number=$1
+    if ! grep -qP '^\d+' <<< ${number}; then
+        echo "Error: Invalid gerrit change number: ${number}"
+        return
+    fi
+
+    if ! type -p dci-queue >& /dev/null; then
+        echo "dci-queue not found, nothing to unschedule"
+        return
+    fi
+
+    pools=($(dci-queue list | grep -P "^\s+\w+"))
+    if [ ${#pools[@]} -eq 0 ]; then
+        echo "No dci-queue pools, nothing to unschedule"
+        return
+    fi
+
+    for pool in ${pools[@]}; do
+        jobid=$(dci-queue list ${pool} | awk -F: '/\/'${number}'-/ {print $1}' | tr -d '[:space:]')
+        if [ -n "$jobid" ]; then
+            dci-queue unschedule ${pool} ${jobid}
+        fi
+    done
 }
 
 . /etc/dci-openshift-agent/config
@@ -27,38 +65,44 @@ if [ -n "$GERRIT_SSH_ID" ]; then
 fi
 
 if [ -n "$GERRIT_USER" ]; then
+    tracking_projects=$(echo "(${PROJECTS[@]})" | tr ' ' '|')
     while :; do
         ssh -p 29418 $GERRIT_USER gerrit stream-events|while read -r data; do
             type=$(jq -r .type <<< $data)
             project=$(jq -r .change.project <<< $data)
             number=$(jq -r .change.number <<< $data)
             url="$(jq -r .change.url <<< $data | tr -d '\r' | sed 's/[;|&$]//g')"
+            # Ignore other projects
+            if ! grep -qP "(${tracking_projects})" <<<${project}; then
+                continue
+            fi
+            echo "============================"
             if [ "$type" = "patchset-created" ]; then
                 subject="$(jq -r .change.subject <<< $data)"
                 echo "$type $project $number \"$subject\" $url =============================="
-                case $project in
-                    dci-openshift-*|dci-ansible|ansible-role-dci-import-keys|ansible-role-dci-retrieve-component|ansible-role-dci-sync-registry|ansible-role-dci-podman|ansible-role-dci-ocp-imagesideload|ansible-collection-community-kubernetes)
-                        dci-check-change $number
-                        ;;
-                esac
+                dci-check-change $number
             elif [ "$type" = "comment-added" ]; then
                 comment="$(jq -r .comment <<< $data)"
                 echo "$type $project $number \"$comment\" $url =============================="
-                case $project in
-                    dci-openshift-*|dci-ansible|ansible-role-dci-import-keys|ansible-role-dci-retrieve-component|ansible-role-dci-sync-registry|ansible-role-dci-podman|ansible-role-dci-ocp-imagesideload|ansible-collection-community-kubernetes)
-                        if grep -Eqi '^\s*recheck\s*$' <<< "$comment"; then
-                            dci-check-change $number
-                        elif [ -n "$DCI_CHECK_NAME" ] && egrep -qi "^\s*check\s+$DCI_CHECK_NAME" <<< "$comment"; then
-                            ARGS=$(grep -Ei "check\s+$DCI_CHECK_NAME" <<< "$comment"|head -1|sed -e "s/^\s*check\s*$DCI_CHECK_NAME\s*//i")
-                            if grep -q -- "--sno" <<< "$ARGS"; then
-                                ARGS=${ARGS/--sno/}
-                                dci-check-change --sno $number $ARGS
-                            else
-                                dci-check-change $number $ARGS
-                            fi
-                        fi
-                        ;;
-                esac
+                if grep -Eqi '^\s*recheck\s*$' <<< "$comment"; then
+                    dci-check-change $number
+                elif [ -n "$DCI_CHECK_NAME" ] && egrep -qi "^\s*check\s+$DCI_CHECK_NAME" <<< "$comment"; then
+                    ARGS=$(grep -Ei "check\s+$DCI_CHECK_NAME" <<< "$comment"|head -1|sed -e "s/^\s*check\s*$DCI_CHECK_NAME\s*//i")
+                    if grep -q -- "--sno" <<< "$ARGS"; then
+                        ARGS=${ARGS/--sno/}
+                        dci-check-change --sno $number $ARGS
+                    else
+                        dci-check-change $number $ARGS
+                    fi
+                fi
+            elif [ "$type" = "change-abandoned" ]; then
+                reason="$(jq -r .reason <<< ${data})"
+                echo "${type} ${project} ${number} \"${reason}\" ${url} =============================="
+                unschedule_gerrit_change ${number}
+            elif [ "$type" = "change-merged" ]; then
+                subject="$(jq -r .change.subject <<< $data)"
+                echo "${type} ${project} ${number} \"${subject}\" $url} =============================="
+                unschedule_gerrit_change ${number}
             fi
         done
         sleep 30
