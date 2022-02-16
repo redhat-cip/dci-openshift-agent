@@ -31,3 +31,4 @@ dev_gits_to_components: []
 http_proxy: ""
 https_proxy: ""
 no_proxy_list: ""
+dci_workarounds: []
