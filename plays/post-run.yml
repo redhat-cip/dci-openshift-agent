@@ -20,8 +20,4 @@
   ansible.builtin.file:
     path: "/tmp/{{ job_id }}.ocp_prod_id"
     state: absent
-
-- name: Upload logs
-  include_tasks: get-logs.yml
-
 ...

@@ -1,0 +1,4 @@
+---
+- name: Upload logs
+  include_tasks: get-logs.yml
+...
