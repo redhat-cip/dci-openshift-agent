@@ -520,8 +520,8 @@ If you're having issues once the agent gets to the point where
   `ironic-{api,conductor,inspector}`
 - Check the logs of the `ironic-*` pods with `sudo podman logs <pod>` and look
   for errors/exceptions
-- Is your `ironic-inspector` able to interact with the BMCs? Try logging
-  yourself to the pod (`sudo podman exec -it ironic-inspector /bin/sh`) and
+- Is your `ironic-conductor` able to interact with the BMCs? Try logging
+  yourself to the pod (`sudo podman exec -it ironic-conductor /bin/sh`) and
   make sure there is connectivity to the BMC e.g. `ipmi -I lanplus -H <BMC
   host> -U <BMC user> -P <BMC password> power status`
 
