@@ -82,8 +82,9 @@ if [ -n "$ip" ]; then
     else
       # Get only journals of master nodes
       for h in ${masters[@]}; do
+        nodename=$(echo $h | xargs)
         $rem ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
-          core@$h sudo journalctl --all > $dir/journal-$h.log
+          core@$h sudo journalctl --all > $dir/journal-${nodename%%.*}.log
       done
     fi
 
