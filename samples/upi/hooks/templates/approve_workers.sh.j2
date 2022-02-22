@@ -1,9 +1,10 @@
 #!/usr/bin/sh
 
-PATH=$1:$PATH
-NUM_WORKERS=$2
-export KUBECONFIG=$3
+PATH={{ ocp_binary_path }}:$PATH
+NUM_WORKERS={{ groups['workers'] | length }}
+export KUBECONFIG={{ dir }}/auth/kubeconfig
 
+{% raw %}
 if [ ! -e "$KUBECONFIG" ]; then
    echo "$KUBECONFIG not found!"
    exit 1
@@ -24,3 +25,4 @@ while [ $CSRS -lt $NUM_WORKERS ]; do
 done
 
 oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs oc adm certificate approve
+{% endraw %}
