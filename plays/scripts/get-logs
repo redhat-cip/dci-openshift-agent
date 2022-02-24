@@ -60,8 +60,9 @@ if [ -n "$ip" ]; then
         $rem $core journalctl -b -u $serv.service > $dir/$serv.log
     done
 
+    # dnsmasq, httpd, ironic-api, ironic-conductor, ironic-inspector real logs are only retrieved when saving the standard error output, then we save both
     for pod in $($rem $core sudo podman ps 2>&1 | sed 's/.* //'|egrep -v '^(hosts\.|NAMES$)'); do
-        $rem $core sudo podman logs $pod > $dir/$pod.log
+            $rem $core sudo podman logs $pod >> $dir/$pod.log 2>&1
     done
 
     # If API lists nodes then SSH to them and get the journal logs
