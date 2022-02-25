@@ -4,7 +4,6 @@
   set_fact:
     outputs:
       kubeconfig: "~/clusterconfigs/auth/kubeconfig"
-      ocp_comp: "/tmp/{{ job_id }}.ocp_prod_id"
 
 - name: Copy outputs if defined
   delegate_to: "{{ groups['provisioner'][0] }}"
@@ -15,9 +14,4 @@
   with_dict: "{{ job_info.outputs }}"
   when: job_info.outputs is defined and job_info.outputs != None
 
-- name: Remove ocp_prod_id file
-  delegate_to: "{{ groups['provisioner'][0] }}"
-  ansible.builtin.file:
-    path: "/tmp/{{ job_id }}.ocp_prod_id"
-    state: absent
 ...
