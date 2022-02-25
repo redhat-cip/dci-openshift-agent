@@ -23,31 +23,6 @@
   include_role:
     name: dci-import-keys
 
-- name: Get openshift_version from job.components
-  set_fact:
-    tags: "{{ item['tags'] }}"
-    url: "{{ item['url']|default('') }}"
-    version: "{{ item['data']['version'] }}"
-    ocp_product_id: "{{ item['id'] }}"
-  with_items: "{{ job_info.job.components }}"
-  when: item["type"] == "ocp"
-
-- name: Export the OCP component id into a file
-  delegate_to: "{{ groups['provisioner'][0] }}"
-  copy:
-    dest: "/tmp/{{ job_id }}.ocp_prod_id"
-    content: "{{ ocp_product_id }}"
-  when:
-    - job_info is defined
-    - "'outputs' in job_info"
-    - "'ocp_comp' in job_info['outputs']"
-
-- name: Get build from tag
-  set_fact:
-    build: "{{ item.split(':')[1] }}"
-  with_items: "{{ tags }}"
-  when: item.split(":")[0] == "build"
-
 - name: Set pullsecret from job_info
   set_fact:
     pullsecret: "{{ job_info.job.topic.data.pull_secret | default({}) | combine(openshift_secret | default({}), recursive=True) }}"
@@ -112,15 +87,6 @@
     - dci_disconnected | default(false) | bool
     - pullsecret_file is undefined
 
-# Candidate builds are ga builds that haven't gone ga quite yet.
-# The following changes the build and version vars to look like ga
-# for the upstream install playbooks. The dci-feeder adds '-0.rc-$TIMESTAMP'
-# to the version, we have to strip it here.
-- name: Set build:ga when build:candidate
-  set_fact:
-    build: "ga"
-  when: build == "candidate"
-
 # Download Openshift from DCI
 - name: Mirror release
   include_role:
@@ -132,7 +98,7 @@
     cache_dir: "{{ hostvars.localhost.provision_cache_store }}"
     webserver_url: "{{ hostvars.localhost.webserver_url }}"
     registry_url: "docker://{{ local_registry_host }}:{{ local_registry_port }}/{{ hostvars[groups['registry_host'][0]].local_repo }}"
-    force_mirroring: "{{ (hostvars.localhost.dci_force_mirroring | default(false)) or (build == 'candidate') | bool }}"
+    force_mirroring: "{{ (hostvars.localhost.dci_force_mirroring | default(false)) or (hostvars.localhost.build == 'candidate') | bool }}"
     install_type: "{{ hostvars.localhost.install_type | default('ipi') }}"
     sno_install_type: "{{ hostvars.localhost.sno_install_type | default('baremetal') }}"
   when:
