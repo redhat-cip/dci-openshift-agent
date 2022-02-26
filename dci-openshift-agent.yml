@@ -81,14 +81,11 @@
       when: build == "candidate"
 
     - name: Export the OCP component id into a file
-      delegate_to: "{{ groups['provisioner'][0] }}"
       copy:
-        dest: "/tmp/{{ job_id }}.ocp_prod_id"
+        dest: "/tmp/{{ cluster }}.ocp_prod_id"
         content: "{{ ocp_product_id }}"
       when:
-        - job_info is defined
-        - "'outputs' in job_info"
-        - "'ocp_comp' in job_info['outputs']"
+        - ocp_product_id is defined
 
     - name: pre-run
       dci_job:
