@@ -148,22 +148,13 @@
     - dci_disconnected | default(false) | bool
     - opm_mirror_list is defined
 
-# Mirror must-gather images for offline mode
-- name: "dci-openshift-agent : Mirror must-gather images"
-  command:
-    cmd: >
-      skopeo copy --remove-signatures --all --authfile {{ dci_pullsecret_file }}
-      --dest-tls-verify=false docker://{{ item }}
-      docker://{{ local_image_location }}
-  vars:
-    local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
-    local_image_location: "{{ local_registry }}/{{ item | regex_replace('^[^/]*/', '') }}"
-  register: skopeo_copy
-  retries: 5
-  delay: 5
-  until:
-    - skopeo_copy is not failed
+ ### Mirror must-gather images
+
+- name: "dci-openshift-agent : Mirror must gather images"
+  include_tasks: mirror-image.yml
   loop: "{{ dci_must_gather_images | default(['registry.redhat.io/openshift4/ose-must-gather']) }}"
+  loop_control:
+    loop_var: image
   when: >
     (dci_disconnected | default(false) | bool) or
     (dci_local_mirror | default(false) | bool)
