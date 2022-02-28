@@ -193,6 +193,6 @@
     name: common
     tasks_from: wait-mcp
   vars:
-    mcp_wait_retries: 90
+    mcp_wait_retries: 100
     mcp_wait_delay: 10
 ...
