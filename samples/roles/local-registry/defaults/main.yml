@@ -29,7 +29,7 @@ registry_services:
     podman create
     --name {{ registry_container }}
     --security-opt label=disable
-    --publish {{ registry_http_port }}:4443
+    --publish {{ registry_http_port }}:5000
     --volume {{ registry_dir }}/data:/var/lib/registry:z
     --volume {{ registry_dir }}/auth:/auth:z
     --volume {{ registry_dir }}/certs:/certs:z
