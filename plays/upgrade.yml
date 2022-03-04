@@ -195,4 +195,11 @@
   vars:
     mcp_wait_retries: 100
     mcp_wait_delay: 10
+
+- name: "Copy new oc client after upgrade is finished"
+  copy:
+    src: "{{ hostvars.localhost.provision_cache_store }}/{{ version }}/oc"
+    dest: "/usr/local/bin/oc"
+    mode: "0755"
+  become: true
 ...
