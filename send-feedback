@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2021 Red Hat, Inc.
+# Copyright (C) 2021-2022 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -20,8 +20,20 @@ set -x
 
 DIR="$1"
 BODY="$2"
-# pass all the other parameters to gerrit
-shift 2
+TAG="$3"
+VOTE="$4"
+
+GERRIT_JSON='{"message":"'${BODY}'"}'
+
+if [ -n "${TAG}" ]; then
+    GERRIT_JSON=$( echo ${GERRIT_JSON} |
+                jq '. += {"tag": "'${TAG}'"}' )
+fi
+
+if [ -n "${VOTE}" ]; then
+    GERRIT_JSON=$( echo ${GERRIT_JSON} |
+                jq '. += {"labels": {"verified": "'${VOTE}'"}}' )
+fi
 
 for json in $(ls $DIR/*.json); do
     # gerrit
@@ -30,7 +42,11 @@ for json in $(ls $DIR/*.json); do
         CURREV=$(jq -r .current_revision $json)
         PATCHSET=$(jq -r ".revisions[\"$CURREV\"]._number" $json)
         if [ -n "$GERRIT_USER" ]; then
-            ssh -p 29418 $GERRIT_USER gerrit review -m "\"$BODY\"" "$@" $CHANGEID,$PATCHSET
+            echo "${GERRIT_JSON}" |
+                ssh \
+                -p 29418 \
+                $GERRIT_USER \
+                gerrit review -j $CHANGEID,$PATCHSET
         fi
     # github
     else
