@@ -50,8 +50,7 @@
 
   - name: "Wait for updated MCP after applying an ICSP"
     include_role:
-      name: common
-      tasks_from: wait-mcp
+      name: wait-mcp
     vars:
       mcp_wait_retries: 30
       mcp_wait_delay: 10
@@ -190,8 +189,7 @@
 
 - name: "Validate that nodes are Ready and MCPs are up to date"
   include_role:
-    name: common
-    tasks_from: wait-mcp
+    name: wait-mcp
   vars:
     mcp_wait_retries: 100
     mcp_wait_delay: 10

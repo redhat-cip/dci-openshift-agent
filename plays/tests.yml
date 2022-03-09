@@ -6,9 +6,9 @@
 
 - name: Get oc version output
   environment:
-    KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
+    KUBECONFIG: "{{ kubeconfig_path }}"
   shell: |
-    {{ dci_cluster_configs_dir }}/oc version
+    {{ oc_tool_path }} version
   register: oc_version_str
   delegate_to: localhost
 
@@ -70,7 +70,7 @@
     dci_cvp_pyxis_submit: "{{ cvp_submit| default(false) }}"
     dci_cvp_pyxis_apikey: "{{ pyxis_apikey| default(omit) }}"
     dci_cvp_pyxis_identifier: "{{ pyxis_identifier| default(omit) }}"
-    dci_cvp_kubeconfig: "{{ dci_cluster_configs_dir }}/kubeconfig"
+    dci_cvp_kubeconfig: "{{ kubeconfig_path }}"
     dci_cvp_namespace: "{{ cvp_namespace | default(omit) }}"
   when:
     - cvp_bundle_spec is defined

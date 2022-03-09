@@ -32,3 +32,5 @@ http_proxy: ""
 https_proxy: ""
 no_proxy_list: ""
 dci_workarounds: []
+kubeconfig_path: "{{ dci_cluster_configs_dir }}/kubeconfig"
+oc_tool_path: "{{ dci_cluster_configs_dir }}/oc"

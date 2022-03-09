@@ -27,7 +27,7 @@
       /usr/bin/mirror \
         -registry {{ local_registry_host }}:{{ local_registry_port }}/ \
         --images /kubeconfig/images.json |
-    {{ dci_cluster_configs_dir }}/oc image mirror \
+    {{ oc_tool_path }} image mirror \
       -f - \
       -a {{ dci_pullsecret_file }} \
       --insecure=true

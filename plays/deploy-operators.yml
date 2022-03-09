@@ -9,9 +9,9 @@
 
 - name: Get oc version output
   environment:
-    KUBECONFIG: "{{ dci_cluster_configs_dir }}/kubeconfig"
+    KUBECONFIG: "{{ kubeconfig_path }}"
   shell: |
-    {{ dci_cluster_configs_dir }}/oc version
+    {{ oc_tool_path }} version
   register: oc_version_str
   delegate_to: localhost
 

@@ -254,8 +254,8 @@ if [ -d dci-openshift-agent ]; then
     cp dci-openshift-agent/ansible.cfg .
     sed -e "s@include_tasks:\s*plays/@include_tasks: $PWD/dci-openshift-agent/plays/@" < "$PWD"/dci-openshift-agent/dci-openshift-agent.yml > "$PWD"/dci-openshift-agent.yml
     # force to use the roles from the change
-    sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/roles/:@" ansible.cfg
-    sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/roles/:@" "$PWD"/dci-openshift-agent/samples/ocp_on_libvirt/ansible.cfg
+    sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/common-roles/:$PWD/dci-openshift-agent/roles/:@" ansible.cfg
+    sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/common-roles/:$PWD/dci-openshift-agent/roles/:@" "$PWD"/dci-openshift-agent/samples/ocp_on_libvirt/ansible.cfg
     CMD="$PWD/dci-openshift-agent/dci-openshift-agent-ctl"
     if [ "$VIRT" = virt ]; then
         VIRTDIR="$PWD"/dci-openshift-agent/samples/ocp_on_libvirt
@@ -414,6 +414,10 @@ APP_OPT=
 
 if [ -s "$KUBECONFIG" ]; then
     if [ -d dci-openshift-app-agent ]; then
+        # inject the common roles from doa if needed
+        if [ -d dci-openshift-agent ]; then
+            sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/common-roles/:@" dci-openshift-app-agent/ansible.cfg
+        fi
         cd dci-openshift-app-agent
         ln -s /etc/dci-openshift-app-agent/dcirc.sh .
         ln -s /etc/dci-openshift-app-agent/*-settings.yml /etc/dci-openshift-app-agent/*hosts . || :

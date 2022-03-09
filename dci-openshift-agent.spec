@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.3.2
+Version:       0.4.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -56,6 +56,12 @@ done
 for role in $(ls roles); do
     find roles/$role -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
 done
+
+cd common-roles
+for role in $(ls); do
+    find $role -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci/roles/{}" \;
+done
+cd ..
 
 for plugin in action_plugins/*.py; do
     install -p -D -m 644 $plugin %{buildroot}%{_datadir}/dci-openshift-agent/$plugin
@@ -118,6 +124,8 @@ exit 0
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 
+%{_datadir}/dci/roles/*
+
 %{_unitdir}/*
 
 %exclude /%{_datadir}/dci-openshift-agent/*.pyc
@@ -128,6 +136,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Mar  9 2022 Frederic Lepied <flepied@redhat.com> 0.4.0-1
+- store shared roles in /usr/share/dci/roles
+
 * Fri Jan 28 2022 Tony Garcia <tonyg@redhat.com> 0.3.2-1
 - Add LICENSE file
 
