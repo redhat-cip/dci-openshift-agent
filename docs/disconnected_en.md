@@ -76,6 +76,7 @@ Group                   | Variable | Required      | Type   | Description
 [all:vars] | local_registry_password | True | String | Password of the registry user for the registry server
 [all:vars] | provision_cache_store | True | String | Folder using for the caching
 [all:vars] | pullsecret_file | Optional | String | Path of the file in the jumpbox with the pull secret and registry auths in json format. If not provided the content of disconnected_registry_auths_file and pullsecret variable (pulled from DCI components) will be combined to be used by all disconnected tasks.
+[all:vars] | opm_local_registry_path | True | String | Path on the local registry host where the pruned catalog images will be stored
 [registry_host]         |          | True          | String | Define a host here to create or use a local registry
 [registry_host:vars] | disconnected_registry_auths_file | Optional | String | File that contains extra auth tokens to include in the pull-secret. This file will be generated if it doesn't exist. And only required if pullsecret_file var not provided)
 [registry_host:vars] | disconnected_registry_mirrors_file | True | String | File that contains the addition trust bundle and image content sources for the local registry. The contents of this file will be appended to the install-config.yml file. This file will be generated if it doesn't exist.
