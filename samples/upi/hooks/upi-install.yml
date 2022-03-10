@@ -73,11 +73,11 @@
   tags: rhcos_live
 
 - name: Extract UEFI shim
-  command:
-    cmd: "{{ lookup('first_found', findme) }} /var/www/html/rhcos-live.x86_64.iso /var/lib/tftpboot"
+  shell: "{{ lookup('template', 'extract_shimx64.sh.j2') }}"
   vars:
-    findme:
-      - extract_shimx64.sh
+    liveiso_location: /var/www/html/rhcos-live.x86_64.iso
+    tftpboot_location: /var/lib/tftpboot
+  become: true
 
 - name: Generate install-config.yaml
   template:
@@ -223,11 +223,7 @@
   loop: "{{ groups['bootstrap'] }}"
 
 - name: Get CSR's to approve
-  command:
-    cmd: "{{ lookup('first_found', findme) }} {{ ocp_binary_path }} {{ groups['workers'] | length }} {{ dir }}/auth/kubeconfig"
-  vars:
-    findme:
-      - approve_workers.sh
+  shell: "{{ lookup('template', 'approve_workers.sh.j2') }}"
 
 - name: Wait for Install to Complete
   shell: |
