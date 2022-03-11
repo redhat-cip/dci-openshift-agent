@@ -30,12 +30,21 @@
   when:
   - dci_disconnected | default(false) | bool
   - opm_mirror_list is defined
+  - opm_mirror_list | length
 
+- name: Disable default catalog sources for disconnected deployment
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  shell: |
+    {{ oc_tool_path }} patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+  delegate_to: localhost
+  when:
+  - dci_disconnected | default(false) | bool
 
 ### Begin CNF
-
-- block:
-  # Verify a minimum amount of worker nodes are available
+- name: "Deploy operators required by CNFs"
+  block:
+  # Verify a minimum number of worker nodes are available
   - name: "deploy-operators : Get all nodes"
     k8s_info:
       kind: Node
@@ -49,7 +58,7 @@
     loop: "{{ nodes.resources }}"
     no_log: true
 
-  - name: test_ Check enough worker nodes availability
+  - name: "deploy-operators : test_ Check enough worker nodes availability"
     fail:
       msg: "Not enough worker nodes ({{ worker_node_count }}) to perform required tasks"
     when:
@@ -72,7 +81,7 @@
     when:
     - hostvars.localhost.groups['workers']|length > 1
 
-  - name: "deploy-operators : Install performance profile operator"
+  - name: "deploy-operators : Install Performace Addon Operators and profiles"
     include_role:
       name: operator-performance-profile
     when:
@@ -97,7 +106,7 @@
 ### End CNF
 
 ### Begin CNV
-- name: "deploy-operators : Setup cluster for CNV"
+- name: "deploy-operators : Setup cluster for Container Native Virtualization"
   include_role:
     name: cnv-setup
   when:
