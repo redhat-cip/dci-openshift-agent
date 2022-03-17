@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.4.0
+Version:       0.5.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -11,6 +11,11 @@ BuildRequires: systemd
 BuildRequires:  /usr/bin/pathfix.py
 Requires: /usr/bin/sudo
 Requires: dci-ansible
+%if 0%{?rhel} && 0%{?rhel} < 8
+Requires: python2-dciclient >= 2.3.0
+%else
+Requires: python3-dciclient >= 2.3.0
+%endif
 Requires: ansible-role-dci-import-keys
 Requires: ansible-role-dci-retrieve-component
 Requires: ansible-role-dci-sync-registry
@@ -136,6 +141,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Mar 24 2022 Frederic Lepied <flepied@redhat.com> 0.5.0-1
+- use dci-vault-client
+
 * Wed Mar  9 2022 Frederic Lepied <flepied@redhat.com> 0.4.0-1
 - store shared roles in /usr/share/dci/roles
 

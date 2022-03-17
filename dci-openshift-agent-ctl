@@ -6,6 +6,7 @@ OUTPUT_DIR=
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 start=0
 params="$(getopt -o hsdp:c:v -l help,start,dev,prefix:,config:,verbose --name "$(basename -- "$0")" -- "$@")"
+DCI_VAULT_CLIENT=${DCI_VAULT_CLIENT:=/usr/bin/dci-vault-client}
 
 function usage ()
 {
@@ -179,7 +180,7 @@ if [ "$start" -eq 1 ]; then
     export JUNIT_TEST_CASE_PREFIX=test_
     export JUNIT_TASK_CLASS=yes
     cat ${ANSIBLE_CONFIG}
-    setsid ansible-playbook -v ${DCI_OPENSHIFT_AGENT_DIR}/dci-openshift-agent.yml -e JOB_ID_FILE="${JOB_ID_FILE}" ${settings_args} ${hosts_args} "$@" &
+    setsid ansible-playbook --vault-id "$DCI_VAULT_CLIENT" -v ${DCI_OPENSHIFT_AGENT_DIR}/dci-openshift-agent.yml -e JOB_ID_FILE="${JOB_ID_FILE}" ${settings_args} ${hosts_args} "$@" &
     ANSIBLE_PID=$!
 
     wait ${ANSIBLE_PID}
@@ -196,9 +197,9 @@ else
         echo "ANSIBLE_CONFIG=$DIR/dev-ansible.cfg"
     fi
     if [ -z "${OUTPUT_DIR}" ]; then
-        echo "setsid ansible-playbook dci-openshift-agent.yml -e @$config ${prefix_args} ${hosts_args} $@ &"
+        echo "setsid ansible-playbook --vault-id $DCI_VAULT_CLIENT dci-openshift-agent.yml -e @$config ${prefix_args} ${hosts_args} $@ &"
     else
         JOB_ID_FILE="$(mktemp /tmp/job.XXXXX)"
-        echo "setsid ansible-playbook dci-openshift-agent.yml -e JOB_ID_FILE=${JOB_ID_FILE} -e @$config ${prefix_args} ${hosts_args} $@ &"
+        echo "setsid ansible-playbook --vault-id $DCI_VAULT_CLIENT dci-openshift-agent.yml -e JOB_ID_FILE=${JOB_ID_FILE} -e @$config ${prefix_args} ${hosts_args} $@ &"
     fi
 fi
