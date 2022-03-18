@@ -169,3 +169,19 @@ and then call the agent like this:
 # su - dci-openshift-agent
 $ dci-openshift-agent-ctl -s -- --skip-tags dci -e @myvars.yml
 ```
+
+## Concerning Ansible extra variables
+
+The dci-check-change command is known to fail if provided with composite (list, dictionary) Ansible extra variables containing blank spaces in their definition. For instance:
+
+```console
+# dci-check-change 21136 -e "composite=['foo', 'bar']"
+```
+
+Note the blank space after the comma in the list definition.
+
+Instead, the proper way to specify the variable avoids the use of blank spaces:
+
+```console
+# dci-check-change 21136 -e "composite=['foo','bar']"
+```
