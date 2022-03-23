@@ -53,7 +53,7 @@ function finish ()
                 dcictl job-upload-file --name ${junit_filename} --path ${junit_file} --mime application/junit ${JOB_ID}
             done
             if [ -r ${OUTPUT_DIR}/ansible.log ]; then
-                dcictl job-upload-file --name ansible.log --path ${OUTPUT_DIR}/ansible.log ${JOB_ID}
+                dcictl job-upload-file --name ansible.log --path ${OUTPUT_DIR}/ansible.log --mime text/plain ${JOB_ID}
             fi
             # Keep job id in /var/tmp/$CLUSTER.dci.job_id to survive
             # execution and be in a known location for test-runner to find
