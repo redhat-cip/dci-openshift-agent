@@ -70,6 +70,16 @@ function finish ()
 
 trap finish 0
 
+function interrupt() {
+    if [ -r "${JOB_ID_FILE}" ]; then
+        JOB_ID=$(cat ${JOB_ID_FILE})
+        dcictl jobstate-create --job-id ${JOB_ID} --comment "doa was interrupted" --status killed
+        exit 1
+    fi
+}
+
+trap interrupt INT TERM
+
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
 fi
