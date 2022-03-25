@@ -147,6 +147,7 @@
   when:
     - dci_disconnected | default(false) | bool
     - opm_mirror_list is defined
+    - opm_mirror_list | length
 
  ### Mirror must-gather images
 
