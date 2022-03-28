@@ -1,0 +1,227 @@
+---
+- name: Create cluster and generate Assisted Installer Discovery ISO
+  hosts: bastion
+  gather_facts: False
+  vars:
+    - disconnected: "{{ use_local_mirror_registry | default(setup_registry_service | default(true)) }}"
+    - CLUSTER_NAME: "{{ cluster_name }}"
+    - BASE_DNS_DOMAIN: "{{ base_dns_domain }}"
+    - ASSISTED_INSTALLER_HOST: "{{ hostvars['assisted_installer']['host'] }}"
+    - ASSISTED_INSTALLER_PORT: "{{ hostvars['assisted_installer']['port'] }}"
+    - SSH_PUBLIC_KEY: "{{ ssh_public_key }}"
+    - PULL_SECRET: "{{ hostvars['localhost']['pull_secret'] }}"
+    - pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
+    - CLUSTER_NETWORK_CIDR: "{{ cluster_network_cidr }}"
+    - CLUSTER_NETWORK_HOST_PREFIX: "{{ cluster_network_host_prefix }}"
+    - SERVICE_NETWORK_CIDR: "{{ service_network_cidr }}"
+    - OPENSHIFT_VERSION: "{{ openshift_version }}"
+    - VIP_DHCP_ALLOCATION: "{{ vip_dhcp_allocation }}"
+    - INGRESS_VIP: "{{ ingress_vip }}"
+    - API_VIP: "{{ api_vip }}"
+    - MACHINE_NETWORK_CIDR: "{{ machine_network_cidr }}"
+    - NTP_SERVER: "{{ ntp_server }}"
+    - CLUSTER_ID: "{{ cluster_id }}"
+    - DOWNLOAD_DEST_FILE: "{{ discovery_iso_name }}"
+    - DOWNLOAD_DEST_PATH: "{{ iso_download_dest_path | default('/opt/http_store/data') }}"
+    - HTTP_AUTH_USERNAME: "{{ http_auth_username | default('none') }}"
+    - HTTP_AUTH_PASSWORD: "{{ http_auth_password | default('none') }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: create cluster"
+        include_role:
+          name: create_cluster
+      - name: "assisted installer: generate discovery iso"
+        include_role:
+          name: generate_discovery_iso
+      rescue:
+        - include_tasks: "teardown_failure.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Mounting, Booting the Assisted Installer Discovery ISO
+  hosts: masters, workers
+  gather_facts: False
+  strategy: "{{ use_boot_iso_strategy_free | default(True) | bool | ternary('free', omit) }}"
+  serial: "{{ use_boot_iso_strategy_free | default(True) | bool | ternary(omit, 1) }}"
+  vars:
+    - boot_iso_url: "{{ discovery_iso_server }}/{{ discovery_iso_name }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: boot iso"
+        include_role:
+          name: boot_iso
+      rescue:
+        - include_tasks: "teardown_failure.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Installing the cluster
+  hosts: bastion
+  gather_facts: False
+  vars:
+    - ASSISTED_INSTALLER_HOST: "{{ hostvars['assisted_installer']['host'] }}"
+    - ASSISTED_INSTALLER_PORT: "{{ hostvars['assisted_installer']['port'] }}"
+    - CLUSTER_ID: "{{ cluster_id }}"
+    - INGRESS_VIP: "{{ ingress_vip }}"
+    - API_VIP: "{{ api_vip }}"
+    - VIP_DHCP_ALLOCATION: "{{ vip_dhcp_allocation }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: install cluster"
+        include_role:
+          name: install_cluster
+      rescue:
+        - include_tasks: "teardown_failure.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Monitoring hosts installation
+  hosts: masters, workers
+  gather_facts: False
+  strategy: free
+  vars:
+    - ASSISTED_INSTALLER_HOST: "{{ hostvars['assisted_installer']['host'] }}"
+    - ASSISTED_INSTALLER_PORT: "{{ hostvars['assisted_installer']['port'] }}"
+    - CLUSTER_ID: "{{ cluster_id | default(hostvars['bastion']['cluster_id']) }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: monitor host"
+        include_role:
+          name: monitor_host
+      rescue:
+        - include_tasks: "teardown_failure.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Monitoring cluster installation
+  hosts: bastion
+  gather_facts: False
+  vars:
+    - ASSISTED_INSTALLER_HOST: "{{ hostvars['assisted_installer']['host'] }}"
+    - ASSISTED_INSTALLER_PORT: "{{ hostvars['assisted_installer']['port'] }}"
+    - CLUSTER_ID: "{{ cluster_id }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: monitor cluster"
+        include_role:
+          name: monitor_cluster
+      rescue:
+        - include_tasks: "teardown_failure.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Reset vars for DCI
+  hosts: bastion
+  tasks:
+    - name: Reset cluster var for DCI
+      set_fact:
+        cluster: "{{ cluster_name }}"
+
+- name: Get kubeconfig
+  hosts: bastion
+  vars:
+    secure: false
+    ASSISTED_INSTALLER_BASE_URL: "{{ secure | ternary('https', 'http') }}://{{ hostvars['assisted_installer']['host'] }}:{{ hostvars['assisted_installer']['port'] }}/api/assisted-install/v1"
+    URL_ASSISTED_INSTALLER_CLUSTER: "{{ ASSISTED_INSTALLER_BASE_URL }}/clusters/{{ cluster_id }}"
+    kube_filename: "{{ kubeconfig_dest_filename | default(cluster_name + '-kubeconfig') }}"
+    dest_dir: "{{ kubeconfig_dest_dir | default(ansible_env.HOME) }}"
+    kubeconfig_path: "{{ dest_dir }}/{{ kube_filename }}"
+    kubeadmin_vault_name: "{{ kubeadmin_dest_filename | default(cluster_name +'-kubeadmin.vault.yml') }}"
+  vars_files:
+    - ../group_vars/all
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+  tasks:
+    - name: Download kubeconfig
+      get_url:
+        url: "{{ URL_ASSISTED_INSTALLER_CLUSTER }}/downloads/kubeconfig"
+        dest: "{{ kubeconfig_path }}"
+        mode: 0664
+
+    - name: Get oc binary and KUBECONFIG from provisioner node
+      delegate_to: "{{ groups['provisioner'][0] }}"
+      fetch:
+        src: "{{ item }}"
+        dest: "{{ dci_cluster_configs_dir }}/"
+        flat: true
+      loop:
+      - "/usr/local/bin/oc"
+
+    - name: Change file permissions
+      file:
+        path: "{{ item }}"
+        mode: '0755'
+      loop:
+      - "{{ dci_cluster_configs_dir }}/oc"
+
+    - name: Perform simple connectivity check with oc
+      shell:
+        cmd: "oc explain pods"
+      register: result
+      retries: 3
+      delay: 10
+      until: result.rc == 0
+
+    - name: Check status of cluster operators
+      block:
+        - name: Wait up to 20 mins for cluster to become functional
+          shell:
+            cmd: oc wait clusteroperators --all --for=condition=Available --timeout=20m
+          register: result
+          retries: 3
+          delay: 10
+          until: result.rc == 0
+      rescue:
+        - name: Get better info for failure message
+          shell: oc get clusteroperators
+          register: co_result
+
+        - name: Fail Cluster
+          fail:
+            msg: |
+              Cluster has not come up correctly:
+                {{ co_result.stdout }}
+
+    - name: Get credentials
+      uri:
+        url: "{{ URL_ASSISTED_INSTALLER_CLUSTER }}/credentials"
+        return_content: yes
+      register: credentials
+
+    - name: Login to add token to kubeconfig
+      shell:
+        cmd: "oc login -u {{ credentials.json.username }} -p '{{ credentials.json.password }}'"
+
+    - name: Save credentials to file
+      copy:
+        content: "{{ credentials.json | to_yaml }}"
+        dest: "{{ dest_dir }}/{{ kubeadmin_vault_name }}"
+        mode: 0600
+
+    - name: Save credentials to vault
+      shell:
+        cmd: "ansible-vault encrypt --vault-password-file {{ kubeadmin_vault_password_file_path }} {{ dest_dir }}/{{ kubeadmin_vault_name }}"
+      when: (kubeadmin_vault_password_file_path is defined) and (kubeadmin_vault_password_file_path is file)
+
+    - name: Set kubeconfig_path for provisioner
+      set_fact:
+        kubeconfig_path: "{{ kubeconfig_path }}"
+      delegate_to: provisioner
+      delegate_facts: true
+...

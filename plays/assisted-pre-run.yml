@@ -1,0 +1,381 @@
+---
+- hosts: localhost
+  become: false
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  tasks:
+    - block:
+      - name: "Add Bastion host to provisioner group"
+        add_host:
+          hostname: "{{ item }}"
+          groups:
+            - provisioner
+        loop: "{{ groups['bastions'] }}"
+        when:
+          - "'provisioner' not in groups"
+
+      - block:
+        - name: "Clean up {{ dci_cluster_configs_dir }}"
+          file:
+            path: "{{ dci_cluster_configs_dir }}"
+            state: absent
+
+        - name: "Create {{ dci_cluster_configs_dir }}"
+          file:
+            path: "{{ dci_cluster_configs_dir }}"
+            state: directory
+        when:
+          - dci_main is undefined or dci_main == 'install'
+
+      - name: Set pullsecret from job_info
+        set_fact:
+          pull_secret: "{{ job_info.job.topic.data.pull_secret | default({}) | combine(openshift_secret | default({}), recursive=True) }}"
+
+      - name: "Copy auths fact content to a file"
+        copy:
+          content: "{{ pull_secret | to_json }}"
+          dest: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
+          mode: '0644'
+          force: true
+
+      - name: "Set dci_pullsecret_file fact"
+        set_fact:
+          dci_pullsecret_file: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
+          local_pull_secret_path: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
+        no_log: true
+
+      - name: "Clone/update assisted-deploy repo"
+        vars:
+          git_repo: "{{ assisted_deploy_repo }}"
+          git_ref: "{{ assisted_deploy_version }}"
+        git:
+          version: "{{ git_ref }}"
+          repo: "{{ git_repo }}"
+          dest: "{{ dci_cache_dir }}/assisted_deploy_repo"
+          force: true
+        # On RHEL8 git clone can sporadically fail with OpenSSL SSL_read:
+        # SSL_ERROR_SYSCALL, errno 104.
+        register: git_clone
+        retries: 3
+        delay: 10
+        until: not git_clone.failed
+
+      - name: "Prereq facts check"
+        vars:
+          ssh_public_check: "{{ not (generate_ssh_keys | default(False)) }}"
+          mirror_certificate_check: "{{ ((use_local_mirror_registry | default(False)) == True) and ((setup_registry_service | default(True)) == False) }}"
+        include_role:
+          name: prereq_facts_check
+
+      - name: "Populate image_hashes for relevant images"
+        include_role:
+          name: get_image_hash
+
+      - name: "Parse openshift version"
+        include_role:
+          name: populate_mirror_registry
+          tasks_from: var_check.yml
+
+      - name: "Pull openshift binaries"
+        include_role:
+          name: populate_mirror_registry
+          tasks_from: prerequisites.yml
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Setup NTP
+  hosts: ntp_host
+  gather_facts: "{{ (setup_ntp_service | default(True)) | bool }}"
+  vars:
+    SETUP_NTP_SERVICE: "{{setup_ntp_service | default(True)}}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Setup NTP
+        include_role:
+          name: setup_ntp
+        when: SETUP_NTP_SERVICE == True
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Install and http_store service
+  hosts: http_store
+  gather_facts: "{{ (setup_http_store_service | default(True)) | bool }}"
+  vars:
+    SETUP_HTTP_STORE_SERVICE: "{{ setup_http_store_service | default(True) }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Setup http store
+        include_role:
+          name: setup_http_store
+        when: SETUP_HTTP_STORE_SERVICE == True
+
+      - name: Validate http store
+        include_role:
+          name: validate_http_store
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Play to populate image_hashes for relevant images
+  hosts: localhost
+  gather_facts: "{{ (setup_registry_service | default(True)) | bool }}"
+  vars:
+    destination_hosts:
+      - registry_host
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: pre-compute need to get hashes
+        set_fact:
+          run_get_hash: "{{ image_hashes | default({}) | length == 0  }}"
+
+      - name: Get Image Hash
+        include_role:
+          name: get_image_hash
+        when: run_get_hash
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Play to install and setup mirror registry
+  hosts: registry_host
+  collections:
+    - containers.podman
+    - community.crypto
+    - community.general
+    - ansible.posix
+  gather_facts: "{{ (setup_registry_service | default(True)) | bool }}"
+  vars:
+    downloads_path: "{{ dci_cluster_configs_dir }}"
+    config_file_path: "{{ dci_cluster_configs_dir }}/config"
+    SETUP_REGISTRY_SERVICE: "{{ setup_registry_service | default(True)}}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Setup selfsigned cert
+        include_role:
+          name: setup_selfsigned_cert
+        when: SETUP_REGISTRY_SERVICE == True
+
+      - name: Setup mirror registry
+        include_role:
+          name: setup_mirror_registry
+        when: SETUP_REGISTRY_SERVICE == True
+
+      - name: Populate mirror registry
+        include_role:
+          name: populate_mirror_registry
+        when: SETUP_REGISTRY_SERVICE == True
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Process KVM nodes
+  hosts: bastion
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Process kvm nodes
+        include_role:
+          name: process_kvm_nodes
+        when: (setup_vms | default(true))
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Provision VMS
+  hosts: vm_hosts
+  gather_facts: "{{ (setup_vms | default((kvm_nodes | default([])) | length | int >= 1)) | bool }}"
+  vars:
+    SETUP_VMS: "{{ setup_vms | default((kvm_nodes | default([])) | length | int >= 1) }}"
+    vm_bridge_name: "{{ cluster_name }}-br"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Destroy vms
+        include_role:
+          name: destroy_vms
+        when: SETUP_VMS | bool
+        tags:
+          - destroy_vms
+
+      - name: Setup vm host network
+        include_role:
+          name: setup_vm_host_network
+        when: (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
+
+      - name: Configure firewall for vm_bridge_zone
+        block:
+        - name: Move bridge to designated firewall zone
+          community.general.nmcli:
+            conn_name: "{{ cluster_name }}-br"
+            state: present
+            zone: "{{ vm_bridge_zone }}"
+          become: true
+
+        - name: Create Iptables NAT chain
+          iptables:
+            table: nat
+            chain: POSTROUTING
+            source: '{{ machine_network_cidr }}'
+            destination: '! {{ machine_network_cidr }}'
+            jump: MASQUERADE
+            protocol: all
+            comment: Ansible NAT Masquerade
+
+        - name: Enable IPv4 forwarding
+          sysctl:
+            name: net.ipv4.ip_forward
+            value: 1
+            state: present
+            reload: True
+        when:
+          - (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
+          - vm_bridge_zone is defined
+
+      - name: Create vms
+        include_role:
+          name: create_vms
+        when: SETUP_VMS | bool
+        tags:
+          - setup_vms
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Setup DNS Records
+  hosts: dns_host
+  gather_facts: "{{ (setup_dns_service | default(True)) | bool }}"
+  vars:
+    SETUP_DNS_SERVICE: "{{ setup_dns_service | default(True) }}"
+    domain: "{{ cluster_name + '.' + base_dns_domain }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Insert dns records
+        include_role:
+          name: insert_dns_records
+        when: SETUP_DNS_SERVICE == True
+
+      - name: Validate dns records
+        include_role:
+          name: validate_dns_records
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Play to populate image_hashes for relevant images
+  hosts: localhost
+  vars:
+    destination_hosts:
+      - assisted_installer
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: pre-compute need to get hashes
+        set_fact:
+          run_get_hash: "{{ image_hashes | default({}) | length == 0  }}"
+
+      - name: Get image hash
+        include_role:
+          name: get_image_hash
+        when: run_get_hash
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Deploy OpenShift Assisted Installer On Prem
+  hosts: assisted_installer
+  vars:
+    PULL_SECRET: "{{ hostvars['localhost']['pull_secret'] }}"
+    pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
+    SETUP_ASSISTED_INSTALLER: "{{ setup_assisted_installer | default(True) }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Setup assisted installer
+        include_role:
+          name: setup_assisted_installer
+        when: SETUP_ASSISTED_INSTALLER == True
+
+      - name: Wait for up to 60 minutes for the assisted installer to come online
+        uri:
+          url: "http://{{ ansible_host }}:8090/api/assisted-install/v1/clusters"
+          method: GET
+          status_code: [200, 201]
+        register: result
+        until: result is succeeded
+        retries: 120
+        delay: 30
+        delegate_to: bastion
+        when: SETUP_ASSISTED_INSTALLER == True
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+
+- name: Deploy sushy tools
+  hosts: vm_hosts
+  gather_facts: "{{ (setup_sushy_tools | default(setup_vms | default(True))) | bool }}"
+  vars:
+    SETUP_SUSHY_TOOLS: "{{ setup_sushy_tools | default(setup_vms | default(True)) }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Setup sushy tools
+        include_role:
+          name: setup_sushy_tools
+        when: SETUP_SUSHY_TOOLS == True
+
+      rescue:
+        - include_tasks: "teardown_error.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
+...

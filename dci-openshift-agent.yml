@@ -96,7 +96,7 @@
         id: "{{ job_id }}"
         status: "pre-run"
 
-# Step 1 : pre run
+# Step 1a : pre run
 - name: 'Launch pre-run'
   hosts: localhost
   tags:
@@ -106,7 +106,6 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
   tasks:
-
     - block:
         # prepare infrastructure
 
@@ -117,42 +116,41 @@
         - name: Run the pre-run
           include_tasks: plays/pre-run.yml
 
+      when:
+        - dci_main is not defined or dci_main == 'install'
+        - install_type is not defined or install_type != 'assisted'
+
+      rescue:
+        - include_tasks: "plays/teardown_error.yml"
+
+- import_playbook: plays/assisted-pre-run.yml
+
+# Step 1b : pre run
+- name: 'Launch pre-run'
+  hosts: localhost
+  tags:
+    - pre-run
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
         - name: Run the pre-run hook
           include_tasks: '{{ hookdir }}/hooks/pre-run.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
 
-      rescue: &teardown_error
-        - block:
-            - name: error
-              dci_job:
-                id: "{{ hostvars.localhost.job_id }}"
-                status: "error"
-              tags: [dci]
-              delegate_to: localhost
+      rescue:
+        - include_tasks: "plays/teardown_error.yml"
 
-            - block:
-                - name: Run the teardown hooks
-                  include_tasks: "{{ hookdir }}/hooks/teardown.yml"
-                  loop: "{{ dci_config_dirs }}"
-                  loop_control:
-                    loop_var: hookdir
-
-                - name: Run the teardown play
-                  include_tasks: plays/teardown.yml
-              when: dci_teardown_on_failure|bool
-              delegate_to: localhost
-              ignore_unreachable: true
-              ignore_errors: true
-
-          always:
-            - name: Run the error process
-              include_tasks: plays/failure.yml
-
-          delegate_to: localhost
-          ignore_unreachable: true
-
+# Step 1c : Set status to "running"
+- name: 'Set running'
+  hosts: localhost
+  tags:
+    - running
+  tasks:
     - name: running
       dci_job:
         id: "{{ hostvars.localhost.job_id }}"
@@ -182,10 +180,11 @@
           loop_control:
             loop_var: hookdir
 
-      rescue: *teardown_error
+      rescue:
+        - include_tasks: "plays/teardown_error.yml"
 
 # Step 3a-1 : installing
-- name: 'Launch install'
+- name: 'Launch [IPI/SNO/UPI] install'
   hosts: provisioner
   tags:
     - running
@@ -201,43 +200,13 @@
 
       when:
         - dci_main is not defined or dci_main == 'install'
+        - install_type is not defined or install_type != 'assisted'
 
-      rescue: &teardown_failure
-        - block:
-            - name: failure
-              dci_job:
-                id: "{{ hostvars.localhost.job_id }}"
-                status: "failure"
-              delegate_to: localhost
-              tags: [dci]
+      rescue:
+        - include_tasks: "plays/teardown_failure.yml"
 
-            - name: Run the failure process for partners
-              include_tasks: "{{ hookdir }}/hooks/failure.yml"
-              loop: "{{ dci_config_dirs }}"
-              loop_control:
-                loop_var: hookdir
-              ignore_errors: true
-
-            - block:
-                - name: Run the teardown hooks
-                  include_tasks: "{{ hookdir }}/hooks/teardown.yml"
-                  loop: "{{ dci_config_dirs }}"
-                  loop_control:
-                    loop_var: hookdir
-
-                - name: Run the teardown play
-                  include_tasks: plays/teardown.yml
-              when: dci_teardown_on_failure|bool
-              delegate_to: localhost
-              ignore_unreachable: true
-              ignore_errors: true
-
-          always:
-            - name: Run the failure process
-              include_tasks: plays/failure.yml
-
-          delegate_to: localhost
-          ignore_unreachable: true
+# Step 3a-1
+- import_playbook: plays/assisted-install.yml
 
 # Step 3a-2 : deploy operators, run on the provisioner so OC is automatically set
 - name: 'Deploy operators to OCP cluster'
@@ -255,7 +224,8 @@
       when:
       - dci_main is not defined or dci_main == 'install'
 
-      rescue: *teardown_failure
+      rescue:
+        - include_tasks: "plays/teardown_failure.yml"
 
 # Step 3a-3 : hook installing
 - name: 'Launch hook install'
@@ -273,7 +243,8 @@
       when:
         - dci_main is not defined or dci_main == 'install'
 
-      rescue: *teardown_failure
+      rescue:
+        - include_tasks: "plays/teardown_failure.yml"
 
 # Step 3b-1 : upgrading
 - name: 'Launch upgrade'
@@ -304,7 +275,8 @@
         - dci_main is defined
         - dci_main == 'upgrade'
 
-      rescue: *teardown_failure
+      rescue:
+        - include_tasks: "plays/teardown_failure.yml"
 
 # Step 3b-2 : hook upgrading
 - name: 'Launch hook upgrade'
@@ -327,7 +299,8 @@
         - dci_main is defined
         - dci_main == 'upgrade'
 
-      rescue: *teardown_failure
+      rescue:
+        - include_tasks: "plays/teardown_failure.yml"
 
 # Step 4 : Red Hat testing
 - name: 'Launch Red Hat tests'
@@ -350,7 +323,8 @@
         - name: "Launch Red Hat tests"
           include_tasks: plays/tests.yml
 
-      rescue: *teardown_failure
+      rescue:
+        - include_tasks: "plays/teardown_failure.yml"
 
 # Step 5 : partner testing
 - name: 'Launch partner tests'
@@ -377,7 +351,8 @@
           loop_control:
             loop_var: hookdir
 
-      rescue: *teardown_failure
+      rescue:
+        - include_tasks: "plays/teardown_failure.yml"
 
     - name: post-run
       dci_job:
@@ -407,7 +382,8 @@
         - name: Run the post-run
           include_tasks: plays/post-run.yml
 
-      rescue: *teardown_error
+      rescue:
+        - include_tasks: "plays/teardown_error.yml"
 
     - name: success
       dci_job:

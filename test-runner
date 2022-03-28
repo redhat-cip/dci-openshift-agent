@@ -263,7 +263,7 @@ done
 
 if [ -d dci-openshift-agent ]; then
     ln -s "$PWD"/dci-openshift-agent/* .
-    rm -f ansible.cfg dci-openshift-agent.yml
+    rm -f ansible.cfg dci-openshift-agent.yml settings.yml
     cp dci-openshift-agent/ansible.cfg .
     sed -e "s@include_tasks:\s*plays/@include_tasks: $PWD/dci-openshift-agent/plays/@" < "$PWD"/dci-openshift-agent/dci-openshift-agent.yml > "$PWD"/dci-openshift-agent.yml
     # force to use the roles from the change
@@ -279,7 +279,7 @@ if [ -d dci-openshift-agent ]; then
     fi
     # needed for ctl to take the settings.yml from the change if not taken from an existing CONFIG_DIR
     export CONFIG_DIR=${CONFIG_DIR:-$PWD}
-    ln -s /etc/dci-openshift-agent/*-settings.yml /etc/dci-openshift-agent/*hosts . || :
+    ln -s /etc/dci-openshift-agent/*settings.yml /etc/dci-openshift-agent/*hosts . || :
 else
     ln -s /usr/share/dci-openshift-agent/* .
     rm -f ansible.cfg
@@ -392,7 +392,8 @@ if [ -z "$KCFG" ]; then
             do_wait
         elif [ "$VIRT" = assisted ]; then
             FQDN=$(hostname -f)
-            sed -e "s@FQDN@$FQDN@" < hosts.in > hosts
+	    DNS=$(nmcli dev show | awk '/IP4.DNS/ { print $2; exit }')
+            sed -e "s/@FQDN@/$FQDN/; s/@DNS@/$DNS/" < hosts.in > hosts
         fi
 
         # converts a PREFIX of type "-p prefix" to "prefix-"

@@ -16,12 +16,12 @@
 
 set -x
 
-[ -z "$DO_VOTE" ] && exit 0
-
 DIR="$1"
 BODY="$2"
 TAG="$3"
 VOTE="$4"
+
+[ -z "$DO_VOTE" ] && VOTE=0
 
 GERRIT_JSON='{"message":"'${BODY}'"}'
 

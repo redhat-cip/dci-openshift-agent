@@ -82,7 +82,7 @@ The variables needed by the disconnected environment:
 
 Group                   | Variable | Required      | Type   | Description
 ----------------------- | -------- | ------------- | ------ |----------------------------------------------------
-[settings] | install_method | True | String | Setting this to upi for a upi install
+[settings] | install_type | True | String | Setting this to upi for a upi install
 [all:vars] | bootstrap_interface | False | String | If you are using the upi_bootstrap module in your hook this needs to be the provisioning hosts ip address
 
 ## Hooks upi-install.yml

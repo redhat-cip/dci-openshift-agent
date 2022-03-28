@@ -1,7 +1,7 @@
 ---
 
 - name: "Setup job_logs directory"
-  include_tasks: plays/log-dir.yml
+  include_tasks: log-dir.yml
   when: job_logs is undefined
 
 - name: Get logs from OCP deployment
@@ -23,6 +23,8 @@
       {{ job_logs.path }}
       {{ groups['masters'] }}
   ignore_errors: true
+  when:
+  - install_type is not defined or install_type != 'assisted'
 
 - name: "Find test Junit files"
   find:
