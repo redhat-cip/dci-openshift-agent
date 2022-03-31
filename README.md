@@ -282,6 +282,10 @@ dci_tags: ["debug", "gerrit:22195"]
 ...
 ```
 
+!!! NOTE
+    There are certain particularities about versioning that you can read
+    more in depth in [the versioning document](docs/ocp_versioning.md)
+
 #### `/etc/dci-openshift-agent/hosts`
 
 This file is an Ansible inventory file (format is `.ini`) and includes the
