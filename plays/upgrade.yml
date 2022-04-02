@@ -19,6 +19,21 @@
   set_fact:
     major: "{{ hostvars.localhost.job_info.job.topic.name | upper | replace('OCP-', '') }}"
 
+- name: "Work-around for 4.7 -> 4.8 upgrade"
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: gateway-mode-config
+        namespace: openshift-network-operator
+      data:
+        mode: "local"
+      immutable: true
+  when:
+    - '"bz2064193" in dci_workarounds|default([])'
+    - major is version("4.8", "==")
+
 - block:
   - name: "upgrader : Fetch release digest"
     uri:
