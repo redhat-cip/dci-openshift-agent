@@ -16,7 +16,9 @@ Some differences:
   namespace](https://quay.io/openshift-release-dev/ocp-release)
 * Development/nightly builds publish to [this quay
   namespace](https://quay.io/openshift-release-dev/ocp-release-nightly), but it
-  is protected and you need your cloud.redhat.com pull secret
+  is protected and you will need to authenticate using your [cloud.redhat.com
+  pull
+  secret](https://console.redhat.com/openshift/install/metal/user-provisioned).
 
 Furthermore, the Version field listed in the release.txt fetched from the
 mirrors has changed gradually throughout OCP versions, example: for nightly
