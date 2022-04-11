@@ -269,6 +269,7 @@ which version of OCP to install.
 | http\_proxy                        | False    | String  |                                                  | http proxy to use                                              |
 | https\_proxy                       | False    | String  |                                                  | https proxy to use                                             |
 | no\_proxy\_list                    | False    | String  |                                                  | Comma separated list of hosts not going through the proxies    |
+| force\_upgrade                     | False    | Boolean | False                                            | Force upgrade even if no version is available                  |
 | dci\_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz<id> or gh-org-repo-<id> |
 | openshift\_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |
 |                                    |          |         |   quay.io/rhceph-dev:                            | You can also override the default auths provided by DCI        |
