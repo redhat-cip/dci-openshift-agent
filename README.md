@@ -16,27 +16,37 @@ There are some benefits of running the DCI OCP Agent:
 
 ## Table of Contents
 
-- [Requirements](#requirements)
-  - [Network requirements](#network-requirements)
-  - [Systems requirements](#systems-requirements)
-    - [Jumpbox requirements](#jumpbox-requirements)
-    - [Systems under test](#systems-under-test)
-  - [Optional](#optional)
-- [Setting up access to DCI](#setting-up-access-to-dci)
-- [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
-  - [Installation of OCP Provision Host](#installation-of-ocp-provision-host)
-  - [Copying the ssh key to your provisioner](#copying-the-ssh-key-to-your-provisioner)
-  - [Jumpbox Configuration](#jumpbox-configuration)
-  - [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
-- [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
-- [Interacting with your RHOCP Cluster](#interacting-with-your-rhocp-cluster)
-- [Troubleshooting common issues](#troubleshooting-common-issues)
-- [Keep the DCI OCP Agent Updated](#keep-the-dci-ocp-agent-updated)
-- [dci-openshift-agent workflow](#dci-openshift-agent-workflow)
-- [Getting Involved](#getting-involved)
-- [Create your DCI account on distributed-ci.io](#create-your-dci-account-on-distributed-ci.io)
-- [License](#license)
-- [Contact](#contact)
+- [DCI OpenShift Agent](#dci-openshift-agent)
+  - [Requirements](#requirements)
+    - [Network requirements](#network-requirements)
+    - [Systems requirements](#systems-requirements)
+      - [Jumpbox requirements](#jumpbox-requirements)
+      - [Systems under test](#systems-under-test)
+    - [Optional](#optional)
+  - [Setting up access to DCI](#setting-up-access-to-dci)
+  - [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
+    - [Installation of OCP Provision Host](#installation-of-ocp-provision-host)
+    - [Copying the ssh key to your provisioner](#copying-the-ssh-key-to-your-provisioner)
+    - [Jumpbox Configuration](#jumpbox-configuration)
+      - [`/etc/dci-openshift-agent/dcirc.sh`](#etcdci-openshift-agentdcircsh)
+      - [`/etc/dci-openshift-agent/settings.yml`](#etcdci-openshift-agentsettingsyml)
+      - [`/etc/dci-openshift-agent/hosts`](#etcdci-openshift-agenthosts)
+    - [Disconnected mode in DCI OCP agent](#disconnected-mode-in-dci-ocp-agent)
+    - [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
+    - [Storing secrets](#storing-secrets)
+  - [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
+  - [Interacting with your RHOCP Cluster](#interacting-with-your-rhocp-cluster)
+  - [Troubleshooting common issues](#troubleshooting-common-issues)
+    - [Troubleshooting basic configuration](#troubleshooting-basic-configuration)
+    - [Troubleshooting network connectivity](#troubleshooting-network-connectivity)
+    - [Troubleshooting OCP bootstrapping](#troubleshooting-ocp-bootstrapping)
+    - [Troubleshooting OCP install](#troubleshooting-ocp-install)
+  - [Keep the DCI OCP Agent Updated](#keep-the-dci-ocp-agent-updated)
+  - [dci-openshift-agent workflow](#dci-openshift-agent-workflow)
+  - [Getting involved](#getting-involved)
+  - [Create your DCI account on distributed-ci.io](#create-your-dci-account-on-distributed-ciio)
+  - [License](#license)
+  - [Contact](#contact)
 
 ## Requirements
 
@@ -383,14 +393,17 @@ CONFIG_DIR=/var/lib/dci-openshift-agent/config
 
 This will allow you to use a version control system for all your settings.
 
-If you want to also store the hooks in the same directory, you have to
-specify `dci_config_dirs` in your `settings.yml`. Example:
+If you want to also store the hooks in the same directory, you have to specify `dci_config_dirs` in your `settings.yml`. Example:
 
 ```YAML
 ---
 dci_topic: OCP-4.10
 dci_config_dirs: [/var/lib/dci-openshift-agent/config]
 ```
+
+### Storing secrets
+
+You can store secrets in an encrypted manner in your `settings.yml` and YAML inventories by using `dci-vault` to generate your encrypted secrets. Details in the [python-dciclient documentation](/python-dciclient/).
 
 ## Starting the DCI OCP Agent
 

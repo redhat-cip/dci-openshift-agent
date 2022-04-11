@@ -338,6 +338,10 @@ if [ -n "$REQS" ]; then
     done
 fi
 
+if [ -d python-dciclient ]; then
+    export DCI_VAULT_CLIENT=$PWD/.venv/bin/dci-vault-client
+fi
+
 GIT_REPOS=
 for repo in $(ls -d */.git);do
     GIT_REPOS="\"$PWD/${repo%/.git}\",$GIT_REPOS"
