@@ -209,9 +209,41 @@
     mcp_wait_retries: 100
     mcp_wait_delay: 10
 
+- block:
+  - name: Set release_url
+    set_fact:
+      release_url: "{{ (webserver_url|default|length) | ternary(webserver_url|default, 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp') }}"
+
+  - name: Get the ocp client tar gunzip file
+    get_url:
+      url: "{{ release_url }}/{{ version }}/openshift-client-linux-{{ version }}.tar.gz"
+      dest: /tmp/
+      mode: '0755'
+
+  - name: "Untar the openshift-client-linux-{{ version }}.tar.gz"
+    unarchive:
+      src: "/tmp/openshift-client-linux-{{ version }}.tar.gz"
+      dest: "{{ dci_cluster_configs_dir }}"
+      mode: '0755'
+      remote_src: yes
+
+  - name: "Remove the openshift-client-linux-{{ version }}.tar.gz"
+    file:
+      path: "/tmp/openshift-client-linux-{{ version }}.tar.gz"
+      state: absent
+  delegate_to: localhost
+  when: provision_cache_store is not defined
+
 - name: "Copy new oc client after upgrade is finished"
+  vars:
+    pcs: "{{ provision_cache_store | default() }}"
+    oc_path: >-
+      {{ pcs | length |
+         ternary(
+           pcs + "/" + version + "/oc",
+           dci_cluster_configs_dir + "/oc" ) }}
   copy:
-    src: "{{ hostvars.localhost.provision_cache_store }}/{{ version }}/oc"
+    src: "{{ oc_path }}"
     dest: "/usr/local/bin/oc"
     mode: "0755"
   become: true
