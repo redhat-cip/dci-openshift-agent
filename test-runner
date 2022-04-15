@@ -413,6 +413,10 @@ if [ -d test-network-function ]; then
     OPTS+=(-e "test_network_function_repo=$PWD")
 fi
 
+if [ -d openshift-preflight ]; then
+    OPST+=(-e "preflight_source_dir=$PWD/openshift-preflight")
+fi
+
 # support the none app to use the default from the system
 APP_OPT=
 

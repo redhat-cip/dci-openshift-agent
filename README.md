@@ -403,7 +403,7 @@ dci_config_dirs: [/var/lib/dci-openshift-agent/config]
 
 ### Storing secrets
 
-You can store secrets in an encrypted manner in your `settings.yml` and YAML inventories by using `dci-vault` to generate your encrypted secrets. Details in the [python-dciclient documentation](/python-dciclient/).
+You can store secrets in an encrypted manner in your `settings.yml` and YAML inventories by using `dci-vault` to generate your encrypted secrets. Details in the [python-dciclient documentation](../python-dciclient/).
 
 ## Starting the DCI OCP Agent
 
