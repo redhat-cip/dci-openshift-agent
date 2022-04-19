@@ -115,9 +115,16 @@
       --timeout=10m
 
 - name: "upgrader : Execute the upgrade"
+  vars:
+    upgrade_options: >-
+      {{ force_upgrade | default |
+         ternary(
+           '--to-image=quay.io/openshift-release-dev/ocp-release:'
+             + version + '-x86_64 --force --allow-explicit-upgrade',
+           '--to '+ version ) }}
   command:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-    cmd: oc adm upgrade --to {{ version }}
+    cmd: oc adm upgrade {{ upgrade_options }}
   register: start_upgrade
 
 - name: "upgrader : Wait for upgrade to start"
