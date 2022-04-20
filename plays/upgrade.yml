@@ -34,6 +34,18 @@
     - '"bz2064193" in dci_workarounds|default([])'
     - major is version("4.8", "==")
 
+- name: "Acknowledge deprecated API removals for 4.9 upgrade"
+  community.kubernetes.k8s:
+    definition:
+      kind: ConfigMap
+      metadata:
+        name: admin-acks
+        namespace: openshift-config
+      data:
+        ack-4.8-kube-1.22-api-removals-in-4.9: "true"
+  when:
+    - major is version("4.9", "==")
+
 - block:
   - name: "upgrader : Fetch release digest"
     uri:
