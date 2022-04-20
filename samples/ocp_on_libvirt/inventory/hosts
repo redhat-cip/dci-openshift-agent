@@ -1,1 +1,2 @@
+[vm_host]
 localhost ansible_connection=local prov_nic=eth0 pub_nic=eth1

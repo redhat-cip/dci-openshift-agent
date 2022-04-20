@@ -64,11 +64,16 @@ uid=990(dci-openshift-agent) gid=987(dci-openshift-agent) groups=987(dci-openshi
 Run `libvirt_up` playbook to configure libvirt nodes.
 This playbook will:
 
-- Create 3 local virtual machines to be used as `System Under Test`
-- Create 1 local virtual machine to be used as a `Provisioning node`
+- Create 3 virtual machines to be used as `System Under Test`
+- Create 1 virtual machine to be used as a `Provisioning node`
 - Generate the relative `hosts` file (ready to be used as an inventory for the
   `dci-openshift-agent`).
 - Provide a `pre-run.yml` hook file to be used by the agent.
+
+Note that, by default, the virtual machines are created locally thanks to the
+inventory file provided under ~/samples/ocp_on_libvirt/inventory/hosts. If
+you want to create the virtual machines in a different server, you will need
+to modify that file consequently.
 
 ```
 cd ~/samples/ocp_on_libvirt/
@@ -114,7 +119,8 @@ $ oc get pods --all-namespaces
 ```
 
 In case you need to delete the fully virtualized environment, you can run the
-playbook `libvirt_destroy.yml`:
+playbook `libvirt_destroy.yml` (again, note that you need to set up the correct
+hosts file, depending on whether the virtual machines are local or not):
 
 ```
 $ cd samples/ocp_on_libvirt/
