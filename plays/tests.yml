@@ -32,6 +32,8 @@
     ts_configs_dir: "{{ dci_cluster_configs_dir }}"
     ts_csi_tests_dir: "{{ dci_cluster_tests_dir }}"
     ts_csi_test_manifest: "{{ dci_openshift_csi_test_manifest }}"
+    ts_do_cni_tests: "{{ dci_do_cni_tests }}"
+    ts_do_virt_tests: "{{ dci_do_virt_tests }}"
   include_role:
     name: redhat-tests
 
