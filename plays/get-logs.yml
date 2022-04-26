@@ -29,6 +29,22 @@
     mime: "application/junit"
   with_items: "{{ junit_matched.files }}"
 
+- name: Find console logs
+  find:
+    paths: "/var/consoles/{{ hostvars.localhost.cluster }}/"
+    patterns: '{{ hostvars.localhost.cluster }}*'
+    size: 1k
+    recurse: no
+  register: console_log_files
+
+- name: Copy console logs into tmp directory
+  fetch:
+    src: "{{ item }}"
+    dest: "{{ job_logs.path }}/{{ item | basename }}-console.log"
+    flat: yes
+    validate_checksum: no
+  loop: "{{ console_log_files.files | map(attribute='path') | list }}"
+
 - name: Find deployment logs (text)
   find:
     paths: "{{ job_logs.path }}"
