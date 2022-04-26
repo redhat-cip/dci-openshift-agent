@@ -81,11 +81,20 @@
     when:
     - hostvars.localhost.groups['workers']|length > 1
 
-  - name: "deploy-operators : Install Performace Addon Operators and profiles"
+  - name: "deploy-operators : Install Performace Addon Operator"
     include_role:
       name: operator-performance-profile
     when:
     - hostvars.localhost.enable_perf_addon|default(true)|bool
+    - ocp_version_maj|int == 4
+    - ocp_version_min|int <= 10
+
+  - name: "deploy-operators : Apply Performace Profile"
+    include_role:
+      name: operator-performance-profile
+      tasks_from: apply-profile.yml
+    when:
+    - performance_definition is defined
 
   - name: "deploy-operators : Install SRIOV operator"
     include_role:
