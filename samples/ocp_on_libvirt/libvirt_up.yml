@@ -9,5 +9,8 @@
         resources: "{{ resources|default([])|union([item.name]) }}"
       with_items:
         - "{{ hosts }}"
+    - set_fact:
+        vbmc_host_provided: localhost
+      when: vbmc_host_provided is not defined
     - include_role:
         name: ocp-on-libvirt
