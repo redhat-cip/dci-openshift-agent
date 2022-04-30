@@ -83,16 +83,20 @@
 
   - name: "deploy-operators : Install Performace Addon Operator"
     include_role:
-      name: operator-performance-profile
+      name: olm-operator
+    vars:
+      operator: performance-addon-operator
+      source: "{{ opm_catalog_source_name }}"
+      namespace: openshift-performance-addon-operator
+      ns_labels:
+        openshift.io/cluster-monitoring: "true"
     when:
-    - hostvars.localhost.enable_perf_addon|default(true)|bool
-    - ocp_version_maj|int == 4
-    - ocp_version_min|int <= 10
+      - hostvars.localhost.enable_perf_addon|default(true)|bool
+      - ocp_version_maj|int == 4
+      - ocp_version_min|int <= 10
 
   - name: "deploy-operators : Apply Performace Profile"
-    include_role:
-      name: operator-performance-profile
-      tasks_from: apply-profile.yml
+    include_tasks: apply-pao-profile.yml
     when:
     - performance_definition is defined
 

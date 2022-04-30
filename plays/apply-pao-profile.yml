@@ -55,8 +55,8 @@
         kind: Node
       register: cluster_nodes
       until:
-         - cluster_nodes.resources is defined
-         - "'True' in cluster_nodes.resources[0].status.conditions | to_json | from_json | json_query(query)"
+        - cluster_nodes.resources is defined
+        - "'True' in cluster_nodes.resources[0].status.conditions | to_json | from_json | json_query(query)"
       vars:
         query: "[?contains(type, 'Ready')].status"
       retries: 90
