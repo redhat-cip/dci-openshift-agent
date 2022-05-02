@@ -213,6 +213,14 @@
   async: 7200
   poll: 15
 
+- name: "Upgrader : Update disconnected catalogSources"
+  import_role:
+    name: operators-catalog
+  when:
+  - dci_disconnected | default(false) | bool
+  - opm_mirror_list is defined
+  - opm_mirror_list | length
+
 - name: "test_ upgrader: check if all cluster-operators are running correctly"
   shell:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
