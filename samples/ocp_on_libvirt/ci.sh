@@ -97,6 +97,9 @@ if [ -n "$GERRIT_USER" ]; then
                     if grep -q -- "--sno" <<< "$ARGS"; then
                         ARGS=${ARGS/--sno/}
                         dci-check-change --sno $number $ARGS
+                   elif grep -q -- "--assisted" <<< "$ARGS"; then
+                        ARGS=${ARGS/--assisted/}
+                        dci-check-change --assisted $number $ARGS
                     else
                         dci-check-change $number $ARGS
                     fi
