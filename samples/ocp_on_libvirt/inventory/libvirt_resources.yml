@@ -54,7 +54,7 @@ all:
         networks:
           - name: provisioning
           - name: baremetal
-      - name: master-0
+      - name: dciokd-master-0
         domain: "{{ cluster_domain }}"
         users: []
         run_commands: []
@@ -71,7 +71,7 @@ all:
         networks:
           - name: provisioning
           - name: baremetal
-      - name: master-1
+      - name: dciokd-master-1
         domain: "{{ cluster_domain }}"
         users: []
         run_commands: []
@@ -88,7 +88,7 @@ all:
         networks:
           - name: provisioning
           - name: baremetal
-      - name: master-2
+      - name: dciokd-master-2
         domain: "{{ cluster_domain }}"
         users: []
         run_commands: []
