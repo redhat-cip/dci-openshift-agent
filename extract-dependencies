@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2021 Red Hat, Inc.
+# Copyright (C) 2021-2022 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -50,9 +50,10 @@ while read line; do
               fi
           fi
 
+          BRANCH=$(jq -r .base.ref "$dir-$pr.json")
           cd $dir
           git stash || :
-          git checkout master || git checkout main
+          git checkout "$BRANCH"
           # remove old branch if it exists
           git branch -D pr$pr || :
           if [ -r $HOME/.ssh/id_github ]; then
@@ -62,16 +63,16 @@ while read line; do
           fi
           # check if branch is already merged
           if git branch -d pr$pr; then
-              git checkout master || git checkout main
+              git checkout "$BRANCH"
           else
               git checkout pr$pr
               if [ -r $HOME/.ssh/id_github ]; then
-                  ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git fetch origin master" || ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git fetch origin main"
+                  ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git fetch origin $BRANCH"
               else
-                  git fetch origin master || git fetch origin main
+                  git fetch origin "$BRANCH"
               fi
-              if ! git rebase origin/master && ! git rebase origin/main; then
-                  $BASEDIR/send-feedback $TARGET "error in check dallas: unable to rebase PR $pr from $proj"
+              if ! git rebase "origin/$BRANCH"; then
+                  $BASEDIR/send-feedback $TARGET "error in dci-check-change: unable to rebase PR $pr from $proj branch $BRANCH"
                   rm -rf $TARGET
                   exit 1
               fi
