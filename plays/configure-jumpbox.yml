@@ -7,7 +7,6 @@
       - "python{% if ansible_python.version.major == 3 %}3{% endif %}-dns"
       - "python{% if ansible_python.version.major == 3 %}3{% endif %}-netaddr"
       - "jq"
-      - "httpd"
       - "expect"
       - "skopeo" # needed for image mirroring in offline mode
     state: installed
@@ -32,22 +31,6 @@
       until: result is not failed
       become: true
       when: not grpcurl_path.stat.exists
-
-- name: Ensure Apache is running
-  systemd:
-    name: 'httpd'
-    state: 'started'
-  become: true
-
-- name: Open port 80 on the firewall
-  firewalld:
-    zone: public
-    service: http
-    permanent: true
-    state: enabled
-  register: result
-  failed_when: false
-  become: true
 
 - name: Ensure proper directories are created
   file:
