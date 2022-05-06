@@ -38,12 +38,13 @@ BASEDIR=$(cd $(dirname $0); pwd)
 if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    echo "Usage: $name [--virt|--sno|--assisted] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
     Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
 
     arguments:
     --virt            Use OCP on Libvirt.
     --sno             Use SNO on Libvirt.
+    --assisted        Use Assisted Installer on Libvirt.
     -n                Do not vote or comment on Gerrit reviews or GitHub PR.
     -f                Force to run without obeying hints.
     -s                Force a suffix to be added.
@@ -68,6 +69,12 @@ elif [ $1 = --sno ]; then
     VIRT=--sno
     if [ -n "$SNO_DCI_QUEUE" ]; then
         DCI_QUEUE="$SNO_DCI_QUEUE"
+    fi
+    shift
+elif [ $1 = --assisted ]; then
+    VIRT=--assisted
+    if [ -n "$ASSISTED_DCI_QUEUE" ]; then
+        DCI_QUEUE="$ASSISTED_DCI_QUEUE"
     fi
     shift
 fi
@@ -184,6 +191,13 @@ if [[ sno =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno\s*" <<< $DES
     VIRT=--sno
     if [ -n "$SNO_DCI_QUEUE" ]; then
         DCI_QUEUE="$SNO_DCI_QUEUE"
+    fi
+fi
+
+if [[ assisted =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*assisted\s*" <<< $DESC; then
+    VIRT=--assisted
+    if [ -n "$ASSISTED_DCI_QUEUE" ]; then
+        DCI_QUEUE="$ASSISTED_DCI_QUEUE"
     fi
 fi
 
