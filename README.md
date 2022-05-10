@@ -292,6 +292,7 @@ which version of OCP to install.
 | dci_do_virt_tests                  | False    | Boolean | False                                            |Execute the Kubevirt Conformance tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cnii). Hyperconverged operator must be installed on the cluster. For airgapped environments this is only supported on OCP 4.9 and newer versions.
 | baremetal\_deploy\_version         | False    | String  | origin/master                                    | Allows you to lock upstream baremetal repo to specific version |
 | force\_upgrade                     | False    | Boolean | False                                            | Force upgrade even if no version is available                  |
+| upgrade_eus                        | False    | Boolean | False                                            | Enable the EUS upgrade. Please see the [EUS upgrade](#eus-upgrade) section for more details                                                            |
 | dci\_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz<id> or gh-org-repo-<id> |
 | openshift\_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |
 | opm_mirror_list                    | False    | List    | []                                               | List of operators to be mirrored in disconnected environments. Please see the [Deploying Operators](#deploying-operators) section for more details     |
@@ -526,6 +527,20 @@ https://console-openshift-console.apps.<cluster>.<domain>
 ```
 
 Note: The dci-openshift-agent is part of a [Continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) tool aimed to perform OCP deployments, should not be considered for production workloads. Use the above connection methods if some troubleshooting is required.
+
+## EUS upgrade
+
+Openshift offers a way to facilitate the upgrade between two EUS versions.
+It handles upgrading from 4.8 to 4.10, or 4.10 to 4.12, etc.
+
+Documentation is available [Here](https://docs.openshift.com/container-platform/4.10/updating/preparing-eus-eus-upgrade.html)
+
+To perform this upgrade with DCI, you must meet the following conditions:
+- Activate the boolean `upgrade\_eus` to true.
+- The cluster has to be installed in an EUS version.
+- The topic should be the targeted an EUS version.
+
+There also exists an optional variable `version_inter` to specify the intermediate OCP version used.
 
 ## Troubleshooting common issues
 

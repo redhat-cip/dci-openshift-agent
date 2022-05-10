@@ -121,6 +121,56 @@
     mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
     write_custom_config: "{{ dci_disconnected | default(False) | bool }}"
 
+- name: Mirror intermediate version for EUS Upgrade
+  block:
+  - name: Set major variable
+    set_fact:
+      major: "{{ hostvars.localhost.job_info.job.topic.name | upper | replace('OCP-', '') }}"
+
+  - name: Set intermediate openshift version
+    vars:
+      ocp_major: "{{ major.split('.')[0] }}"
+      ocp_minor: "{{ major.split('.')[1] }}"
+    set_fact:
+      major_inter: "{{ ocp_major }}.{{ ocp_minor | int - 1 }}"
+
+  - name: "Get intermadiate release from Graph"
+    shell:
+      cmd: >-
+        curl --silent --header 'Accept: application/json'
+        'https://api.openshift.com/api/upgrades_info/v1/graph?channel=eus-{{ major }}&arch=amd64' |
+        jq -r '[[.nodes|sort_by(.version)| reverse[]| .version][] | select(test("{{ major_inter }}"))][0]'
+    register: version_inter_graph
+    when: version_inter is undefined
+
+  - name: "Set version_inter from Graph"
+    set_fact:
+      version_inter: "{{ version_inter_graph.stdout }}"
+    when: version_inter_graph is defined
+
+  - name: Mirror release
+    include_role:
+      name: mirror-ocp-release
+    vars:
+      version: "{{ version_inter }}"
+      release_url: "{{ hostvars.localhost.url }}"
+      cache_dir: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
+      webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
+      registry_url: "docker://{{ local_registry_host | default('localhost') }}:{{ local_registry_port | default(0)  }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
+      pull_secrets: "{{ auths | default(pullsecret) }}"
+      force: "{{ (hostvars.localhost.dci_force_mirroring | default(false)) or (hostvars.localhost.build == 'candidate') | bool }}"
+      install_type: "{{ hostvars.localhost.install_type | default('ipi') }}"
+      sno_install_type: "{{ hostvars.localhost.sno_install_type | default('baremetal') }}"
+      mirror_artifacts: "{{ dci_disconnected | default(False) | bool }}"
+      unpack_artifacts: "{{ dci_disconnected | default(False) | bool }}"
+      mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
+      mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
+      write_custom_config: "{{ dci_disconnected | default(False) | bool }}"
+    when:
+      - dci_disconnected | default(false) |  bool
+  when:
+    - upgrade_eus | default(false) | bool
+
 - name: "Clone/update baremetal-deploy repo"
   vars:
     git_repo: "{{ hostvars.localhost.baremetal_deploy_repo }}"
@@ -158,8 +208,20 @@
     - opm_mirror_list is defined
     - opm_mirror_list | length
 
- ### Mirror must-gather images
+# Mirror Operators for offline mode
+- name: "dci-openshift-agent : Mirror Operators"
+  vars:
+    version: "{{ version_inter }}"
+    local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
+  include_role:
+    name: operators-mirror
+  when:
+    - dci_disconnected | default(false) | bool
+    - opm_mirror_list is defined
+    - opm_mirror_list | length
+    - upgrade_eus | default(false) | bool
 
+### Mirror must-gather images
 - name: "dci-openshift-agent : Mirror must gather images"
   include_role:
     name: mirror_images

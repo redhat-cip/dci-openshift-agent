@@ -68,7 +68,7 @@
         ocp_product_id: "{{ item['id'] }}"
       with_items: "{{ job_info.job.components }}"
       when: item["type"] == "ocp"
-    
+
     - name: Get build from tag
       set_fact:
         build: "{{ item.split(':')[1] }}"
@@ -292,7 +292,14 @@
             local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
             local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
           include_tasks: plays/upgrade.yml
+          when: upgrade_eus is undefined
 
+        - name: "dci-openshift-agent : Launch upgrade"
+          vars:
+            local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
+            local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
+          include_tasks: plays/upgrade-eus.yml
+          when: upgrade_eus is defined
       when:
         - dci_main is defined
         - dci_main == 'upgrade'
