@@ -1,4 +1,12 @@
 ---
+- name: Wait for Performance Addon Operator endpoint to become available
+  pause:
+    seconds: 60
+  when:
+    - install_type is defined and install_type == 'sno'
+    - ocp_version_maj|int == 4
+    - ocp_version_min|int <= 10
+
 - name: Create PerformanceProfile
   k8s:
     definition: "{{ lookup('file', performance_definition) }}"
@@ -6,36 +14,51 @@
   retries: 5
   delay: 60
   until: profile_state is not failed
-  when:
-    - install_type is undefined or install_type != 'sno'
 
-- name: Pause for Machine Config to be created
-  pause:
-    seconds: 60
+- name: Wait (up to 5 mins) for Performance Profile KubeletConfig creation
+  k8s_info:
+    api: machineconfiguration.openshift.io/v1
+    kind: KubeletConfig
+    name: "performance-{{ profile_state.result.metadata.name }}"
+    namespace: default
+  register: kubelet
+  retries: 30
+  delay: 10
+  until: "kubelet.resources|length == 1"
+  failed_when: "kubelet.resources|length != 1"
   when:
     - profile_state is defined
     - profile_state.changed | bool
 
-- name: "Applying PAO profile for SNO nodes and Wait for node to be available"
+- name: Set Performance Profile KubeletConfig creation time
+  set_fact:
+    perf_kubelet_timestamp: "{{ kubelet.resources[0].metadata.creationTimestamp }}"
+
+- name: Wait (up to 10 mins) for rendered-worker MC triggered by Performance Profile
+  k8s_info:
+    api_version: machineconfiguration.openshift.io/v1
+    kind: MachineConfig
+  register: reg_worker_mc
+  vars:
+    worker_mc_query: "[?contains(metadata.name, 'rendered-worker')].metadata.creationTimestamp"
+    worker_mc_timestamp: "{{ reg_worker_mc.resources | to_json | from_json | json_query(worker_mc_query) | sort | last }}"
+  until:
+    - reg_worker_mc.resources is defined
+    - worker_mc_timestamp > perf_kubelet_timestamp
+  retries: 60
+  delay: 10
+  when:
+    - install_type is undefined or install_type != 'sno'
+  no_log: true
+
+- name: "Wait for SNO node to be available"
   block:
-    - name: "Wait for Performance Addon Operator endpoint to become available"
-      pause:
-        seconds: 60
-
-    - name: "Create PerformanceProfile on SNO node"
-      k8s:
-        definition: "{{ lookup('file', performance_definition) }}"
-      register: sno_profile_state
-      retries: 5
-      delay: 60
-      until: sno_profile_state is not failed
-
-    - name: "Pause 60 seconds to wait for PAO profile triggers SNO reboot"
+    - name: "Pause 60 seconds to wait for Performance Profile triggers SNO reboot"
       pause:
         seconds: 60
       when:
-        - sno_profile_state is defined
-        - sno_profile_state.changed | bool
+        - profile_state is defined
+        - profile_state.changed | bool
 
     - name: "Wait for API to be available"
       uri:
