@@ -367,8 +367,6 @@ if [ -z "$KCFG" ]; then
     if [ -n "$VIRT" ]; then
         # Clear out any previous dns/dhcp config entries
         # libvirt/ipi and libvirt/assisted have conflicting dns/dhcp
-        sudo rm /etc/NetworkManager/dnsmasq.d/openshift.conf
-        sudo rm /etc/NetworkManager/dnsmasq.d/dnsmasq.dciokd.conf
         cd "$VIRTDIR"
         if [ "$VIRT" = virt ]; then
             setsid ansible-playbook -v libvirt_destroy.yml &
