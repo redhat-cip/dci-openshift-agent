@@ -1,6 +1,7 @@
 ---
-- src: https://github.com/redhat-cip/ansible-role-dci-retrieve-component
-  name: dci-retrieve-component
+roles:
+  - src: https://github.com/redhat-cip/ansible-role-dci-retrieve-component
+    name: dci-retrieve-component
 
-- src: https://github.com/redhat-cip/ansible-role-dci-import-keys
-  name: dci-import-keys
+  - src: https://github.com/redhat-cip/ansible-role-dci-import-keys
+    name: dci-import-keys
