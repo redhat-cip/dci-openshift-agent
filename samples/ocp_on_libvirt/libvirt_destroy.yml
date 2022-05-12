@@ -2,6 +2,9 @@
 - name: Destroy bootstrap VM
   hosts: vm_host
   tasks:
+    - set_fact:
+        vbmc_host_provided: localhost
+      when: vbmc_host_provided is not defined
     - include_role:
         name: ocp-on-libvirt
       vars:
