@@ -234,13 +234,23 @@ paste it on the Jumpbox to `/etc/dci-openshift-agent/dcirc.sh`.
 This file should be edited once and looks similar to this:
 
 ```bash
-#!/usr/bin/env bash
 DCI_CS_URL="https://api.distributed-ci.io/"
 DCI_CLIENT_ID=remoteci/<remoteci_id>
 DCI_API_SECRET=<remoteci_api_secret>
 export DCI_CLIENT_ID
 export DCI_API_SECRET
 export DCI_CS_URL
+```
+
+If you need any proxy settings, you can also add them to your `dcirc.sh`:
+
+```bash
+http_proxy="<your http proxy>"
+https_proxy="<your https proxy>"
+no_proxy="<your proxy exception list comma separated>"
+export http_proxy
+export https_proxy
+export no_proxy
 ```
 
 #### `/etc/dci-openshift-agent/settings.yml`
@@ -268,9 +278,6 @@ which version of OCP to install.
 | dci_do_cni_tests                   | False    | Boolean | False                                            | Executes the CNI tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cni)
 | dci_do_virt_tests                  | False    | Boolean | False                                            |Execute the Kubevirt Conformance tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cnii). Hyperconverged operator must be installed on the cluster. For airgapped environments this is only supported on OCP 4.9 and newer versions.
 | baremetal\_deploy\_version         | False    | String  | origin/master                                    | Allows you to lock upstream baremetal repo to specific version |
-| http\_proxy                        | False    | String  |                                                  | http proxy to use                                              |
-| https\_proxy                       | False    | String  |                                                  | https proxy to use                                             |
-| no\_proxy\_list                    | False    | String  |                                                  | Comma separated list of hosts not going through the proxies    |
 | force\_upgrade                     | False    | Boolean | False                                            | Force upgrade even if no version is available                  |
 | dci\_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz<id> or gh-org-repo-<id> |
 | openshift\_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |

@@ -30,9 +30,9 @@ dci_rpms_to_components:
   - ansible
 dci_gits_to_components: "{{ dci_config_dirs }}"
 dev_gits_to_components: []
-http_proxy: ""
-https_proxy: ""
-no_proxy_list: ""
+http_proxy: "{{ lookup('env','http_proxy') }}"
+https_proxy: "{{ lookup('env','https_proxy') }}"
+no_proxy_list: "{{ lookup('env','no_proxy') }}"
 dci_workarounds: []
 kubeconfig_path: "{{ dci_cluster_configs_dir }}/kubeconfig"
 oc_tool_path: "{{ dci_cluster_configs_dir }}/oc"

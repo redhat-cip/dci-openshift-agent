@@ -10,6 +10,10 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
   tasks:
+    - name: Display proxy settings
+      debug:
+        msg: "http_proxy={{ http_proxy }} https_proxy={{ https_proxy }} no_proxy={{ no_proxy_list }}"
+
     - name: Read credentials from env vars
       set_fact:
         dci_client_id="{{ lookup('env','DCI_CLIENT_ID') }}"
