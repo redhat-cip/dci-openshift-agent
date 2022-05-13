@@ -213,7 +213,50 @@
   async: 7200
   poll: 15
 
-- name: "Upgrader : Update disconnected catalogSources"
+# Tasks for operators that require configuration changes before upgrading them
+- name: "upgrader : Apply SRIOV recommended settings before operator upgrade"
+  block:
+    - name: Make sure SRIOV operator webhook is disabled
+      community.kubernetes.k8s:
+        definition:
+          apiVersion: sriovnetwork.openshift.io/v1
+          kind: SriovOperatorConfig
+          metadata:
+            name: default
+            namespace: openshift-sriov-network-operator
+          spec:
+            enableOperatorWebhook: false
+
+    - name: Get list of SRIOV policies
+      community.kubernetes.k8s_info:
+        api: sriovnetwork.openshift.io/v1
+        kind: SriovNetworkNodePolicy
+        namespace: openshift-sriov-network-operator
+      register: sriov_policies
+      no_log: true
+
+    - name: Make sure SRIOV policies are not using linkType eth
+      community.kubernetes.k8s:
+        definition:
+          apiVersion: sriovnetwork.openshift.io/v1
+          kind: SriovNetworkNodePolicy
+          metadata:
+            name: "{{ policy.metadata.name }}"
+            namespace: openshift-sriov-network-operator
+          spec:
+            linkType: null
+      when:
+        - policy.spec.linkType is defined
+        - policy.spec.linkType == 'eth'
+      loop: "{{ sriov_policies.resources }}"
+      loop_control:
+        loop_var: policy
+        label: "{{ policy.metadata.name }}"
+  when:
+    - enable_sriov | default(true) | bool
+    - apply_sriov_upgrade_settings | default(true) | bool
+
+- name: "upgrader : Update disconnected catalogSources"
   import_role:
     name: operators-catalog
   when:
