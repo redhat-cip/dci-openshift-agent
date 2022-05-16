@@ -126,6 +126,33 @@
     - hostvars.localhost.enable_cnv|default(false)|bool
 ### End CNV
 
+### Begin Logging Operators deployment
+- name: "deploy-operators : Install Eleasticsearch operator"
+  include_role:
+    name: olm-operator
+  vars:
+    operator: elasticsearch-operator
+    source: "{{ opm_catalog_source_name }}"
+    namespace: openshift-operators-redhat
+    ns_labels:
+      openshift.io/cluster-monitoring: "true"
+  when:
+    - hostvars.localhost.enable_elasticsearch|default(false)|bool
+
+- name: "deploy-operators : Install Cluster-logging operator"
+  include_role:
+    name: olm-operator
+  vars:
+    operator: cluster-logging
+    source: "{{ opm_catalog_source_name }}"
+    namespace: openshift-logging
+    operator_group_spec:
+      targetNamespaces:
+        - openshift-logging
+  when:
+    - hostvars.localhost.enable_clusterlogging|default(false)|bool
+###
+
 ### Begin OCS
 - block:
   - name: "deploy-operators : Define OCS CatalogSource"

@@ -35,6 +35,7 @@ There are some benefits of running the DCI OCP Agent:
     - [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
     - [Storing secrets](#storing-secrets)
   - [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
+  - [Deploying Operators](#deploying-operators)
   - [Interacting with your RHOCP Cluster](#interacting-with-your-rhocp-cluster)
   - [Troubleshooting common issues](#troubleshooting-common-issues)
     - [Troubleshooting basic configuration](#troubleshooting-basic-configuration)
@@ -279,12 +280,15 @@ which version of OCP to install.
 | dci_do_virt_tests                  | False    | Boolean | False                                            |Execute the Kubevirt Conformance tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cnii). Hyperconverged operator must be installed on the cluster. For airgapped environments this is only supported on OCP 4.9 and newer versions.
 | baremetal\_deploy\_version         | False    | String  | origin/master                                    | Allows you to lock upstream baremetal repo to specific version |
 | force\_upgrade                     | False    | Boolean | False                                            | Force upgrade even if no version is available                  |
-| enable\_sriov                      | False    | Boolean | True                                             | Whether installing SR-IOV operator during the  operator-deployment step |
-| apply\_sriov\_upgrade\_settings    | False    | Boolean | True                                             | Whether to apply SR-IOV recommended settings before operator upgrade |
 | dci\_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz<id> or gh-org-repo-<id> |
 | openshift\_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |
-|                                    |          |         |   quay.io/rhceph-dev:                            | You can also override the default auths provided by DCI        |
-|                                    |          |         |     auth: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx    | Any dict entry with the same name will override default values |
+| opm_mirror_list                    | False    | List    | []                                               | List of operators to be mirrored in disconnected environments. Please see the [Deploying Operators](#deploying-operators) section for more details     |
+| enable_cnv                         | False    | Boolean   | False      | Deploy CNV and enable the HCO operator |
+| enable_elasticsearch               | False    | Boolean   | False      | Deploys the ElasticSearch Operator |
+| enable_clusterlogging              | False    | Boolean   | False      | Deploys the Cluster-Logging Operator |
+| enable_perf_addon                  | False    | Boolean   | True       | Deploys the Performance AddOn Operator |
+| enable_sriov                       | False    | Boolean   | True       | Deploys the SRIOV Operator |
+| apply\_sriov\_upgrade\_settings    | False    | Boolean | True         | Whether to apply SR-IOV recommended settings before operator upgrade |
 
 [Here](https://docs.openshift.com/container-platform/4.7/support/gathering-cluster-data.html)
 you can find information on the available must-gather images. Also, bear in
@@ -437,6 +441,14 @@ you can use this command line:
 # su - dci-openshift-agent
 % dci-openshift-agent-ctl -s -- -v
 ```
+
+## Deploying operators
+
+The Agent supports the deployment of certain operators. At this time there is support for SRIOV, Performance Add On (PAO), HyperConverged Cluster Operator (HCO), ElasticSearch Operator, and Cluster-Logging.
+
+In order to make the operators available in disconected environments is it important to configure the `opm_mirror_list` variable with the list of operators to mirror. The Agent will take care of mirroring the required images and dependencies.
+
+Please see the [settings table](#etcdci-openshift-agentsettingsyml) for the variables names to control the Operators installation.
 
 ## Interacting with your RHOCP Cluster
 
