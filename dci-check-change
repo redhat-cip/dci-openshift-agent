@@ -87,7 +87,7 @@ fi
 
 # disable hints
 if [ "$1" = "-f" ]; then
-    SUPPORTED_HINTS=
+    SUPPORTED_HINTS=NO_SUPPORTED_HINTS
     shift
 fi
 
