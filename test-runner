@@ -422,7 +422,7 @@ if [ -s "/var/tmp/$CLUSTER.dci.job_id" ]; then
     OPTS+=(-e "dci_previous_job_id=$(cat /var/tmp/$CLUSTER.dci.job_id)")
 fi
 
-if [ -d test-network-function ]; then
+if [ -d cnf-certification-test ]; then
     OPTS+=(-e "test_network_function_repo=$PWD")
 fi
 
