@@ -81,6 +81,7 @@
     vars:
       mcp_wait_retries: 30
       mcp_wait_delay: 10
+      mcp_reason: "Upgrade - after applying ICSP"
 
   - name: "upgrader : Wait for nodes to become Ready"
     shell:
@@ -279,6 +280,7 @@
   vars:
     mcp_wait_retries: 100
     mcp_wait_delay: 10
+    mcp_reason: "Upgrade - after having operators running"
 
 - block:
   - name: Set release_url
