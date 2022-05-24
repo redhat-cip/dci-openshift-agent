@@ -94,4 +94,5 @@
   vars:
     mcp_wait_retries: 60
     mcp_wait_delay: 60
+    mcp_reason: "PAO installation"
 ...
