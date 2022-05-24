@@ -1,0 +1,49 @@
+---
+- name: "Disable SR-IOV Draining in SNO"
+  k8s:
+    definition:
+      apiVersion: sriovnetwork.openshift.io/v1
+      kind: SriovOperatorConfig
+      metadata:
+        name: default
+        namespace: openshift-sriov-network-operator
+      spec:
+        disableDrain: true
+  when:
+    - install_type is defined
+    - install_type == "sno"
+
+- name: Get all nodes
+  k8s_info:
+    kind: Node
+  register: nodes
+
+- name: Add sriov label to worker nodes
+  shell: |
+    oc label node {{ item.metadata.name }} feature.node.kubernetes.io/network-sriov.capable="true"
+  when:
+    - "'node-role.kubernetes.io/worker' in item.metadata.labels"
+    - "'feature.node.kubernetes.io/network-sriov.capable' not in item.metadata.labels"
+  loop: "{{ nodes.resources }}"
+
+- name: Get one worker node
+  set_fact:
+    worker_node: "{{ item.metadata.name }}"
+  when: "'node-role.kubernetes.io/worker' in item.metadata.labels"
+  loop: "{{ nodes.resources }}"
+
+- name: Get SriovNetworkNodeState for one of the worker node
+  k8s_info:
+    api: sriovnetwork.openshift.io/v1
+    kind: SriovNetworkNodeState
+    namespace: openshift-sriov-network-operator
+    name: "{{ worker_node }}"
+  register: state
+  retries: 300
+  delay: 10
+  until:
+    - state.resources | length == 1
+    - state.resources[0].status is defined
+    - "'syncStatus' in state.resources[0].status"
+    - state.resources[0].status.syncStatus == 'Succeeded'
+...

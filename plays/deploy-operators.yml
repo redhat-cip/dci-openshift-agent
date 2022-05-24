@@ -23,8 +23,8 @@
   when: "'Server Version' in item"
   loop: "{{ oc_version_str.stdout_lines }}"
 
-# Generate disconnected catalogSources
-- name: "deploy-operators : Generate disconnected catalogSources"
+# Configure CatalogSources for disconnected environments
+- name: "deploy-operators : Generate disconnected catalogSource"
   import_role:
     name: operators-catalog
   when:
@@ -33,95 +33,128 @@
   - opm_mirror_list | length
 
 - name: Disable default catalog sources for disconnected deployment
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
-  shell: |
-    {{ oc_tool_path }} patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
-  delegate_to: localhost
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: config.openshift.io/v1
+      kind: OperatorHub
+      metadata:
+        name: cluster
+      spec:
+        disableAllDefaultSources: true
   when:
   - dci_disconnected | default(false) | bool
 
-### Begin CNF
+### Begin Deployment of operators required by CNFs
 - name: "Deploy operators required by CNFs"
   block:
-  # Verify a minimum number of worker nodes are available
-  - name: "deploy-operators : Get all nodes"
-    k8s_info:
-      kind: Node
-    register: nodes
-    no_log: true
 
-  - name: "deploy-operators : Get worker node count"
-    set_fact:
-      worker_node_count: "{{ worker_node_count|default(0)|int + 1 }}"
-    when: "'node-role.kubernetes.io/worker' in item.metadata.labels"
-    loop: "{{ nodes.resources }}"
-    no_log: true
+    # Verify a minimum number of worker nodes are available
+    - name: "deploy-operators : Get all nodes"
+      k8s_info:
+        kind: Node
+      register: nodes
+      no_log: true
 
-  - name: "deploy-operators : test_ Check enough worker nodes availability"
-    fail:
-      msg: "Not enough worker nodes ({{ worker_node_count }}) to perform required tasks"
-    when:
-      - worker_node_count|int <= 1
-      - install_type is undefined or install_type != 'sno'
+    - name: "deploy-operators : Get worker node count"
+      set_fact:
+        worker_node_count: "{{ worker_node_count|default(0)|int + 1 }}"
+      when: "'node-role.kubernetes.io/worker' in item.metadata.labels"
+      loop: "{{ nodes.resources }}"
 
-  # Rendering the definition in a variable to avoid jinja templating type issues
-  - name: "deploy-operators : Increase maxUnavailable count to n-1"
-    vars:
-      mcp_def: |
-        apiVersion: machineconfiguration.openshift.io/v1
-        kind: MachineConfigPool
-        metadata:
-          name: worker
-        spec:
-          maxUnavailable: {{ hostvars.localhost.groups['workers'] | length - 1 }}
-    k8s:
-      state: present
-      definition: "{{ mcp_def }}"
-    when:
-    - hostvars.localhost.groups['workers']|length > 1
+    - name: "deploy-operators : test_ Check enough worker nodes availability"
+      fail:
+        msg: "Not enough worker nodes ({{ worker_node_count }}) to perform required tasks"
+      when:
+        - worker_node_count|int <= 1
+        - install_type is undefined or install_type != 'sno'
 
-  - name: "deploy-operators : Install Performace Addon Operator"
-    include_role:
-      name: olm-operator
-    vars:
-      operator: performance-addon-operator
-      source: "{{ opm_catalog_source_name }}"
-      namespace: openshift-performance-addon-operator
-      ns_labels:
-        openshift.io/cluster-monitoring: "true"
-    when:
-      - hostvars.localhost.enable_perf_addon|default(true)|bool
-      - ocp_version_maj|int == 4
-      - ocp_version_min|int <= 10
+    - name: "deploy-operators : Increase maxUnavailable count to n-1"
+      vars:
+        mcp_def: |
+          apiVersion: machineconfiguration.openshift.io/v1
+          kind: MachineConfigPool
+          metadata:
+            name: worker
+          spec:
+            maxUnavailable: {{ hostvars.localhost.groups['workers'] | length - 1 }}
+      k8s:
+        state: present
+        definition: "{{ mcp_def }}"
+      when:
+      - hostvars.localhost.groups['workers']|length > 1
 
-  - name: "deploy-operators : Apply Performace Profile"
-    include_tasks: apply-pao-profile.yml
-    when:
-    - performance_definition is defined
+    - name: "deploy-operators : Install Performace Addon Operator"
+      include_role:
+        name: olm-operator
+      vars:
+        operator: performance-addon-operator
+        source: "{{ opm_catalog_source_name }}"
+        namespace: openshift-performance-addon-operator
+        ns_labels:
+          openshift.io/cluster-monitoring: "true"
+      when:
+        - hostvars.localhost.enable_perf_addon|default(true)|bool
+        - ocp_version_maj|int == 4
+        - ocp_version_min|int <= 10
 
-  - name: "deploy-operators : Install SRIOV operator"
-    include_role:
-      name: operator-sriov
-    when:
-    - hostvars.localhost.enable_sriov|default(true)|bool
+    - name: "configure-operators : Apply Performace Profile"
+      include_tasks: apply-pao-profile.yml
+      when:
+        - performance_definition is defined
 
-  - name: "deploy-operators : Reset maxUnavailable count to default value 1"
-    k8s:
-      definition:
-        kind: MachineConfigPool
-        metadata:
-          name: worker
-        spec:
-          maxUnavailable: 1
+    - name: "deploy-operators : Install and configure SRIOV"
+      block:
+
+        - name: "deploy-operators : Install SRIOV operator"
+          include_role:
+            name: olm-operator
+          vars:
+            operator: sriov-network-operator
+            source: "{{ opm_catalog_source_name }}"
+            namespace: openshift-sriov-network-operator
+            operator_group_spec:
+              targetNamespaces:
+                - openshift-sriov-network-operator
+            ns_labels:
+              openshift.io/run-level: "1"
+
+        - name: "configure-operators : Configure SRIOV operator"
+          include_tasks: apply-sriov-config.yml
+
+      when:
+        - hostvars.localhost.enable_sriov|default(true)|bool
+
+    - name: "deploy-operators : Reset maxUnavailable count to default value 1"
+      k8s:
+        definition:
+          kind: MachineConfigPool
+          metadata:
+            name: worker
+          spec:
+            maxUnavailable: 1
 
   when: hostvars.localhost.dci_prepare_cnf|bool
 ### End CNF
 
-### Begin CNV
-- name: "deploy-operators : Setup cluster for Container Native Virtualization"
-  include_role:
-    name: cnv-setup
+### Begin CNV and HCO
+- name: "Deploy CNV and HCO Operators"
+  block:
+
+    - name: "deploy-operators : Install CNV operator"
+      include_role:
+        name: olm-operator
+      vars:
+        operator: kubevirt-hyperconverged
+        source: "{{ opm_catalog_source_name }}"
+        namespace: openshift-cnv
+        operator_group_spec:
+          targetNamespaces:
+            - openshift-cnv
+
+    - name: "configure-operators : Deploy Hyperconverged Operator"
+      include_role:
+        name: hco-setup
+
   when:
     - hostvars.localhost.enable_cnv|default(false)|bool
 ### End CNV
@@ -151,62 +184,51 @@
         - openshift-logging
   when:
     - hostvars.localhost.enable_clusterlogging|default(false)|bool
-###
+### End Logging Operators deployment
 
-### Begin OCS
-- block:
-  - name: "deploy-operators : Define OCS CatalogSource"
-    include_role:
-      name: olm-catalog-source
-    vars:
-      catalog: ocs-catalog
-      image: "{{ hostvars.localhost.ocs_operator_image }}"
-
-  - name: "deploy-operators : Install OCS Operator"
-    include_role:
-      name: olm-operator
-    vars:
-      operator: ocs-operator
-      channel: alpha
-      source: ocs-catalog
-      namespace: openshift-storage
-      ns_labels:
-        openshift.io/cluster-monitoring: "true"
-      operator_group_spec:
-        targetNamespaces:
-          - openshift-storage
+### Begin Storage Operators
+- name: "deploy-operators : Install OCS Operator"
+  include_role:
+    name: olm-operator
+  vars:
+    operator: ocs-operator
+    source: "{{ opm_catalog_source_name }}"
+    namespace: openshift-storage
+    ns_labels:
+      openshift.io/cluster-monitoring: "true"
+    operator_group_spec:
+      targetNamespaces:
+        - openshift-storage
   when:
-  - hostvars.localhost.ocs_operator_image is defined
-### End OCS
+    - hostvars.localhost.enable_ocs|default(false)|bool
 
-### Begin LocalStorage
-- block:
-  - name: "deploy-operators : Define LocalStorage CatalogSource"
-    include_role:
-      name: olm-catalog-source
-    vars:
-      catalog: local-storage-catalog
-      image: "{{ hostvars.localhost.local_storage_operator_image }}"
-
-  - name: "deploy-operators : Install LocalStorage Operator"
-    include_role:
-      name: olm-operator
-    vars:
-      operator: local-storage-operator
-      channel: "{{ hostvars.localhost.local_storage_operator_channel | default('preview') }}"
-      source: local-storage-catalog
-      namespace: openshift-local-storage
-      operator_group_spec:
-        targetNamespaces:
-          - openshift-local-storage
-
+- name: "deploy-operators : Install LocalStorage Operator"
+  include_role:
+    name: olm-operator
+  vars:
+    operator: local-storage-operator
+    source: "{{ opm_catalog_source_name }}"
+    namespace: openshift-local-storage
+    operator_group_spec:
+      targetNamespaces:
+        - openshift-local-storage
   when:
-  - hostvars.localhost.local_storage_operator_image is defined
-### End LocalStorage
+    - hostvars.localhost.enable_localstorage|default(false)|bool 
+### End Storage Operators deployment
 
+### Custom operators deployments
+- name: "deploy-operators : Deploy other operators playbook"
+  include_tasks: deploy-custom-operator.yml
+  when:
+  - dci_operators is defined
+  - dci_operators | length
+  loop: "{{ dci_operators }}"
+  loop_control:
+    loop_var: dci_operator
+    label: "{{ dci_operator.name }}"
 
-### Begin deploy all CRs
-- name: "deploy-operators : Create all Custom Resources"
+### Begin deploy OCP Custom Resources
+- name: "deploy-operators : Create defined Custom Resources"
   include_role:
     name: deploy-cr
   vars:
