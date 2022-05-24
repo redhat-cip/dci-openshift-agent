@@ -1,4 +1,8 @@
 ---
+- name: Gather the package facts
+  package_facts:
+    manager: auto
+
 - name: Create package component
   dci_component:
     name: "{{ item }} {{ ansible_facts.packages[item][0].version }}-{{ ansible_facts.packages[item][0].release }}"

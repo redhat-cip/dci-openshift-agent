@@ -25,7 +25,7 @@
 
 - name: 'Attach git component to the job'
   dci_job_component:
-    component_id: " {{ git_component.component.id }} "
+    component_id: "{{ git_component.component.id }}"
     job_id: " {{ job_id }} "
   when: last_commit_id.rc == 0
 ...
