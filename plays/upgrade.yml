@@ -214,57 +214,15 @@
   async: 7200
   poll: 15
 
-# Tasks for operators that require configuration changes before upgrading them
-- name: "upgrader : Apply SRIOV recommended settings before operator upgrade"
-  block:
-    - name: Make sure SRIOV operator webhook is disabled
-      community.kubernetes.k8s:
-        definition:
-          apiVersion: sriovnetwork.openshift.io/v1
-          kind: SriovOperatorConfig
-          metadata:
-            name: default
-            namespace: openshift-sriov-network-operator
-          spec:
-            enableOperatorWebhook: false
+# Tasks to prepare operators for upgrade
+- name: "Upgrader : Pre-upgrade tasks"
+  include_tasks: pre-upgrade.yml
 
-    - name: Get list of SRIOV policies
-      community.kubernetes.k8s_info:
-        api: sriovnetwork.openshift.io/v1
-        kind: SriovNetworkNodePolicy
-        namespace: openshift-sriov-network-operator
-      register: sriov_policies
-      no_log: true
-
-    - name: Make sure SRIOV policies are not using linkType eth
-      community.kubernetes.k8s:
-        definition:
-          apiVersion: sriovnetwork.openshift.io/v1
-          kind: SriovNetworkNodePolicy
-          metadata:
-            name: "{{ policy.metadata.name }}"
-            namespace: openshift-sriov-network-operator
-          spec:
-            linkType: null
-      when:
-        - policy.spec.linkType is defined
-        - policy.spec.linkType == 'eth'
-      loop: "{{ sriov_policies.resources }}"
-      loop_control:
-        loop_var: policy
-        label: "{{ policy.metadata.name }}"
+# Upgrading all operators
+- name: "Upgrader : Start the upgrade on installed operators"
+  include_tasks: upgrade-operators.yml
   when:
-    - enable_sriov | default(true) | bool
-    - apply_sriov_upgrade_settings | default(true) | bool
-
-- name: "upgrader : Update disconnected catalogSources"
-  import_role:
-    name: operators-catalog
-  when:
-  - dci_disconnected | default(false) | bool
-  - opm_mirror_list is defined
-  - opm_mirror_list | length
-  - update_catalog_channel | default(true) | bool
+    - upgrade_operators | default(true) | bool
 
 - name: "test_ upgrader: check if all cluster-operators are running correctly"
   shell:
