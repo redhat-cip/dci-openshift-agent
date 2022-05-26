@@ -283,12 +283,15 @@ which version of OCP to install.
 | dci\_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz<id> or gh-org-repo-<id> |
 | openshift\_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |
 | opm_mirror_list                    | False    | List    | []                                               | List of operators to be mirrored in disconnected environments. Please see the [Deploying Operators](#deploying-operators) section for more details     |
+| dci_operators                      | False    | List    | []                                               | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details|
 | enable_cnv                         | False    | Boolean   | False      | Deploy CNV and enable the HCO operator |
 | enable_elasticsearch               | False    | Boolean   | False      | Deploys the ElasticSearch Operator |
 | enable_clusterlogging              | False    | Boolean   | False      | Deploys the Cluster-Logging Operator |
 | enable_perf_addon                  | False    | Boolean   | True       | Deploys the Performance AddOn Operator |
 | enable_sriov                       | False    | Boolean   | True       | Deploys the SRIOV Operator |
-| apply\_sriov\_upgrade\_settings    | False    | Boolean | True         | Whether to apply SR-IOV recommended settings before operator upgrade |
+| apply\_sriov\_upgrade\_settings    | False    | Boolean   | True       | Whether to apply SR-IOV recommended settings before operator upgrade |
+| enable_ocs                         | False    | Boolean   | False      | Deploys the OCS Operator |
+
 
 [Here](https://docs.openshift.com/container-platform/4.7/support/gathering-cluster-data.html)
 you can find information on the available must-gather images. Also, bear in
@@ -449,6 +452,42 @@ The Agent supports the deployment of certain operators. At this time there is su
 In order to make the operators available in disconected environments is it important to configure the `opm_mirror_list` variable with the list of operators to mirror. The Agent will take care of mirroring the required images and dependencies.
 
 Please see the [settings table](#etcdci-openshift-agentsettingsyml) for the variables names to control the Operators installation.
+
+### Customizing the Operators installation
+
+The `dci_operators` variable can be used to deploy additional operators or apply customized installations. An example of how to define `dci_operators` variable is shown below.
+
+
+```yaml
+dci_operators:
+  -
+    name: local-storage-operator
+    catalog_source: mirrored-redhat-operators
+    namespace: openshift-local-storage
+    operator_group_spec:
+      targetNamespaces:
+        - openshift-local-storage
+  -
+    name: ocs-operator
+    catalog_source: mirrored-redhat-operators
+    namespace: openshift-storage
+    operator_group_spec:
+      targetNamespaces:
+        - openshift-storage
+    ns_labels:
+      openshift.io/cluster-monitoring: "true"
+```
+
+* In disconnected enviroments the catalog `mirrored-redhat-operators` contains the package manifests for the operators mirrored by defining the `opm_mirror_list` variable. An example of how to define this variable is shown below.
+
+```yaml
+opm_mirror_list:
+  - performance-addon-operator
+  - sriov-network-operator
+  - kubevirt-hyperconverged
+  - elasticsearch-operator
+  - cluster-logging
+```
 
 ## Interacting with your RHOCP Cluster
 
