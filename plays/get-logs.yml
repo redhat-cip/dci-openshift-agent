@@ -6,8 +6,22 @@
 
 - name: Get logs from OCP deployment
   environment:
-    - DCI_MUST_GATHER_IMAGES: '{{ dci_must_gather_images | default(["registry.redhat.io/openshift4/ose-must-gather"]) | join(" ") }}'
-  script: ./scripts/get-logs "{{ hostvars[groups['provisioner'][0]]['ansible_user'] }}@{{ groups['provisioner'][0] }}" "{{ job_logs.path }}" "{{ groups['masters'] }}"
+    DCI_MUST_GATHER_IMAGES: >-
+      {{ dci_must_gather_images |
+         default(["registry.redhat.io/openshift4/ose-must-gather"]) |
+         join(" ") }}
+    registry: "{{ local_registry_host|default('') }}:{{ local_registry_port|default('') }}"
+  vars:
+    provisioner_user: "{{ hostvars[groups['provisioner'][0]]['ansible_user'] }}"
+    provisioner_host: >-
+      {{ hostvars[groups.provisioner.0].ansible_host |
+         default(groups['provisioner'][0]) }}
+  script:
+    cmd: >
+      ./scripts/get-logs
+      {{ provisioner_user }}@{{ provisioner_host }}
+      {{ job_logs.path }}
+      {{ groups['masters'] }}
   ignore_errors: true
 
 - name: "Find test Junit files"
