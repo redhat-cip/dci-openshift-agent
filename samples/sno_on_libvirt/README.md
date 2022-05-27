@@ -27,7 +27,7 @@ Choose one deployment method:
 
 ## A) Deploy with DCI from the SNO provisioner node
 
-Note: You can run steps 1, 2, and 3 manually if you prefer to do so. The steps are just to help you configure the provisioner host quickly. See the [hosts](https://github.com/redhat-cip/dci-openshift-agent/blob/master/samples/sno_on_libvirt/hosts) file as a example of the variables you need.
+Note: You can run steps 1, 2, and 3 manually if you prefer to do so. The steps are just to help you configure the provisioner host quickly. See these [hosts files](https://github.com/redhat-cip/dci-openshift-agent/blob/master/samples/sno_on_libvirt/examples) as examples of the variables you need, depending on your case (libvirt or baremetal deployment).
 
 ### 1. Configuration
 
@@ -65,7 +65,7 @@ your-user@your-workstation ~$ cd samples/sno_on_libvirt/
 your-user@your-workstation ~$ ansible-playbook sno-on-libvirt.yml -e "@~/sno-node-settings.yml" -i /etc/ansible/hosts --vault-password-file ~/.vault_secret
 ```
 
-NOTE: The playbook sno-on-libvirt.yml, it copies the default inventory `samples/sno_on_libvirt/hosts` to `/etc/dci-openshift-agent/hosts` which contains required variables, including a very important one: `install_type=sno` this will allow DCI agent to define which install to perform.
+NOTE: The playbook sno-on-libvirt.yml, by default, it copies the default inventory `samples/sno_on_libvirt/examples/hosts-libvirt` to `/etc/dci-openshift-agent/hosts` which contains required variables, including a very important one: `install_type=sno` this will allow DCI agent to define which install to perform. In case you want to copy `samples/sno_on_libvirt/examples/hosts-baremetal` instead, because you want to use a baremetal deployment, you need to setup the variable `sno_mode: baremetal` in `~/sno-node-settings.yml` file.
 
 ### 4. Source the credentials and run the main d-o-a playbook.
 
@@ -90,7 +90,7 @@ dci-openshift-agent-ctl -s -- -v
 
 ### 1. Inventory Notes
 
-If you run the playbook sno-on-libvirt.yml, it copies the default inventory `samples/sno_on_libvirt/hosts` to `/etc/dci-openshift-agent/hosts`.
+If you run the playbook sno-on-libvirt.yml, by default it copies the default inventory `samples/sno_on_libvirt/examples/hosts-libvirt` to `/etc/dci-openshift-agent/hosts` (unless you are in a baremetal deployment, in whose case you will have to follow the instructions commented above).
 This inventory contains defaults values for the SNO/OCP cluster setup, and SNO plays will validate if they are provided:
 
 - pull secret
@@ -105,16 +105,14 @@ Additionally the following groups are defined:
 - master group and host entry
 - worker group (no need to add hosts to this group
 
-If you did not run sno-on-libvirt.yml playbook, you can copy the default inventory and adapt it to your setup, make sure you include the variables above.
+If you did not run sno-on-libvirt.yml playbook, you can use `deploy-sno-standalone.yml` playbook to deploy the SNO VM to be used in subsequent deployments. They are under the `samples/sno_on_libvirt/inventory` folder (for the case of libvirt environments).
+
+If you want to use an inventory file for a baremetal deployment, you can use as base the file placed in `samples/sno_on_libvirt/examples/hosts-baremetal`, in whose case you will have to 1) remove the files under the `samples/sno_on_libvirt/inventory` folder, then 2) move `samples/sno_on_libvirt/examples/hosts-baremetal` to that folder, and 3) rename it to `hosts`.
+
+If you use the default inventory files, then you only need to provide the pullsecret variable. A basic pull secret can be obtained from the [Red Hat Console](https://console.redhat.com/openshift/downloads) under Token > pullsecret section. Note that you will need to append authentication data for other registries such as Quay.io to that basic pullsecret file.
 
 ```bash
-cp samples/sno_on_libvirt/hosts /etc/dci-openshift-agent/hosts
-```
-
-If you use the default inventory, then you only need to provide the pullsecret variable. A pull secret can be obtained from the [Red Hat Console](https://console.redhat.com/openshift/downloads) under Token > pullsecret section.
-
-```bash
-$ sudo vi /etc/dci-openshift-agent/hosts
+$ sudo vi ./inventory/hosts
 ...
 pullsecret="{{ lookup('file', '<PATH_TO_PULLSECRET>')|string }}"
 ...
@@ -129,7 +127,6 @@ vi ~/samples/sno_on_libvirt/deploy-sno-standalone.yml
 ...
 version="4.8.X"
 build="ga"
-cluster="dcisno"
 ...
 ```
 
@@ -138,7 +135,7 @@ cluster="dcisno"
 ```bash
 sudo su - dci-openshift-agent
 cd /usr/share/dci-openshift-agent
-ansible-playbook ~/samples/sno_on_libvirt/deploy-sno-standalone.yml -i /etc/dci-openshift-agent/hosts
+ansible-playbook ~/samples/sno_on_libvirt/deploy-sno-standalone.yml
 ```
 
 ##  Access the GUI
@@ -178,10 +175,9 @@ oc adm policy add-cluster-role-to-group cluster-admin admin
 
 * The OCP GUI should be ready at: https://console-openshift-console.apps.dcisno.example.com
 
-
 ## Destroy the SNO VM and perform some cleanup
 
-NOTE: The sno-installer role by default cleans up before a deployment
+NOTE: The sno-node-prep and sno-installer roles by default clean up before a deployment
 
 ```bash
 sudo su - dci-openshift-agent
@@ -189,3 +185,14 @@ cd ~/samples/sno_on_libvirt/
 ansible-playbook deploy-sno-standalone.yml -t cleanup
 ```
 
+## Generate a host file based on a template
+
+If you only want to generate the hosts file to be used in `dci-openshift-agent`, you can do the following. The hosts file will be saved in this folder.
+
+```bash
+sudo su - dci-openshift-agent
+cd ~/samples/sno_on_libvirt/
+ansible-playbook generate-hosts-file.yml
+```
+
+In particular, with the inventory files placed in inventory folder, you will obtain a hosts file like the one placed in `samples/sno_on_libvirt/examples/hosts-libvirt`.

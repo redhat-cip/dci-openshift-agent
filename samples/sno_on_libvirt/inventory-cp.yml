@@ -3,8 +3,10 @@
   hosts: provisioner
   gather_facts: false
   tasks:
+    # If you want to copy hosts-baremetal file instead, you need to set sno_mode variable
+    # to baremetal value
     - name: Copy the hosts file
       copy:
-        src: ~dci-openshift-agent/samples/sno_on_libvirt/hosts
+        src: "~dci-openshift-agent/samples/sno_on_libvirt/examples/hosts-{{ sno_mode|default('libvirt') }}"
         dest: /etc/dci-openshift-agent/hosts
         remote_src: true
