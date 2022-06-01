@@ -18,8 +18,6 @@ PROJECTS=(
     dci-openshift-agent
     dci-openshift-app-agent
     dci-ansible
-    ansible-role-dci-import-keys
-    ansible-role-dci-retrieve-component
     ansible-role-dci-sync-registry
     ansible-role-dci-podman
     ansible-role-dci-ocp-imagesideload

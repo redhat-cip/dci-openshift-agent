@@ -17,12 +17,6 @@
 - name: Configure jumpbox
   include_tasks: configure-jumpbox.yml
 
-- name: Import remoteci SSL keys
-  vars:
-    dci_import_keys_remoteci_id: '{{ job_info.job.remoteci.id }}'
-  include_role:
-    name: dci-import-keys
-
 - name: Set pullsecret from job_info - Connected
   set_fact:
     pullsecret: "{{ job_info.job.topic.data.pull_secret | default({}) | combine(openshift_secret | default({}), recursive=True) }}"
