@@ -291,7 +291,7 @@ which version of OCP to install.
 | enable_sriov                       | False    | Boolean   | True       | Deploys the SRIOV Operator |
 | apply\_sriov\_upgrade\_settings    | False    | Boolean   | True       | Whether to apply SR-IOV recommended settings before operator upgrade |
 | enable_ocs                         | False    | Boolean   | False      | Deploys the OCS Operator |
-
+| enable_acm                         | False    | Boolean   | True       | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator |
 
 [Here](https://docs.openshift.com/container-platform/4.7/support/gathering-cluster-data.html)
 you can find information on the available must-gather images. Also, bear in

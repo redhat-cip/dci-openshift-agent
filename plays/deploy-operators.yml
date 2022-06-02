@@ -216,6 +216,21 @@
     - hostvars.localhost.enable_localstorage|default(false)|bool 
 ### End Storage Operators deployment
 
+### Begin ACM Operator deployment
+- name: "deploy-operators : Install the ACM operator"
+  include_role:
+    name: olm-operator
+  vars:
+    operator: advanced-cluster-management
+    source: "{{ opm_catalog_source_name }}"
+    namespace: advanced-cluster-management
+    operator_group_spec:
+      targetNamespaces:
+        - advanced-cluster-management
+  when:
+    - hostvars.localhost.enable_acm|default(true)|bool
+### End ACM Operator deployment
+
 ### Custom operators deployments
 - name: "deploy-operators : Deploy other operators playbook"
   include_tasks: deploy-custom-operator.yml
