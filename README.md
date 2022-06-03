@@ -185,14 +185,26 @@ Provision the Jumphost with RHEL8. This includes subscribing the host to RHSM
 and ensuring it's receiving updates.
 
 The `dci-openshift-agent` is packaged and available as a RPM file.
-However,`dci-release` and `epel-release` must be installed first:
+However,`dci-release` and `epel-release` along with additional support
+repos must be installed first:
 
+For RHEL-8
 ```console
-# dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-# dnf -y install https://packages.distributed-ci.io/dci-release.el8.noarch.rpm
-# subscription-manager repos --enable=rhel-8-for-x86_64-baseos-rpms
-# subscription-manager repos --enable=rhel-8-for-x86_64-appstream-rpms
-# dnf -y install dci-openshift-agent
+subscription-manager repos --enable=rhel-8-for-x86_64-baseos-rpms
+subscription-manager repos --enable=rhel-8-for-x86_64-appstream-rpms
+subscription-manager repos --enable ansible-2.9-for-rhel-8-x86_64-rpms
+```
+
+For CentOS Stream 8
+```console
+dnf install centos-release-ansible-29.noarch
+```
+
+For Both
+```console
+dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+dnf -y install https://packages.distributed-ci.io/dci-release.el8.noarch.rpm
+dnf -y install dci-openshift-agent
 ```
 
 ### Installation of OCP Provision Host
