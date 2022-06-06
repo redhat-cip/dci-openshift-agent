@@ -1,0 +1,49 @@
+---
+- name: "Deploy Multicluster Hub CR"
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: operator.open-cluster-management.io/v1
+      kind: MultiClusterHub
+      metadata:
+        name: "{{ acm_instance }}"
+        namespace: "{{ acm_namespace }}"
+      spec:
+        availabilityConfig: "Basic"
+
+- name: "Wait for pods to be Running"
+  community.kubernetes.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ acm_namespace }}"
+  register: pod_list
+  until: pod_list|json_query('resources[*].status.phase')|unique == ["Running"]
+  retries: 20
+  delay: 15
+
+- name: "Wait up to 10 mins for MCH to be ready"
+  community.kubernetes.k8s_info:
+    api: operator.open-cluster-management.io/v1
+    kind: MultiClusterHub
+    name: "{{ acm_instance }}"
+    namespace: "{{ acm_namespace }}"
+  register: mch
+  retries: 30
+  delay: 20
+  until:
+    - mch.resources | length == 1
+    - "'status' in mch.resources[0]"
+    - "'phase' in mch.resources[0].status"
+    - mch.resources[0].status.phase == 'Running'
+
+- name: "Get the MCH route"
+  community.kubernetes.k8s_info:
+    api: route.openshift.io/v1
+    kind: Route
+    name: multicloud-console
+    namespace: "{{ acm_namespace }}"
+  register: mch_route
+
+- name: "Advanced cluster Manager URL"
+  debug:
+    msg: "{{ mch_route.resources[0].status.ingress[0].host }}"
+...
