@@ -1,5 +1,4 @@
 ---
-
 - name: Validate we have all the pieces to run in disconnected mode
   assert:
     that:
@@ -102,6 +101,25 @@
     - dci_disconnected | default(false) | bool
     - pullsecret_file is undefined
 
+- name: "Set dci_pullsecret_file in connected environments"
+  block:
+    - name: "Copy pullsecret fact content to a file"
+      copy:
+        content: "{{ pullsecret }}"
+        dest: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}/pull-secret.txt"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid }}"
+        mode: '0644'
+        force: true
+
+    - name: "Set dci_pullsecret_file fact if pullsecret_file is not present"
+      set_fact:
+        dci_pullsecret_file: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}/pull-secret.txt"
+      no_log: true
+  when:
+    - not (dci_disconnected | default(false) | bool)
+    - pullsecret_file is undefined
+
 - name: Mirror release
   include_role:
     name: mirror-ocp-release
@@ -111,7 +129,7 @@
     cache_dir: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
     webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
     registry_url: "docker://{{ local_registry_host | default('localhost') }}:{{ local_registry_port | default(0)  }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
-    pull_secrets: "{{ auths | default(pullsecret) }}"
+    auths_file: "{{ dci_pullsecret_file }}"
     force: "{{ (hostvars.localhost.dci_force_mirroring | default(false)) or (hostvars.localhost.build == 'candidate') | bool }}"
     install_type: "{{ hostvars.localhost.install_type | default('ipi') }}"
     sno_install_type: "{{ hostvars.localhost.sno_install_type | default('baremetal') }}"
