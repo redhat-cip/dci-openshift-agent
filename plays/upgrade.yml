@@ -1,13 +1,16 @@
 ---
 - name: "upgrader : Get current version"
-  command:
-    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-    cmd: oc get clusterversion
-  register: current_version
+  community.kubernetes.k8s_info:
+    api: config.openshift.io/v1
+    kind: ClusterVersion
+    name: version
+  register: clusterVersion
 
 - name: "upgrader : Print current version"
+  vars:
+    - status_query: "conditions[?type=='Available'].message"
   debug:
-    var: current_version.stdout_lines
+    msg: "{{ clusterVersion.resources[0].status | json_query(status_query) }}"
 
 - name: "upgrader : Get target openshift version from job.components"
   set_fact:
@@ -56,24 +59,24 @@
   - name: "upgrader : Fetch signature for target release"
     get_url:
       url: "{{ webserver_url }}/{{ version }}/signature.yaml"
-      dest: ~/clusterconfigs/signature-{{ version }}.yaml
+      dest: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version }}.yaml"
       mode: 0644
 
   - name: "upgrader : Fetch imagecontentsourcepolicy for target release"
     get_url:
       url: "{{ webserver_url }}/{{ version }}/imagecontentsourcepolicy.yaml"
-      dest: ~/clusterconfigs/imagecontentsourcepolicy-{{ version }}.yaml
+      dest: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version }}.yaml"
       mode: 0644
 
   - name: "upgrader : Apply signatures to cluster"
-    command:
-      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-      cmd: oc apply -f ../signature-{{ version }}.yaml
+    community.kubernetes.k8s:
+      state: present
+      src: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version }}.yaml"
 
   - name: "upgrader : Apply imagecontentsourcepolicy to cluster"
-    command:
-      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-      cmd: oc apply -f ../imagecontentsourcepolicy-{{ version }}.yaml
+    community.kubernetes.k8s:
+      state: present
+      src: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version }}.yaml"
 
   - name: "Wait for updated MCP after applying an ICSP"
     include_role:
@@ -85,48 +88,89 @@
       check_reason: "Upgrade - after applying ICSP"
 
   - name: "upgrader : Wait for nodes to become Ready"
-    shell:
-      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-      cmd: |
-        for node in $(oc get nodes -o name); do
-          oc wait --timeout=5m --for=condition=Ready ${node} &
-        done
-        wait -n
-    register: wait_for_nodes
-    retries: 4
-    until: wait_for_nodes.rc == 0
+    community.kubernetes.k8s_info:
+      kind: Node
+    register: nodes_info
+    vars:
+      status_query: "resources[*].status.conditions[?type=='Ready'].status"
+      nodes_status: "{{ nodes_info | json_query(status_query) | flatten | unique }}"
+    until:
+      - nodes_status == ['True']
+    retries: 10
+    delay: 30
 
   - name: "upgrader : Patch clusterversion to point to custom upstream graph"
-    shell:
-      chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-      cmd: >
-        oc patch clusterversion/version
-        --patch '{"spec": {"upstream": "{{ webserver_url }}/graph-{{ major }}" } }'
-        --type merge &&
-        oc wait --timeout=10m --for=condition=RetrievedUpdates clusterversion/version
+    community.kubernetes.k8s:
+      state: present
+      name: version
+      definition:
+        kind: ClusterVersion
+        spec:
+          upstream: "{{ webserver_url }}/graph-{{ major }}"
+
+  - name: "upgrader : Wait custom upstream graph update"
+    community.kubernetes.k8s_info:
+      kind: ClusterVersion
+      name: version
+    register: cluster_version
+    vars:
+      status_query: "conditions[?type=='RetrievedUpdates'].status"
+      upgrade_status: "{{ cluster_version.resources[0].status | json_query(status_query) }}"
+    until:
+      - upgrade_status == ['True']
+    retries: 10
+    delay: 60
 
   when:
-  - dci_disconnected | default(false) | bool
+    - dci_disconnected | default(false) | bool
 
-- name: "upgrader : Patch clusterversion pointing to fast channel and refresh"
-  shell:
-    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-    cmd: >
-      oc patch clusterversion/version
-      --patch '{"spec": {"channel": "fast-{{ major }}"} }'
-      --type=merge &&
-      oc delete pod
-      --namespace=openshift-cluster-version
-      --selector=k8s-app=cluster-version-operator &&
-      sleep 1 &&
-      oc wait pod
-      --for=condition=Ready
-      --namespace=openshift-cluster-version
-      --timeout=5m
-      --selector=k8s-app=cluster-version-operator &&
-      oc wait clusterversion/version
-      --for=condition=RetrievedUpdates
-      --timeout=10m
+- name: "upgrader : Patch clusterversion pointing to fast channel"
+  community.kubernetes.k8s:
+    state: present
+    name: version
+    definition:
+      kind: ClusterVersion
+      spec:
+        channel: "fast-{{ major }}"
+
+- name: "upgrader : Get openshift-cluster-version pod name"
+  community.kubernetes.k8s_info:
+    kind: pod
+    namespace: openshift-cluster-version
+  register: ocvpod
+
+- name: "upgrader : Delete the openshift-cluster-version pod"
+  community.kubernetes.k8s:
+    state: absent
+    kind: pod
+    namespace: openshift-cluster-version
+    name: "{{ ocvpod.resources[0].metadata.name }}"
+
+- name: "upgrader : Wait the openshift-cluster-version pod creation"
+  community.kubernetes.k8s_info:
+    kind: pod
+    namespace: openshift-cluster-version
+  register: ocvpod
+  vars:
+    status_query: "conditions[?type=='Ready'].status"
+    pod_status: "{{ ocvpod.resources[0].status | json_query(status_query) }}"
+  until:
+    - pod_status == ['True']
+  retries: 10
+  delay: 60
+
+- name: "upgrader : Wait clusterverion is refreshed"
+  community.kubernetes.k8s_info:
+    kind: ClusterVersion
+    name: version
+  register: cluster_version
+  vars:
+    status_query: "conditions[?type=='RetrievedUpdates'].status"
+    upgrade_status: "{{ cluster_version.resources[0].status | json_query(status_query) }}"
+  until:
+    - upgrade_status == ['True']
+  retries: 10
+  delay: 60
 
 - name: "upgrader : Execute the upgrade"
   vars:
@@ -226,12 +270,14 @@
     - upgrade_operators | default(true) | bool
 
 - name: "test_ upgrader: check if all cluster-operators are running correctly"
-  shell:
-    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-    cmd: >
-      oc get clusteroperator -o json | jq -r '  { "op": [.items[].status.conditions[]] }'
-  register: cluster_operators
-  failed_when: "cluster_operators.stdout | from_json | json_query('length(op[?(type==\"Degraded\" && status==\"True\")])') > 0"
+  community.kubernetes.k8s_info:
+    kind: ClusterOperator
+  register: clusteroperator_info
+  vars:
+    status_query: "resources[*].status.conditions[?type=='Degraded'].status"
+    cluster_operators_degraded: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
+  failed_when:
+    cluster_operators_degraded == ['True']
 
 - name: "Validate that nodes are Ready and MCPs are up to date"
   include_role:
