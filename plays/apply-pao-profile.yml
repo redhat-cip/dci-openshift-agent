@@ -34,6 +34,13 @@
   set_fact:
     perf_kubelet_timestamp: "{{ kubelet.resources[0].metadata.creationTimestamp }}"
 
+- name: Verify if there are worker nodes available in the MCP
+  k8s_info:
+    api_version: machineconfiguration.openshift.io/v1
+    kind: MachineConfigPool
+    name: worker
+  register: reg_mcpool_worker
+
 - name: Wait (up to 10 mins) for rendered-worker MC triggered by Performance Profile
   k8s_info:
     api_version: machineconfiguration.openshift.io/v1
@@ -49,6 +56,25 @@
   delay: 10
   when:
     - install_type is undefined or install_type != 'sno'
+    - reg_mcpool_worker.resources[0].status.machineCount >= 1
+  no_log: true
+
+- name: Wait (up to 10 mins) for rendered-master MC triggered by Performance Profile
+  k8s_info:
+    api_version: machineconfiguration.openshift.io/v1
+    kind: MachineConfig
+  register: reg_master_mc
+  vars:
+    master_mc_query: "[?contains(metadata.name, 'rendered-master')].metadata.creationTimestamp"
+    master_mc_timestamp: "{{ reg_master_mc.resources | to_json | from_json | json_query(master_mc_query) | sort | last }}"
+  until:
+    - reg_master_mc.resources is defined
+    - master_mc_timestamp > perf_kubelet_timestamp
+  retries: 60
+  delay: 10
+  when:
+    - install_type is undefined or install_type != 'sno'
+    - reg_mcpool_worker.resources[0].status.machineCount == 0
   no_log: true
 
 - name: "Wait for SNO node to be available"
