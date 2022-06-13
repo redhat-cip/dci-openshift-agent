@@ -1,14 +1,86 @@
 ---
+
+# Obtain details for multicluster engine operator
+- name: Get multicluster-engine package manifest
+  community.kubernetes.k8s_info:
+    api: packages.operators.coreos.com/v1
+    kind: PackageManifest
+    name: "multicluster-engine"
+    namespace:  default
+  register: packagemanifest
+  retries: 5
+  delay: 5
+  no_log: true
+  until:
+    - packagemanifest.resources | length == 1
+
+- name: "Get multicluster-engine default channel name"
+  vars:
+    channels: "resources[*].status.defaultChannel"
+  set_fact:
+    me_channel: "{{ packagemanifest | json_query(channels) | join('') | string }}"
+
+- name: "Get multicluster-engine CSV"
+  vars:
+    current_csv: "resources[*].status.channels[? name=='{{ me_channel }}' ].currentCSV | [0]"
+  set_fact:
+    me_csv: "{{ packagemanifest | json_query(current_csv) | first }}"
+
+# Obtain details for multicluster OADP operator
+- name: Get OADP package manifest
+  community.kubernetes.k8s_info:
+    api: packages.operators.coreos.com/v1
+    kind: PackageManifest
+    name: "redhat-oadp-operator"
+    namespace:  default
+  register: packagemanifest
+  retries: 5
+  delay: 5
+  no_log: true
+  until:
+    - packagemanifest.resources | length == 1
+
+- name: "Get OADP default channel name"
+  vars:
+    channels: "resources[*].status.defaultChannel"
+  set_fact:
+    oadp_channel: "{{ packagemanifest | json_query(channels) | join('') | string }}"
+
+- name: "Get multicluster-engine CSV"
+  vars:
+    current_csv: "resources[*].status.channels[? name=='{{ oadp_channel }}' ].currentCSV | [0]"
+  set_fact:
+    oadp_csv: "{{ packagemanifest | json_query(current_csv) | first  }}"
+
+# Deploy Multicluster Hub. It will trigger the install of multicluster-engine and OADP operators
 - name: "Deploy Multicluster Hub CR"
+  vars:
+    me_annotation:
+      channel: "{{ me_channel }}"
+      installPlanApproval: "Automatic"
+      name: "multicluster-engine"
+      source: "{{ opm_catalog_source_name }}"
+      sourceNamespace: "openshift-marketplace"
+      startingCSV: "{{ me_csv }}"
+    oadp_annotation:
+      channel: "{{ oadp_channel }}"
+      installPlanApproval: "Automatic"
+      name: "redhat-oadp-operator"
+      source: "{{ opm_catalog_source_name }}"
+      sourceNamespace: "openshift-marketplace"
+      startingCSV: "{{ oadp_csv }}"
   community.kubernetes.k8s:
     definition:
       apiVersion: operator.open-cluster-management.io/v1
       kind: MultiClusterHub
       metadata:
+        annotations:
+          installer.open-cluster-management.io/mce-subscription-spec: "{{ me_annotation | to_json }}"
+          installer.open-cluster-management.io/oadp-subscription-spec: "{{ oadp_annotation | to_json }}"
         name: "{{ acm_instance }}"
         namespace: "{{ acm_namespace }}"
       spec:
-        availabilityConfig: "Basic"
+        availabilityConfig: "High"
 
 - name: "Wait for pods to be Running"
   community.kubernetes.k8s_info:
