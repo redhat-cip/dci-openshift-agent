@@ -50,7 +50,7 @@
 
     # Verify a minimum number of worker nodes are available
     - name: "deploy-operators : Get all nodes"
-      k8s_info:
+      community.kubernetes.k8s_info:
         kind: Node
       register: nodes
       no_log: true
@@ -77,7 +77,7 @@
             name: worker
           spec:
             maxUnavailable: {{ hostvars.localhost.groups['workers'] | length - 1 }}
-      k8s:
+      community.kubernetes.k8s:
         state: present
         definition: "{{ mcp_def }}"
       when:
@@ -125,7 +125,7 @@
         - hostvars.localhost.enable_sriov|default(true)|bool
 
     - name: "deploy-operators : Reset maxUnavailable count to default value 1"
-      k8s:
+      community.kubernetes.k8s:
         definition:
           kind: MachineConfigPool
           metadata:

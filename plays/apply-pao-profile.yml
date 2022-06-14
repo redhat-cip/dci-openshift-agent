@@ -8,7 +8,7 @@
     - ocp_version_min|int <= 10
 
 - name: Create PerformanceProfile
-  k8s:
+  community.kubernetes.k8s:
     definition: "{{ lookup('file', performance_definition) }}"
   register: profile_state
   retries: 5
@@ -16,7 +16,7 @@
   until: profile_state is not failed
 
 - name: Wait (up to 5 mins) for Performance Profile KubeletConfig creation
-  k8s_info:
+  community.kubernetes.k8s_info:
     api: machineconfiguration.openshift.io/v1
     kind: KubeletConfig
     name: "performance-{{ profile_state.result.metadata.name }}"
@@ -35,14 +35,14 @@
     perf_kubelet_timestamp: "{{ kubelet.resources[0].metadata.creationTimestamp }}"
 
 - name: Verify if there are worker nodes available in the MCP
-  k8s_info:
+  community.kubernetes.k8s_info:
     api_version: machineconfiguration.openshift.io/v1
     kind: MachineConfigPool
     name: worker
   register: reg_mcpool_worker
 
 - name: Wait (up to 10 mins) for rendered-worker MC triggered by Performance Profile
-  k8s_info:
+  community.kubernetes.k8s_info:
     api_version: machineconfiguration.openshift.io/v1
     kind: MachineConfig
   register: reg_worker_mc
@@ -60,7 +60,7 @@
   no_log: true
 
 - name: Wait (up to 10 mins) for rendered-master MC triggered by Performance Profile
-  k8s_info:
+  community.kubernetes.k8s_info:
     api_version: machineconfiguration.openshift.io/v1
     kind: MachineConfig
   register: reg_master_mc
@@ -99,7 +99,7 @@
       delay: 60
 
     - name: "Wait for SNO node to be in Ready state"
-      k8s_info:
+      community.kubernetes.k8s_info:
         api: v1
         kind: Node
       register: cluster_nodes

@@ -50,7 +50,7 @@
     - cnf_tests_mode in ['online', 'offline']
 
 - name: create CVP namespace
-  k8s:
+  community.kubernetes.k8s:
     api_version: v1
     name: "{{ cvp_namespace }}"
     kind: Namespace

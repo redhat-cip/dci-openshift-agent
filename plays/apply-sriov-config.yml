@@ -1,6 +1,6 @@
 ---
 - name: "Disable SR-IOV Draining in SNO"
-  k8s:
+  community.kubernetes.k8s:
     definition:
       apiVersion: sriovnetwork.openshift.io/v1
       kind: SriovOperatorConfig
@@ -14,7 +14,7 @@
     - install_type == "sno"
 
 - name: Get all nodes
-  k8s_info:
+  community.kubernetes.k8s_info:
     kind: Node
   register: nodes
 
@@ -33,7 +33,7 @@
   loop: "{{ nodes.resources }}"
 
 - name: Get SriovNetworkNodeState for one of the worker node
-  k8s_info:
+  community.kubernetes.k8s_info:
     api: sriovnetwork.openshift.io/v1
     kind: SriovNetworkNodeState
     namespace: openshift-sriov-network-operator
