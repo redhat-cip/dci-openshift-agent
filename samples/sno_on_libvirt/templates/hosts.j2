@@ -1,0 +1,25 @@
+[all:vars]
+{% if pullsecret is defined %}pullsecret='{{ pullsecret }}'
+{% endif %}
+cluster="{{ cluster }}"
+domain="{{ domain }}"
+{% raw %}dir="{{ ansible_user_dir }}/clusterconfigs"
+{% endraw %}
+extcidrnet="{{ extcidrnet }}"
+sno_extnet_ip="{{ sno_extnet_ip }}"
+vm_pool_name="{{ vm_pool_name }}"
+provisioner_hostname="{{ provisioner_hostname }}"
+provisioner_username="{{ provisioner_username }}"
+networks={{ networks }}
+hosts={{ hosts }}
+install_type=sno
+
+ansible_ssh_extra_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+
+[provisioner]
+{{ provisioner_hostname }} {% if provisioner_hostname == 'localhost' %}ansible_connection=local{% endif %} ansible_user={{ provisioner_username }}
+
+[masters]
+{{ hosts[0]["host_name"] }}.{{ cluster }}.{{ domain }} name={{ hosts[0]["host_name"] }} role=master ansible_user=core
+
+[workers]

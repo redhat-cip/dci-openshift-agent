@@ -1,0 +1,27 @@
+all:
+  vars:
+    cluster: dcisno
+    domain: example.com
+    dir: "{{ ansible_user_dir }}/clusterconfigs"
+    extcidrnet: 192.168.126.0/24
+    sno_extnet_ip: ""
+    vm_pool_name: default
+    provisioner_hostname: localhost
+    provisioner_username: dci-openshift-agent
+    # For now, only one network is required, but multiple
+    # can be created if needed.
+    networks:
+      - name: "sno-{{ cluster }}"
+        forward_mode: nat
+    # One mandatory VM, for master-0
+    # Provisioner VM can be used in other deployments, but not in this example
+    # Both are connected to the unique network defined
+    hosts:
+      - name: "sno-{{ cluster }}"
+        host_name: master-0
+        memory: 16384
+        vcpus: 8
+        disk_gb: 30
+        networks:
+          - name: "sno-{{ cluster }}"
+            mac: 52:54:00:ee:42:e1

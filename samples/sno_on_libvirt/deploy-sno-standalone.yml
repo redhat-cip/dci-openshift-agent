@@ -4,7 +4,6 @@
   vars:
     version: "4.8.12"
     build: "ga"
-    cluster: "dcisno"
   tasks:
 
   - name: "Prepare SNO Host"

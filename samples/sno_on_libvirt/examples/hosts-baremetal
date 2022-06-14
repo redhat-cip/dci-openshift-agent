@@ -26,7 +26,7 @@ ipmi_port=<623>
 baremetal_mac=<MAC-Address-Baremetal-NIC>
 installation_disk="/dev/sdX"
 
-# (Required) declaration of the workers group empty 
+# (Required) declaration of the workers group empty
 # Mostly to ignore certain DCI validations
 [workers]
 
