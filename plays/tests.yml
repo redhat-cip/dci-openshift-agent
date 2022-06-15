@@ -37,17 +37,8 @@
   include_role:
     name: redhat-tests
 
-# Setup and run cnf-tests
-- block:
-    - name: Mirror images to local registry for disconnected cnf-tests
-      include_tasks: cnf-tests-mirror.yml
-      when: cnf_tests_mode == "offline"
-
-    - name: Run cnf tests
-      include_tasks: cnf-tests-run.yml
-  when:
-    - cnf_tests_mode is defined
-    - cnf_tests_mode in ['online', 'offline']
+- name: Run cnf tests
+  include_tasks: cnf-tests-run.yml
 
 - name: create CVP namespace
   k8s:
