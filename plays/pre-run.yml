@@ -101,6 +101,14 @@
     - dci_disconnected | default(false) | bool
     - pullsecret_file is undefined
 
+- name: "Create releases dir in home directory if needed"
+  file:
+    path: "{{ (ansible_env.HOME, 'releases') | join('/') }}"
+    state: directory
+    mode: "0775"
+  when:
+    - provision_cache_store is undefined
+
 - name: "Set dci_pullsecret_file in connected environments"
   block:
     - name: "Copy pullsecret fact content to a file"
