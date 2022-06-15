@@ -141,7 +141,7 @@
   register: start_upgrade
 
 - name: "upgrader : Wait for upgrade to start"
-  k8s_info:
+  community.kubernetes.k8s_info:
     kind: ClusterVersion
     name: version
   register: cluster_version_info
