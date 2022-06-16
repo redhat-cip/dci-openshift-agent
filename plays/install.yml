@@ -85,6 +85,17 @@
     - install_type is defined
     - install_type == 'upi'
 
+- name: "installer : Patch clusterversion pointing to fast channel"
+  vars:
+    base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
+  community.kubernetes.k8s:
+    state: present
+    name: version
+    definition:
+      kind: ClusterVersion
+      spec:
+        channel: "fast-{{ base_version }}"
+
 - name: "installer : Setup openshift access in jumphost"
   include_role:
     name: oc-setup
