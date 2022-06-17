@@ -384,7 +384,6 @@ if [ -z "$KCFG" ]; then
                 fi
             fi
             export PREFIX
-            sed -i 's;/usr/share/dci-openshift-agent;../..;g' ansible.cfg
             setsid ansible-playbook -v libvirt_destroy.yml ${VIRT_INV:-} &
             do_wait
             setsid ansible-playbook -v libvirt_up.yml ${VIRT_INV:-} &
