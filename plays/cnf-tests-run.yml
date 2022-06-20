@@ -1,80 +1,142 @@
 ---
-  - name: Get date
+  - name: "Get current date"
     command: date +%Y%m%d-%H%M%S
     register: date
 
-  - name: set cnf_tests_image_registry for offline env
+  - name: "Set cnf_test_image version"
     set_fact:
-       cnf_tests_image_registry: '{{ local_registry_host }}:{{ local_registry_port }}'
-    when: cnf_tests_mode == "offline"
+      cnf_tests_image: "{{ ocp_version_major }}.{{ ocp_version_minor }}"
 
-  - name: set cnf_tests_image_registry for online env
+  - name: "Mirror cnf-test images for disconnected testing"
+    block:
+
+      - name: "Mirror cnf-tests and dpdk images to local repo"
+        include_role:
+          name: mirror_images
+        vars:
+          images:
+            - quay.io/openshift-kni/cnf-tests:{{ cnf_tests_image }}
+            - quay.io/openshift-kni/dpdk:{{ cnf_tests_image }}
+          local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
+          authfile: "{{ dci_pullsecret_file }}"
+
+      - name: "Set cnf_tests_image_registry for disconnected env"
+        set_fact:
+          cnf_tests_image_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
+
+    when:
+      - dci_disconnected | default(false) | bool
+
+  - name: "Set cnf_tests_image_registry for connected env"
     set_fact:
        cnf_tests_image_registry: 'quay.io/openshift-kni'
-    when: cnf_tests_mode == "online"
+    when:
+      - not (dci_disconnected | default(false) | bool)
 
-  - name: Run SCTP tests
+  - name: "Run SCTP tests"
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
     shell:
       cmd: >
-       podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
-       -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
-       -v {{ job_logs.path }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
-       /usr/bin/test-run.sh  -ginkgo.focus="sctp" --junit /tests/{{ date.stdout }}/sctp
+       podman run
+       --rm
+       -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z
+       -e  KUBECONFIG=/kubeconfig/kubeconfig
+       -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/"
+       -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
+       -v {{ job_logs.path }}:/tests:Z
+       {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+       /usr/bin/test-run.sh
+       -ginkgo.focus="sctp"
+       --junit /tests/{{ date.stdout }}/sctp
     ignore_errors: yes
-    when: cnf_test_suites is defined and  "sctp" in cnf_test_suites
+    when:
+      - cnf_test_suites is defined
+      - '"sctp" in ( cnf_test_suites | lower )'
 
-  - name: Run PTP tests
+  - name: "Run PTP tests"
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
     shell:
       cmd: >
-       podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
-       -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
-       -v {{ job_logs.path }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
-       /usr/bin/test-run.sh  -ginkgo.focus="ptp" --junit  /tests/{{ date.stdout }}/ptp
+       podman run
+       --rm
+       -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z
+       -e  KUBECONFIG=/kubeconfig/kubeconfig
+       -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/"
+       -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
+       -v {{ job_logs.path }}:/tests:Z
+       {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+       /usr/bin/test-run.sh -ginkgo.focus="ptp"
+       --junit  /tests/{{ date.stdout }}/ptp
     ignore_errors: yes
-    when: cnf_test_suites is defined and "ptp" in cnf_test_suites
+    when:
+       - cnf_test_suites is defined
+       - '"ptp" in ( cnf_test_suites | lower )'
 
-  - name: Run performance tests
+  - name: "Run performance tests"
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
     shell:
       cmd: >
-       podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
-       -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
-       -v {{ job_logs.path }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
-       /usr/bin/test-run.sh  -ginkgo.focus="performance" --junit  /tests/{{ date.stdout }}/performance
+       podman run
+       --rm
+       -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z
+       -e  KUBECONFIG=/kubeconfig/kubeconfig
+       -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/"
+       -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
+       -v {{ job_logs.path }}:/tests:Z
+       {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+       /usr/bin/test-run.sh -ginkgo.focus="performance"
+       --junit  /tests/{{ date.stdout }}/performance
     ignore_errors: yes
-    when: cnf_test_suites is defined and "performance" in cnf_test_suites
+    when:
+      - cnf_test_suites is defined
+      - '"performance" in ( cnf_test_suites | lower )'
 
-  - name: Run SRIOV tests
+  - name: "Run SRIOV tests"
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
     shell:
       cmd: >
-         podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig
-         -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
-         -v {{ job_logs.path }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
-         /usr/bin/test-run.sh -ginkgo.focus="sriov" -ginkgo.skip="SCTP" -test.timeout 60m
+         podman run
+         --rm
+         -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z
+         -e KUBECONFIG=/kubeconfig/kubeconfig
+         -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/"
+         -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
+         -v {{ job_logs.path }}:/tests:Z
+         {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+         /usr/bin/test-run.sh -ginkgo.focus="sriov"
+         -ginkgo.skip="SCTP" -test.timeout 60m
          --junit  /tests/{{ date.stdout }}/sriov
     ignore_errors: yes
-    when: cnf_test_suites is defined and "sriov" in cnf_test_suites
+    when:
+      - cnf_test_suites is defined
+      - '"sriov" in ( cnf_test_suites | lower )'
 
-  - name: Run DPDK tests
+  - name: "Run DPDK tests"
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
     shell:
       cmd: >
-        podman run --rm -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z  -e  KUBECONFIG=/kubeconfig/kubeconfig
-        -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/" -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }} -e DPDK_TESTS_IMAGE=dpdk:{{ cnf_tests_image }}
-        -v {{ job_logs.path }}:/tests:Z {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
-        /usr/bin/test-run.sh  -ginkgo.focus="dpdk" --junit  /tests/{{ date.stdout }}/dpdk
+        podman run
+        --rm
+        -v {{ dci_cluster_configs_dir }}/:/kubeconfig:Z
+        -e  KUBECONFIG=/kubeconfig/kubeconfig
+        -e IMAGE_REGISTRY="{{ cnf_tests_image_registry }}/"
+        -e CNF_TESTS_IMAGE=cnf-tests:{{ cnf_tests_image }}
+        -e DPDK_TESTS_IMAGE=dpdk:{{ cnf_tests_image }}
+        -v {{ job_logs.path }}:/tests:Z
+        {{ cnf_tests_image_registry }}/cnf-tests:{{ cnf_tests_image }}
+        /usr/bin/test-run.sh -ginkgo.focus="dpdk"
+        --junit  /tests/{{ date.stdout }}/dpdk
     ignore_errors: yes
-    when: cnf_test_suites is defined and "dpdk" in cnf_test_suites
+    when:
+      - cnf_test_suites is defined
+      - '"dpdk" in ( cnf_test_suites | lower )'
 
-  - name: Rename junit xml files with the feature name
+  - name: "Rename junit XML files with the feature name"
     shell: |
       for d in sctp ptp performance sriov dpdk; do
         if [ -d "{{ job_logs.path }}/{{ date.stdout }}/${d}" ]; then
