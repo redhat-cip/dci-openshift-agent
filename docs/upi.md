@@ -17,7 +17,7 @@ samples/upi directory.
 This document will go over the different pieces and how to set them up.
 
 You can also do UPI in a disconnected environment, please see the
-[disconnected mode](docs/disconnected_en.md) for additional details on how to setup.
+[disconnected mode](disconnected_en.md) for additional details on how to setup.
 
 ## Table of Contents
 
