@@ -412,7 +412,7 @@ section of the inventory
 
 ### Disconnected mode in DCI OCP agent
 
-When using the agent in a disconnected environment, special variables should be used. See the [disconnected doc](https://github.com/redhat-cip/dci-openshift-agent/blob/master/docs/disconnected_en.md) for more details.
+When using the agent in a disconnected environment, special variables should be used. See the [disconnected doc](docs/disconnected_en.md) for more details.
 
 ### Overloading settings and hooks directories
 
@@ -848,7 +848,7 @@ be assigned in the correct organisation.
 
 ## License
 
-Apache License, Version 2.0 (see [LICENSE](https://github.com/redhat-cip/dci-openshift-agent/blob/master/LICENSE) file)
+Apache License, Version 2.0 (see [LICENSE](LICENSE) file)
 
 ## Contact
 
