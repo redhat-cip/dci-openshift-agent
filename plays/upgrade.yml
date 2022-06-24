@@ -77,11 +77,12 @@
 
   - name: "Wait for updated MCP after applying an ICSP"
     include_role:
-      name: wait-mcp
+      name: check-resource
     vars:
-      mcp_wait_retries: 30
-      mcp_wait_delay: 10
-      mcp_reason: "Upgrade - after applying ICSP"
+      resource_to_check: "MachineConfigPool"
+      check_wait_retries: 30
+      check_wait_delay: 10
+      check_reason: "Upgrade - after applying ICSP"
 
   - name: "upgrader : Wait for nodes to become Ready"
     shell:
@@ -234,11 +235,12 @@
 
 - name: "Validate that nodes are Ready and MCPs are up to date"
   include_role:
-    name: wait-mcp
+    name: check-resource
   vars:
-    mcp_wait_retries: 100
-    mcp_wait_delay: 10
-    mcp_reason: "Upgrade - after having operators running"
+    resource_to_check: "MachineConfigPool"
+    check_wait_retries: 100
+    check_wait_delay: 10
+    check_reason: "Upgrade - after having operators running"
 
 - block:
   - name: Set release_url
