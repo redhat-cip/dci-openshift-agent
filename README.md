@@ -462,7 +462,7 @@ you can use this command line:
 
 ## Deploying operators
 
-The Agent manages the deployment of certain operators. At this time there is support for SRIOV, Performance Add On (PAO), HyperConverged Cluster Operator (HCO), ElasticSearch Operator, and Cluster-Logging, ACM (Advanced Cluster Management), and MTC (Migration Toolkig for Containers).
+The Agent manages the deployment of certain operators. At this time there is support for SRIOV, Performance Add On (PAO), HyperConverged Cluster Operator (HCO), ElasticSearch Operator, Cluster-Logging, and ACM (Advanced Cluster Management).
 
 In order to make the operators available in disconected environments is it important to configure the `opm_mirror_list` variable with the list of operators to mirror. The Agent will take care of mirroring the required images and dependencies.
 
