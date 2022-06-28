@@ -295,7 +295,9 @@ which version of OCP to install.
 | upgrade_eus                        | False    | Boolean | False                                            | Enable the EUS upgrade. Please see the [EUS upgrade](#eus-upgrade) section for more details                                                            |
 | dci\_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz<id> or gh-org-repo-<id> |
 | openshift\_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |
-| opm_mirror_list                    | False    | List    | []                                               | List of operators to be mirrored in disconnected environments. Please see the [Deploying Operators](#deploying-operators) section for more details     |
+| operators_index                    | False    | String  | registry.redhat.io/redhat/redhat-operator-index:v<ocp_version>| Catalog index that contains the bundles for the operators that will be mirrored in disconnected environments |
+| opm_mirror_list                    | False    | String  | []                                               | List of operators to be mirrored in disconnected environments
+|
 | dci_operators                      | False    | List    | []                                               | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details|
 | enable_cnv                         | False    | Boolean   | False      | Deploy CNV and enable the HCO operator |
 | enable_elasticsearch               | False    | Boolean   | False      | Deploys the ElasticSearch Operator |
@@ -460,9 +462,13 @@ you can use this command line:
 
 ## Deploying operators
 
-The Agent supports the deployment of certain operators. At this time there is support for SRIOV, Performance Add On (PAO), HyperConverged Cluster Operator (HCO), ElasticSearch Operator, and Cluster-Logging.
+The Agent manages the deployment of certain operators. At this time there is support for SRIOV, Performance Add On (PAO), HyperConverged Cluster Operator (HCO), ElasticSearch Operator, and Cluster-Logging, ACM (Advanced Cluster Management), and MTC (Migration Toolkig for Containers).
 
 In order to make the operators available in disconected environments is it important to configure the `opm_mirror_list` variable with the list of operators to mirror. The Agent will take care of mirroring the required images and dependencies.
+
+The variable `operators_index` is used to specify the catalog image containing information for the operators that may be deployed in the cluster. By default the index is the one located at registry.redhat.io and according to the OCP version installed but it can be overrided with a custom image. In conjuntion with `dci_operators` variable in allows the deployment of custom operators additionaly to those directly managed by the agent.
+
+```console
 
 Please see the [settings table](#etcdci-openshift-agentsettingsyml) for the variables names to control the Operators installation.
 
