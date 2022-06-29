@@ -222,8 +222,12 @@
   include_role:
     name: include-components
 
-# Mirror Operators for offline mode
-- name: "dci-openshift-agent : Mirror Operators"
+- name: "Get the operators mirror-list"
+  include_tasks: get-mirror-list.yml
+  when:
+    - dci_disconnected | default(false) |  bool
+
+- name: "Mirror Operators for offline mode"
   vars:
     version: "{{ hostvars.localhost.version }}"
     local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
@@ -231,11 +235,10 @@
     name: operators-mirror
   when:
     - dci_disconnected | default(false) | bool
-    - opm_mirror_list is defined
-    - opm_mirror_list | length
+    - mirror_list is defined
+    - mirror_list | length
 
-# Mirror Operators for offline mode
-- name: "dci-openshift-agent : Mirror Operators"
+- name: "Mirror Operators for EUS Upgrade"
   vars:
     version: "{{ version_inter }}"
     local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
@@ -243,12 +246,11 @@
     name: operators-mirror
   when:
     - dci_disconnected | default(false) | bool
-    - opm_mirror_list is defined
-    - opm_mirror_list | length
+    - mirror_list is defined
+    - mirror_list | length
     - upgrade_eus | default(false) | bool
 
-### Mirror must-gather images
-- name: "dci-openshift-agent : Mirror must gather images"
+- name: "Mirror must gather images"
   include_role:
     name: mirror_images
   vars:

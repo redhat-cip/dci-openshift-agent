@@ -1,0 +1,67 @@
+---
+- name: "Define mirror_list"
+  set_fact:
+    mirror_list: "{{ opm_mirror_list | default([]) }}"
+
+- name: "Add operators if enable_sriov"
+  set_fact:
+    mirror_list: "{{ mirror_list + sriov_operators }}"
+  when:
+    - enable_sriov | bool
+
+- name: "Add operators if enable_perf_addon"
+  set_fact:
+    mirror_list: "{{ mirror_list + performance_addon_operators }}"
+  when:
+    - enable_perf_addon | bool
+
+- name: "Add operators if dci_prepare_cnf"
+  set_fact:
+    mirror_list: "{{ mirror_list + cnf_operators }}"
+  when:
+    - dci_prepare_cnf | bool
+
+- name: "Add operators if enable_cnv"
+  set_fact:
+    mirror_list: "{{ mirror_list + cnv_operator }}"
+  when:
+    - enable_cnv | bool
+
+- name: "Add operators if enable_elasticsearch"
+  set_fact:
+    mirror_list: "{{ mirror_list + elastic_search_operator }}"
+  when:
+    - enable_elasticsearch | bool
+
+- name: "Add operators if enable_clusterlogging"
+  set_fact:
+    mirror_list: "{{ mirror_list + cluster_logging_operator }}"
+  when:
+    - enable_clusterlogging | bool
+
+- name: "Add operators if enable_acm"
+  set_fact:
+    mirror_list: "{{ mirror_list + advanced_cluster_management }}"
+  when:
+    - enable_acm | bool
+
+- name: "Add operators if enable_local_storage"
+  set_fact:
+    mirror_list: "{{ mirror_list + local_storage_operator }}"
+  when:
+    - enable_localstorage | bool
+
+- name: "Add operators if enable_ocs"
+  set_fact:
+    mirror_list: "{{ mirror_list + ocs_operator }}"
+  when:
+    - enable_ocs | bool
+
+- name: "Cleanup operators list"
+  set_fact:
+    mirror_list: "{{ mirror_list | unique | select | list }}"
+
+- name: "Operators to be mirrored"
+  debug:
+    msg: "{{ mirror_list }}"
+...

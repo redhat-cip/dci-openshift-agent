@@ -29,8 +29,6 @@
     name: operators-catalog
   when:
   - dci_disconnected | default(false) | bool
-  - opm_mirror_list is defined
-  - opm_mirror_list | length
 
 - name: Disable default catalog sources for disconnected deployment
   community.kubernetes.k8s:
@@ -44,6 +42,13 @@
   when:
   - dci_disconnected | default(false) | bool
 
+- name: "Enable operators required for CNFs"
+  set_fact:
+    enable_sriov: true
+    enable_perf_addon: true
+  when:
+    dci_prepare_cnf | bool
+
 ### Begin Deployment of operators required by CNFs
 - name: "Deploy operators required by CNFs"
   block:
@@ -53,7 +58,6 @@
       community.kubernetes.k8s_info:
         kind: Node
       register: nodes
-      no_log: true
 
     - name: "deploy-operators : Get worker node count"
       set_fact:
@@ -93,7 +97,7 @@
         ns_labels:
           openshift.io/cluster-monitoring: "true"
       when:
-        - hostvars.localhost.enable_perf_addon|default(true)|bool
+        - enable_perf_addon | bool
         - ocp_version_maj|int == 4
         - ocp_version_min|int <= 10
 
@@ -122,7 +126,7 @@
           include_tasks: apply-sriov-config.yml
 
       when:
-        - hostvars.localhost.enable_sriov|default(true)|bool
+        - enable_sriov | bool
 
     - name: "deploy-operators : Reset maxUnavailable count to default value 1"
       community.kubernetes.k8s:
@@ -133,7 +137,11 @@
           spec:
             maxUnavailable: 1
 
-  when: hostvars.localhost.dci_prepare_cnf|bool
+  when: >
+    (dci_prepare_cnf | bool) or
+    (enable_perf_addon | bool ) or
+    (enable_sriov | bool)
+
 ### End CNF
 
 ### Begin CNV and HCO
@@ -156,7 +164,7 @@
         name: hco-setup
 
   when:
-    - hostvars.localhost.enable_cnv|default(false)|bool
+    - enable_cnv | bool
 ### End CNV
 
 ### Begin Logging Operators deployment
@@ -170,7 +178,7 @@
     ns_labels:
       openshift.io/cluster-monitoring: "true"
   when:
-    - hostvars.localhost.enable_elasticsearch|default(false)|bool
+    - enable_elasticsearch | bool
 
 - name: "deploy-operators : Install Cluster-logging operator"
   include_role:
@@ -183,7 +191,7 @@
       targetNamespaces:
         - openshift-logging
   when:
-    - hostvars.localhost.enable_clusterlogging|default(false)|bool
+    - enable_clusterlogging | bool
 ### End Logging Operators deployment
 
 ### Begin Storage Operators
@@ -200,7 +208,7 @@
       targetNamespaces:
         - openshift-storage
   when:
-    - hostvars.localhost.enable_ocs|default(false)|bool
+    - enable_ocs | bool
 
 - name: "deploy-operators : Install LocalStorage Operator"
   include_role:
@@ -213,7 +221,7 @@
       targetNamespaces:
         - openshift-local-storage
   when:
-    - hostvars.localhost.enable_localstorage|default(false)|bool 
+    - enable_localstorage | bool
 ### End Storage Operators deployment
 
 ### Begin ACM Operator deployment
@@ -237,10 +245,7 @@
     - name: "configure-operators : Configure ACM operator"
       include_tasks: configure-acm.yml
   when:
-    - hostvars.localhost.enable_acm|default(false)|bool
-    - opm_mirror_list is defined
-    - opm_mirror_list | length
-    - "'advanced-cluster-management' in opm_mirror_list"
+    - enable_acm | bool
 
 ### End ACM Operator deployment
 

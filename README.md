@@ -276,44 +276,41 @@ which version of OCP to install.
 
 | Variable                           | Required | Type    | Default                                          | Description                                                    |
 | ---------------------------------- | -------- | ------- | ------------------------------------------------ | -------------------------------------------------------------- |
-| dci\_topic                         | True     | String  |                                                  | Name of the topic. `OCP-4.5` and up.                           |
-| dci\_tags                          | False    | List    | ["debug"]                                        | List of tags to set on the job                                 |
-| dci\_name                          | False    | String  |                                                  | Name of the job                                                |
-| dci\_configuration                 | False    | String  |                                                  | String representing the configuration of the job               |
-| dci\_comment                       | False    | String  |                                                  | Comment to associate with the job                              |
-| dci\_url                           | False    | URL     |                                                  | URL to associate with the job                                  |
-| dci\_components\_by\_query         | False    | List    | []                                               | Component by query. ['name:4.5.9']                             |
-| dci\_component                     | False    | List    | []                                               | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
-| dci\_previous\_job\_id             | False    | String  | ""                                               | Previous job UUID
-| dci\_must\_gather\_images          | False    | List    |["registry.redhat.io/openshift4/ose-must-gather"] | List of the must-gather images to use when retrieving logs.\*  |
-| dci\_teardown\_on\_failure         | False    | Boolean | False                                            | Whether or not execute the teardown hook on a failure          |
-| dci\_teardown\_on\_success         | False    | Boolean | True                                             | Whether or not execute the teardown hook on success            |
-| dci\_openshift\_agent\_conformance | False    | String  |                                                  | If defined it will run that category of conformance test       |
-| dci\_disconnected                  | False    | Boolean | False                                            | Signals that the OCP agent will run in disconnected            |
-| dci\_openshift\_csi_test\_manifest | False    | String  | ""                                               | Manifest file that contains the tests for CSI validation. Please review [test-parameters](https://redhat-connect.gitbook.io/openshift-badges/badges/container-storage-interface-csi-1/workflow/setup-test-parameters) and [csi-e2e](https://github.com/kubernetes/kubernetes/tree/v1.16.0/test/e2e/storage/external) for details about drivers capabilities |
+| dci_topic                         | True     | String  |                                                  | Name of the topic. `OCP-4.5` and up.                           |
+| dci_tags                          | False    | List    | ["debug"]                                        | List of tags to set on the job                                 |
+| dci_name                          | False    | String  |                                                  | Name of the job                                                |
+| dci_configuration                 | False    | String  |                                                  | String representing the configuration of the job               |
+| dci_comment                       | False    | String  |                                                  | Comment to associate with the job                              |
+| dci_url                           | False    | URL     |                                                  | URL to associate with the job                                  |
+| dci_components_by_query         | False    | List    | []                                               | Component by query. ['name:4.5.9']                             |
+| dci_component                     | False    | List    | []                                               | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
+| dci_previous_job_id             | False    | String  | ""                                               | Previous job UUID
+| dci_must_gather_images          | False    | List    |["registry.redhat.io/openshift4/ose-must-gather"] | List of the must-gather images to use when retrieving logs.\*  |
+| dci_teardown_on_failure         | False    | Boolean | False                                            | Whether or not execute the teardown hook on a failure          |
+| dci_teardown_on_success         | False    | Boolean | True                                             | Whether or not execute the teardown hook on success            |
+| dci_openshift_agent_conformance | False    | String  |                                                  | If defined it will run that category of conformance test       |
+| dci_disconnected                  | False    | Boolean | False                                            | Signals that the OCP agent will run in disconnected            |
+| dci_openshift_csi_test_manifest | False    | String  | ""                                               | Manifest file that contains the tests for CSI validation. Please review [test-parameters](https://redhat-connect.gitbook.io/openshift-badges/badges/container-storage-interface-csi-1/workflow/setup-test-parameters) and [csi-e2e](https://github.com/kubernetes/kubernetes/tree/v1.16.0/test/e2e/storage/external) for details about drivers capabilities |
 | dci_do_cni_tests                   | False    | Boolean | False                                            | Executes the CNI tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cni)
 | dci_do_virt_tests                  | False    | Boolean | False                                            |Execute the Kubevirt Conformance tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cnii). Hyperconverged operator must be installed on the cluster. For airgapped environments this is only supported on OCP 4.9 and newer versions.
-| baremetal\_deploy\_version         | False    | String  | origin/master                                    | Allows you to lock upstream baremetal repo to specific version |
-| force\_upgrade                     | False    | Boolean | False                                            | Force upgrade even if no version is available                  |
+| baremetal_deploy_version         | False    | String  | origin/master                                    | Allows you to lock upstream baremetal repo to specific version |
+| force_upgrade                     | False    | Boolean | False                                            | Force upgrade even if no version is available                  |
 | upgrade_eus                        | False    | Boolean | False                                            | Enable the EUS upgrade. Please see the [EUS upgrade](#eus-upgrade) section for more details                                                            |
-| dci\_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz\<id> or gh-org-repo-\<id> |
-| openshift\_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |
+| dci_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz\<id> or gh-org-repo-\<id> |
+| openshift_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |
 | operators_index                    | False    | String  | registry.redhat.io/redhat/redhat-operator-index:v<ocp_version>| Catalog index that contains the bundles for the operators that will be mirrored in disconnected environments |
-| opm_mirror_list                    | False    | String  | []                                               | List of operators to be mirrored in disconnected environments
+| opm_mirror_list                    | False    | List    | []                                               | List additional operators to be mirrored in disconnected environments. The package names of operators deployed using `dci_operators` must be included in this list. |
 | dci_operators                      | False    | List    | []                                               | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details|
-| enable_cnv                         | False    | Boolean   | False      | Deploy CNV and enable the HCO operator |
+| apply_sriov_upgrade_settings    | False    | Boolean   | True       | Whether to apply SR-IOV recommended settings before operator upgrade |
+| dci_prepare_cnf                    | False    | Boolean   | False      | Deploys Performance Addon and SRIOV operators, Please use the `enable_sriov` or `enable_perf_addon` variables if only one of this operators is required. To complete the Performance Addon configuration it is recommended to also add a `performance_definition` |
+| enable_cnv                         | False    | Boolean   | False      | Deploys CNV and enable the HCO operator |
 | enable_elasticsearch               | False    | Boolean   | False      | Deploys the ElasticSearch Operator |
 | enable_clusterlogging              | False    | Boolean   | False      | Deploys the Cluster-Logging Operator |
-| enable_perf_addon                  | False    | Boolean   | True       | Deploys the Performance AddOn Operator |
-| enable_sriov                       | False    | Boolean   | True       | Deploys the SRIOV Operator |
-| apply\_sriov\_upgrade\_settings    | False    | Boolean   | True       | Whether to apply SR-IOV recommended settings before operator upgrade |
+| enable_perf_addon                  | False    | Boolean   | False      | Deploys the Performance AddOn Operator. For its configuration is recommended to define a `performance_definition` |
+| enable_sriov                       | False    | Boolean   | False      | Deploys the SRIOV Operator |
 | enable_ocs                         | False    | Boolean   | False      | Deploys the OCS Operator |
-| enable_acm                         | False    | Boolean   | True       | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator |
-
-[Here](https://docs.openshift.com/container-platform/4.7/support/gathering-cluster-data.html)
-you can find information on the available must-gather images. Also, bear in
-mind that authentication is required to retrieve the images so you will need a
-valid RH subscription
+| enable_localstorage                | False    | Boolean   | False      | Deploys the Local Storage Operator |
+| enable_acm                         | False    | Boolean   | False      | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator |
 
 Example:
 
@@ -464,9 +461,18 @@ you can use this command line:
 
 ## Deploying operators
 
-The Agent manages the deployment of certain operators. At this time there is support for SRIOV, Performance Add On (PAO), HyperConverged Cluster Operator (HCO), ElasticSearch Operator, Cluster-Logging, and ACM (Advanced Cluster Management).
+The Agent manages the deployment of certain operators. At this time there is support for the following operators:
 
-In order to make the operators available in disconected environments is it important to configure the `opm_mirror_list` variable with the list of operators to mirror. The Agent will take care of mirroring the required images and dependencies.
+  * Single Root I/O Virtualization (SR-IOV)
+  * Performance AddOn (PAO)
+  * HyperConverged Cluster (HCO)
+  * ElasticSearch (ES)
+  * Cluster Logging
+  * OpenShift Container Storage (OCS)
+  * Local Storage
+  * Advanced Cluster Management (ACM)
+
+In order to make additional operators available in disconected environments is it important to configure the `opm_mirror_list` variable with the list of other operators to mirror. The Agent will take care of mirroring the required images and its dependencies.
 
 The variable `operators_index` is used to specify the catalog image containing information for the operators that may be deployed in the cluster. By default the index is the one located at registry.redhat.io and according to the OCP version installed but it can be overrided with a custom image. In conjuntion with `dci_operators` variable in allows the deployment of custom operators additionaly to those directly managed by the agent.
 
@@ -499,15 +505,24 @@ dci_operators:
       openshift.io/cluster-monitoring: "true"
 ```
 
-- In disconnected enviroments the catalog `mirrored-redhat-operators` contains the package manifests for the operators mirrored by defining the `opm_mirror_list` variable. An example of how to define this variable is shown below.
+- In disconnected enviroments, the catalog `mirrored-redhat-operators` will contain the package manifests for the operators that were mirrored by combining the items defined via `opm_mirror_list` plus to the ones activated for the deployment. For example, activating the `enable_acm` flag will automatically append to the list  the following operators required to deploy ACM to de ones added to the list.
 
 ```yaml
 opm_mirror_list:
-  - performance-addon-operator
-  - sriov-network-operator
-  - kubevirt-hyperconverged
-  - elasticsearch-operator
-  - cluster-logging
+  - skupper-operator
+  - servicemeshoperator
+  - serverless-operator
+```
+
+The resulting list of operators to mirror is:
+
+```
+  - skupper-operator
+  - servicemeshoperator
+  - serverless-operator
+  - advanced-cluster-management
+  - redhat-oadp-operator
+  - multicluster-engine
 ```
 
 ## Interacting with your RHOCP Cluster
@@ -545,7 +560,7 @@ Documentation is available [Here](https://docs.openshift.com/container-platform/
 
 To perform this upgrade with DCI, you must meet the following conditions:
 
-- Activate the boolean `upgrade\_eus` to true.
+- Activate the boolean `upgrade_eus` to true.
 - The cluster has to be installed in an EUS version.
 - The topic should be the targeted an EUS version.
 
