@@ -120,14 +120,14 @@ In any case, it must:
 - Have at least 160GB of free space available in `/var`
 - Have access to Internet
 - Be able to connect the following Web urls:
-  - DCI API, https://api.distributed-ci.io
-  - DCI Packages, https://packages.distributed-ci.io
-  - DCI Repository, https://repo.distributed-ci.io
-  - EPEL, https://dl.fedoraproject.org/pub/epel/
-  - QUAY, https://quay.io
-  - RED HAT REGISTRY, https://registry.redhat.io
-  - RED HAT SSO, https://access.redhat.com
-  - RED HAT CATALOG, https://catalog.redhat.com
+  - DCI API, <https://api.distributed-ci.io>
+  - DCI Packages, <https://packages.distributed-ci.io>
+  - DCI Repository, <https://repo.distributed-ci.io>
+  - EPEL, <https://dl.fedoraproject.org/pub/epel/>
+  - QUAY, <https://quay.io>
+  - RED HAT REGISTRY, <https://registry.redhat.io>
+  - RED HAT SSO, <https://access.redhat.com>
+  - RED HAT CATALOG, <https://catalog.redhat.com>
 - Have a static internal (network lab) IP
 - Be able to reach all systems under test (SUT) using (mandatory, but not
   limited to):
@@ -189,6 +189,7 @@ However,`dci-release` and `epel-release` along with additional support
 repos must be installed first:
 
 For RHEL-8
+
 ```console
 subscription-manager repos --enable=rhel-8-for-x86_64-baseos-rpms
 subscription-manager repos --enable=rhel-8-for-x86_64-appstream-rpms
@@ -196,11 +197,13 @@ subscription-manager repos --enable ansible-2.9-for-rhel-8-x86_64-rpms
 ```
 
 For CentOS Stream 8
+
 ```console
 dnf install centos-release-ansible-29.noarch
 ```
 
 For Both
+
 ```console
 dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 dnf -y install https://packages.distributed-ci.io/dci-release.el8.noarch.rpm
@@ -287,17 +290,16 @@ which version of OCP to install.
 | dci\_teardown\_on\_success         | False    | Boolean | True                                             | Whether or not execute the teardown hook on success            |
 | dci\_openshift\_agent\_conformance | False    | String  |                                                  | If defined it will run that category of conformance test       |
 | dci\_disconnected                  | False    | Boolean | False                                            | Signals that the OCP agent will run in disconnected            |
-| dci\_openshift\_csi_test\_manifest | False    | String  | ""                                               | Manifest file that contains the tests for CSI validation. <br>Please review [test-parameters](https://redhat-connect.gitbook.io/openshift-badges/badges/container-storage-interface-csi-1/workflow/setup-test-parameters) and [csi-e2e](https://github.com/kubernetes/kubernetes/tree/v1.16.0/test/e2e/storage/external) <br> for details about drivers capabilities |
+| dci\_openshift\_csi_test\_manifest | False    | String  | ""                                               | Manifest file that contains the tests for CSI validation. Please review [test-parameters](https://redhat-connect.gitbook.io/openshift-badges/badges/container-storage-interface-csi-1/workflow/setup-test-parameters) and [csi-e2e](https://github.com/kubernetes/kubernetes/tree/v1.16.0/test/e2e/storage/external) for details about drivers capabilities |
 | dci_do_cni_tests                   | False    | Boolean | False                                            | Executes the CNI tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cni)
 | dci_do_virt_tests                  | False    | Boolean | False                                            |Execute the Kubevirt Conformance tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cnii). Hyperconverged operator must be installed on the cluster. For airgapped environments this is only supported on OCP 4.9 and newer versions.
 | baremetal\_deploy\_version         | False    | String  | origin/master                                    | Allows you to lock upstream baremetal repo to specific version |
 | force\_upgrade                     | False    | Boolean | False                                            | Force upgrade even if no version is available                  |
 | upgrade_eus                        | False    | Boolean | False                                            | Enable the EUS upgrade. Please see the [EUS upgrade](#eus-upgrade) section for more details                                                            |
-| dci\_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz<id> or gh-org-repo-<id> |
+| dci\_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz\<id> or gh-org-repo-\<id> |
 | openshift\_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |
 | operators_index                    | False    | String  | registry.redhat.io/redhat/redhat-operator-index:v<ocp_version>| Catalog index that contains the bundles for the operators that will be mirrored in disconnected environments |
 | opm_mirror_list                    | False    | String  | []                                               | List of operators to be mirrored in disconnected environments
-|
 | dci_operators                      | False    | List    | []                                               | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details|
 | enable_cnv                         | False    | Boolean   | False      | Deploy CNV and enable the HCO operator |
 | enable_elasticsearch               | False    | Boolean   | False      | Deploys the ElasticSearch Operator |
@@ -497,7 +499,7 @@ dci_operators:
       openshift.io/cluster-monitoring: "true"
 ```
 
-* In disconnected enviroments the catalog `mirrored-redhat-operators` contains the package manifests for the operators mirrored by defining the `opm_mirror_list` variable. An example of how to define this variable is shown below.
+- In disconnected enviroments the catalog `mirrored-redhat-operators` contains the package manifests for the operators mirrored by defining the `opm_mirror_list` variable. An example of how to define this variable is shown below.
 
 ```yaml
 opm_mirror_list:
@@ -514,23 +516,23 @@ After you run a DCI job you will be able to interact with the RHOCP cluster usin
 
 1. Using the OC client
 
-  ```bash
-  export KUBECONFIG=/home/<user>/<clusterconfigs-path>/kubeconfig
-  oc get nodes
-  ```
+    ```bash
+    export KUBECONFIG=/home/<user>/<clusterconfigs-path>/kubeconfig
+    oc get nodes
+    ```
 
-A copy of the generated kubeconfig file will be attached to the job files section in DCI.
+    A copy of the generated kubeconfig file will be attached to the job files section in DCI.
 
-2. Using the GUI/API
+1. Using the GUI/API
 
-Obtain the credentials generated during the installation from /home/`<user>`/`<clusterconfigs-path>`/ocp_creds.txt in the jumphost.
+    Obtain the credentials generated during the installation from /home/`<user>`/`<clusterconfigs-path>`/ocp_creds.txt in the jumphost.
 
-Get the the URL of the cluster GUI:
+    Get the the URL of the cluster GUI:
 
-```bash
-$ oc whoami --show-console
-https://console-openshift-console.apps.<cluster>.<domain>
-```
+    ```bash
+    $ oc whoami --show-console
+    https://console-openshift-console.apps.<cluster>.<domain>
+    ```
 
 Note: The dci-openshift-agent is part of a [Continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) tool aimed to perform OCP deployments, should not be considered for production workloads. Use the above connection methods if some troubleshooting is required.
 
@@ -542,6 +544,7 @@ It handles upgrading from 4.8 to 4.10, or 4.10 to 4.12, etc.
 Documentation is available [Here](https://docs.openshift.com/container-platform/4.10/updating/preparing-eus-eus-upgrade.html)
 
 To perform this upgrade with DCI, you must meet the following conditions:
+
 - Activate the boolean `upgrade\_eus` to true.
 - The cluster has to be installed in an EUS version.
 - The topic should be the targeted an EUS version.
@@ -765,48 +768,48 @@ Enable the dnf-automatic.timer
 
 0. "New DCI job"
     - Create a DCI job
-    - _tags: job_
-    - _runs on: localhost_
+    - *tags: job*
+    - *runs on: localhost*
 
 1. "Pre-run"
     - Prepare the `Jumpbox`: `/plays/pre-run.yml`
     - Trigger partner Jumpbox preparation if needed: `/hooks/pre-run.yml`
-    - _tags: pre-run_
-    - _runs on: localhost_
+    - *tags: pre-run*
+    - *runs on: localhost*
 
 2. "Configure"
     - Prepare provisioner: `/plays/configure-provisioner.yml`
     - Trigger partner Provisioner preparation if needed: `/hooks/configure.yml`
-    - _tags: running, configure_
-    - _runs on: provisioner_
+    - *tags: running, configure*
+    - *runs on: provisioner*
 
 3. "DCI Main"
     1. "Install" (`dci_main` is "install" or undefined)
         - Start OpenShift install: `/plays/install.yml`
         - Trigger partner install hook if needed: `/hooks/install.yml`.
-        - _tags: running, installing, hook-installing_
-        - _runs on: provisioner_
+        - *tags: running, installing, hook-installing*
+        - *runs on: provisioner*
 
     2. "Upgrading" (`dci_main` is "upgrade")
         - Start OpenShift upgrade: `/plays/upgrade.yml`
         - Trigger partner upgrade hook if needed `/hooks/upgrade.yml`
-        - _tags: running, upgrading, hook-upgrading_
-        - _runs on: provisioner_
+        - *tags: running, upgrading, hook-upgrading*
+        - *runs on: provisioner*
 
     3. "Deploy operators"
         - start operator deployment: `/plays/deploy-operators.yml`
-        - _tags: running, operator-deployment_
-        - _runs on: provisioner_
+        - *tags: running, operator-deployment*
+        - *runs on: provisioner*
 
 4. "Red Hat tests"
     - start Red Hat tests: `/plays/tests.yml`
-    - _tags: running, testing, redhat-testing_
-    - _runs on: localhost_
+    - *tags: running, testing, redhat-testing*
+    - *runs on: localhost*
 
 5. "Partner tests"
     - start partner tests: `/hooks/tests.yml`
-    - _tags: running, testing, partner-testing_
-    - _runs on: localhost_
+    - *tags: running, testing, partner-testing*
+    - *runs on: localhost*
 
 6. "Post-run"
     - Start post-run to collect results: `/plays/post-run.yml` and
@@ -815,15 +818,15 @@ Enable the dnf-automatic.timer
       dci_cluster_configs_dir }}/` directory in order to be properly uploaded to
       the DCI server. Test result files must follow the Junit format and the
       file name must follow the pattern `junit_*.xml`
-    - _tags: post-run_
-    - _runs on: localhost_
+    - *tags: post-run*
+    - *runs on: localhost*
 
 7. "Success"
     - Launch additional tasks when the job is successful: `/hooks/success.yml`
-    - _tags: success_
-    - _runs on: localhost_
+    - *tags: success*
+    - *runs on: localhost*
 
-_Exit playbooks:_
+*Exit playbooks:*
 The following playbooks are executed sequentially at any step that fail:
 
 - Teardown: `/hooks/teardown.yml` which is executed only when the boolean `dci_teardown_on_success` is set to `true` (set to `true` by default)
@@ -845,7 +848,7 @@ Refer to [the development guide](docs/development.md)
 ## Create your DCI account on distributed-ci.io
 
 Every user needs to create his personal account by connecting to
-https://www.distributed-ci.io by using a Red Hat SSO account.
+<https://www.distributed-ci.io> by using a Red Hat SSO account.
 
 The account will be created in the DCI database at the first connection with
 the SSO account. For now, there is no reliable way to know your team
