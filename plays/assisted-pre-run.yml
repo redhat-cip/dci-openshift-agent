@@ -47,6 +47,51 @@
           local_pull_secret_path: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
         no_log: true
 
+      - name: "Mirror OCP release"
+        include_role:
+          name: mirror-ocp-release
+        vars:
+          version: "{{ hostvars.localhost.version }}"
+          release_url: "{{ hostvars.localhost.url }}"
+          cache_dir: "{{ hostvars.localhost.provision_cache_store | default(ansible_env.HOME) }}"
+          webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
+          registry_url: "docker://{{ local_registry_host | default('localhost') }}:{{ local_registry_port | default(0)  }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
+          auths_file: "{{ hostvars.localhost.dci_pullsecret_file }}"
+          force: "{{ hostvars.localhost.dci_force_mirroring | default(false) | bool }}"
+          install_type: "assisted"
+          mirror_artifacts: "{{ dci_disconnected | default(False) | bool }}"
+          unpack_artifacts: "{{ dci_disconnected | default(False) | bool }}"
+          mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
+          mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
+          write_custom_config: false
+
+      - name: "Set override facts for AI (Connected)"
+        delegate_to: "{{ item }}"
+        delegate_facts: true
+        set_fact:
+          openshift_full_version: "{{ hostvars.localhost.version }}"
+          openshift_version: "{{ hostvars.localhost.version.split('.')[:2] | join('.') }}"
+          supported_ocp_versions:
+            - "{{ hostvars.localhost.version }}"
+          os_images:
+            - openshift_version: "{{ hostvars.localhost.version.split('.')[:2] | join('.') }}"
+              cpu_architecture: x86_64
+              url: "{{ hostvars.localhost.ocp_release_data.rhcos_images.metal_iso_location }}"
+              rootfs_url: "{{ hostvars.localhost.ocp_release_data.rhcos_images.metal_pxe_rootfs_location }}"
+              version: "{{ hostvars.localhost.ocp_release_data.rhcos_version }}"
+          release_images:
+            - openshift_version: "{{ hostvars.localhost.version.split('.')[:2] | join('.') }}"
+              cpu_architecture: x86_64
+              url: "{{ hostvars.localhost.ocp_release_data.container_image }}"
+              version: "{{ hostvars.localhost.version }}"
+              hash: "{{ hostvars.localhost.ocp_release_data.container_image.split('@')[1] }}"
+        loop:
+          - assisted_installer
+          - bastion
+          - localhost
+        when:
+          - not (dci_disconnected | default(False))
+
       - name: "Clone/update assisted-deploy repo"
         vars:
           git_repo: "{{ assisted_deploy_repo }}"
@@ -83,6 +128,9 @@
         include_role:
           name: populate_mirror_registry
           tasks_from: prerequisites.yml
+        vars:
+          release_image_remote: "{{ ocp_release_data['container_image'].split('@')[0] }}"
+          release_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp{{ '-dev-preview' if hostvars.localhost.build == 'dev' else '' }}"
 
       rescue:
         - include_tasks: "teardown_error.yml"
@@ -287,14 +335,14 @@
     - ../group_vars/all
   tasks:
     - block:
-      - name: Insert dns records
-        include_role:
-          name: insert_dns_records
-        when: SETUP_DNS_SERVICE == True
+        - name: Insert dns records
+          include_role:
+            name: insert_dns_records
+          when: SETUP_DNS_SERVICE == True
 
-      - name: Validate dns records
-        include_role:
-          name: validate_dns_records
+        - name: Validate dns records
+          include_role:
+            name: validate_dns_records
 
       rescue:
         - include_tasks: "teardown_error.yml"
@@ -329,7 +377,6 @@
 - name: Deploy OpenShift Assisted Installer On Prem
   hosts: assisted_installer
   vars:
-    PULL_SECRET: "{{ hostvars['localhost']['pull_secret'] }}"
     pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
     SETUP_ASSISTED_INSTALLER: "{{ setup_assisted_installer | default(True) }}"
   vars_files:

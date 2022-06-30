@@ -3,28 +3,16 @@
   hosts: bastion
   gather_facts: False
   vars:
-    - disconnected: "{{ use_local_mirror_registry | default(setup_registry_service | default(true)) }}"
-    - CLUSTER_NAME: "{{ cluster_name }}"
-    - BASE_DNS_DOMAIN: "{{ base_dns_domain }}"
-    - ASSISTED_INSTALLER_HOST: "{{ hostvars['assisted_installer']['host'] }}"
-    - ASSISTED_INSTALLER_PORT: "{{ hostvars['assisted_installer']['port'] }}"
-    - SSH_PUBLIC_KEY: "{{ ssh_public_key }}"
-    - PULL_SECRET: "{{ hostvars['localhost']['pull_secret'] }}"
-    - pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
-    - CLUSTER_NETWORK_CIDR: "{{ cluster_network_cidr }}"
-    - CLUSTER_NETWORK_HOST_PREFIX: "{{ cluster_network_host_prefix }}"
-    - SERVICE_NETWORK_CIDR: "{{ service_network_cidr }}"
-    - OPENSHIFT_VERSION: "{{ openshift_version }}"
-    - VIP_DHCP_ALLOCATION: "{{ vip_dhcp_allocation }}"
-    - INGRESS_VIP: "{{ ingress_vip }}"
-    - API_VIP: "{{ api_vip }}"
-    - MACHINE_NETWORK_CIDR: "{{ machine_network_cidr }}"
-    - NTP_SERVER: "{{ ntp_server }}"
-    - CLUSTER_ID: "{{ cluster_id }}"
-    - DOWNLOAD_DEST_FILE: "{{ discovery_iso_name }}"
-    - DOWNLOAD_DEST_PATH: "{{ iso_download_dest_path | default('/opt/http_store/data') }}"
-    - HTTP_AUTH_USERNAME: "{{ http_auth_username | default('none') }}"
-    - HTTP_AUTH_PASSWORD: "{{ http_auth_password | default('none') }}"
+    disconnected: "{{ use_local_mirror_registry | default(setup_registry_service | default(true)) }}"
+    ASSISTED_INSTALLER_HOST: "{{ hostvars['assisted_installer']['host'] }}"
+    ASSISTED_INSTALLER_PORT: "{{ hostvars['assisted_installer']['port'] }}"
+    pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
+    openshift_full_version: "{{ hostvars['localhost']['version'] }}"
+    CLUSTER_ID: "{{ cluster_id }}"
+    DOWNLOAD_DEST_FILE: "{{ discovery_iso_name }}"
+    DOWNLOAD_DEST_PATH: "{{ iso_download_dest_path | default('/opt/http_store/data') }}"
+    HTTP_AUTH_USERNAME: "{{ http_auth_username | default('none') }}"
+    HTTP_AUTH_PASSWORD: "{{ http_auth_password | default('none') }}"
   vars_files:
     - ../group_vars/all
   tasks:
