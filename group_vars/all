@@ -20,7 +20,7 @@ dci_do_virt_tests: false
 # cnf-tests image tag in quay.io
 cnf_tests_image: ''
 dci_cluster_configs_dir: "{{'~/clusterconfigs' | expanduser}}-{{ cluster }}"
-dci_prepare_cnf: false
+
 dci_rpms_to_components:
   - dci-openshift-agent
   - dci-ansible
@@ -36,3 +36,38 @@ no_proxy_list: "{{ lookup('env','no_proxy') }}"
 dci_workarounds: []
 kubeconfig_path: "{{ dci_cluster_configs_dir }}/kubeconfig"
 oc_tool_path: "{{ dci_cluster_configs_dir }}/oc"
+# Vars to enable operators
+dci_prepare_cnf: false
+enable_cnv: false
+enable_ocs: false
+enable_acm: false
+enable_clusterlogging: false
+enable_perf_addon: false
+enable_sriov: false
+enable_elasticsearch: false
+enable_localstorage: false
+# Lists of packages for each operator
+cnv_operator:
+  - kubevirt-hyperconverged
+elastic_search_operator:
+  - elasticsearch-operator
+cluster_logging_operator:
+  - cluster-logging
+mtc_operator:
+  - mtc_operator
+advanced_cluster_management:
+  - advanced-cluster-management
+  - redhat-oadp-operator
+  - multicluster-engine
+ocs_operator:
+  - ocs-operator
+local_storage_operator:
+  - local-storage-operator
+cnf_operators:
+  - sriov-network-operator
+  - performance-addon-operator
+sriov_operators:
+  - sriov-network-operator
+performance_addon_operators:
+  - performance-addon-operator
+...
