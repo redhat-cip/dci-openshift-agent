@@ -92,14 +92,14 @@
   retries: 20
   delay: 15
 
-- name: "Wait up to 10 mins for MCH to be ready"
+- name: "Wait up to 20 mins for MCH to be ready"
   community.kubernetes.k8s_info:
     api: operator.open-cluster-management.io/v1
     kind: MultiClusterHub
     name: "{{ acm_instance }}"
     namespace: "{{ acm_namespace }}"
   register: mch
-  retries: 30
+  retries: 60
   delay: 20
   until:
     - mch.resources | length == 1
