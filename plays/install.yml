@@ -95,6 +95,8 @@
       kind: ClusterVersion
       spec:
         channel: "fast-{{ base_version }}"
+  retries: 6
+  delay: 10
 
 - name: "installer : Setup openshift access in jumphost"
   include_role:
