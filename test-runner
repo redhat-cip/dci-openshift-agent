@@ -359,7 +359,7 @@ if [ -d dci-openshift-agent ]; then
     elif [ "$VIRT" = sno ]; then
         VIRTDIR="$PWD"/dci-openshift-agent/samples/sno_on_libvirt
     elif [ "$VIRT" = assisted ]; then
-        VIRTDIR="$PWD"/dci-openshift-agent/samples/assisted
+        VIRTDIR="$PWD"/dci-openshift-agent/samples/assisted_on_libvirt
     fi
     # needed for ctl to take the settings.yml from the change if not taken from an existing CONFIG_DIR
     export CONFIG_DIR=${CONFIG_DIR:-$PWD}
@@ -374,7 +374,7 @@ else
     elif [ $VIRT = sno ]; then
         VIRTDIR=/var/lib/dci-openshift-agent/samples/sno_on_libvirt
     elif [ $VIRT = assisted ]; then
-        VIRTDIR=/var/lib/dci-openshift-agent/samples/assisted
+        VIRTDIR=/var/lib/dci-openshift-agent/samples/assisted_on_libvirt
     fi
 fi
 
@@ -494,9 +494,15 @@ if [ -z "$KCFG" ]; then
             setsid ansible-playbook -v generate-hosts-file.yml ${VIRT_INV:-} &
             do_wait
         elif [ "$VIRT" = assisted ]; then
-            FQDN=$(hostname -f)
-	    DNS=$(nmcli dev show | awk '/IP4.DNS/ { print $2; exit }')
-            sed -e "s/@FQDN@/$FQDN/; s/@DNS@/$DNS/" < hosts.in > hosts
+            if [ -n "${PREFIX}" ] && [ -n "${CONFIG_DIR}" ]; then
+                if [ -d "${CONFIG_DIR}/assisted_on_libvirt/${PREFIX#-p }" ]; then
+                    VIRT_INV="-i ${CONFIG_DIR}/assisted_on_libvirt/${PREFIX#-p }"
+                fi
+            fi
+            OPTS+=(-e install_type=assisted)
+            export PREFIX
+            setsid ansible-playbook -v generate-hosts-file.yml ${VIRT_INV:-} &
+            do_wait
         fi
 
         # converts a PREFIX of type "-p prefix" to "prefix-"

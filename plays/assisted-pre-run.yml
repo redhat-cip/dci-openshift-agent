@@ -134,6 +134,7 @@
           name: populate_mirror_registry
           tasks_from: prerequisites.yml
         vars:
+          downloads_path: "{{ ansible_env.HOME }}"
           release_image_remote: "{{ ocp_release_data['container_image'].split('@')[0] }}"
           release_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp{{ '-dev-preview' if hostvars.localhost.build == 'dev' else '' }}"
       rescue: &teardown_error
@@ -273,7 +274,7 @@
   gather_facts: "{{ (setup_vms | default((kvm_nodes | default([])) | length | int >= 1)) | bool }}"
   vars:
     SETUP_VMS: "{{ setup_vms | default((kvm_nodes | default([])) | length | int >= 1) }}"
-    vm_bridge_name: "{{ cluster_name }}-br"
+    vm_bridge_name: "asssisted-br0"
   vars_files:
     - ../group_vars/all
   tasks:
@@ -292,32 +293,32 @@
 
       - name: Configure firewall for vm_bridge_zone
         block:
-        - name: Move bridge to designated firewall zone
-          community.general.nmcli:
-            conn_name: "{{ cluster_name }}-br"
-            state: present
-            zone: "{{ vm_bridge_zone }}"
-          become: true
+          - name: Move bridge to designated firewall zone
+            community.general.nmcli:
+              conn_name: "assisted-br0"
+              state: present
+              zone: "{{ vm_bridge_zone }}"
 
-        - name: Create Iptables NAT chain
-          iptables:
-            table: nat
-            chain: POSTROUTING
-            source: '{{ machine_network_cidr }}'
-            destination: '! {{ machine_network_cidr }}'
-            jump: MASQUERADE
-            protocol: all
-            comment: Ansible NAT Masquerade
+          - name: Create Iptables NAT chain
+            iptables:
+              table: nat
+              chain: POSTROUTING
+              source: '{{ machine_network_cidr }}'
+              destination: '! {{ machine_network_cidr }}'
+              jump: MASQUERADE
+              protocol: all
+              comment: Ansible NAT Masquerade
 
-        - name: Manage IPv4 forwarding
-          sysctl:
-            name: net.ipv4.ip_forward
-            value: '1'
-            state: present
-            reload: True
+          - name: Manage IPv4 forwarding
+            sysctl:
+              name: net.ipv4.ip_forward
+              value: '1'
+              state: present
+              reload: True
         when:
           - (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
           - vm_bridge_zone is defined
+        become: true
 
       - name: Create vms
         include_role:
@@ -341,6 +342,34 @@
           include_role:
             name: insert_dns_records
           when: SETUP_DNS_SERVICE == True
+
+        - name: Use /etc/hosts
+          copy:
+            content: |
+              # /etc/NetworkManager/dnsmasq.d/02-add-hosts.conf
+              # By default, the plugin does not read from /etc/hosts.
+              # This forces the plugin to slurp in the file.
+              #
+              # If you didn't want to write to the /etc/hosts file.  This could
+              # be pointed to another file.
+              #
+              addn-hosts=/etc/hosts
+            dest: /etc/NetworkManager/dnsmasq.d/02-add-hosts.conf
+            mode: '0644'
+          become: true
+
+        - name: Remove expand-hosts entry
+          lineinfile:
+            path: /etc/NetworkManager/dnsmasq.d/dnsmasq.{{ cluster_name }}.conf
+            state: absent
+            regexp: ^expand-hosts
+          become: true
+
+        - name: "Restart NetworkManager"
+          service:
+            name: NetworkManager
+            state: restarted
+          become: true
 
         - name: Validate dns records
           include_role:
