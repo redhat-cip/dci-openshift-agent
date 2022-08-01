@@ -58,7 +58,6 @@
           registry_url: "docker://{{ local_registry_host | default('localhost') }}:{{ local_registry_port | default(0)  }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
           auths_file: "{{ hostvars.localhost.dci_pullsecret_file }}"
           force: "{{ hostvars.localhost.dci_force_mirroring | default(false) | bool }}"
-          install_type: "assisted"
           mirror_artifacts: "{{ dci_disconnected | default(False) | bool }}"
           unpack_artifacts: "{{ dci_disconnected | default(False) | bool }}"
           mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
