@@ -119,6 +119,9 @@
     - name: Reset cluster var for DCI
       set_fact:
         cluster: "{{ cluster_name }}"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
 
 - name: Get kubeconfig
   hosts: bastion
@@ -136,80 +139,86 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
-    - name: Download kubeconfig
-      get_url:
-        url: "{{ URL_ASSISTED_INSTALLER_CLUSTER }}/downloads/kubeconfig"
-        dest: "{{ kubeconfig_path }}"
-        mode: 0664
+    - block:
+      - name: Download kubeconfig
+        get_url:
+          url: "{{ URL_ASSISTED_INSTALLER_CLUSTER }}/downloads/kubeconfig"
+          dest: "{{ kubeconfig_path }}"
+          mode: 0664
 
-    - name: Get oc binary and KUBECONFIG from provisioner node
-      delegate_to: "{{ groups['provisioner'][0] }}"
-      fetch:
-        src: "{{ item }}"
-        dest: "{{ dci_cluster_configs_dir }}/"
-        flat: true
-      loop:
-      - "/usr/local/bin/oc"
+      - name: Get oc binary and KUBECONFIG from provisioner node
+        delegate_to: "{{ groups['provisioner'][0] }}"
+        fetch:
+          src: "{{ item }}"
+          dest: "{{ dci_cluster_configs_dir }}/"
+          flat: true
+        loop:
+        - "/usr/local/bin/oc"
 
-    - name: Change file permissions
-      file:
-        path: "{{ item }}"
-        mode: '0755'
-      loop:
-      - "{{ dci_cluster_configs_dir }}/oc"
+      - name: Change file permissions
+        file:
+          path: "{{ item }}"
+          mode: '0755'
+        loop:
+        - "{{ dci_cluster_configs_dir }}/oc"
 
-    - name: Perform simple connectivity check with oc
-      shell:
-        cmd: "oc explain pods"
-      register: result
-      retries: 3
-      delay: 10
-      until: result.rc == 0
+      - name: Perform simple connectivity check with oc
+        shell:
+          cmd: "oc explain pods"
+        register: result
+        retries: 3
+        delay: 10
+        until: result.rc == 0
 
-    - name: Check status of cluster operators
-      block:
-        - name: Wait up to 20 mins for cluster to become functional
-          shell:
-            cmd: oc wait clusteroperators --all --for=condition=Available --timeout=20m
-          register: result
-          retries: 3
-          delay: 10
-          until: result.rc == 0
+      - name: Check status of cluster operators
+        block:
+          - name: Wait up to 20 mins for cluster to become functional
+            shell:
+              cmd: oc wait clusteroperators --all --for=condition=Available --timeout=20m
+            register: result
+            retries: 3
+            delay: 10
+            until: result.rc == 0
+        rescue:
+          - name: Get better info for failure message
+            shell: oc get clusteroperators
+            register: co_result
+
+          - name: Fail Cluster
+            fail:
+              msg: |
+                Cluster has not come up correctly:
+                  {{ co_result.stdout }}
+
+      - name: Get credentials
+        uri:
+          url: "{{ URL_ASSISTED_INSTALLER_CLUSTER }}/credentials"
+          return_content: yes
+        register: credentials
+
+      - name: Login to add token to kubeconfig
+        shell:
+          cmd: "oc login -u {{ credentials.json.username }} -p '{{ credentials.json.password }}'"
+
+      - name: Save credentials to file
+        copy:
+          content: "{{ credentials.json | to_yaml }}"
+          dest: "{{ dest_dir }}/{{ kubeadmin_vault_name }}"
+          mode: 0600
+
+      - name: Save credentials to vault
+        shell:
+          cmd: "ansible-vault encrypt --vault-password-file {{ kubeadmin_vault_password_file_path }} {{ dest_dir }}/{{ kubeadmin_vault_name }}"
+        when: (kubeadmin_vault_password_file_path is defined) and (kubeadmin_vault_password_file_path is file)
+
+      - name: Set kubeconfig_path for provisioner
+        set_fact:
+          kubeconfig_path: "{{ kubeconfig_path }}"
+        delegate_to: provisioner
+        delegate_facts: true
       rescue:
-        - name: Get better info for failure message
-          shell: oc get clusteroperators
-          register: co_result
-
-        - name: Fail Cluster
-          fail:
-            msg: |
-              Cluster has not come up correctly:
-                {{ co_result.stdout }}
-
-    - name: Get credentials
-      uri:
-        url: "{{ URL_ASSISTED_INSTALLER_CLUSTER }}/credentials"
-        return_content: yes
-      register: credentials
-
-    - name: Login to add token to kubeconfig
-      shell:
-        cmd: "oc login -u {{ credentials.json.username }} -p '{{ credentials.json.password }}'"
-
-    - name: Save credentials to file
-      copy:
-        content: "{{ credentials.json | to_yaml }}"
-        dest: "{{ dest_dir }}/{{ kubeadmin_vault_name }}"
-        mode: 0600
-
-    - name: Save credentials to vault
-      shell:
-        cmd: "ansible-vault encrypt --vault-password-file {{ kubeadmin_vault_password_file_path }} {{ dest_dir }}/{{ kubeadmin_vault_name }}"
-      when: (kubeadmin_vault_password_file_path is defined) and (kubeadmin_vault_password_file_path is file)
-
-    - name: Set kubeconfig_path for provisioner
-      set_fact:
-        kubeconfig_path: "{{ kubeconfig_path }}"
-      delegate_to: provisioner
-      delegate_facts: true
+        - include_tasks: "teardown_failure.yml"
+      when:
+        - install_type is defined
+        - install_type == 'assisted'
 ...
