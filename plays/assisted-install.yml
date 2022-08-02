@@ -23,8 +23,41 @@
       - name: "assisted installer: generate discovery iso"
         include_role:
           name: generate_discovery_iso
-      rescue:
-        - include_tasks: "teardown_failure.yml"
+      rescue: &teardown_failure
+        - name: Run the teardown failure handler
+          block:
+            - name: failure
+              dci_job:
+                id: "{{ hostvars.localhost.job_id }}"
+                status: "failure"
+              delegate_to: localhost
+              tags: [dci]
+
+            - name: Run the failure process for partners
+              include_tasks: "{{ hookdir }}/hooks/failure.yml"
+              loop: "{{ dci_config_dirs }}"
+              loop_control:
+                loop_var: hookdir
+              ignore_errors: true
+
+            - block:
+                - name: Run the teardown hooks
+                  include_tasks: "{{ hookdir }}/hooks/teardown.yml"
+                  loop: "{{ dci_config_dirs }}"
+                  loop_control:
+                    loop_var: hookdir
+
+                - name: Run the teardown play
+                  include_tasks: teardown.yml
+              when: dci_teardown_on_failure|bool
+              delegate_to: localhost
+              ignore_unreachable: true
+              ignore_errors: true
+          always:
+            - name: Run the failure process
+              include_tasks: failure.yml
+          delegate_to: localhost
+          ignore_unreachable: true
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -43,8 +76,7 @@
       - name: "assisted installer: boot iso"
         include_role:
           name: boot_iso
-      rescue:
-        - include_tasks: "teardown_failure.yml"
+      rescue: *teardown_failure
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -66,8 +98,7 @@
       - name: "assisted installer: install cluster"
         include_role:
           name: install_cluster
-      rescue:
-        - include_tasks: "teardown_failure.yml"
+      rescue: *teardown_failure
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -87,8 +118,7 @@
       - name: "assisted installer: monitor host"
         include_role:
           name: monitor_host
-      rescue:
-        - include_tasks: "teardown_failure.yml"
+      rescue: *teardown_failure
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -107,8 +137,7 @@
       - name: "assisted installer: monitor cluster"
         include_role:
           name: monitor_cluster
-      rescue:
-        - include_tasks: "teardown_failure.yml"
+      rescue: *teardown_failure
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -216,8 +245,7 @@
           kubeconfig_path: "{{ kubeconfig_path }}"
         delegate_to: provisioner
         delegate_facts: true
-      rescue:
-        - include_tasks: "teardown_failure.yml"
+      rescue: *teardown_failure
       when:
         - install_type is defined
         - install_type == 'assisted'

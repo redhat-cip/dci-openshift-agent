@@ -115,13 +115,37 @@
 
         - name: Run the pre-run
           include_tasks: plays/pre-run.yml
-
       when:
         - dci_main is not defined or dci_main == 'install'
         - install_type is not defined or install_type != 'assisted'
+      rescue: &teardown_error
+        - name: Run the teardown error handler
+          block:
+            - name: error
+              dci_job:
+                id: "{{ hostvars.localhost.job_id }}"
+                status: "error"
+              tags: [dci]
+              delegate_to: localhost
 
-      rescue:
-        - include_tasks: "plays/teardown_error.yml"
+            - block:
+                - name: Run the teardown hooks
+                  include_tasks: "{{ hookdir }}/hooks/teardown.yml"
+                  loop: "{{ dci_config_dirs }}"
+                  loop_control:
+                    loop_var: hookdir
+
+                - name: Run the teardown play
+                  include_tasks: plays/teardown.yml
+              when: dci_teardown_on_failure|bool
+              delegate_to: localhost
+              ignore_unreachable: true
+              ignore_errors: true
+          always:
+            - name: Run the error process
+              include_tasks: plays/failure.yml
+          delegate_to: localhost
+          ignore_unreachable: true
 
 - import_playbook: plays/assisted-pre-run.yml
 
@@ -142,8 +166,7 @@
           loop_control:
             loop_var: hookdir
 
-      rescue:
-        - include_tasks: "plays/teardown_error.yml"
+      rescue: *teardown_error
 
 # Step 1c : Set status to "running"
 - name: 'Set running'
@@ -180,8 +203,7 @@
           loop_control:
             loop_var: hookdir
 
-      rescue:
-        - include_tasks: "plays/teardown_error.yml"
+      rescue: *teardown_error
 
 # Step 3a-1 : installing
 - name: 'Launch [IPI/SNO/UPI] install'
@@ -202,8 +224,43 @@
         - dci_main is not defined or dci_main == 'install'
         - install_type is not defined or install_type != 'assisted'
 
-      rescue:
-        - include_tasks: "plays/teardown_failure.yml"
+      rescue: &teardown_failure
+        - name: Run the teardown failure handler
+          block:
+            - name: failure
+              dci_job:
+                id: "{{ hostvars.localhost.job_id }}"
+                status: "failure"
+              delegate_to: localhost
+              tags: [dci]
+
+            - name: Run the failure process for partners
+              include_tasks: "{{ hookdir }}/hooks/failure.yml"
+              loop: "{{ dci_config_dirs }}"
+              loop_control:
+                loop_var: hookdir
+              ignore_errors: true
+
+            - block:
+                - name: Run the teardown hooks
+                  include_tasks: "{{ hookdir }}/hooks/teardown.yml"
+                  loop: "{{ dci_config_dirs }}"
+                  loop_control:
+                    loop_var: hookdir
+
+                - name: Run the teardown play
+                  include_tasks: plays/teardown.yml
+              when: dci_teardown_on_failure|bool
+              delegate_to: localhost
+              ignore_unreachable: true
+              ignore_errors: true
+
+          always:
+            - name: Run the failure process
+              include_tasks: plays/failure.yml
+
+          delegate_to: localhost
+          ignore_unreachable: true
 
 # Step 3a-1
 - import_playbook: plays/assisted-install.yml
@@ -224,8 +281,7 @@
       when:
       - dci_main is not defined or dci_main == 'install'
 
-      rescue:
-        - include_tasks: "plays/teardown_failure.yml"
+      rescue: *teardown_failure
 
 # Step 3a-3 : hook installing
 - name: 'Launch hook install'
@@ -243,8 +299,7 @@
       when:
         - dci_main is not defined or dci_main == 'install'
 
-      rescue:
-        - include_tasks: "plays/teardown_failure.yml"
+      rescue: *teardown_failure
 
 # Step 3b-1 : upgrading
 - name: 'Launch upgrade'
@@ -275,8 +330,7 @@
         - dci_main is defined
         - dci_main == 'upgrade'
 
-      rescue:
-        - include_tasks: "plays/teardown_failure.yml"
+      rescue: *teardown_failure
 
 # Step 3b-2 : hook upgrading
 - name: 'Launch hook upgrade'
@@ -299,8 +353,7 @@
         - dci_main is defined
         - dci_main == 'upgrade'
 
-      rescue:
-        - include_tasks: "plays/teardown_failure.yml"
+      rescue: *teardown_failure
 
 # Step 4 : Red Hat testing
 - name: 'Launch Red Hat tests'
@@ -323,8 +376,7 @@
         - name: "Launch Red Hat tests"
           include_tasks: plays/tests.yml
 
-      rescue:
-        - include_tasks: "plays/teardown_failure.yml"
+      rescue: *teardown_failure
 
 # Step 5 : partner testing
 - name: 'Launch partner tests'
@@ -351,8 +403,7 @@
           loop_control:
             loop_var: hookdir
 
-      rescue:
-        - include_tasks: "plays/teardown_failure.yml"
+      rescue: *teardown_failure
 
     - name: post-run
       dci_job:
@@ -382,8 +433,7 @@
         - name: Run the post-run
           include_tasks: plays/post-run.yml
 
-      rescue:
-        - include_tasks: "plays/teardown_error.yml"
+      rescue: *teardown_error
 
     - name: success
       dci_job:

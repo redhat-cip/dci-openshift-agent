@@ -130,9 +130,34 @@
         vars:
           release_image_remote: "{{ ocp_release_data['container_image'].split('@')[0] }}"
           release_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp{{ '-dev-preview' if hostvars.localhost.build == 'dev' else '' }}"
+      rescue: &teardown_error
+        - name: Run the teardown error handler
+          block:
+            - name: error
+              dci_job:
+                id: "{{ hostvars.localhost.job_id }}"
+                status: "error"
+              tags: [dci]
+              delegate_to: localhost
 
-      rescue:
-        - include_tasks: "teardown_error.yml"
+            - block:
+                - name: Run the teardown hooks
+                  include_tasks: "{{ hookdir }}/hooks/teardown.yml"
+                  loop: "{{ dci_config_dirs }}"
+                  loop_control:
+                    loop_var: hookdir
+
+                - name: Run the teardown play
+                  include_tasks: teardown.yml
+              when: dci_teardown_on_failure|bool
+              delegate_to: localhost
+              ignore_unreachable: true
+              ignore_errors: true
+          always:
+            - name: Run the error process
+              include_tasks: failure.yml
+          delegate_to: localhost
+          ignore_unreachable: true
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -150,9 +175,7 @@
         include_role:
           name: setup_ntp
         when: SETUP_NTP_SERVICE == True
-
-      rescue:
-        - include_tasks: "teardown_error.yml"
+      rescue: *teardown_error
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -174,9 +197,7 @@
       - name: Validate http store
         include_role:
           name: validate_http_store
-
-      rescue:
-        - include_tasks: "teardown_error.yml"
+      rescue: *teardown_error
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -199,9 +220,7 @@
         include_role:
           name: get_image_hash
         when: run_get_hash
-
-      rescue:
-        - include_tasks: "teardown_error.yml"
+      rescue: *teardown_error
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -236,9 +255,7 @@
         include_role:
           name: populate_mirror_registry
         when: SETUP_REGISTRY_SERVICE == True
-
-      rescue:
-        - include_tasks: "teardown_error.yml"
+      rescue: *teardown_error
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -253,9 +270,7 @@
         include_role:
           name: process_kvm_nodes
         when: (setup_vms | default(true))
-
-      rescue:
-        - include_tasks: "teardown_error.yml"
+      rescue: *teardown_error
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -317,9 +332,7 @@
         when: SETUP_VMS | bool
         tags:
           - setup_vms
-
-      rescue:
-        - include_tasks: "teardown_error.yml"
+      rescue: *teardown_error
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -342,9 +355,7 @@
         - name: Validate dns records
           include_role:
             name: validate_dns_records
-
-      rescue:
-        - include_tasks: "teardown_error.yml"
+      rescue: *teardown_error
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -366,9 +377,7 @@
         include_role:
           name: get_image_hash
         when: run_get_hash
-
-      rescue:
-        - include_tasks: "teardown_error.yml"
+      rescue: *teardown_error
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -398,9 +407,7 @@
         delay: 30
         delegate_to: bastion
         when: SETUP_ASSISTED_INSTALLER == True
-
-      rescue:
-        - include_tasks: "teardown_error.yml"
+      rescue: *teardown_error
       when:
         - install_type is defined
         - install_type == 'assisted'
@@ -418,9 +425,7 @@
         include_role:
           name: setup_sushy_tools
         when: SETUP_SUSHY_TOOLS == True
-
-      rescue:
-        - include_tasks: "teardown_error.yml"
+      rescue: *teardown_error
       when:
         - install_type is defined
         - install_type == 'assisted'
