@@ -1,3 +1,5 @@
+---
+
 dci_name: "ocp-install"
 dci_components: []
 dci_components_by_query: []
@@ -22,7 +24,6 @@ dci_do_virt_tests: false
 # cnf-tests image tag in quay.io
 cnf_tests_image: ''
 dci_cluster_configs_dir: "{{'~/clusterconfigs' | expanduser}}-{{ cluster }}"
-
 dci_rpms_to_components:
   - dci-openshift-agent
   - dci-ansible
@@ -36,6 +37,12 @@ http_proxy: "{{ lookup('env','http_proxy') }}"
 https_proxy: "{{ lookup('env','https_proxy') }}"
 no_proxy_list: "{{ lookup('env','no_proxy') }}"
 dci_workarounds: []
+dci_comment: null
+dci_url: null
+dci_configuration: null
+dci_previous_job_id: null
+dci_team_id: null
+dci_pipeline_id: null
 kubeconfig_path: "{{ dci_cluster_configs_dir }}/kubeconfig"
 oc_tool_path: "{{ dci_cluster_configs_dir }}/oc"
 # Vars to enable operators
@@ -72,4 +79,9 @@ sriov_operators:
   - sriov-network-operator
 performance_addon_operators:
   - performance-addon-operator
+
 ...
+
+# Local Variables:
+# mode: yaml
+# End:
