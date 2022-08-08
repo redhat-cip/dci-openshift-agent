@@ -789,7 +789,7 @@ Enable the dnf-automatic.timer
 1. "Pre-run"
     - Prepare the `Jumpbox`: `/plays/pre-run.yml`
     - Trigger partner Jumpbox preparation if needed: `/hooks/pre-run.yml`
-    - *tags: pre-run*
+    - *tags: pre-run, hook-pre-run*
     - *runs on: localhost*
 
 2. "Configure"

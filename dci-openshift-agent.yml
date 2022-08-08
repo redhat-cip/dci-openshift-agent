@@ -151,11 +151,12 @@
 
 - import_playbook: plays/assisted-pre-run.yml
 
-# Step 1b : pre run
-- name: 'Launch pre-run'
+# Step 1b : hook pre run
+- name: 'Launch hook pre-run'
   hosts: localhost
   tags:
     - pre-run
+    - hook-pre-run
   environment:
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
