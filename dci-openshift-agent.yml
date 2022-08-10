@@ -118,7 +118,6 @@
         - name: Run the pre-run
           include_tasks: plays/pre-run.yml
       when:
-        - dci_main is not defined or dci_main == 'install'
         - install_type is not defined or install_type != 'assisted'
       rescue: &teardown_error
         - name: Run the teardown error handler
