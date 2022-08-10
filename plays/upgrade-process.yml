@@ -1,0 +1,196 @@
+---
+- block:
+  - name: "upgrader : Fetch release digest"
+    uri:
+      url: "{{ webserver_url }}/{{ version }}/release.dig"
+      return_content: true
+    register: release_digest
+
+  - name: "upgrader : Fetch signature for target release"
+    get_url:
+      url: "{{ webserver_url }}/{{ version }}/signature.yaml"
+      dest: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version }}.yaml"
+      mode: 0644
+
+  - name: "upgrader : Fetch imagecontentsourcepolicy for target release"
+    get_url:
+      url: "{{ webserver_url }}/{{ version }}/imagecontentsourcepolicy.yaml"
+      dest: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version }}.yaml"
+      mode: 0644
+
+  - name: "upgrader : Apply signatures to cluster"
+    community.kubernetes.k8s:
+      state: present
+      src: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version }}.yaml"
+
+  - name: "upgrader : Apply imagecontentsourcepolicy to cluster"
+    community.kubernetes.k8s:
+      state: present
+      src: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version }}.yaml"
+
+  - name: "Wait for updated MCP after applying an ICSP"
+    include_role:
+      name: check-resource
+    vars:
+      resource_to_check: "MachineConfigPool"
+      check_wait_retries: 30
+      check_wait_delay: 10
+      check_reason: "Upgrade - after applying ICSP"
+
+  - name: "upgrader : Wait for nodes to become Ready"
+    community.kubernetes.k8s_info:
+      kind: Node
+    register: nodes_info
+    vars:
+      status_query: "resources[*].status.conditions[?type=='Ready'].status"
+      nodes_status: "{{ nodes_info | json_query(status_query) | flatten | unique }}"
+    until:
+      - nodes_status == ['True']
+    retries: 10
+    delay: 30
+
+  - name: "upgrader : Patch clusterversion to point to custom upstream graph"
+    community.kubernetes.k8s:
+      state: present
+      name: version
+      definition:
+        kind: ClusterVersion
+        spec:
+          upstream: "{{ webserver_url }}/graph-{{ version.split('.')[0:2]|join('.') }}"
+
+  - name: "upgrader : Wait custom upstream graph update"
+    community.kubernetes.k8s_info:
+      kind: ClusterVersion
+      name: version
+    register: cluster_version
+    vars:
+      status_query: "conditions[?type=='RetrievedUpdates'].status"
+      upgrade_status: "{{ cluster_version.resources[0].status | json_query(status_query) }}"
+    until:
+      - upgrade_status == ['True']
+    when:
+      - not force_upgrade | default(false) | bool
+    retries: 10
+    delay: 60
+
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: "upgrader : Patch clusterversion pointing to selected channel"
+  vars:
+    channel: >-
+      {{ upgrade_eus | default(false) |
+         ternary(
+           'eus-' + target_version,
+           'fast-' + target_version ) }}
+  community.kubernetes.k8s:
+    state: present
+    name: version
+    definition:
+      kind: ClusterVersion
+      spec:
+        channel: "{{ channel }}"
+
+- name: "upgrader : Get openshift-cluster-version pod name"
+  community.kubernetes.k8s_info:
+    kind: pod
+    namespace: openshift-cluster-version
+  register: ocvpod
+
+- name: "upgrader : Delete the openshift-cluster-version pod"
+  community.kubernetes.k8s:
+    state: absent
+    kind: pod
+    namespace: openshift-cluster-version
+    name: "{{ ocvpod.resources[0].metadata.name }}"
+
+- name: "upgrader : Wait the openshift-cluster-version pod creation"
+  community.kubernetes.k8s_info:
+    kind: pod
+    namespace: openshift-cluster-version
+  register: ocvpod
+  vars:
+    status_query: "conditions[?type=='Ready'].status"
+    pod_status: "{{ ocvpod.resources[0].status | json_query(status_query) }}"
+  until:
+    - pod_status == ['True']
+  retries: 10
+  delay: 60
+
+- name: "upgrader : Wait clusterversion is refreshed"
+  community.kubernetes.k8s_info:
+    kind: ClusterVersion
+    name: version
+  register: cluster_version
+  vars:
+    status_query: "conditions[?type=='RetrievedUpdates'].status"
+    upgrade_status: "{{ cluster_version.resources[0].status | json_query(status_query) }}"
+  until:
+    - upgrade_status == ['True']
+  when:
+    - not force_upgrade | default(false) | bool
+  retries: 10
+  delay: 60
+
+- name: "upgrader : Execute the upgrade"
+  vars:
+    upgrade_options: >-
+      --to-image={{ version_pull_url }}
+      {% if force_upgrade | default(false) %}
+      --force
+      --allow-explicit-upgrade
+      --allow-upgrade-with-warnings
+      {% endif %}
+  command:
+    chdir: "{{ ansible_user_dir }}/clusterconfigs/auth"
+    cmd: oc adm upgrade {{ upgrade_options }}
+  register: start_upgrade
+
+- name: "upgrader : Wait for upgrade to start"
+  vars:
+    cluster_version_conditions: "{{ cluster_version_info.resources.0.status.conditions }}"
+    condition_progressing: '{{ cluster_version_conditions | selectattr("type", "equalto", "Progressing") | first }}'
+  community.kubernetes.k8s_info:
+    kind: ClusterVersion
+    name: version
+  register: cluster_version_info
+  until: '"Working towards " in condition_progressing.message'
+  retries: 10
+  delay: 30
+
+- name: "Upgrade elapsed time"
+  set_fact:
+    elapsed_time: 0
+
+- name: "Upgrader: Monitor upgrade"
+  include_tasks: monitor-upgrade.yml
+
+# Tasks to prepare operators for upgrade
+- name: "Upgrader : Pre-upgrade tasks"
+  include_tasks: pre-upgrade.yml
+
+# Upgrading all operators
+- name: "Upgrader : Start the upgrade on installed operators"
+  include_tasks: upgrade-operators.yml
+  when:
+    - upgrade_operators | default(true) | bool
+
+- name: "test_ upgrader: check if all cluster-operators are running correctly"
+  community.kubernetes.k8s_info:
+    kind: ClusterOperator
+  register: clusteroperator_info
+  vars:
+    status_query: "resources[*].status.conditions[?type=='Degraded'].status"
+    cluster_operators_degraded: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
+  failed_when: cluster_operators_degraded == ['True']
+
+- name: "Validate that nodes are Ready and MCPs are up to date"
+  include_role:
+    name: check-resource
+  vars:
+    resource_to_check: "MachineConfigPool"
+    check_wait_retries: 100
+    check_wait_delay: 10
+    check_reason: "Upgrade - after having operators running"
+
+...

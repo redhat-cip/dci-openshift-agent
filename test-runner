@@ -352,7 +352,10 @@ if [ -d baremetal-deploy ]; then
 fi
 
 if [ -d dci-ansible ]; then
-    sed -i -e "s@/usr/share/dci/\(modules\|module_utils\|action_plugins\)@$PWD/dci-ansible/\1@g" -e "s@/usr/share/dci/callback/@$PWD/dci-ansible/callback/@" ansible.cfg
+    sed -i \
+    -e "s@/usr/share/dci/\(modules\|module_utils\|action_plugins\|filter_plugins\)@$PWD/dci-ansible/\1@g" \
+    -e "s@/usr/share/dci/callback/@$PWD/dci-ansible/callback/@" \
+    ansible.cfg
     # for d-o-a-a-ctl
     export DCI_ANSIBLE_DIR=$PWD/dci-ansible
 fi

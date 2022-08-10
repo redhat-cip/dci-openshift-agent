@@ -1,5 +1,5 @@
 - name: "upgrader : Get cluster version info"
-  k8s_info:
+  community.kubernetes.k8s_info:
     kind: ClusterVersion
     name: version
   register: cluster_version_info
@@ -14,25 +14,27 @@
   debug:
     msg: "Upgrade history: {{ upgrade_version }} {{ upgrade_state }} {{ current_status }}"
 
-- name: "Delay for 10 minutes"
-  pause:
-    seconds: 600
+- name: Wait for upgrade
+  block:
+    - name: "Delay for 10 minutes"
+      pause:
+        seconds: 600
 
-- name: "Update elapsed time"
-  set_fact:
-    elapsed_time: "{{ elapsed_time | int + 600 }}"
+    - name: "Update elapsed time"
+      set_fact:
+        elapsed_time: "{{ elapsed_time | int + 600 }}"
 
-- name: "Check if time is up"
-  fail:
-    msg: "Failed due to timeout"
+    - name: "Check if time is up"
+      fail:
+        msg: "Failed due to timeout"
+      when:
+        - elapsed_time | int >= 9000
+
+    - name: "Upgrader: Monitor upgrade"
+      include_tasks: monitor-upgrade.yml
+      when:
+        - elapsed_time | int < 9000
   when:
     - upgrade_state != "Completed"
-    - elapsed_time | int >= 7200
-
-- name: "Upgrader: Monitor upgrade"
-  include_tasks: monitor-upgrade.yml
-  when:
-    - upgrade_state != "Completed"
-    - elapsed_time | int < 7200
 
 ...
