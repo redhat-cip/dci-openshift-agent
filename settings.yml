@@ -1,7 +1,7 @@
 ---
 
 dci_agent: openshift            # needed for dci-agent-ctl
-dci_topic: OCP-4.10
+dci_topic: OCP-4.11
 
 # -- Atttributes of the job --
 #dci_name: "ocp-install"
@@ -18,8 +18,8 @@ dci_tags: ["debug"]
 # You can specify components via the ID found from dcictl component-list
 #dci_components: ['c364f2a7-2d25-4b91-9773-3448fb48d0a0']
 # Or you can query by name or type and tags
-#dci_components_by_query: ['name:4.10.3']
-#dci_components_by_query: ['type:ocp,tags:ocp-vanilla-4.10-simple-ok']
+#dci_components_by_query: ['name:4.11.3']
+#dci_components_by_query: ['type:ocp,tags:ocp-vanilla-4.11-simple-ok']
 #dci_components_by_query: ['tags:build:ga']
 #If you specify both the components list will be combined.
 
