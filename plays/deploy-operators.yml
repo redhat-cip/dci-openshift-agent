@@ -23,36 +23,36 @@
   when: "'Server Version' in item"
   loop: "{{ oc_version_str.stdout_lines }}"
 
-# Configure CatalogSources for disconnected environments
-- name: "deploy-operators : Generate disconnected catalogSource"
-  import_role:
-    name: operators-catalog
-  when:
-  - dci_disconnected | default(false) | bool
+- name: Configure CatalogSources for disconnected environments
+  block:
+    - name: "deploy-operators : Generate disconnected catalogSource"
+      import_role:
+        name: operators-catalog
+      when:
+        - mirror_list is defined
+        - mirror_list | length
 
-- name: Disable default catalog sources for disconnected deployment
-  community.kubernetes.k8s:
-    definition:
-      apiVersion: config.openshift.io/v1
-      kind: OperatorHub
-      metadata:
-        name: cluster
-      spec:
-        disableAllDefaultSources: true
+    - name: Disable default catalog sources for disconnected deployment
+      community.kubernetes.k8s:
+        definition:
+          apiVersion: config.openshift.io/v1
+          kind: OperatorHub
+          metadata:
+            name: cluster
+          spec:
+            disableAllDefaultSources: true
   when:
-  - dci_disconnected | default(false) | bool
+    - dci_disconnected | default(false) | bool
 
 - name: "Enable operators required for CNFs"
   set_fact:
     enable_sriov: true
     enable_perf_addon: true
-  when:
-    dci_prepare_cnf | bool
+  when: dci_prepare_cnf | bool
 
 ### Begin Deployment of operators required by CNFs
 - name: "Deploy operators required by CNFs"
   block:
-
     # Verify a minimum number of worker nodes are available
     - name: "deploy-operators : Get all nodes"
       community.kubernetes.k8s_info:
@@ -85,7 +85,7 @@
         state: present
         definition: "{{ mcp_def }}"
       when:
-      - hostvars.localhost.groups['workers']|length > 1
+        - hostvars.localhost.groups['workers']|length > 1
 
     - name: "deploy-operators : Update image catalog"
       community.kubernetes.k8s:
@@ -122,7 +122,6 @@
 
     - name: "deploy-operators : Install and configure SRIOV"
       block:
-
         - name: "deploy-operators : Install SRIOV operator"
           include_role:
             name: olm-operator
@@ -161,7 +160,6 @@
 ### Begin CNV and HCO
 - name: "Deploy CNV and HCO Operators"
   block:
-
     - name: "deploy-operators : Install CNV operator"
       include_role:
         name: olm-operator
@@ -244,7 +242,6 @@
     acm_namespace: open-cluster-management
     acm_instance: multiclusterhub
   block:
-
     - name: "deploy-operators : Install the ACM operator"
       include_role:
         name: olm-operator
@@ -267,8 +264,8 @@
 - name: "deploy-operators : Deploy other operators playbook"
   include_tasks: deploy-custom-operator.yml
   when:
-  - dci_operators is defined
-  - dci_operators | length
+    - dci_operators is defined
+    - dci_operators | length
   loop: "{{ dci_operators }}"
   loop_control:
     loop_var: dci_operator
@@ -286,7 +283,7 @@
     spec: "{{ item.spec }}"
   with_list: "{{ hostvars.localhost.dci_ocp_custom_resources }}"
   when:
-  - hostvars.localhost.dci_ocp_custom_resources is defined
-  - hostvars.localhost.dci_ocp_custom_resources is list
+    - hostvars.localhost.dci_ocp_custom_resources is defined
+    - hostvars.localhost.dci_ocp_custom_resources is list
 ### End Deploy all CRs
 ...
