@@ -29,8 +29,8 @@
       import_role:
         name: operators-catalog
       when:
-        - mirror_list is defined
-        - mirror_list | length
+        - hostvars.localhost.mirror_list is defined
+        - hostvars.localhost.mirror_list | length
 
     - name: Disable default catalog sources for disconnected deployment
       community.kubernetes.k8s:
