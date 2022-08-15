@@ -58,9 +58,6 @@
               include_tasks: failure.yml
           delegate_to: localhost
           ignore_unreachable: true
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Mounting, Booting the Assisted Installer Discovery ISO
   hosts: masters, workers
@@ -77,9 +74,6 @@
         include_role:
           name: boot_iso
       rescue: *teardown_failure
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Installing the cluster
   hosts: bastion
@@ -99,9 +93,6 @@
         include_role:
           name: install_cluster
       rescue: *teardown_failure
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Monitoring hosts installation
   hosts: masters, workers
@@ -119,9 +110,6 @@
         include_role:
           name: monitor_host
       rescue: *teardown_failure
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Monitoring cluster installation
   hosts: bastion
@@ -138,9 +126,6 @@
         include_role:
           name: monitor_cluster
       rescue: *teardown_failure
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Reset vars for DCI
   hosts: bastion
@@ -148,9 +133,6 @@
     - name: Reset cluster var for DCI
       set_fact:
         cluster: "{{ cluster_name }}"
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Get kubeconfig
   hosts: bastion
@@ -183,6 +165,18 @@
           flat: true
         loop:
         - "/usr/local/bin/oc"
+
+      - name: "Create .kube directory"
+        file:
+          path: "{{ ansible_env.HOME }}/.kube"
+          state: directory
+          mode: '0750'
+
+      - name: "Symlink kubeconfig to .kube/config"
+        file:
+          src: "{{ kubeconfig_path }}"
+          dest: "{{ ansible_env.HOME }}/.kube/config"
+          state: link
 
       - name: Change file permissions
         file:
@@ -246,7 +240,4 @@
         delegate_to: provisioner
         delegate_facts: true
       rescue: *teardown_failure
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 ...

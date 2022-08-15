@@ -19,6 +19,7 @@
 
       - block:
         - name: "Clean up {{ dci_cluster_configs_dir }}"
+          become: true
           file:
             path: "{{ dci_cluster_configs_dir }}"
             state: absent
@@ -29,6 +30,15 @@
             state: directory
         when:
           - dci_main is undefined or dci_main == 'install'
+
+      - name: Include installed software as components
+        vars:
+          rpms_to_components: "{{ dci_rpms_to_components }}"
+          gits_to_components:
+            - "{{ dci_gits_to_components }}"
+            - "{{ dev_gits_to_components }}"
+        include_role:
+          name: include-components
 
       - name: Set pullsecret from job_info
         set_fact:
@@ -47,24 +57,22 @@
           local_pull_secret_path: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
         no_log: true
 
-      - name: "Mirror OCP release"
+      - name: "Mirror OCP release artifacts"
         include_role:
           name: mirror-ocp-release
         vars:
           version: "{{ hostvars.localhost.version }}"
           release_url: "{{ hostvars.localhost.url }}"
           cache_dir: "{{ hostvars.localhost.provision_cache_store | default(ansible_env.HOME) }}"
-          webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
-          registry_url: "docker://{{ local_registry_host | default('localhost') }}:{{ local_registry_port | default(0)  }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
           auths_file: "{{ hostvars.localhost.dci_pullsecret_file }}"
           force: "{{ hostvars.localhost.dci_force_mirroring | default(false) | bool }}"
           mirror_artifacts: "{{ dci_disconnected | default(False) | bool }}"
           unpack_artifacts: "{{ dci_disconnected | default(False) | bool }}"
           mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
-          mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
+          mirror_container_images: false
           write_custom_config: false
 
-      - name: "Set override facts for AI (Connected)"
+      - name: "Set override facts for AI"
         delegate_to: "{{ item }}"
         delegate_facts: true
         set_fact:
@@ -86,10 +94,9 @@
               hash: "{{ hostvars.localhost.ocp_release_data.container_image.split('@')[1] }}"
         loop:
           - assisted_installer
+          - registry_host
           - bastion
           - localhost
-        when:
-          - not (dci_disconnected | default(False))
 
       - name: "Clone/update assisted-deploy repo"
         vars:
@@ -158,9 +165,6 @@
               include_tasks: failure.yml
           delegate_to: localhost
           ignore_unreachable: true
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Setup NTP
   hosts: ntp_host
@@ -176,9 +180,6 @@
           name: setup_ntp
         when: SETUP_NTP_SERVICE == True
       rescue: *teardown_error
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Install and http_store service
   hosts: http_store
@@ -198,9 +199,6 @@
         include_role:
           name: validate_http_store
       rescue: *teardown_error
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Play to populate image_hashes for relevant images
   hosts: localhost
@@ -221,9 +219,6 @@
           name: get_image_hash
         when: run_get_hash
       rescue: *teardown_error
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Play to install and setup mirror registry
   hosts: registry_host
@@ -234,8 +229,8 @@
     - ansible.posix
   gather_facts: "{{ (setup_registry_service | default(True)) | bool }}"
   vars:
-    downloads_path: "{{ dci_cluster_configs_dir }}"
-    config_file_path: "{{ dci_cluster_configs_dir }}/config"
+    downloads_path: "{{ hostvars.localhost.provision_cache_store | default(ansible_env.HOME) }}"
+    config_file_path: "{{ dci_cluster_configs_dir }}"
     SETUP_REGISTRY_SERVICE: "{{ setup_registry_service | default(True)}}"
   vars_files:
     - ../group_vars/all
@@ -245,6 +240,11 @@
         include_role:
           name: setup_selfsigned_cert
         when: SETUP_REGISTRY_SERVICE == True
+
+      - name: Set pull secret facts on the registry host
+        set_fact:
+          local_pull_secret_path: "{{ hostvars.localhost.local_pull_secret_path }}"
+          pull_secret: "{{ hostvars.localhost.pull_secret }}"
 
       - name: Setup mirror registry
         include_role:
@@ -256,9 +256,35 @@
           name: populate_mirror_registry
         when: SETUP_REGISTRY_SERVICE == True
       rescue: *teardown_error
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
+
+- name: Operator mirroring
+  hosts: localhost
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: "Get the operators mirror-list"
+        include_tasks: get-mirror-list.yml
+        when:
+          - dci_disconnected | default('no') |  bool
+
+      - name: "Mirror Operators for offline mode"
+        vars:
+          version: "{{ hostvars.localhost.version }}"
+          local_registry: "{{ hostvars.registry_host.registry_fqdn }}:{{ hostvars.registry_host.registry_port }}"
+          dci_pullsecret_file: "{{ hostvars.localhost.local_pull_secret_path }}"
+        include_role:
+          name: operators-mirror
+        when:
+          - dci_disconnected | default('no') | bool
+          - mirror_list is defined
+          - mirror_list | length
+
+      - name: "Set facts for operators catalog"
+        set_fact:
+          local_registry_host: "{{ hostvars.registry_host.registry_fqdn }}"
+          local_registry_port: "{{ hostvars.registry_host.registry_port }}"
+      rescue: *teardown_error
 
 - name: Process KVM nodes
   hosts: bastion
@@ -271,9 +297,6 @@
           name: process_kvm_nodes
         when: (setup_vms | default(true))
       rescue: *teardown_error
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Provision VMS
   hosts: vm_hosts
@@ -316,10 +339,10 @@
             protocol: all
             comment: Ansible NAT Masquerade
 
-        - name: Enable IPv4 forwarding
+        - name: Manage IPv4 forwarding
           sysctl:
             name: net.ipv4.ip_forward
-            value: 1
+            value: '1'
             state: present
             reload: True
         when:
@@ -333,9 +356,6 @@
         tags:
           - setup_vms
       rescue: *teardown_error
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Setup DNS Records
   hosts: dns_host
@@ -356,9 +376,6 @@
           include_role:
             name: validate_dns_records
       rescue: *teardown_error
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Play to populate image_hashes for relevant images
   hosts: localhost
@@ -378,9 +395,6 @@
           name: get_image_hash
         when: run_get_hash
       rescue: *teardown_error
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Deploy OpenShift Assisted Installer On Prem
   hosts: assisted_installer
@@ -408,9 +422,6 @@
         delegate_to: bastion
         when: SETUP_ASSISTED_INSTALLER == True
       rescue: *teardown_error
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 
 - name: Deploy sushy tools
   hosts: vm_hosts
@@ -426,7 +437,4 @@
           name: setup_sushy_tools
         when: SETUP_SUSHY_TOOLS == True
       rescue: *teardown_error
-      when:
-        - install_type is defined
-        - install_type == 'assisted'
 ...
