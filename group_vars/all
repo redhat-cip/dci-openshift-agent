@@ -54,7 +54,7 @@ enable_clusterlogging: false
 enable_perf_addon: false
 enable_sriov: false
 enable_elasticsearch: false
-enable_localstorage: false
+enable_lso: false
 # Lists of packages for each operator
 cnv_operator:
   - kubevirt-hyperconverged

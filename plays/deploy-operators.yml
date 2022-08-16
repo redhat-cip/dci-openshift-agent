@@ -207,33 +207,41 @@
 ### End Logging Operators deployment
 
 ### Begin Storage Operators
-- name: "deploy-operators : Install OCS Operator"
-  include_role:
-    name: olm-operator
-  vars:
-    operator: ocs-operator
-    source: "{{ opm_catalog_source_name }}"
-    namespace: openshift-storage
-    ns_labels:
-      openshift.io/cluster-monitoring: "true"
-    operator_group_spec:
-      targetNamespaces:
-        - openshift-storage
-  when:
-    - enable_ocs | bool
+- name: ODF Installation and setup
+  block:
+    - name: "deploy-operators : Install OCS Operator"
+      include_role:
+        name: olm-operator
+      vars:
+        operator: ocs-operator
+        source: "{{ opm_catalog_source_name }}"
+        namespace: openshift-storage
+        ns_labels:
+          openshift.io/cluster-monitoring: "true"
+        operator_group_spec:
+          targetNamespaces:
+            - openshift-storage
+      when:
+        - enable_ocs | bool
 
-- name: "deploy-operators : Install LocalStorage Operator"
-  include_role:
-    name: olm-operator
-  vars:
-    operator: local-storage-operator
-    source: "{{ opm_catalog_source_name }}"
-    namespace: openshift-local-storage
-    operator_group_spec:
-      targetNamespaces:
-        - openshift-local-storage
-  when:
-    - enable_localstorage | bool
+    - name: "deploy-operators : Install LocalStorage Operator"
+      include_role:
+        name: olm-operator
+      vars:
+        operator: local-storage-operator
+        source: "{{ opm_catalog_source_name }}"
+        namespace: openshift-local-storage
+        operator_group_spec:
+          targetNamespaces:
+            - openshift-local-storage
+      when:
+        - enable_lso | bool
+
+    - name: "configure-operators : Deploy ODF Operators"
+      include_role:
+        name: odf-setup
+
+  when: (enable_lso | bool) or (enable_ocs | bool)
 ### End Storage Operators deployment
 
 ### Begin ACM Operator deployment
