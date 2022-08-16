@@ -1,0 +1,38 @@
+- name: "upgrader : Get cluster version info"
+  k8s_info:
+    kind: ClusterVersion
+    name: version
+  register: cluster_version_info
+
+- name: "Get upgrade history"
+  set_fact:
+    upgrade_version: "{{ cluster_version_info | json_query('resources[0].status.history[0].version') }}"
+    upgrade_state: "{{ cluster_version_info | json_query('resources[0].status.history[0].state') }}"
+    current_status: "{{ cluster_version_info | json_query('resources[0].status.conditions[0].message') }}"
+
+- name: "Print upgrade status"
+  debug:
+    msg: "Upgrade history: {{ upgrade_version }} {{ upgrade_state }} {{ current_status }}"
+
+- name: "Delay for 10 minutes"
+  pause:
+    seconds: 600
+
+- name: "Update elapsed time"
+  set_fact:
+    elapsed_time: "{{ elapsed_time | int + 600 }}"
+
+- name: "Check if time is up"
+  fail:
+    msg: "Failed due to timeout"
+  when:
+    - upgrade_state != "Completed"
+    - elapsed_time | int >= 7200
+
+- name: "Upgrader: Monitor upgrade"
+  include_tasks: monitor-upgrade.yml
+  when:
+    - upgrade_state != "Completed"
+    - elapsed_time | int < 7200
+
+...

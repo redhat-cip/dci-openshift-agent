@@ -197,67 +197,12 @@
   retries: 10
   delay: 30
 
-- name: "upgrader : Monitor upgrade until complete"
-  shell: |
-    set -o pipefail
+- name: "Upgrade elapsed time"
+  set_fact:
+    elapsed_time: 0
 
-    FSM=progressing
-
-    function log {
-        if [ -n "$VERBOSE" ]
-        then
-            echo $(date +%Y-%m-%d_%M:%S): $1 > /dev/stderr
-        fi
-    }
-
-    while true
-    do
-        OC=$(oc get clusterversion/version -o json)
-        FAILING=$(echo ${OC} | jq -r '.status.conditions[] | select(.type == "Failing").message')
-        FAILING_STATUS=$(echo ${OC} | jq -r '.status.conditions[] | select(.type == "Failing").status' | grep "True")
-        IS_FAILING=$?
-
-        AVAILABLE=$(echo ${OC} | jq -r '.status.conditions[] | select(.type == "Available").message' | grep "Done applying {{ version }}")
-        IS_COMPLETE=$?
-
-        if [ "$FSM" == "progressing" ]
-        then
-            log "Currently progressing"
-            if [ "$IS_COMPLETE" == 0 ]
-            then
-                echo $AVAILABLE
-                exit 0
-            elif [ "$IS_FAILING" == 0 ]
-            then
-                log "Changing FSM to failing"
-                FSM=failing
-                FAILING_TS=$(date +%s)
-            fi
-        elif [ "$FSM" == "failing" ]
-        then
-            TS=$(date +%s)
-            LAPSE=$(( TS - FAILING_TS ))
-            log "Lapse: " ${LAPSE}
-            if [ "$IS_FAILING" == 1 ]
-            then
-                log "Changing FSM to progressing"
-                FSM=progressing
-                FAILING_TS=0
-            elif [ $LAPSE -ge 900 ]
-            then
-                echo $FAILING
-                exit 1
-            else
-                echo log $FAILING
-            fi
-        fi
-
-        sleep 15
-    done
-  args:
-    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-  async: 7200
-  poll: 15
+- name: "Upgrader: Monitor upgrade"
+  include_tasks: monitor-upgrade.yml
 
 # Tasks to prepare operators for upgrade
 - name: "Upgrader : Pre-upgrade tasks"
