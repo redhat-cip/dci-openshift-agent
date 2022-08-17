@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2021 Red Hat, Inc.
+# Copyright (C) 2021-2022 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -26,7 +26,7 @@ VIRT=
 DCI_QUEUE=
 SNO_DCI_QUEUE=
 SUPPORTED_HINTS=
-NO_DCI_QUEUE=
+NO_DCI_QUEUE=${NO_DCI_QUEUE:-}
 NO_COMMENT=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
@@ -50,6 +50,10 @@ if [ $# = 0 ] || [ "$1" = -h ]; then
     -s                Force a suffix to be added.
     <kubeconfig path> To avoid running an OCP installation.
     <ctl args>        Arguments passed to the ctl.
+
+    Env variables:
+    NO_DCI_QUEUE      Skips the use of dci-queue, when dci-queue is available
+
 EOF
     exit 1
 fi
