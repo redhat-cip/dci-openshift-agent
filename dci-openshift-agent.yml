@@ -58,6 +58,13 @@
         tags: '{{ dci_tags + dci_workarounds }}'
       when: dci_tags is defined
 
+    - name: Add cluster tag to the current job
+      dci_job:
+        id: '{{ job_id }}'
+        tags:
+          - cluster:{{ cluster }}
+      when: cluster is defined
+
     - name: debug components
       debug:
         var: job_info.job.components
