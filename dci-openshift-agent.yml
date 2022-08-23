@@ -139,7 +139,7 @@
             - block:
                 - name: Run the teardown hooks
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
-                  loop: "{{ dci_config_dirs }}"
+                  loop: "{{ dci_config_dirs | reverse | list }}"
                   loop_control:
                     loop_var: hookdir
 
@@ -253,7 +253,7 @@
             - block:
                 - name: Run the teardown hooks
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
-                  loop: "{{ dci_config_dirs }}"
+                  loop: "{{ dci_config_dirs | reverse | list }}"
                   loop_control:
                     loop_var: hookdir
 
@@ -472,7 +472,7 @@
 
         - name: Run the teardown hooks
           include_tasks: "{{ hookdir }}/hooks/teardown.yml"
-          loop: "{{ dci_config_dirs }}"
+          loop: "{{ dci_config_dirs | reverse | list }}"
           loop_control:
             loop_var: hookdir
 
