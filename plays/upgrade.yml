@@ -158,7 +158,7 @@
   retries: 10
   delay: 60
 
-- name: "upgrader : Wait clusterverion is refreshed"
+- name: "upgrader : Wait for clusterversion to be refreshed"
   community.kubernetes.k8s_info:
     kind: ClusterVersion
     name: version

@@ -20,7 +20,7 @@
         dci_api_secret="{{ lookup('env','DCI_API_SECRET') }}"
         dci_cs_url="{{ lookup('env','DCI_CS_URL') }}"
         dci_ui_url="{{ lookup('env','DCI_UI_URL') | default('https://www.distributed-ci.io', True) }}"
-      no_log: true
+      no_log: "{{ dci_hide_secrets }}"
 
     # Schedule a new job only if not passed via dci-pipeline
     - name: Schedule a new job
@@ -37,7 +37,7 @@
         pipeline_id: "{{ dci_pipeline_id }}"
       register: job_info
       when: job_info is not defined
-      no_log: true
+      no_log: "{{ dci_hide_secrets }}"
 
     - name: Set the job id
       set_fact:

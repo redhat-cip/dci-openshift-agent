@@ -28,6 +28,7 @@ SNO_DCI_QUEUE=
 SUPPORTED_HINTS=
 NO_DCI_QUEUE=${NO_DCI_QUEUE:-}
 NO_COMMENT=
+UPGRADE=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -38,13 +39,14 @@ BASEDIR=$(cd $(dirname $0); pwd)
 if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno|--assisted] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    echo "Usage: $name [--virt|--sno|--assisted] [--upgrade] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
     Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
 
     arguments:
     --virt            Use OCP on Libvirt.
     --sno             Use SNO on Libvirt.
     --assisted        Use Assisted Installer on Libvirt.
+    --upgrade         Run an upgrade job.
     -n                Do not vote or comment on Gerrit reviews or GitHub PR.
     -f                Force to run without obeying hints.
     -s                Force a suffix to be added.
@@ -80,6 +82,11 @@ elif [ $1 = --assisted ]; then
     if [ -n "$ASSISTED_DCI_QUEUE" ]; then
         DCI_QUEUE="$ASSISTED_DCI_QUEUE"
     fi
+    shift
+fi
+
+if [ $1 = --upgrade ]; then
+    UPGRADE=--upgrade
     shift
 fi
 
@@ -214,6 +221,11 @@ if [[ no-check =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*no-check\s*
     NO_DCI_QUEUE=1
 fi
 
+# process Test-Upgrade
+if [[ upgrade =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Upgrade-Hint:\s*yes\s*" <<< $DESC; then
+    UPGRADE=--upgrade
+fi
+
 # process Test-Args-Hints
 if [[ args =~ $SUPPORTED_HINTS ]]; then
     OPTS=$(sed -n -e "s/^\s*Test-Args-Hints:\s*//pi" <<< $DESC)
@@ -237,12 +249,12 @@ fi
 
 if [ -z "$NO_DCI_QUEUE" ] && [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
     if [ -n "$USE_PREFIX" ]; then
-        dci-queue schedule $DCI_QUEUE -- env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
+        dci-queue schedule $DCI_QUEUE -- env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
     else
-        dci-queue schedule $DCI_QUEUE -- env RES=@RESOURCE APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $NO_COMMENT $DIR "$@" $OPTS
+        dci-queue schedule $DCI_QUEUE -- env RES=@RESOURCE APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
     fi
 else
-    env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $NO_COMMENT $DIR "$@" $OPTS
+    env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
 fi
 
 # dci-check-change ends here
