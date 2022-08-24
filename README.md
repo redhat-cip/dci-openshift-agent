@@ -316,8 +316,8 @@ Example:
 
 ```YAML
 ---
-dci_topic: "OCP-4.10"
-dci_name: "ocp-4.10-job"
+dci_topic: "OCP-4.11"
+dci_name: "ocp-4.11-job"
 dci_configuration: "baremetal"
 dci_url: "https://softwarefactory-project.io/r/c/dci-openshift-agent/+/22195"
 dci_comment: "test-runner: use the new url metadata for jobs"
@@ -430,7 +430,7 @@ If you want to also store the hooks in the same directory, you have to specify `
 
 ```YAML
 ---
-dci_topic: OCP-4.10
+dci_topic: OCP-4.11
 dci_config_dirs: [/var/lib/dci-openshift-agent/config]
 ```
 
@@ -463,14 +463,14 @@ you can use this command line:
 
 The Agent manages the deployment of certain operators. At this time there is support for the following operators:
 
-  * Single Root I/O Virtualization (SR-IOV)
-  * Performance AddOn (PAO)
-  * HyperConverged Cluster (HCO)
-  * ElasticSearch (ES)
-  * Cluster Logging
-  * OpenShift Container Storage (OCS)
-  * Local Storage
-  * Advanced Cluster Management (ACM)
+- Single Root I/O Virtualization (SR-IOV)
+- Performance AddOn (PAO)
+- HyperConverged Cluster (HCO)
+- ElasticSearch (ES)
+- Cluster Logging
+- OpenShift Container Storage (OCS)
+- Local Storage
+- Advanced Cluster Management (ACM)
 
 In order to make additional operators available in disconected environments is it important to configure the `opm_mirror_list` variable with the list of other operators to mirror. The Agent will take care of mirroring the required images and its dependencies.
 
@@ -516,7 +516,7 @@ opm_mirror_list:
 
 The resulting list of operators to mirror is:
 
-```
+```yaml
   - skupper-operator
   - servicemeshoperator
   - serverless-operator
