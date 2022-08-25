@@ -74,6 +74,8 @@
         tags: "{{ item['tags'] }}"
         url: "{{ item['url']|default('') }}"
         version: "{{ item['data']['version'] }}"
+        version_name: "{{ item['data']['name'] }}"
+        version_url: "{{ item['data']['url'] }}"
         ocp_product_id: "{{ item['id'] }}"
       with_items: "{{ job_info.job.components }}"
       when: item["type"] == "ocp"

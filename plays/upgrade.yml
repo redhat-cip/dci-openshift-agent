@@ -6,17 +6,16 @@
     name: version
   register: clusterVersion
 
-- name: "upgrader : Print current version"
+- name: "upgrader : Get version and build from localhost vars"
+  set_fact:
+    version: "{{ hostvars.localhost.version_name }}"
+    build: "{{ hostvars.localhost.build }}"
+
+- name: "upgrader : Print versions"
   vars:
     - status_query: "conditions[?type=='Available'].message"
   debug:
-    msg: "{{ clusterVersion.resources[0].status | json_query(status_query) }}"
-
-- name: "upgrader : Get target openshift version from job.components"
-  set_fact:
-    version: "{{ item['name'] }}"
-  with_items: "{{ hostvars.localhost.job_info.job.components }}"
-  when: item["type"] == "ocp"
+    msg: "current={{ clusterVersion.resources[0].status | json_query(status_query) }} target={{ version }}"
 
 - name: Set major openshift version from topic
   set_fact:
@@ -169,6 +168,8 @@
     upgrade_status: "{{ cluster_version.resources[0].status | json_query(status_query) }}"
   until:
     - upgrade_status == ['True']
+  when:
+    - not force_upgrade | default(false) | bool
   retries: 10
   delay: 60
 
