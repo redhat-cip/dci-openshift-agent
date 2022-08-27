@@ -326,6 +326,18 @@ for d in $(ls -d ansible-role-dci-* 2> /dev/null); do
     fi
 done
 
+ANSIBLE_COLLECTIONS_PATHS=
+for d in $(ls -d ansible-collection-* 2> /dev/null); do
+    mkdir -p collections
+    LOCAL_COLLECTIONS=$PWD/collections
+    export ANSIBLE_COLLECTIONS_PATHS=$LOCAL_COLLECTIONS:/usr/share/ansible/collections
+    cd $d
+    rm -f *.tar.gz
+    ansible-galaxy collection build
+    ansible-galaxy collection install *.tar.gz -p $LOCAL_COLLECTIONS
+    cd -
+done
+
 # create a python virtualenv if there is any project with a
 # requirements.txt into the changes
 REQS=$(ls */requirements.txt 2> /dev/null)

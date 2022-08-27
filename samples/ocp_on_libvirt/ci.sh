@@ -15,13 +15,20 @@
 # under the License.
 
 PROJECTS=(
+    ansible-collection-ansible-posix
+    ansible-collection-community-general
+    ansible-collection-community-kubernetes
+    ansible-collection-community-libvirt
+    ansible-collection-containers-podman
+    ansible-role-dci-cvp
+    ansible-role-dci-ocp-imagesideload
+    ansible-role-dci-podman
+    ansible-role-dci-sync-registry
+    dci-ansible
     dci-openshift-agent
     dci-openshift-app-agent
-    dci-ansible
-    ansible-role-dci-sync-registry
-    ansible-role-dci-podman
-    ansible-role-dci-ocp-imagesideload
-    ansible-collection-community-kubernetes
+    python-dciclient
+    python-dciauth
 )
 
 cleanup() {
