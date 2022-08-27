@@ -388,7 +388,7 @@ if [ -z "$KCFG" ]; then
             export PREFIX
             setsid ansible-playbook -v libvirt_destroy.yml ${VIRT_INV:-} &
             do_wait
-            setsid ansible-playbook -v libvirt_up.yml ${VIRT_INV:-} &
+            setsid ansible-playbook -v libvirt_up.yml ${VIRT_INV:-} "$@" &
             do_wait
         elif [ "$VIRT" = sno ]; then
             if [ -n "${PREFIX}" ] && [ -n "${CONFIG_DIR}" ]; then

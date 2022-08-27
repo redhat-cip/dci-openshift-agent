@@ -49,7 +49,7 @@
   set_fact:
     mirror_list: "{{ mirror_list + local_storage_operator }}"
   when:
-    - enable_localstorage | bool
+    - enable_lso | bool
 
 - name: "Add operators if enable_ocs"
   set_fact:
