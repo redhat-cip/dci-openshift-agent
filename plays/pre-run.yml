@@ -160,7 +160,7 @@
     set_fact:
       major_inter: "{{ ocp_major }}.{{ ocp_minor | int - 1 }}"
 
-  - name: "Get intermadiate release from Graph"
+  - name: "Get intermediate release from Graph"
     shell:
       cmd: >-
         curl --silent --header 'Accept: application/json'
