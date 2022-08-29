@@ -107,6 +107,6 @@
         state: reloaded
 
     - name: Start provisionhost
-      virt:
+      community.libvirt.virt:
         name: "provisionhost"
         state: "running"
