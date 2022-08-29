@@ -20,6 +20,7 @@ dci_openshift_agent_conformance: ''
 dci_openshift_csi_test_manifest: ''
 dci_do_cni_tests: false
 dci_do_virt_tests: false
+dci_hide_secrets: true
 # cnf_test_suites: ['sctp','ptp','performance','sriov','dpdk']
 # cnf-tests image tag in quay.io
 cnf_tests_image: ''

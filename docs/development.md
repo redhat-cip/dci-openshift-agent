@@ -121,11 +121,14 @@ pass to `dci-check-change`.
 used (`basic_example`). If `none` is specified in `Test-App-Hints:`,
 the configuration is taken from the system.
 
+`Test-Upgrade-Hint: yes` can also be used to force an upgrade job after
+the installation.
+
 Hints need to be activated in the `SUPPORTED_HINTS` variable in
 `/etc/dci-openshift-agent/config` like this:
 
 ```console
-SUPPORTED_HINTS="sno|assisted|libvirt|no-check|args|app"
+SUPPORTED_HINTS="sno|assisted|libvirt|no-check|args|app|upgrade"
 ```
 
 ## Continuous integration

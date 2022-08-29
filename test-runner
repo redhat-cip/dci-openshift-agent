@@ -123,7 +123,7 @@ do_wait() {
 BASEDIR=$(cd $(dirname $0); pwd)
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 (--virt|--sno|--assisted|--no-check) (-n) <change directory> (-p <prefix>) (-p2 <prefix>) (<kubeconfig path>)] (<options for agents>)" 1>&2
+    echo "Usage: $0 (--virt|--sno|--assisted|--no-check) (--upgrade) (-n) <change directory> (-p <prefix>) (-p2 <prefix>) (<kubeconfig path>)] (<options for agents>)" 1>&2
     exit 1
 fi
 
@@ -159,6 +159,11 @@ elif [ "$1" = "--no-check" ]; then
     shift
 fi
 
+if [ "$1" = --upgrade ]; then
+    UPGRADE=1
+    shift
+fi
+
 if [ "$1" = "-n" ]; then
     unset DO_VOTE
     shift
@@ -187,8 +192,20 @@ fi
 # indexed array variable
 declare -a OPTS
 
+# need to stay the first arg as we are modifying it later for upgrade
+if [ -n "$UPGRADE" ]; then
+    # hardcoded, need to be reworked
+    OPTS+=(-e dci_topic=OCP-4.10)
+fi
+
+# need to stay the second arg as we are modifying it later for upgrade
 if [ -n "$DCI_NAME" ]; then
     OPTS+=(-e dci_name=$DCI_NAME)
+fi
+
+# need to be after the first 2 arguments
+if [ -n "$UPGRADE" ]; then
+    OPTS+=(-e "dci_components_by_query=['type:ocp,tags:build:ga']")
 fi
 
 if [ -n "$VIRT" ]; then
@@ -418,6 +435,24 @@ if [ -z "$KCFG" ]; then
     setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" "$@" >& output &
 
     do_wait 1
+
+    if [ -n "$UPGRADE" ]; then
+        # hardcoded, need to be reworked
+        OPTS[1]="dci_topic=OCP-4.11"
+        OPTS[3]="${OPTS[3]}-upgrade"
+        OPTS+=(-e dci_main=upgrade -e force_upgrade=true)
+
+        # get the name of the cluster from the ansible output
+        CLUSTER=$(sed -n -e 's@^changed:.*/clusterconfigs-\([^\/]*\)/kubeconfig".*@\1@p' output | head -1)
+        # keep in sync with d-o-a-ctl
+        if [ -s "/var/tmp/$CLUSTER.dci.job_id" ]; then
+            OPTS+=(-e "dci_previous_job_id=$(cat /var/tmp/$CLUSTER.dci.job_id)")
+        fi
+
+        setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" "$@" &>> output &
+
+        do_wait 1
+    fi
 fi
 
 # do not continue if d-o-a-a-ctl is not installed
