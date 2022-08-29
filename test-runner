@@ -135,7 +135,7 @@ do_wait() {
 BASEDIR=$(cd $(dirname $0); pwd)
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 (--virt|--sno|--assisted|--no-check) (--upgrade) (-n) <change directory> (-p <prefix>) (-p2 <prefix>) (<kubeconfig path>)] (<options for agents>)" 1>&2
+    echo "Usage: $0 (--virt|--sno|--assisted|--no-check) [--upgrade [--from-topic <topic>] [--to-topic <topic>]] (-n) <change directory> [-p <prefix>] [-p2 <prefix>] [<kubeconfig path>] [<options for agents>]" 1>&2
     exit 1
 fi
 
@@ -145,6 +145,9 @@ KCFG=
 DO_VOTE=
 PREFIX=
 PREFIX2=
+UPGRADE=
+TO_TOPIC=
+FROM_TOPIC=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -174,6 +177,16 @@ fi
 if [ "$1" = --upgrade ]; then
     UPGRADE=1
     shift
+    if [ $1 = --from-topic ]; then
+        shift
+        FROM_TOPIC="$1"
+        shift
+    fi
+    if [ $1 = --to-topic ]; then
+        shift
+        TO_TOPIC="$1"
+        shift
+    fi
 fi
 
 if [ "$1" = "-n" ]; then
@@ -201,22 +214,24 @@ if [ -r "$1" ] && [[ "$1" =~ /.*/kubeconfig ]]; then
     shift
 fi
 
-# indexed array variable
+# Indexed array variable
 declare -a OPTS
 
-# need to stay the first arg as we are modifying it later for upgrade
+# Need to stay the first arg as we are modifying it later for upgrade
 if [ -n "$UPGRADE" ]; then
     # hardcoded, need to be reworked
-    OPTS+=(-e dci_topic=OCP-4.10)
+    OPTS+=(-e dci_topic=${FROM_TOPIC:=OCP-4.10})
 fi
 
-# need to stay the second arg as we are modifying it later for upgrade
+# Need to stay the second arg as we are modifying it later for upgrade
 if [ -n "$DCI_NAME" ]; then
     OPTS+=(-e dci_name=$DCI_NAME)
 fi
 
-# need to be after the first 2 arguments
-if [ -n "$UPGRADE" ]; then
+# Need to be after the first 2 arguments.
+# By default do an upgrade from GA component execpt if there is
+# anything specified for the upgrade.
+if [ -n "$UPGRADE" ] && [ -z "${UPGRADE_ARGS}${FROM_TOPIC}${TO_TOPIC}" ]; then
     OPTS+=(-e "dci_components_by_query=['type:ocp,tags:build:ga']")
 fi
 
@@ -462,7 +477,7 @@ if [ -z "$KCFG" ]; then
 
     if [ -n "$UPGRADE" ]; then
         # hardcoded, need to be reworked
-        OPTS[1]="dci_topic=OCP-4.11"
+        OPTS[1]="dci_topic=${TO_TOPIC:=OCP-4.11}"
         OPTS[3]="${OPTS[3]}-upgrade"
         OPTS+=(-e dci_main=upgrade -e force_upgrade=true)
 
@@ -473,7 +488,7 @@ if [ -z "$KCFG" ]; then
             OPTS+=(-e "dci_previous_job_id=$(cat /var/tmp/$CLUSTER.dci.job_id)")
         fi
 
-        setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" "$@" &>> output &
+        setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" $UPGRADE_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" "$@" &>> output &
 
         do_wait 1
     fi

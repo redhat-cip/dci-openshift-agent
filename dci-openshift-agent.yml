@@ -75,6 +75,7 @@
         version: "{{ item['data']['version'] }}"
         version_name: "{{ item['data']['name'] }}"
         version_url: "{{ item['data']['url'] }}"
+        version_pull_url: "{{ item['data']['pull_url'] }}"
         ocp_product_id: "{{ item['id'] }}"
       with_items: "{{ job_info.job.components }}"
       when: item["type"] == "ocp"

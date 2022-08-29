@@ -117,6 +117,11 @@ change. This will direct `dci-check-change` to test in a specific way:
 `Test-Args-Hints:` can also be used to specify extra parameters to
 pass to `dci-check-change`.
 
+`Test-Upgrade-Args-Hints:` can also be used to specify extra
+parameters to pass to `dci-check-change` for the upgrade command
+line. You can also specify the topics by using
+`Test-Upgrade-From-Topic-Hints` and `Test-Upgrade-To-Topic-Hints`.
+
 `Test-App-Hints:` can also be used to change the default app to be
 used (`basic_example`). If `none` is specified in `Test-App-Hints:`,
 the configuration is taken from the system.
@@ -128,7 +133,7 @@ Hints need to be activated in the `SUPPORTED_HINTS` variable in
 `/etc/dci-openshift-agent/config` like this:
 
 ```console
-SUPPORTED_HINTS="sno|assisted|libvirt|no-check|args|app|upgrade"
+SUPPORTED_HINTS="sno|assisted|libvirt|no-check|args|app|upgrade|upgrade-args|upgrade-from-topic|upgrade-to-topic"
 ```
 
 ## Continuous integration

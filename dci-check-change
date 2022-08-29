@@ -29,6 +29,7 @@ SUPPORTED_HINTS=
 NO_DCI_QUEUE=${NO_DCI_QUEUE:-}
 NO_COMMENT=
 UPGRADE=
+UPGRADE_ARGS=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -39,19 +40,22 @@ BASEDIR=$(cd $(dirname $0); pwd)
 if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno|--assisted] [--upgrade] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    echo "Usage: $name [--virt|--sno|--assisted] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
     Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
 
     arguments:
-    --virt            Use OCP on Libvirt.
-    --sno             Use SNO on Libvirt.
-    --assisted        Use Assisted Installer on Libvirt.
-    --upgrade         Run an upgrade job.
-    -n                Do not vote or comment on Gerrit reviews or GitHub PR.
-    -f                Force to run without obeying hints.
-    -s                Force a suffix to be added.
-    <kubeconfig path> To avoid running an OCP installation.
-    <ctl args>        Arguments passed to the ctl.
+    --virt                Use OCP on Libvirt.
+    --sno                 Use SNO on Libvirt.
+    --assisted            Use Assisted Installer on Libvirt.
+    --upgrade             Run an upgrade job.
+    --from-topic          In upgrade, from topic.
+    --to-topic            In upgrade, destination topic.
+    --upgrade-args <args> Pass <args> to the upgrade command line.
+    -n                    Do not vote or comment on Gerrit reviews or GitHub PR.
+    -f                    Force to run without obeying hints.
+    -s                    Force a suffix to be added.
+    <kubeconfig path>     To avoid running an OCP installation.
+    <ctl args>            Arguments passed to the ctl.
 
     Env variables:
     NO_DCI_QUEUE      Skips the use of dci-queue, when dci-queue is available
@@ -88,6 +92,22 @@ fi
 if [ $1 = --upgrade ]; then
     UPGRADE=--upgrade
     shift
+    if [ $1 = --from-topic ]; then
+        shift
+        UPGRADE="$UPGRADE --from-topic $1"
+        shift
+    fi
+
+    if [ $1 = --to-topic ]; then
+        shift
+        UPGRADE="$UPGRADE --to-topic $1"
+        shift
+    fi
+    if [ $1 = --upgrade-args ]; then
+        shift
+        UPGRADE_ARGS="$1"
+        shift
+    fi
 fi
 
 # no comment
@@ -222,8 +242,23 @@ if [[ no-check =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*no-check\s*
 fi
 
 # process Test-Upgrade
-if [[ upgrade =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Upgrade-Hint:\s*yes\s*" <<< $DESC; then
+if [[ upgrade =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Upgrade-Hints:\s*yes\s*" <<< $DESC; then
     UPGRADE=--upgrade
+
+    # process Test-Upgrade-Args-Hints
+    if [[ upgrade-args =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Upgrade-Args-Hints:" <<< $DESC; then
+        UPGRADE_ARGS="$(sed -n -e 's/^\s*Test-Upgrade-Args-Hints:\s*//pi' <<< $DESC)"
+    fi
+
+    # process Test-Upgrade-From-Topic-Hints
+    if [[ upgrade-from-topic =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Upgrade-From-Topic-Hints:" <<< $DESC; then
+        UPGRADE="$UPGRADE --from-topic $(sed -n -e 's/^\s*Test-Upgrade-From-Topic-Hints:\s*//pi' <<< $DESC)"
+    fi
+
+    # process Test-Upgrade-To-Topic-Hints
+    if [[ upgrade-to-topic =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Upgrade-To-Topic-Hints:" <<< $DESC; then
+        UPGRADE="$UPGRADE --to-topic $(sed -n -e 's/^\s*Test-Upgrade-To-Topic-Hints:\s*//pi' <<< $DESC)"
+    fi
 fi
 
 # process Test-Args-Hints
@@ -249,12 +284,12 @@ fi
 
 if [ -z "$NO_DCI_QUEUE" ] && [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
     if [ -n "$USE_PREFIX" ]; then
-        dci-queue schedule $DCI_QUEUE -- env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
+        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
     else
-        dci-queue schedule $DCI_QUEUE -- env RES=@RESOURCE APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
+        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS"  RES=@RESOURCE APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
     fi
 else
-    env APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
+    env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
 fi
 
 # dci-check-change ends here

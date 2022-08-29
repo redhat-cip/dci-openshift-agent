@@ -8,14 +8,17 @@
 
 - name: "upgrader : Get version and build from localhost vars"
   set_fact:
-    version: "{{ hostvars.localhost.version_name }}"
+    version: "{{ hostvars.localhost.version }}"
+    version_name: "{{ hostvars.localhost.version_name }}"
+    version_pull_url: "{{ hostvars.localhost.version_pull_url }}"
+    release_url: "{{ hostvars.localhost.version_url }}"
     build: "{{ hostvars.localhost.build }}"
 
 - name: "upgrader : Print versions"
   vars:
     - status_query: "conditions[?type=='Available'].message"
   debug:
-    msg: "current={{ clusterVersion.resources[0].status | json_query(status_query) }} target={{ version }}"
+    msg: "current={{ clusterVersion.resources[0].status | json_query(status_query) }} target={{ version_name }}"
 
 - name: Set major openshift version from topic
   set_fact:
@@ -51,31 +54,31 @@
 - block:
   - name: "upgrader : Fetch release digest"
     uri:
-      url: "{{ webserver_url }}/{{ version }}/release.dig"
+      url: "{{ webserver_url }}/{{ version_name }}/release.dig"
       return_content: true
     register: release_digest
 
   - name: "upgrader : Fetch signature for target release"
     get_url:
-      url: "{{ webserver_url }}/{{ version }}/signature.yaml"
-      dest: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version }}.yaml"
+      url: "{{ webserver_url }}/{{ version_name }}/signature.yaml"
+      dest: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version_name }}.yaml"
       mode: 0644
 
   - name: "upgrader : Fetch imagecontentsourcepolicy for target release"
     get_url:
-      url: "{{ webserver_url }}/{{ version }}/imagecontentsourcepolicy.yaml"
-      dest: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version }}.yaml"
+      url: "{{ webserver_url }}/{{ version_name }}/imagecontentsourcepolicy.yaml"
+      dest: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version_name }}.yaml"
       mode: 0644
 
   - name: "upgrader : Apply signatures to cluster"
     community.kubernetes.k8s:
       state: present
-      src: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version }}.yaml"
+      src: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version_name }}.yaml"
 
   - name: "upgrader : Apply imagecontentsourcepolicy to cluster"
     community.kubernetes.k8s:
       state: present
-      src: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version }}.yaml"
+      src: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version_name }}.yaml"
 
   - name: "Wait for updated MCP after applying an ICSP"
     include_role:
@@ -131,6 +134,8 @@
       kind: ClusterVersion
       spec:
         channel: "fast-{{ major }}"
+  when:
+    - not force_upgrade | default(false) | bool
 
 - name: "upgrader : Get openshift-cluster-version pod name"
   community.kubernetes.k8s_info:
@@ -178,9 +183,8 @@
     upgrade_options: >-
       {{ force_upgrade | default |
          ternary(
-           '--to-image=quay.io/openshift-release-dev/ocp-release:'
-             + version + '-x86_64 --force --allow-explicit-upgrade',
-           '--to '+ version ) }}
+           '--to-image=' + version_pull_url + ' --force --allow-explicit-upgrade --allow-upgrade-with-warnings',
+           '--to '+ version_name ) }}
   command:
     chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
     cmd: oc adm upgrade {{ upgrade_options }}
@@ -235,13 +239,9 @@
     check_reason: "Upgrade - after having operators running"
 
 - block:
-  - name: Set release_url
-    set_fact:
-      release_url: "{{ (webserver_url|default|length) | ternary(webserver_url|default, 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp') }}"
-
   - name: Get the ocp client tar gunzip file
     get_url:
-      url: "{{ release_url }}/{{ version }}/openshift-client-linux-{{ version }}.tar.gz"
+      url: "{{ release_url }}openshift-client-linux-{{ version }}.tar.gz"
       dest: /tmp/
       mode: '0755'
 
