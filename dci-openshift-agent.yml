@@ -55,7 +55,7 @@
     - name: Set DCI tags for the current job
       dci_job:
         id: '{{ job_id }}'
-        tags: '{{ dci_tags + dci_workarounds }}'
+        tags: '{{ dci_tags + dci_workarounds + ((dci_main == "upgrade") | ternary(["upgrade"],["install"])) }}'
       when: dci_tags is defined
 
     - name: Add cluster tag to the current job
@@ -232,7 +232,7 @@
           include_tasks: plays/install.yml
 
       when:
-        - dci_main is not defined or dci_main == 'install'
+        - dci_main == 'install'
         - install_type is not defined or install_type != 'assisted'
 
       rescue: &teardown_failure
@@ -290,7 +290,7 @@
     - block:
         - include_tasks: plays/deploy-operators.yml
       when:
-      - dci_main is not defined or dci_main == 'install'
+      - dci_main == 'install'
 
       rescue: *teardown_failure
 
@@ -308,7 +308,7 @@
           loop_control:
             loop_var: hookdir
       when:
-        - dci_main is not defined or dci_main == 'install'
+        - dci_main == 'install'
 
       rescue: *teardown_failure
 
@@ -338,7 +338,6 @@
           include_tasks: plays/upgrade-eus.yml
           when: upgrade_eus is defined
       when:
-        - dci_main is defined
         - dci_main == 'upgrade'
 
       rescue: *teardown_failure
@@ -361,7 +360,6 @@
             loop_var: hookdir
 
       when:
-        - dci_main is defined
         - dci_main == 'upgrade'
 
       rescue: *teardown_failure

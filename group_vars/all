@@ -44,6 +44,7 @@ dci_configuration: null
 dci_previous_job_id: null
 dci_team_id: null
 dci_pipeline_id: null
+dci_main: 'install'
 kubeconfig_path: "{{ dci_cluster_configs_dir }}/kubeconfig"
 oc_tool_path: "{{ dci_cluster_configs_dir }}/oc"
 # Vars to enable operators
