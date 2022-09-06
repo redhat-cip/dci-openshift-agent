@@ -42,7 +42,7 @@ finish() {
         # Keep in sync with UI URL task in dci-openshift-agent.yml and dci-openshift-app-agent.yml
         JOBURLS=($(grep -v sed output | sed -n -e 's@^.*Follow the log at: \(.*/jobs/.*/jobStates\).*@\1@p'| tr '\n' ' '))
         # Display the status, name and url of all the jobs
-        if [ ${#JOBURLS[@]} -gt 1 ]; then
+        if [ ${#JOBURLS[@]} -gt 0 ]; then
             . /etc/dci-openshift-agent/dcirc.sh
             for JOBURL in "${JOBURLS[@]}"; do
                 JOBID=$(sed -e 's@.*/jobs/\([^/]*\)/.*@\1@' <<< "${JOBURL}")
