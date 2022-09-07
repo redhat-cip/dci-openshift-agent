@@ -79,7 +79,7 @@ Group                   | Variable | Required      | Type   | Description
 [all:vars] | opm_local_registry_path | True | String | Path on the local registry host where the pruned catalog images will be stored
 [registry_host]         |          | True          | String | Define a host here to create or use a local registry
 [registry_host:vars] | disconnected_registry_auths_file | Optional | String | File that contains extra auth tokens to include in the pull-secret. This file will be generated if it doesn't exist. And only required if pullsecret_file var not provided)
-[registry_host:vars] | disconnected_registry_mirrors_file | True | String | File that contains the addition trust bundle and image content sources for the local registry. The contents of this file will be appended to the install-config.yml file. This file will be generated if it doesn't exist.
+[registry_host:vars] | disconnected_registry_mirrors_file | True | String | File that contains the addition trust bundle and image content sources for the local registry. The contents of this file will be appended to the install-config.yml file
 [registry_host:vars] | registry_dir | True | String | Folder where to store the openshift container images
 [registry_host:vars] | local_repo | True | String | Specify the name of the repository to create in your registry
 [registry_host:vars] | registry_source_mirrors | False | String | List of the mirror entries pointing to the registry_host
