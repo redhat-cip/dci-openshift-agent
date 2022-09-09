@@ -104,6 +104,7 @@ finish() {
 
     # Workaround to delete any temporary directory created without u+w
     find "${DIR}" -type d -not -perm -u=w -exec chmod u+w {} \;
+
     rm -rf $DIR
 
     exit $RET

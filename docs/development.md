@@ -117,6 +117,10 @@ change. This will direct `dci-check-change` to test in a specific way:
 `Test-Args-Hints:` can also be used to specify extra parameters to
 pass to `dci-check-change`.
 
+```
+Test-Args-Hints: -e dci_topic=OCP-4.10 -e enable_lso=true -e enable_ocs=true -e enable_acm=true -e dci_teardown_on_success:false
+```
+
 `Test-Upgrade-Args-Hints:` can also be used to specify extra
 parameters to pass to `dci-check-change` for the upgrade command
 line. You can also specify the topics by using
