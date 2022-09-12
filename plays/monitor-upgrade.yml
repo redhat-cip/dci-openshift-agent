@@ -3,6 +3,9 @@
     kind: ClusterVersion
     name: version
   register: cluster_version_info
+  until: "'resources' in cluster_version_info and cluster_version_info.resources != []"
+  retries: 10
+  delay: 5
 
 - name: "Get upgrade history"
   set_fact:
