@@ -1,5 +1,4 @@
 ---
-
 - name: Set outputs to be copied
   set_fact:
     outputs:

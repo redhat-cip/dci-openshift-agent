@@ -257,9 +257,6 @@
         operator_group_spec:
           targetNamespaces:
             - "{{ acm_namespace }}"
-
-    - name: "configure-operators : Configure ACM operator"
-      include_tasks: configure-acm.yml
   when:
     - enable_acm | bool
 

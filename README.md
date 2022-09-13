@@ -479,11 +479,9 @@ The Agent manages the deployment of certain operators. At this time there is sup
 - Local Storage
 - Advanced Cluster Management (ACM)
 
-In order to make additional operators available in disconected environments is it important to configure the `opm_mirror_list` variable with the list of other operators to mirror. The Agent will take care of mirroring the required images and its dependencies.
+In order to make additional operators available in disconnected environments is it important to configure the `opm_mirror_list` variable with the list of other operators to mirror. The Agent will take care of mirroring the required images and its dependencies.
 
-The variable `operators_index` is used to specify the catalog image containing information for the operators that may be deployed in the cluster. By default the index is the one located at registry.redhat.io and according to the OCP version installed but it can be overrided with a custom image. In conjuntion with `dci_operators` variable in allows the deployment of custom operators additionaly to those directly managed by the agent.
-
-```console
+The variable `operators_index` is used to specify the catalog image containing information for the operators that may be deployed in the cluster. By default the index is the one located at registry.redhat.io and according to the OCP version installed but it can be overridden with a custom image. In conjunction with `dci_operators` variable in allows the deployment of custom operators additionally to those directly managed by the agent.
 
 Please see the [settings table](#etcdci-openshift-agentsettingsyml) for the variables names to control the Operators installation.
 
@@ -811,7 +809,8 @@ Enable the dnf-automatic.timer
     1. "Install" (`dci_main` is "install" or undefined)
         - Start OpenShift install: `/plays/install.yml`
         - Trigger partner install hook if needed: `/hooks/install.yml`.
-        - *tags: running, installing, hook-installing*
+        - *tags: running, installing, hook-installing, post-installing*
+        - Runs the post installation: `/plays/post-install.yml`
         - *runs on: provisioner*
 
     2. "Upgrading" (`dci_main` is "upgrade")

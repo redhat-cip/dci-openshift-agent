@@ -317,6 +317,23 @@
 
       rescue: *teardown_failure
 
+# Step 3a-4 : post installing
+- name: 'Launch post install'
+  hosts: provisioner
+  tags:
+    - running
+    - post-installing
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - include_tasks: plays/post-install.yml
+      when:
+      - dci_main == 'install'
+      rescue: *teardown_failure
+
 # Step 3b-1 : upgrading
 - name: 'Launch upgrade'
   hosts: provisioner
