@@ -50,7 +50,7 @@
       retries: 5
       delay: 5
 
-    - name: "Change Subscription to Automatic"
+    - name: "Change Subscription to Automatic and update channel"
       community.kubernetes.k8s:
         definition:
           apiVersion: operators.coreos.com/v1alpha1
@@ -61,6 +61,7 @@
           spec:
             name: "{{ sub.operatorName }}"
             installPlanApproval: "Automatic"
+            channel: "{{ default_channel }}"
 
     - name: "Delete non-approved install plans"
       community.kubernetes.k8s:
