@@ -158,6 +158,9 @@
           ignore_unreachable: true
 
 - import_playbook: plays/assisted-pre-run.yml
+  when:
+    - install_type is defined
+    - install_type == 'assisted'
 
 # Step 1b : hook pre run
 - name: 'Launch hook pre-run'
@@ -275,6 +278,9 @@
 
 # Step 3a-1
 - import_playbook: plays/assisted-install.yml
+  when:
+    - install_type is defined
+    - install_type == 'assisted'
 
 # Step 3a-2 : deploy operators, run on the provisioner so OC is automatically set
 - name: 'Deploy operators to OCP cluster'

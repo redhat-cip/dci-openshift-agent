@@ -8,12 +8,9 @@
     opm_catalog_source_name: "{{ opm_catalog_source_name | default('redhat-operators') }}"
 
 - name: Get oc version output
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
   shell: |
-    {{ oc_tool_path }} version
+    oc version
   register: oc_version_str
-  delegate_to: localhost
 
 - name: Get OCP version
   set_fact:
