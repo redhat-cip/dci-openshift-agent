@@ -43,6 +43,8 @@
   when:
   - dci_disconnected | default(false) | bool
   - update_catalog_channel | default(true) | bool
+  - hostvars.localhost.mirror_list is defined
+  - hostvars.localhost.mirror_list | length
 
 - name: "Upgrade-operators : Upgrade installed operators"
   include_tasks: upgrade-csv.yml
