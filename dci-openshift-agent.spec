@@ -10,7 +10,7 @@ Source0:       dci-openshift-agent-%{version}.tar.gz
 BuildRequires: systemd
 BuildRequires:  /usr/bin/pathfix.py
 Requires: /usr/bin/sudo
-Requires: dci-ansible
+Requires: dci-ansible >= 0.3.0
 %if 0%{?rhel} && 0%{?rhel} < 8
 Requires: python2-dciclient >= 2.3.0
 %else
