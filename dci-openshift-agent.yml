@@ -55,7 +55,7 @@
     - name: Set DCI tags for the current job
       dci_job:
         id: '{{ job_id }}'
-        tags: '{{ dci_tags + dci_workarounds + ((dci_main == "upgrade") | ternary(["upgrade"],["install", "install_type:" + (install_type is not defined | ternary("ipi", install_type))])) }}'
+        tags: '{{ ["agent:openshift"] + dci_tags + dci_workarounds + ((dci_main == "upgrade") | ternary(["upgrade"],["install", "install_type:" + (install_type is not defined | ternary("ipi", install_type))])) }}'
 
     - name: Add cluster tag to the current job
       dci_job:
