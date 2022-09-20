@@ -96,7 +96,6 @@
         - "'status' in csv.resources[0]"
         - "'phase' in csv.resources[0].status"
         - csv.resources[0].status.phase in ['Succeeded', 'Present']
-      ignore_errors: yes
 
     - name: "Set install_approval to its original mode"
       community.kubernetes.k8s:
