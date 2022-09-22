@@ -18,6 +18,8 @@ PID2=
 RET=1
 PIPELINE_ARG=
 
+PROJECTS="ansible-collection-ansible-posix|ansible-collection-community-general|ansible-collection-community-kubernetes|ansible-collection-community-libvirt|ansible-collection-containers-podman|ansible-role-dci-podman|ansible-role-dci-sync-registry|dci-ansible|dci-openshift-agent|dci-openshift-app-agent|python-dciclient|python-dciauth"
+
 finish() {
     echo "finish $*"
 
@@ -290,11 +292,30 @@ fi
 # do not run checks on doc only changes in dci-openshift-(app-)?agent
 
 # make sure the change is only on dci-openshift-(app-)?agent or it was passed --no-check
-if [ "$VIRT" = "no-check" ] || { [ -d dci-openshift-agent -o -d dci-openshift-app-agent ] && [ $(ls|wc -l) -eq 2 ]; }; then
+if [ "$VIRT" = "no-check" ] ||
+       { [ -d dci-openshift-agent -o \
+           -d dci-openshift-app-agent ] &&
+         [ $(ls|grep -E "$PROJECTS"|wc -l) -eq 1 ];
+       } ||
+       { [ -d dci-openshift-agent -a \
+           -d dci-openshift-app-agent ] &&
+         [ $(ls|grep -E "$PROJECTS"|wc -l) -eq 2 ];
+       }; then
     if [ "$VIRT" = "no-check" ]; then
         NUMBER_CODE_FILES=0
     else
-        NUMBER_CODE_FILES=$(cd dci-openshift-*agent; git diff-tree --no-commit-id --name-only -r HEAD|egrep '(ansible.cfg|group_vars/all|plays/scripts/get-logs|dci-check-change|test-runner|send-feedback|extract-dependencies|dci-openshift-(app-)?agent-ctl|\.(yml|j2|py))'|wc -l)
+        CODE_FILES_REGEX='ansible.cfg|group_vars/all|plays/scripts/get-logs|dci-check-change|test-runner|send-feedback|extract-dependencies|dci-openshift-(app-)?agent-ctl|\.(yml|j2|py)'
+        NUMBER_CODE_FILES=$(
+        (for d in dci-openshift-*agent; do
+             cd $d
+             git diff-tree --no-commit-id --name-only -r HEAD
+             cd ..
+         done
+        ) |
+        grep -E "(${CODE_FILES_REGEX})" |
+        grep -v 'requirements.yml' |
+        wc -l
+        )
     fi
     if [ "$NUMBER_CODE_FILES" -eq 0 ]; then
         PID=
