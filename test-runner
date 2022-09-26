@@ -501,8 +501,6 @@ fi
 
 # no side effect from d-o-a
 unset ANSIBLE_CONFIG
-# default app if not specified in the env
-APP_NAME=${APP_NAME:=basic_example}
 
 OC=oc
 for p in /usr/local/bin "$HOME"/clusterconfigs-*; do
@@ -547,14 +545,14 @@ if [ -s "$KUBECONFIG" ]; then
         ln -s /etc/dci-openshift-app-agent/dcirc.sh .
         ln -s /etc/dci-openshift-app-agent/*-settings.yml /etc/dci-openshift-app-agent/*hosts . || :
         export CONFIG_DIR="$PWD"
-        if [ "$APP_NAME" != "none" ]; then
+        if [ -d "$PWD/samples/$APP_NAME" ]; then
             APP_OPT="-e dci_config_dir=$PWD/samples/$APP_NAME"
         fi
         setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> ../output &
         cd ..
     else
         unset CONFIG_DIR
-        if [ "$APP_NAME" != "none" ]; then
+        if [ -d "/var/lib/dci-openshift-app-agent/samples/$APP_NAME" ]; then
             APP_OPT="-e dci_config_dir=/var/lib/dci-openshift-app-agent/samples/$APP_NAME"
         fi
         setsid dci-openshift-app-agent-ctl $PREFIX2 -s -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> output &

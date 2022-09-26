@@ -30,6 +30,7 @@ NO_DCI_QUEUE=${NO_DCI_QUEUE:-}
 NO_COMMENT=
 UPGRADE=
 UPGRADE_ARGS=
+APP_NAME=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -271,10 +272,6 @@ fi
 # process Test-App-Hints
 if [[ app =~ $SUPPORTED_HINTS ]]; then
     APP_NAME=$(sed -n -e "s/^\s*Test-App-Hints:\s*//pi" <<< $DESC)
-fi
-
-if [ -z "$APP_NAME" ]; then
-    APP_NAME=basic_example
 fi
 
 # take test-runner from the local dir
