@@ -312,7 +312,9 @@ which version of OCP to install.
 | enable_sriov                       | False    | Boolean   | False      | Deploys the SRIOV Operator |
 | enable_ocs                         | False    | Boolean   | False      | Deploys the OCS Operator |
 | enable_lso                         | False    | Boolean   | False      | Deploys the Local Storage Operator |
-| enable_acm                         | False    | Boolean   | False      | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator |
+| enable_acm                         | False    | Boolean   | False      | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator|
+| operator_skip_upgrade              | False    | List   | []      | List of operators to skip during the upgrade |
+
 
 Example:
 

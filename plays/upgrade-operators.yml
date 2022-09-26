@@ -21,6 +21,13 @@
   retries: 5
   delay: 5
 
+- name: "Skip operators to be upgraded"
+  set_fact:
+    subscriptions: "{{ subscriptions | reject('search', item) | list }}"
+  loop: "{{ operator_skip_upgrade }}"
+  when:
+    - operator_skip_upgrade | default([]) | length
+
 - name: "Change install plans to manual"
   community.kubernetes.k8s:
     definition:
