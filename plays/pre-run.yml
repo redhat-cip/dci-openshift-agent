@@ -229,6 +229,13 @@
   when:
     - dci_disconnected | default(false) |  bool
 
+- name: "Build operators bundles from upstream"
+  include_tasks: build-upstream-catalog.yml
+  when:
+    - dci_disconnected | default(false) | bool
+    - build in ("dev", "candidate")
+    - version.split("-")[0].split(".")[2] | int == 0
+
 - name: "Mirror Operators for offline mode"
   vars:
     version: "{{ hostvars.localhost.version }}"

@@ -1,0 +1,82 @@
+- name: "Build custom index from upstream for OCP Dev/Candidate versions"
+  vars:
+    base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
+    index_image: "{{ local_registry_host }}:{{ local_registry_port }}/telcoci/upstream/sriov-operator-catalog:{{ base_version }}"
+    sriov_bundle: "{{ local_registry_host }}:{{ local_registry_port }}/telcoci/upstream/sriov-operator-bundle:{{ base_version }}"
+  block:
+
+    # Blocks to build other operators bundles may be required
+    - name: "Building SRIOV bundle"
+      block:
+        - name: Create temporary build directory
+          tempfile:
+            state: directory
+            prefix: bundle_dir.
+          register: bundle_tmp_dir
+
+        - name: "Set working directory"
+          set_fact:
+            bundle_tmp_dir: "{{ bundle_tmp_dir.path }}"
+
+        - name: "Clone/update SRIOV network-operator repo"
+          vars:
+            git_repo: "https://github.com/openshift/sriov-network-operator.git"
+            git_ref: "release-{{ base_version }}"
+          git:
+            version: "{{ git_ref }}"
+            repo: "{{ git_repo }}"
+            dest: "{{ bundle_tmp_dir }}/sriov-network-operator"
+            force: true
+          register: sriov_clone
+          retries: 3
+          delay: 10
+          until: not sriov_clone.failed
+
+        - name: "Build SRIOV bundle image"
+          shell: |
+            podman build . \
+            -f bundleci.Dockerfile  \
+            -t {{ sriov_bundle }}
+          args:
+            chdir: "{{ bundle_tmp_dir }}/sriov-network-operator"
+
+        - name: "Push the new bundle image to registry"
+          shell:
+            cmd: |
+              podman push {{ sriov_bundle }} \
+              --authfile {{ dci_pullsecret_file }}
+
+        - name: "Delete temp directory"
+          file:
+            state: absent
+            path: "{{ bundle_tmp_dir }}"
+
+    - name: "Create FBC catalog"
+      include_role:
+        name: fbc-catalog
+      vars:
+        fbc_index_image:  "{{ index_image }}"
+        fbc_bundles:
+          - "{{ sriov_bundle }}"
+        fbc_opm_args: "--skip-tls-verify=false"
+
+    - name: "Push the catalog image to registry"
+      shell:
+        cmd: |
+          podman push {{ index_image }} \
+          --authfile {{ dci_pullsecret_file }}
+
+    - name: "Remove local bundle image"
+      shell:
+        cmd: >
+          podman rmi -f "{{ sriov_bundle }}"
+
+    - name: "Remove local index image"
+      shell:
+        cmd: >
+          podman rmi -f "{{ index_image }}"
+
+    - name: "Override the source index image for mirroring"
+      set_fact:
+        operators_index: "{{ index_image }}"
+...
