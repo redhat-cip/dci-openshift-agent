@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.0
+Version:       0.5.1
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -25,7 +25,6 @@ Requires: ansible-collection-community-general
 Requires: ansible-collection-community-libvirt
 Requires: ansible-collection-ansible-posix
 Requires: python3-pyyaml python3-openshift
-Requires: ansible-role-dci-cvp
 Requires: jq
 Requires: git
 Requires: python3-netaddr
@@ -145,6 +144,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Sep 28 2022 Frederic Lepied <flepied@redhat.com> 0.5.1
+- removed ansible-role-dci-cvp requires
+
 * Thu Mar 24 2022 Frederic Lepied <flepied@redhat.com> 0.5.0-1
 - use dci-vault-client
 
