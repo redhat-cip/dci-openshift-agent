@@ -161,18 +161,56 @@
       major_inter: "{{ ocp_major }}.{{ ocp_minor | int - 1 }}"
 
   - name: "Get intermediate release from Graph"
-    shell:
-      cmd: >-
-        curl --silent --header 'Accept: application/json'
-        'https://api.openshift.com/api/upgrades_info/v1/graph?channel=eus-{{ major }}&arch=amd64' |
-        jq -r '[[.nodes|sort_by(.version)| reverse[]| .version][] | select(test("{{ major_inter }}"))][0]'
+    uri:
+      url: https://api.openshift.com/api/upgrades_info/v1/graph?channel=eus-{{ major }}&arch=amd64
     register: version_inter_graph
-    when: version_inter is undefined
 
   - name: "Set version_inter from Graph"
+    vars:
+      graph_versions: "{{ version_inter_graph.json | json_query('nodes[*].version') }}"
+      filter_inter: "^{{ major_inter }}"
     set_fact:
-      version_inter: "{{ version_inter_graph.stdout }}"
-    when: version_inter_graph is defined
+      version_inter: "{{ graph_versions | select('match', filter_inter) | list | version_sort | last }}"
+    when:
+      - version_inter is undefined
+      - version_inter_graph.json["nodes"] | length
+
+  - name: "Fail when no intermediate version is provided in the graph"
+    fail:
+      msg: "No intermediate version found, try defining one with: version_inter={{ major_inter }}.X"
+    when:
+      - version_inter is undefined
+      - not version_inter_graph.json["nodes"] | length
+
+  - name: "Get intermediate component from DCI"
+    environment:
+      DCI_CLIENT_ID: "{{ dci_client_id }}"
+      DCI_API_SECRET: "{{ dci_api_secret }}"
+      DCI_CS_URL: "{{ dci_cs_url }}"
+    block:
+      - name: "Get intermediate topic"
+        dci_topic:
+          state: search
+          name: "OCP-{{ major_inter }}"
+        register: inter_topic
+
+      - name: "Get intermediate component"
+        dci_component:
+          state: search
+          topic_id: "{{ inter_topic.topics[0].id }}"
+          type: "ocp"
+          name: "{{ version_inter }}"
+        register: inter_component
+
+  - name: "Get image for intermediate version from DCI"
+    set_fact:
+      image_inter: "{{ inter_component.components[0].data.pull_url }}"
+    when: inter_component.components | length
+
+  - name: "Fail when the intermediate version is not found in DCI"
+    fail:
+      message: "Unable to find {{ version_inter }} in DCI"
+    when: not inter_component.components | length
 
   - name: Mirror release
     include_role:
@@ -183,7 +221,7 @@
       cache_dir: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
       webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
       registry_url: "docker://{{ local_registry_host | default('localhost') }}:{{ local_registry_port | default(0)  }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
-      pull_secrets: "{{ auths | default(pullsecret) }}"
+      auths_file: "{{ dci_pullsecret_file }}"
       force: "{{ (hostvars.localhost.dci_force_mirroring | default(false)) or (hostvars.localhost.build == 'candidate') | bool }}"
       install_type: "{{ hostvars.localhost.install_type | default('ipi') }}"
       sno_install_type: "{{ hostvars.localhost.sno_install_type | default('baremetal') }}"

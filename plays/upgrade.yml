@@ -4,21 +4,22 @@
     api: config.openshift.io/v1
     kind: ClusterVersion
     name: version
-  register: clusterVersion
+  register: upgrader_cluster_ver
 
 - name: "upgrader : Get version and build from localhost vars"
   set_fact:
     version: "{{ hostvars.localhost.version }}"
-    version_name: "{{ hostvars.localhost.version_name }}"
     version_pull_url: "{{ hostvars.localhost.version_pull_url }}"
     release_url: "{{ hostvars.localhost.version_url }}"
     build: "{{ hostvars.localhost.build }}"
 
 - name: "upgrader : Print versions"
   vars:
-    - status_query: "conditions[?type=='Available'].message"
+    current_ver_query: "history[?state=='Completed'] | [0].version"
+    full_ver: "{{ upgrader_cluster_ver.resources[0].status | json_query(current_ver_query) }}"
+    current_full_ver: "{{ full_ver.split('-')[0] }}"
   debug:
-    msg: "current={{ clusterVersion.resources[0].status | json_query(status_query) }} target={{ version_name }}"
+    msg: "current={{ current_full_ver }} target={{ version }}"
 
 - name: Set major openshift version from topic
   set_fact:
@@ -40,6 +41,11 @@
     - major is version("4.8", "==")
 
 - name: "Acknowledge deprecated API removals for 4.9 upgrade"
+  vars:
+    current_ver_query: "history[?state=='Completed'] | [0].version"
+    full_ver: "{{ upgrader_cluster_ver.resources[0].status | json_query(current_ver_query) }}"
+    current_full_ver: "{{ full_ver.split('-')[0] }}"
+    current_ver: "{{ current_full_ver.split('.')[0:2]|join('.') }}"
   community.kubernetes.k8s:
     definition:
       kind: ConfigMap
@@ -49,194 +55,44 @@
       data:
         ack-4.8-kube-1.22-api-removals-in-4.9: "true"
   when:
-    - major is version("4.9", "==")
+    - current_ver is version("4.8","<=")
+    - major is version("4.9", ">=")
 
-- block:
-  - name: "upgrader : Fetch release digest"
-    uri:
-      url: "{{ webserver_url }}/{{ version_name }}/release.dig"
-      return_content: true
-    register: release_digest
-
-  - name: "upgrader : Fetch signature for target release"
-    get_url:
-      url: "{{ webserver_url }}/{{ version_name }}/signature.yaml"
-      dest: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version_name }}.yaml"
-      mode: 0644
-
-  - name: "upgrader : Fetch imagecontentsourcepolicy for target release"
-    get_url:
-      url: "{{ webserver_url }}/{{ version_name }}/imagecontentsourcepolicy.yaml"
-      dest: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version_name }}.yaml"
-      mode: 0644
-
-  - name: "upgrader : Apply signatures to cluster"
-    community.kubernetes.k8s:
-      state: present
-      src: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version_name }}.yaml"
-
-  - name: "upgrader : Apply imagecontentsourcepolicy to cluster"
-    community.kubernetes.k8s:
-      state: present
-      src: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version_name }}.yaml"
-
-  - name: "Wait for updated MCP after applying an ICSP"
-    include_role:
-      name: check-resource
-    vars:
-      resource_to_check: "MachineConfigPool"
-      check_wait_retries: 30
-      check_wait_delay: 10
-      check_reason: "Upgrade - after applying ICSP"
-
-  - name: "upgrader : Wait for nodes to become Ready"
-    community.kubernetes.k8s_info:
-      kind: Node
-    register: nodes_info
-    vars:
-      status_query: "resources[*].status.conditions[?type=='Ready'].status"
-      nodes_status: "{{ nodes_info | json_query(status_query) | flatten | unique }}"
-    until:
-      - nodes_status == ['True']
-    retries: 10
-    delay: 30
-
-  - name: "upgrader : Patch clusterversion to point to custom upstream graph"
-    community.kubernetes.k8s:
-      state: present
-      name: version
-      definition:
-        kind: ClusterVersion
-        spec:
-          upstream: "{{ webserver_url }}/graph-{{ major }}"
-
-  - name: "upgrader : Wait custom upstream graph update"
-    community.kubernetes.k8s_info:
-      kind: ClusterVersion
-      name: version
-    register: cluster_version
-    vars:
-      status_query: "conditions[?type=='RetrievedUpdates'].status"
-      upgrade_status: "{{ cluster_version.resources[0].status | json_query(status_query) }}"
-    until:
-      - upgrade_status == ['True']
-    retries: 10
-    delay: 60
-
-  when:
-    - dci_disconnected | default(false) | bool
-
-- name: "upgrader : Patch clusterversion pointing to fast channel"
+- name: "Deactivate the upgrade of worker nodes - EUS"
   community.kubernetes.k8s:
-    state: present
-    name: version
     definition:
-      kind: ClusterVersion
+      kind: MachineConfigPool
+      metadata:
+        name: worker
       spec:
-        channel: "fast-{{ major }}"
+        pause: true
   when:
-    - not force_upgrade | default(false) | bool
+    - upgrade_eus | default(false) | bool
 
-- name: "upgrader : Get openshift-cluster-version pod name"
-  community.kubernetes.k8s_info:
-    kind: pod
-    namespace: openshift-cluster-version
-  register: ocvpod
+- name: "Upgrader: Running the Intermediate upgrade - EUS"
+  vars:
+    version: "{{ hostvars.localhost.version_inter }}" 
+    target_version: "{{ major }}"
+    version_pull_url: "{{ hostvars.localhost.image_inter }}"
+  include_tasks: upgrade-process.yml
+  when:
+    - upgrade_eus | default(false) | bool
 
-- name: "upgrader : Delete the openshift-cluster-version pod"
+- name: "Upgrader: Running the upgrade"
+  vars:
+    target_version: "{{ major }}"
+  include_tasks: upgrade-process.yml
+
+- name: "Reactivate the upgrade of worker nodes - EUS"
   community.kubernetes.k8s:
-    state: absent
-    kind: pod
-    namespace: openshift-cluster-version
-    name: "{{ ocvpod.resources[0].metadata.name }}"
-
-- name: "upgrader : Wait the openshift-cluster-version pod creation"
-  community.kubernetes.k8s_info:
-    kind: pod
-    namespace: openshift-cluster-version
-  register: ocvpod
-  vars:
-    status_query: "conditions[?type=='Ready'].status"
-    pod_status: "{{ ocvpod.resources[0].status | json_query(status_query) }}"
-  until:
-    - pod_status == ['True']
-  retries: 10
-  delay: 60
-
-- name: "upgrader : Wait for clusterversion to be refreshed"
-  community.kubernetes.k8s_info:
-    kind: ClusterVersion
-    name: version
-  register: cluster_version
-  vars:
-    status_query: "conditions[?type=='RetrievedUpdates'].status"
-    upgrade_status: "{{ cluster_version.resources[0].status | json_query(status_query) }}"
-  until:
-    - upgrade_status == ['True']
+    definition:
+      kind: MachineConfigPool
+      metadata:
+        name: worker
+      spec:
+        pause: false
   when:
-    - not force_upgrade | default(false) | bool
-  retries: 10
-  delay: 60
-
-- name: "upgrader : Execute the upgrade"
-  vars:
-    upgrade_options: >-
-      {{ force_upgrade | default |
-         ternary(
-           '--to-image=' + version_pull_url + ' --force --allow-explicit-upgrade --allow-upgrade-with-warnings',
-           '--to '+ version_name ) }}
-  command:
-    chdir: "{{ '~' + ansible_user }}/clusterconfigs/auth"
-    cmd: oc adm upgrade {{ upgrade_options }}
-  register: start_upgrade
-
-- name: "upgrader : Wait for upgrade to start"
-  community.kubernetes.k8s_info:
-    kind: ClusterVersion
-    name: version
-  register: cluster_version_info
-  vars:
-    cluster_version_conditions: '{{ cluster_version_info.resources.0.status.conditions }}'
-    condition_progressing: '{{ cluster_version_conditions | selectattr("type", "equalto", "Progressing") | first }}'
-  until: ("Working towards " + version) in condition_progressing.message
-  retries: 10
-  delay: 30
-
-- name: "Upgrade elapsed time"
-  set_fact:
-    elapsed_time: 0
-
-- name: "Upgrader: Monitor upgrade"
-  include_tasks: monitor-upgrade.yml
-
-# Tasks to prepare operators for upgrade
-- name: "Upgrader : Pre-upgrade tasks"
-  include_tasks: pre-upgrade.yml
-
-# Upgrading all operators
-- name: "Upgrader : Start the upgrade on installed operators"
-  include_tasks: upgrade-operators.yml
-  when:
-    - upgrade_operators | default(true) | bool
-
-- name: "test_ upgrader: check if all cluster-operators are running correctly"
-  community.kubernetes.k8s_info:
-    kind: ClusterOperator
-  register: clusteroperator_info
-  vars:
-    status_query: "resources[*].status.conditions[?type=='Degraded'].status"
-    cluster_operators_degraded: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
-  failed_when:
-    cluster_operators_degraded == ['True']
-
-- name: "Validate that nodes are Ready and MCPs are up to date"
-  include_role:
-    name: check-resource
-  vars:
-    resource_to_check: "MachineConfigPool"
-    check_wait_retries: 100
-    check_wait_delay: 10
-    check_reason: "Upgrade - after having operators running"
+   - upgrade_eus | default(false) | bool
 
 - block:
   - name: Get the ocp client tar gunzip file

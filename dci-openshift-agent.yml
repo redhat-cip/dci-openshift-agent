@@ -73,7 +73,6 @@
         tags: "{{ item['tags'] }}"
         url: "{{ item['url']|default('') }}"
         version: "{{ item['data']['version'] }}"
-        version_name: "{{ item['data']['name'] }}"
         version_url: "{{ item['data']['url'] }}"
         version_pull_url: "{{ item['data']['pull_url'] }}"
         ocp_product_id: "{{ item['id'] }}"
@@ -335,14 +334,6 @@
             local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
             local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
           include_tasks: plays/upgrade.yml
-          when: upgrade_eus is undefined
-
-        - name: "dci-openshift-agent : Launch upgrade"
-          vars:
-            local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
-            local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
-          include_tasks: plays/upgrade-eus.yml
-          when: upgrade_eus is defined
       when:
         - dci_main == 'upgrade'
 
