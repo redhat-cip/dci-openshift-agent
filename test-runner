@@ -145,6 +145,8 @@ KCFG=
 DO_VOTE=
 PREFIX=
 PREFIX2=
+PREFIX_NAME=
+PREFIX2_NAME=
 UPGRADE=
 TO_TOPIC=
 FROM_TOPIC=
@@ -200,12 +202,14 @@ shift
 if [ "$1" = "-p" ]; then
     shift
     PREFIX="-p $1"
+    PREFIX_NAME="$1-"
     shift
 fi
 
 if [ "$1" = "-p2" ]; then
     shift
     PREFIX2="-p $1"
+    PREFIX2_NAME="$1-"
     shift
 fi
 
@@ -301,14 +305,20 @@ fi
 # compute the command line arguments according to the extracted
 # directories
 
-# find a config dir if any
-for conf in $(ls -d *config 2> /dev/null); do
-    settings="$(find $conf -name '*settings.yml')"
-    if [ -n "$settings" ]; then
-        sed -i -e "s@/var/lib/dci-openshift-agent/$conf/@$PWD/$conf/@g" $settings
-        export CONFIG_DIR="$PWD/$conf"
+# find a config dir and change the paths used in the settings files
+if [ -d "$CONFIG_DIR" ]; then
+    CONFIG_REPO=$(basename $(cd "$CONFIG_DIR" && git rev-parse --show-toplevel))
+    CONFIG_PATH=$(cd "$CONFIG_DIR" && git rev-parse --show-prefix)
+    if [ -n "$CONFIG_REPO" ] && [ -d "$CONFIG_REPO" ]; then
+        for settings in $(cd "$CONFIG_REPO" && find . -name '*settings.yml'); do
+            SETTINGS_DIR=$(cd $CONFIG_REPO/$(dirname "$settings") && git rev-parse --show-prefix)
+            sed -i -e "s@$CONFIG_DIR@$PWD/$CONFIG_REPO/$SETTINGS_DIR@g" "$CONFIG_REPO/$settings"
+            if [ "$SETTINGS_DIR" = "$CONFIG_PATH" ]; then
+                export CONFIG_DIR="$PWD/$CONFIG_REPO/$SETTINGS_DIR"
+            fi
+        done
     fi
-done
+fi
 
 if [ -d dci-openshift-agent ]; then
     ln -s "$PWD"/dci-openshift-agent/* .
@@ -501,6 +511,26 @@ fi
 
 # no side effect from d-o-a
 unset ANSIBLE_CONFIG
+unset CONFIG_DIR
+
+if [ -r /etc/dci-openshift-app-agent/config ]; then
+    . /etc/dci-openshift-app-agent/config
+fi
+
+# find a config dir and change the paths used in the settings files
+if [ -d "$CONFIG_DIR" ]; then
+    CONFIG_REPO=$(cd "$CONFIG_DIR" && git remote -v|head -1|sed -e 's@.*/@@' -e 's@\.git.*@@')
+    CONFIG_PATH=$(cd "$CONFIG_DIR" && git rev-parse --show-prefix)
+    if [ -n "$CONFIG_REPO" ] && [ -d "$CONFIG_REPO" ]; then
+        for settings in $(cd "$CONFIG_REPO" && find . -name '*settings.yml'); do
+            SETTINGS_DIR=$(cd $CONFIG_REPO/$(dirname "$settings") && git rev-parse --show-prefix)
+            sed -i -e "s@$CONFIG_DIR@$PWD/$CONFIG_REPO/$SETTINGS_DIR@g" "$CONFIG_REPO/$settings"
+            if [ "$SETTINGS_DIR" = "$CONFIG_PATH" ]; then
+                export CONFIG_DIR="$PWD/$CONFIG_REPO/$SETTINGS_DIR"
+            fi
+        done
+    fi
+fi
 
 OC=oc
 for p in /usr/local/bin "$HOME"/clusterconfigs-*; do
