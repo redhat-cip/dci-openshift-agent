@@ -20,7 +20,6 @@ PROJECTS=(
     ansible-collection-community-kubernetes
     ansible-collection-community-libvirt
     ansible-collection-containers-podman
-    ansible-role-dci-ocp-imagesideload
     ansible-role-dci-podman
     ansible-role-dci-sync-registry
     dci-ansible

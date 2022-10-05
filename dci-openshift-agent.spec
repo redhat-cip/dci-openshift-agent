@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
 Version:       0.5.1
-Release:       1.VERS%{?dist}
+Release:       2.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -18,7 +18,6 @@ Requires: python3-dciclient >= 2.3.0
 %endif
 Requires: ansible-role-dci-sync-registry
 Requires: ansible-role-dci-podman
-Requires: ansible-role-dci-ocp-imagesideload
 Requires: ansible-collection-community-kubernetes
 Requires: ansible-collection-containers-podman
 Requires: ansible-collection-community-general
@@ -43,53 +42,8 @@ DCI Openshift Agent
 %build
 
 %install
-install -p -D -m 644 ansible.cfg %{buildroot}%{_datadir}/dci-openshift-agent/ansible.cfg
-install -p -D -m 644 dci-openshift-agent.yml  %{buildroot}%{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
-install -p -D -m 644 dcirc.sh.dist %{buildroot}%{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 
-for hook in hooks/*.yml; do
-    install -p -D -m 644 $hook  %{buildroot}%{_sysconfdir}/dci-openshift-agent/$hook
-done
-
-install -p -D -m 644 settings.yml %{buildroot}%{_sysconfdir}/dci-openshift-agent/settings.yml
-
-for play in plays/*.yml; do
-    install -p -D -m 644 $play %{buildroot}%{_datadir}/dci-openshift-agent/$play
-done
-
-for script in plays/scripts/*; do
-    install -p -D -m 755 $script %{buildroot}%{_datadir}/dci-openshift-agent/$script
-done
-
-for role in $(ls roles); do
-    find roles/$role -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci-openshift-agent/{}" \;
-done
-
-cd common-roles
-for role in $(ls); do
-    find $role -type f -exec install -v -p -D -m 644 "{}" "%{buildroot}%{_datadir}/dci/roles/{}" \;
-done
-cd ..
-
-for plugin in action_plugins/*.py; do
-    install -p -D -m 644 $plugin %{buildroot}%{_datadir}/dci-openshift-agent/$plugin
-done
-
-install -p -D -m 644 group_vars/all %{buildroot}%{_datadir}/dci-openshift-agent/group_vars/all
-
-install -p -D -m 644 systemd/%{name}.service %{buildroot}%{_unitdir}/%{name}.service
-install -p -D -m 644 systemd/%{name}.timer %{buildroot}%{_unitdir}/%{name}.timer
-
-install -p -D -m 440 dci-openshift-agent.sudo %{buildroot}%{_sysconfdir}/sudoers.d/%{name}
-install -p -d -m 755 %{buildroot}/%{_sharedstatedir}/%{name}
-find samples -type f -exec install -Dm 644 "{}" "%{buildroot}%{_sharedstatedir}/dci-openshift-agent/{}" \;
-chmod 755 "%{buildroot}%{_sharedstatedir}/dci-openshift-agent/samples//ocp_on_libvirt/ci.sh"
-install -p -D -m 755 dci-openshift-agent-ctl %{buildroot}%{_bindir}/dci-openshift-agent-ctl
-
-install -p -D -m 755 dci-check-change %{buildroot}%{_bindir}/dci-check-change
-for cmd in extract-dependencies send-feedback test-runner; do
-    install -p -D -m 755 $cmd %{buildroot}%{_datadir}/dci-openshift-agent/
-done
+make install BUILDROOT=%{buildroot} DATADIR=%{_datadir} NAME=%{name} SYSCONFDIR=%{_sysconfdir} BINDIR=%{_bindir} SHAREDSTATEDIR=%{_sharedstatedir} UNITDIR=%{_unitdir}
 
 %pre
 getent group dci-openshift-agent >/dev/null || groupadd -r dci-openshift-agent
@@ -136,15 +90,16 @@ exit 0
 
 %{_unitdir}/*
 
-%exclude /%{_datadir}/dci-openshift-agent/*.pyc
-%exclude /%{_datadir}/dci-openshift-agent/*.pyo
-
 %dir %{_sharedstatedir}/dci-openshift-agent
 %attr(0755, dci-openshift-agent, dci-openshift-agent) %{_sharedstatedir}/dci-openshift-agent
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
-* Wed Sep 28 2022 Frederic Lepied <flepied@redhat.com> 0.5.1
+* Wed Sep 28 2022 Frederic Lepied <flepied@redhat.com> 0.5.1-2
+- use make install
+- removed ansible-role-dci-ocp-imagesideload requires
+
+* Wed Sep 28 2022 Frederic Lepied <flepied@redhat.com> 0.5.1-1
 - removed ansible-role-dci-cvp requires
 
 * Thu Mar 24 2022 Frederic Lepied <flepied@redhat.com> 0.5.0-1
