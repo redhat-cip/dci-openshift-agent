@@ -1,0 +1,54 @@
+---
+- name: "Deploy an SNO node via ACM"
+  vars:
+    acm_ocp_version: "{{ hostvars.localhost.version }}"
+    acm_release_image: "{{ hostvars.localhost.acm_release_image }}"
+    acm_force_deploy: "{{ hostvars.localhost.acm_force_deploy }}"
+    cluster_name: "{{ hostvars.localhost.acm_cluster_name }}"
+    base_domain: "{{ hostvars.localhost.acm_base_domain }}"
+    bmc_address: "{{ hostvars.localhost.acm_bmc_address }}"
+    boot_mac_address: "{{ hostvars.localhost.acm_boot_mac_address }}"
+    machine_cidr: "{{ hostvars.localhost.acm_machine_cidr }}"
+    bmc_user: "{{ hostvars.localhost.acm_bmc_user }}"
+    bmc_pass: "{{ hostvars.localhost.acm_bmc_pass }}"
+    acm_iso_url: "{{ hostvars.localhost.acm_metal_iso_location }}"
+    acm_root_fs_url: "{{ hostvars.localhost.acm_rootfs_url }}"
+    acm_disconnected: "{{ dci_disconnected | default(False) | bool }}"
+  include_role:
+    name: acm-sno
+    apply:
+      environment:
+        - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+  when:
+    - acm_cluster_type == 'sno'
+
+- name: "Save the SNO kubeconfig"
+  copy:
+    content: "{{ acm_kubeconfig_text }}"
+    dest: "{{ dci_cluster_configs_dir }}/kubeconfig"
+    mode: '0600'
+
+- name: "Save SNO credentials"
+  copy:
+    content: "SNO credentials\n
+              ---\n
+              username: {{ acm_kubeconfig_user }}\n
+              password: {{ acm_kubeconfig_pass }}\n"
+    dest: "{{ dci_cluster_configs_dir }}/ocp_creds.txt"
+    mode: '0600'
+  no_log: true
+
+- name: "Upload SNO creds files to DCI Control Server"
+  environment:
+    - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
+    - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
+    - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
+  dci_file:
+    path: "{{ item }}"
+    name: "{{ item | basename }}"
+    job_id: "{{ hostvars.localhost.job_id }}"
+    mime: "text/plain"
+  loop:
+  - "{{ dci_cluster_configs_dir }}/ocp_creds.txt"
+  - "{{ dci_cluster_configs_dir }}/kubeconfig"
+...

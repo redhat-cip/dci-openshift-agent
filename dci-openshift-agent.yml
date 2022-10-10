@@ -55,7 +55,7 @@
     - name: Set DCI tags for the current job
       dci_job:
         id: '{{ job_id }}'
-        tags: '{{ ["agent:openshift"] + dci_tags + dci_workarounds + ((dci_main == "upgrade") | ternary(["upgrade"],["install", "install_type:" + (install_type is not defined | ternary("ipi", install_type))])) }}'
+        tags: '{{ ["agent:openshift"] + dci_tags + dci_workarounds + ((dci_main == "upgrade") | ternary(["upgrade"],["install", "install_type:" + install_type])) }}'
 
     - name: Add cluster tag to the current job
       dci_job:
@@ -99,6 +99,25 @@
         id: "{{ job_id }}"
         status: "pre-run"
 
+    - name: "Requirements for ACM install_type"
+      block:
+        - name: "Read HUB_KUBECONFIG path from env vars"
+          set_fact:
+            hub_kubeconfig_path: "{{ lookup('env','HUB_KUBECONFIG') }}"
+          when: hub_kubeconfig_path is not defined
+
+        - name: "Check if HUB_KUBECONFIG path exists"
+          stat:
+            path: "{{ hub_kubeconfig_path }}"
+          register: hub_kubeconfig
+
+        - name: "Fail if hub_kubeconfig NOT found"
+          fail:
+            msg: "hub_kubeconfig not found at {{ hub_kubeconfig_path }}"
+          when: not hub_kubeconfig.stat.exists
+      when:
+        - install_type == 'acm'
+
 # Step 1a : pre run
 - name: 'Launch pre-run'
   hosts: localhost
@@ -118,8 +137,20 @@
 
         - name: Run the pre-run
           include_tasks: plays/pre-run.yml
-      when:
-        - install_type is not defined or install_type != 'assisted'
+          when:
+            - install_type not in ['assisted', 'acm']
+
+        - name: "ACM pre-run"
+          include_tasks:
+            file: plays/acm-pre-run.yml
+            apply:
+              environment:
+                KUBECONFIG: "{{ hub_kubeconfig_path }}"
+              tags:
+                - acm-pre-run
+          when:
+            - install_type == 'acm'
+
       rescue: &teardown_error
         - name: Run the teardown error handler
           block:
@@ -151,7 +182,6 @@
 
 - import_playbook: plays/assisted-pre-run.yml
   when:
-    - install_type is defined
     - install_type == 'assisted'
 
 # Step 1b : hook pre run
@@ -171,7 +201,6 @@
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
-
       rescue: *teardown_error
 
 # Step 1c : Set status to "running"
@@ -208,11 +237,12 @@
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
-
+      when:
+        - install_type != 'acm'
       rescue: *teardown_error
 
 # Step 3a-1 : installing
-- name: 'Launch [IPI/SNO/UPI] install'
+- name: 'Launch [IPI/SNO/UPI/ACM] install'
   hosts: provisioner
   tags:
     - running
@@ -225,10 +255,20 @@
     - block:
         - name: "dci-openshift-agent : Launch install"
           include_tasks: plays/install.yml
+          when:
+            - dci_main == 'install'
+            - install_type not in ['assisted', 'acm']
 
-      when:
-        - dci_main == 'install'
-        - install_type is not defined or install_type != 'assisted'
+        - name: "ACM Installation"
+          include_tasks:
+            file: plays/acm-install.yml
+            apply:
+              environment:
+                KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+              tags:
+                - acm-install
+          when:
+            - install_type == 'acm'
 
       rescue: &teardown_failure
         - name: Run the teardown failure handler
@@ -271,7 +311,6 @@
 # Step 3a-1
 - import_playbook: plays/assisted-install.yml
   when:
-    - install_type is defined
     - install_type == 'assisted'
 
 # Step 3a-2 : deploy operators, run on the provisioner so OC is automatically set
@@ -308,7 +347,6 @@
             loop_var: hookdir
       when:
         - dci_main == 'install'
-
       rescue: *teardown_failure
 
 # Step 3a-4 : post installing
@@ -325,7 +363,8 @@
     - block:
         - include_tasks: plays/post-install.yml
       when:
-      - dci_main == 'install'
+        - dci_main == 'install'
+        - install_type != 'acm'
       rescue: *teardown_failure
 
 # Step 3b-1 : upgrading
@@ -393,6 +432,9 @@
         - name: "Launch Red Hat tests"
           include_tasks: plays/tests.yml
 
+      when:
+        - install_type != 'acm'
+
       rescue: *teardown_failure
 
 # Step 5 : partner testing
@@ -449,6 +491,9 @@
 
         - name: Run the post-run
           include_tasks: plays/post-run.yml
+
+      when:
+        - install_type != 'acm'
 
       rescue: *teardown_error
 

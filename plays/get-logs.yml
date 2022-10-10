@@ -24,7 +24,7 @@
       {{ groups['masters'] }}
   ignore_errors: true
   when:
-  - install_type is not defined or install_type != 'assisted'
+  - install_type not in ['assisted', 'acm']
 
 - name: "Find test Junit files"
   find:

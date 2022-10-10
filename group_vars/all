@@ -12,6 +12,7 @@ dci_teardown_on_failure: false
 dci_teardown_on_success: true
 dci_local_log_dir: /var/tmp
 dci_tags: ['debug']
+install_type: ipi
 baremetal_deploy_repo: https://github.com/openshift-kni/baremetal-deploy
 baremetal_deploy_version: origin/master
 assisted_deploy_repo: https://github.com/redhat-partner-solutions/crucible.git
