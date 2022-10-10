@@ -273,6 +273,7 @@
     - dci_disconnected | default(false) | bool
     - build in ("dev", "candidate")
     - version.split("-")[0].split(".")[2] | int == 0
+    - '"cilab-813" not in dci_workarounds'
 
 - name: "Mirror Operators for offline mode"
   vars:
