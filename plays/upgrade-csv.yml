@@ -82,7 +82,7 @@
       debug:
         msg: "Upgrading from {{ sub.installedCSV }} to {{ operator_csv }}"
 
-    - name: "Wait up to 80 mins for new operator's CSV to be ready"
+    - name: "Wait up to 2 hours for new operator's CSV to be ready"
       community.kubernetes.k8s_info:
         api: operators.coreos.com/v1alpha1
         namespace: "{{ sub.namespace }}"
@@ -90,7 +90,7 @@
         name: "{{ operator_csv }}"
       register: csv
       retries: 120
-      delay: 40
+      delay: 60
       until:
         - csv.resources | length == 1
         - "'status' in csv.resources[0]"
