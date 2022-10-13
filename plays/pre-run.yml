@@ -350,4 +350,16 @@
   when: hostvars.localhost.cluster is defined
   become: true
 
+- name: "Storage service test (during upgrade only)"
+  include_role:
+    name: storage-tester
+    apply:
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+  vars:
+    storage_class: "{{ tester_storage_class | default(omit) }}"
+  when:
+    - dci_main is defined
+    - dci_main == 'upgrade'
+    - storage_upgrade_tester | default(false) | bool
 ...

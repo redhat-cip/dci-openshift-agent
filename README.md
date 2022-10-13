@@ -17,47 +17,48 @@ There are some benefits of running the DCI OCP Agent:
 ## Table of Contents
 
 - [DCI OpenShift Agent](#dci-openshift-agent)
-  - [Requirements](#requirements)
-    - [Network requirements](#network-requirements)
-    - [Systems requirements](#systems-requirements)
-      - [Jumpbox requirements](#jumpbox-requirements)
-      - [Systems under test](#systems-under-test)
-    - [Optional](#optional)
-  - [Setting up access to DCI](#setting-up-access-to-dci)
-  - [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
-    - [Installation of OCP Provision Host](#installation-of-ocp-provision-host)
-    - [Copying the ssh key to your provisioner](#copying-the-ssh-key-to-your-provisioner)
-    - [Jumpbox Configuration](#jumpbox-configuration)
-      - [`/etc/dci-openshift-agent/dcirc.sh`](#etcdci-openshift-agentdcircsh)
-      - [`/etc/dci-openshift-agent/settings.yml`](#etcdci-openshift-agentsettingsyml)
-      - [`/etc/dci-openshift-agent/hosts`](#etcdci-openshift-agenthosts)
-    - [Disconnected mode in DCI OCP agent](#disconnected-mode-in-dci-ocp-agent)
-    - [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
-    - [Storing secrets](#storing-secrets)
-  - [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
-  - Other install methods:
-    - [User Provisioned Infrastructure](docs/upi.md)
-    - [Assisted Installer](docs/a-i.md)
-    - [Advanced Cluster Management (ACM)](docs/acm.md)
-  - [Deploying Operators](#deploying-operators)
-  - [Interacting with your RHOCP Cluster](#interacting-with-your-rhocp-cluster)
-  - [Troubleshooting common issues](#troubleshooting-common-issues)
-    - [Troubleshooting basic configuration](#troubleshooting-basic-configuration)
-    - [Troubleshooting network connectivity](#troubleshooting-network-connectivity)
-    - [Troubleshooting OCP bootstrapping](#troubleshooting-ocp-bootstrapping)
-    - [Troubleshooting OCP install](#troubleshooting-ocp-install)
-  - [Keep the DCI OCP Agent Updated](#keep-the-dci-ocp-agent-updated)
-  - [dci-openshift-agent workflow](#dci-openshift-agent-workflow)
-  - [Getting involved](#getting-involved)
-  - [Create your DCI account on distributed-ci.io](#create-your-dci-account-on-distributed-ciio)
-  - [License](#license)
-  - [Contact](#contact)
+    - [Requirements](#requirements)
+        - [Network requirements](#network-requirements)
+        - [Systems requirements](#systems-requirements)
+            - [Jumpbox requirements](#jumpbox-requirements)
+            - [Systems under test](#systems-under-test)
+        - [Optional](#optional)
+    - [Setting up access to DCI](#setting-up-access-to-dci)
+    - [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
+        - [Installation of OCP Provision Host](#installation-of-ocp-provision-host)
+        - [Copying the ssh key to your provisioner](#copying-the-ssh-key-to-your-provisioner)
+        - [Jumpbox Configuration](#jumpbox-configuration)
+            - [`/etc/dci-openshift-agent/dcirc.sh`](#etcdci-openshift-agentdcircsh)
+            - [`/etc/dci-openshift-agent/settings.yml`](#etcdci-openshift-agentsettingsyml)
+            - [`/etc/dci-openshift-agent/hosts`](#etcdci-openshift-agenthosts)
+        - [Disconnected mode in DCI OCP agent](#disconnected-mode-in-dci-ocp-agent)
+        - [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
+        - [Storing secrets](#storing-secrets)
+    - [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
+    - Other install methods:
+        - [User Provisioned Infrastructure](docs/upi.md)
+        - [Assisted Installer](docs/a-i.md)
+        - [Advanced Cluster Management (ACM)](docs/acm.md)
+    - [Deploying Operators](#deploying-operators)
+    - [Interacting with your RHOCP Cluster](#interacting-with-your-rhocp-cluster)
+    - [Troubleshooting common issues](#troubleshooting-common-issues)
+        - [Troubleshooting basic configuration](#troubleshooting-basic-configuration)
+        - [Troubleshooting network connectivity](#troubleshooting-network-connectivity)
+        - [Troubleshooting OCP bootstrapping](#troubleshooting-ocp-bootstrapping)
+        - [Troubleshooting OCP install](#troubleshooting-ocp-install)
+    - [Keep the DCI OCP Agent Updated](#keep-the-dci-ocp-agent-updated)
+    - [dci-openshift-agent workflow](#dci-openshift-agent-workflow)
+    - [Getting involved](#getting-involved)
+    - [Create your DCI account on distributed-ci.io](#create-your-dci-account-on-distributed-ciio)
+    - [License](#license)
+    - [Contact](#contact)
 
 ## Requirements
 
 ### Network requirements
 
-This is a summary taken from the upstream [Network requirements guide from OpenShift](https://openshift-kni.github.io/baremetal-deploy/latest/Deployment#network-requirements_ipi-install-prerequisites):
+This is a summary taken from the
+upstream [Network requirements guide from OpenShift](https://openshift-kni.github.io/baremetal-deploy/latest/Deployment#network-requirements_ipi-install-prerequisites):
 
 - Each server needs 2 NICs pre-configured. NIC1 for the private/provisioning
   network and NIC2 for the baremetal network. NIC interface names must be
@@ -124,25 +125,25 @@ In any case, it must:
 - Have at least 160GB of free space available in `/var`
 - Have access to Internet
 - Be able to connect the following Web urls:
-  - DCI API: <https://api.distributed-ci.io>
-  - DCI Packages: <https://packages.distributed-ci.io>
-  - DCI Repository: <https://repo.distributed-ci.io>
-  - EPEL: <https://dl.fedoraproject.org/pub/epel/>
-  - QUAY: <https://quay.io>
-  - RED HAT REGISTRY: <https://registry.redhat.io>
-  - RED HAT SSO: <https://access.redhat.com>
-  - RED HAT CATALOG: <https://catalog.redhat.com>
-  - OpenShift Mirrors: <https://rhcos.mirror.openshift.com> and <https://mirror.openshift.com>
+    - DCI API: <https://api.distributed-ci.io>
+    - DCI Packages: <https://packages.distributed-ci.io>
+    - DCI Repository: <https://repo.distributed-ci.io>
+    - EPEL: <https://dl.fedoraproject.org/pub/epel/>
+    - QUAY: <https://quay.io>
+    - RED HAT REGISTRY: <https://registry.redhat.io>
+    - RED HAT SSO: <https://access.redhat.com>
+    - RED HAT CATALOG: <https://catalog.redhat.com>
+    - OpenShift Mirrors: <https://rhcos.mirror.openshift.com> and <https://mirror.openshift.com>
 - Have a static internal (network lab) IP
 - Be able to reach all systems under test (SUT) using (mandatory, but not
   limited to):
-  - SSH
-  - IPMI
-  - Serial-Over-LAN or other remote consoles (details & software to be provided by the partner)
+    - SSH
+    - IPMI
+    - Serial-Over-LAN or other remote consoles (details & software to be provided by the partner)
 - Be reachable by the Systems Under Test by using:
-  - DHCP
-  - PXE
-  - HTTP/HTTPS
+    - DHCP
+    - PXE
+    - HTTP/HTTPS
 
 > NOTE: Make sure rhel-8-for-x86_64-appstream-rpms repo provides access to libvirt => 6.0.0 packages
 
@@ -168,13 +169,15 @@ deployment (More info at [Jumpbox Configuration](#jumpbox-configuration)).
 
 ## Setting up access to DCI
 
-The DCI dashboard gives you a view into what jobs you have run in your distributed agent. In order to gain access to it you have to:
+The DCI dashboard gives you a view into what jobs you have run in your distributed agent. In order to gain access to it
+you have to:
 
 1. Go to distributed-ci.io and click login. You will be redirected to
    ssh.redhat.com so you'll use your RH account credentials
 2. If you are not part of any teams you can contact an admin to get yourself
    added
-3. You will have to create a Remote CI for use later, go on the left navigation bar on the `Remotecis` option and click on "Create a new remoteci"
+3. You will have to create a Remote CI for use later, go on the left navigation bar on the `Remotecis` option and click
+   on "Create a new remoteci"
 4. Fill out the description and which team it belongs to then click Create
 5. You should see your newly created remoteci in the list, you can get the
    credentials by click the button in the Authentication column. You will need
@@ -244,7 +247,13 @@ There are three configuration files for `dci-openshift-agent`:
 
 #### `/etc/dci-openshift-agent/dcirc.sh`
 
+<<<<<<< HEAD
 > NOTE: The default `dcirc.sh` is shipped as `/etc/dci-openshift-agent/dcirc.sh.dist`.
+> =======
+!!! NOTE
+> The default `dcirc.sh` is shipped as
+`/etc/dci-openshift-agent/dcirc.sh.dist`.
+>> > > > > > be0a739 (Adding storage-tester role to test storage service during the upgrade)
 
 Copy the [recently obtained API credentials](#setting-up-access-to-dci) and
 paste it on the Jumpbox to `/etc/dci-openshift-agent/dcirc.sh`.
@@ -300,6 +309,8 @@ which version of OCP to install.
 | upgrade_eus                     | False    | Boolean | False                                                          | Enable the EUS upgrade. Please see the [EUS upgrade](#eus-upgrade) section for more details.
 | upgrade_operators               | False    | Boolean | True                                                           | In upgrade mode, enable the upgrade of installed operators after the cluster upgrade.
 | update_catalog_channel          | False    | Boolean | True                                                           | When performing operators upgrade, in disconnected mode, update disconnected catalogSources for mirroring.
+| storage_upgrade_tester          | False    | Boolean | False                                                          | only for upgrade; set it to true to launch CronJobs that are testing the storage service by deploying volumes (mounting and writing) during an upgrade.                                                                                                                                                                                                     |
+| tester_storage_class            | False    | String  | False                                                          | only for upgrade; define which storage class to use for Storage upgrade tests. If is not defined, it will use the default storage class.                                                                                                                                                                                                                    |
 | dci_workarounds                 | False    | List    | []                                                             | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz\<id> or gh-org-repo-\<id>.
 | openshift_secret                | False    | Dict    | auths:                                                         | Additional auths will be combined                              |
 | operators_index                 | False    | String  | registry.redhat.io/redhat/redhat-operator-index:v<ocp_version> | Catalog index that contains the bundles for the operators that will be mirrored in disconnected environments. In connected environments, if defined it will update the operators catalog index.
@@ -331,11 +342,12 @@ dci_name: "ocp-4.11-job"
 dci_configuration: "baremetal"
 dci_url: "https://softwarefactory-project.io/r/c/dci-openshift-agent/+/22195"
 dci_comment: "test-runner: use the new url metadata for jobs"
-dci_tags: ["debug", "gerrit:22195"]
+dci_tags: [ "debug", "gerrit:22195" ]
 ...
 ```
 
-> NOTE: There are certain particularities about versioning that you can read more in depth in [the versioning document](docs/ocp_versioning.md)
+> NOTE: There are certain particularities about versioning that you can read more in depth
+> in [the versioning document](docs/ocp_versioning.md)
 
 #### `/etc/dci-openshift-agent/hosts`
 
@@ -419,11 +431,13 @@ hardware_profile=default
 provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 ```
 
-> NOTE: If the jumpbox server is in a different network than the baremetal network, then include `extcirdnet=<baremetal-network/mask>` in the `all:vars` section of the inventory
+> NOTE: If the jumpbox server is in a different network than the baremetal network, then
+> include `extcirdnet=<baremetal-network/mask>` in the `all:vars` section of the inventory
 
 ### Disconnected mode in DCI OCP agent
 
-When using the agent in a disconnected environment, special variables should be used. See the [disconnected doc](docs/disconnected_en.md) for more details.
+When using the agent in a disconnected environment, special variables should be used. See
+the [disconnected doc](docs/disconnected_en.md) for more details.
 
 ### Overloading settings and hooks directories
 
@@ -436,17 +450,19 @@ CONFIG_DIR=/var/lib/dci-openshift-agent/config
 
 This will allow you to use a version control system for all your settings.
 
-If you want to also store the hooks in the same directory, you have to specify `dci_config_dirs` in your `settings.yml`. Example:
+If you want to also store the hooks in the same directory, you have to specify `dci_config_dirs` in your `settings.yml`.
+Example:
 
 ```YAML
 ---
 dci_topic: OCP-4.11
-dci_config_dirs: [/var/lib/dci-openshift-agent/config]
+dci_config_dirs: [ /var/lib/dci-openshift-agent/config ]
 ```
 
 ### Storing secrets
 
-You can store secrets in an encrypted manner in your `settings.yml` and YAML inventories by using `dci-vault` to generate your encrypted secrets. Details in the [python-dciclient documentation](../python-dciclient/).
+You can store secrets in an encrypted manner in your `settings.yml` and YAML inventories by using `dci-vault` to
+generate your encrypted secrets. Details in the [python-dciclient documentation](../python-dciclient/).
 
 ## Starting the DCI OCP Agent
 
@@ -482,11 +498,18 @@ The Agent manages the deployment of certain operators. At this time there is sup
 - Local Storage
 - Advanced Cluster Management (ACM)
 
-In order to make additional operators available in disconnected environments is it important to configure the `opm_mirror_list` variable with the list of other operators to mirror. The Agent will take care of mirroring the required images and its dependencies.
+In order to make additional operators available in disconnected environments is it important to configure
+the `opm_mirror_list` variable with the list of other operators to mirror. The Agent will take care of mirroring the
+required images and its dependencies.
 
-The variable `operators_index` is used to specify the catalog image containing information for the operators that may be deployed in the cluster. By default the index is the one located at registry.redhat.io and according to the OCP version installed but it can be overridden with a custom image. In conjunction with `dci_operators` variable in allows the deployment of custom operators additionally to those directly managed by the agent.
+The variable `operators_index` is used to specify the catalog image containing information for the operators that may be
+deployed in the cluster. By default the index is the one located at registry.redhat.io and according to the OCP version
+installed but it can be overridden with a custom image. In conjunction with `dci_operators` variable in allows the
+deployment of custom operators additionally to those directly managed by the agent.
 
-Additional catalogs can be configured for the cluster in order to allow the installation of operators not available in the one defined by `operators_index`. Set the `additional_catalogs` variable with the references to the catalog images. For example:
+Additional catalogs can be configured for the cluster in order to allow the installation of operators not available in
+the one defined by `operators_index`. Set the `additional_catalogs` variable with the references to the catalog images.
+For example:
 
 ```yaml
 additional_catalogs:
@@ -496,23 +519,23 @@ additional_catalogs:
   - icr.io/cpopen/ibm-operator-catalog:latest
 ```
 
-Please see the [settings table](#etcdci-openshift-agentsettingsyml) for the variables names to control the Operators installation.
+Please see the [settings table](#etcdci-openshift-agentsettingsyml) for the variables names to control the Operators
+installation.
 
 ### Customizing the Operators installation
 
-The `dci_operators` variable can be used to deploy additional operators or apply customized installations. An example of how to define `dci_operators` variable is shown below.
+The `dci_operators` variable can be used to deploy additional operators or apply customized installations. An example of
+how to define `dci_operators` variable is shown below.
 
 ```yaml
 dci_operators:
-  -
-    name: local-storage-operator
+  - name: local-storage-operator
     catalog_source: mirrored-redhat-operators
     namespace: openshift-local-storage
     operator_group_spec:
       targetNamespaces:
         - openshift-local-storage
-  -
-    name: ocs-operator
+  - name: ocs-operator
     catalog_source: mirrored-redhat-operators
     namespace: openshift-storage
     operator_group_spec:
@@ -522,7 +545,10 @@ dci_operators:
       openshift.io/cluster-monitoring: "true"
 ```
 
-- In disconnected environments, the catalog `mirrored-redhat-operators` will contain the package manifests for the operators that were mirrored by combining the items defined via `opm_mirror_list` plus to the ones activated for the deployment. For example, activating the `enable_acm` flag will automatically append to the list  the following operators required to deploy ACM to de ones added to the list.
+- In disconnected environments, the catalog `mirrored-redhat-operators` will contain the package manifests for the
+  operators that were mirrored by combining the items defined via `opm_mirror_list` plus to the ones activated for the
+  deployment. For example, activating the `enable_acm` flag will automatically append to the list the following
+  operators required to deploy ACM to de ones added to the list.
 
 ```yaml
 opm_mirror_list:
@@ -553,27 +579,31 @@ After you run a DCI job you will be able to interact with the RHOCP cluster usin
     oc get nodes
     ```
 
-    A copy of the generated kubeconfig file will be attached to the job files section in DCI.
+   A copy of the generated kubeconfig file will be attached to the job files section in DCI.
 
 1. Using the GUI/API
 
-    Obtain the credentials generated during the installation from /home/`<user>`/`<clusterconfigs-path>`/ocp_creds.txt in the jumphost.
+   Obtain the credentials generated during the installation from /home/`<user>`/`<clusterconfigs-path>`/ocp_creds.txt in
+   the jumphost.
 
-    Get the the URL of the cluster GUI:
+   Get the the URL of the cluster GUI:
 
     ```bash
     $ oc whoami --show-console
     https://console-openshift-console.apps.<cluster>.<domain>
     ```
 
-> NOTE: The dci-openshift-agent is part of a [Continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) tool aimed to perform OCP deployments, should not be considered for production workloads. Use the above connection methods if some troubleshooting is required.
+> NOTE: The dci-openshift-agent is part of
+> a [Continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) tool aimed to perform OCP deployments,
+> should not be considered for production workloads. Use the above connection methods if some troubleshooting is required.
 
 ## EUS upgrade
 
 Openshift offers a way to facilitate the upgrade between two EUS versions.
 It handles upgrading from 4.8 to 4.10, or 4.10 to 4.12, etc.
 
-Documentation is available [Here](https://docs.openshift.com/container-platform/4.10/updating/preparing-eus-eus-upgrade.html)
+Documentation is
+available [Here](https://docs.openshift.com/container-platform/4.10/updating/preparing-eus-eus-upgrade.html)
 
 To perform this upgrade with DCI, you must meet the following conditions:
 
@@ -581,9 +611,13 @@ To perform this upgrade with DCI, you must meet the following conditions:
 - The cluster has to be installed in an EUS version.
 - The topic should be the targeted an EUS version.
 
-There also exists an optional variable `version_inter` to specify the intermediate OCP version to use, instead of the one the upgrade path would provide.
+There also exists an optional variable `version_inter` to specify the intermediate OCP version to use, instead of the
+one the upgrade path would provide.
 
-Let's say you want to upgrade from 4.10 to 4.12, since 4.12 is not yet a GA release at the time of this writing, then you will need to specify an intermediate version, for example: `version_inter=4.11.4`. Or maybe you need to land in a candidate version, then you could do that by doing: `version_inter=4.11.5-*`, please note the addition to `-*` this will help to include candidate versions in the search.
+Let's say you want to upgrade from 4.10 to 4.12, since 4.12 is not yet a GA release at the time of this writing, then
+you will need to specify an intermediate version, for example: `version_inter=4.11.4`. Or maybe you need to land in a
+candidate version, then you could do that by doing: `version_inter=4.11.5-*`, please note the addition to `-*` this will
+help to include candidate versions in the search.
 
 ## Troubleshooting common issues
 
@@ -603,13 +637,13 @@ place:
   credentials as per the distributed-ci.io dashboard?
 - Does my `/etc/dci-openshift-agent/hosts` reflect my cluster's expected
   configuration? Check the following variables:
-  - `cluster`
-  - `domain`
-  - `prov_nic`
-  - `pub_nic`
-  - IPMI configuration for all nodes in OCP cluster: `ipmi_user`,
-    `ipmi_password`, `ipmi_address`
-  - MAC addresses for all nodes in OCP cluster
+    - `cluster`
+    - `domain`
+    - `prov_nic`
+    - `pub_nic`
+    - IPMI configuration for all nodes in OCP cluster: `ipmi_user`,
+      `ipmi_password`, `ipmi_address`
+    - MAC addresses for all nodes in OCP cluster
 - Does my `/etc/dci-openshift-agent/settings.yml` file reflect the right
   topic/component for my needs?
 - Is my `dci-openshift-agent` SSH key transferred to the provision host? e.g.
@@ -625,8 +659,8 @@ to look for are:
 - Your `provisioning` network should be treated as an exclusive "out of band"
   network only intended to PXE boot the initial cluster OS
 - Your `baremetal` network should be capable of routing to:
-  - Your jumpbox
-  - Your cluster nodes' BMCs (e.g. your management network)
+    - Your jumpbox
+    - Your cluster nodes' BMCs (e.g. your management network)
 - You should have outbound internet access from your Jumpbox (and OCP cluster
   unless in [disconnected mode](docs/disconnected_en.md))
 - Your `baremetal` network should be DHCP enabled and have addresses for all of
@@ -720,7 +754,8 @@ bar
 Then prepare a clouds.yaml with the following information, and replace the IP
 addresses and password accordingly
 
-> NOTE: Starting with OCP 4.7 `metal3-boostrap` service uses `auth_type: http_basic`, but in in older versions it uses `auth_type: none` so there's no need to set auth section with the credentials
+> NOTE: Starting with OCP 4.7 `metal3-boostrap` service uses `auth_type: http_basic`, but in in older versions it
+> uses `auth_type: none` so there's no need to set auth section with the credentials
 
 ```YAML
 clouds:
@@ -848,7 +883,9 @@ Enable the dnf-automatic.timer
       `/hooks/post-run.yml`
     - *tags: post-run*
     - *runs on: localhost*
-    > NOTE: All results files (logs, tests, ...) must be stored within the `{{ dci_cluster_configs_dir }}/` directory in order to be properly uploaded to the DCI server. Test result files must follow the Junit format and the file name must follow the pattern `junit_*.xml`
+   > NOTE: All results files (logs, tests, ...) must be stored within the `{{ dci_cluster_configs_dir }}/` directory in
+   order to be properly uploaded to the DCI server. Test result files must follow the Junit format and the file name
+   must follow the pattern `junit_*.xml`
 
 7. "Success"
     - Launch additional tasks when the job is successful: `/hooks/success.yml`
@@ -858,10 +895,13 @@ Enable the dnf-automatic.timer
 *Exit playbooks:*
 The following playbooks are executed sequentially at any step that fail:
 
-- Teardown: `/hooks/teardown.yml` which is executed only when the boolean `dci_teardown_on_success` is set to `true` (set to `true` by default)
-- Failure: `/plays/failure.yml` and `/hooks/failure.yml` during the `running` steps and `/plays/error.yml` during the other steps. `/hooks/failure.yml` was added to allow custom debug command to gather more meaningful logs.
+- Teardown: `/hooks/teardown.yml` which is executed only when the boolean `dci_teardown_on_success` is set to `true` (
+  set to `true` by default)
+- Failure: `/plays/failure.yml` and `/hooks/failure.yml` during the `running` steps and `/plays/error.yml` during the
+  other steps. `/hooks/failure.yml` was added to allow custom debug command to gather more meaningful logs.
 
-> NOTE: All the task files located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized by the user.
+> NOTE: All the task files located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be
+> customized by the user.
 
 All the tasks prefixed with `test_` will get exported in Junit using the
 [Ansible Junit

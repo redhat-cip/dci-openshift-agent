@@ -1,4 +1,17 @@
 ---
+- name: "Gathering results for storage service tester"
+  include_role:
+    name: storage-tester
+    tasks_from: gathering-logs.yml
+    apply:
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+        REGISTRY: "{% if dci_disconnected | default(false) %} {{ local_registry_host | default('') }}:{{ local_registry_port | default('') }} {% else %}registry.redhat.io{% endif %}"
+        OC_PATH: "{{ oc_tool_path }}"
+  when:
+    - dci_main is defined
+    - dci_main == 'upgrade'
+    - storage_upgrade_tester | default(false) | bool
 
 - name: Upload logs
   include_tasks: get-logs.yml
