@@ -2,9 +2,9 @@
   vars:
     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
     index_image: "{{ local_registry_host }}:{{ local_registry_port }}/telcoci/upstream/sriov-operator-catalog:{{ base_version }}"
-    sriov_bundle: "{{ local_registry_host }}:{{ local_registry_port }}/telcoci/upstream/sriov-operator-bundle:{{ base_version }}"
+    sriov_bundle: "{{ local_registry_host }}:{{ local_registry_port }}/telcoci/upstream/sriov-operator-bundle"
+    sriov_bundle_tag: "{{ local_registry_host }}:{{ local_registry_port }}/telcoci/upstream/sriov-operator-bundle:{{ base_version }}"
   block:
-
     # Blocks to build other operators bundles may be required
     - name: "Building SRIOV bundle"
       block:
@@ -32,19 +32,37 @@
           delay: 10
           until: not sriov_clone.failed
 
+        - name: "Pin CSV"
+          script:
+            cmd: >
+              plays/scripts/use-digest
+              {{ bundle_tmp_dir }}/sriov-network-operator/manifests/stable/sriov-network-operator.clusterserviceversion.yaml
+
         - name: "Build SRIOV bundle image"
-          shell: |
-            podman build . \
-            -f bundleci.Dockerfile  \
-            -t {{ sriov_bundle }}
+          shell: >
+            podman build .
+            -f bundleci.Dockerfile
+            -t {{ sriov_bundle_tag }}
           args:
             chdir: "{{ bundle_tmp_dir }}/sriov-network-operator"
 
         - name: "Push the new bundle image to registry"
           shell:
-            cmd: |
-              podman push {{ sriov_bundle }} \
+            cmd: >
+              podman push {{ sriov_bundle_tag }}
               --authfile {{ dci_pullsecret_file }}
+
+        - name: "Get bundle image SHA256"
+          shell:
+            cmd: >
+              skopeo inspect
+              --authfile {{ dci_pullsecret_file }}
+              docker://{{ sriov_bundle_tag }} | jq -r '.Digest'
+          register: bundle_sha
+          retries: 5
+          delay: 5
+          until:
+            - bundle_sha.stdout | regex_search('^sha')
 
         - name: "Delete temp directory"
           file:
@@ -55,21 +73,21 @@
       include_role:
         name: fbc-catalog
       vars:
-        fbc_index_image:  "{{ index_image }}"
+        fbc_index_image: "{{ index_image }}"
         fbc_bundles:
-          - "{{ sriov_bundle }}"
+          - "{{ sriov_bundle }}@{{ bundle_sha.stdout }}"
         fbc_opm_args: "--skip-tls-verify=false"
 
     - name: "Push the catalog image to registry"
       shell:
-        cmd: |
-          podman push {{ index_image }} \
+        cmd: >
+          podman push {{ index_image }}
           --authfile {{ dci_pullsecret_file }}
 
     - name: "Remove local bundle image"
       shell:
         cmd: >
-          podman rmi -f "{{ sriov_bundle }}"
+          podman rmi -f "{{ sriov_bundle_tag }}"
 
     - name: "Remove local index image"
       shell:
