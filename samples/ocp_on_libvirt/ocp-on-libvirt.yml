@@ -60,6 +60,27 @@
         state: present
         disable_gpg_check: true
 
+    - name: Install rhel9 prerequisites
+      block:
+        - name: Install ansible collection required
+          community.general.ansible_galaxy_install:
+            type: collection
+            name: ansible.netcommon
+          become_user: dci-openshift-agent
+
+        - name: Install packages from specific repos
+          become: true
+          dnf:
+            name: "{{ item.package }} "
+            enablerepo: "{{ item.repo }}"
+          loop:
+            - package: "python3-openshift"
+              repo: "codeready-builder-for-rhel-9-{{ ansible_architecture }}-rpms"
+            - package: "ansible-runner"
+              repo: "ansible-automation-platform-2.3-for-rhel-9-x86_64-rpms"
+      when:
+        - ansible_distribution_major_version == "9"
+
     - name: Install DCI Release
       tags:
         - setup
