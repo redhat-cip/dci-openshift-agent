@@ -79,14 +79,8 @@ if [ -n "$GERRIT_USER" ]; then
             if ! grep -qP "(${tracking_projects})" <<<${project}; then
                 continue
             fi
-            # Ignore WIP changes
-            wip=$(jq -r .change.wip <<< $data)
-            if [ "$wip" = "true" ]; then
-                echo "$type $project $number \"$comment\" [WIP] =============================="
-                continue
-            fi
             echo "==========================="
-            if [ "$type" = "patchset-created" -o "$type" = "wip-state-changed" ]; then
+            if [ "$type" = "patchset-created" ]; then
                 subject="$(jq -r .change.subject <<< $data)"
                 echo "$type $project $number \"$subject\" $url =============================="
                 dci-check-change $number
