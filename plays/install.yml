@@ -139,6 +139,10 @@
       dci_job_component:
         component_id: "{{ kernel_component.component.id }}"
         job_id: "{{ hostvars.localhost.job_id }}"
+      register: job_component_result
+      until: job_component_result is not failed
+      retries: 5
+      delay: 20
       when:
         - "'component' in kernel_component"
         - "'id' in kernel_component.component"
