@@ -2,6 +2,26 @@ all:
   vars:
     install_type: assisted
 
+    # START Restricted Network configuration
+    #
+    setup_registry_service: false # set to true on restricted network
+    setup_http_store_service: false # set to true on restricted network
+    use_local_mirror_registry: false # set to true on restricted network
+
+    # Local cache configuration
+    # cache_dir_base: /var/cache/dci-openshift-agent
+    # downloads_path: "{{ cache_dir_base }}"
+    # assisted_installer_dir: "{{ cache_dir_base }}/ai"
+    # registry_dir: "{{ cache_dir_base }}/registry"
+    # vm_create_scripts_dir: "{{ cache_dir_base }}/vm_scripts"
+    # sushy_dir: "{{ cache_dir_base }}/sushy"
+    # http_dir: "{{ cache_dir_base }}/http"
+    # iso_download_dest_path: "{{ http_dir }}/data"
+    # rootfs_directory: "{{ iso_download_dest_path }}/pxe"
+    # images_dir: /var/lib/libvirt/images
+    #
+    # END Restricted Network configuration
+
     # HTTP Secret for the Container Registry.
     # More information on the vars used to configure the Registry can be found here:
     # https://docs.docker.com/registry/configuration/#http
@@ -63,8 +83,6 @@ all:
     # You will need to ensure alternatives are available for anything that will not be automatically set up
     setup_ntp_service: true
     setup_dns_service: true
-    setup_registry_service: false # Only required for a Restricted Network installation
-    setup_http_store_service: true
     setup_assisted_installer: true # default is true you may wish to turn it off if multiple users are using the same instance.
 
 
@@ -73,13 +91,6 @@ all:
     ntp_server: 10.60.0.190
     # ntp_server_allow is the range of IPs the NTP service will respond to
     ntp_server_allow: 10.60.0.0/24 # not required if setup_ntp_service is false
-
-
-    # Mirror Registry Service parameters for a Restricted Network installation
-
-    # use_local_mirror_registry controls if the install process uses a local container registry (mirror_registry) or not.
-    # Set this to true to use the mirror registry service set up when `setup_registry_service` is true.
-    use_local_mirror_registry: false
 
     # HTTP Store Configuration
     # ISO name must include the `discovery` directory if you have a SuperMicro machine
