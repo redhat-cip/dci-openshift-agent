@@ -35,6 +35,9 @@ There are some benefits of running the DCI OCP Agent:
     - [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
     - [Storing secrets](#storing-secrets)
   - [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
+  - Other install methods:
+    - [User Provisioned Infrastructure](docs/upi.md)
+    - [Assisted Installer](docs/a-i.md)
   - [Deploying Operators](#deploying-operators)
   - [Interacting with your RHOCP Cluster](#interacting-with-your-rhocp-cluster)
   - [Troubleshooting common issues](#troubleshooting-common-issues)
