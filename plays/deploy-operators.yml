@@ -51,38 +51,37 @@
 - name: "Deploy operators required by CNFs"
   block:
     # Verify a minimum number of worker nodes are available
-    - name: "deploy-operators : Get all nodes"
+    - name: "deploy-operators : Get all worker nodes"
       community.kubernetes.k8s_info:
         kind: Node
+        label_selectors:
+          - "node-role.kubernetes.io/worker"
       register: nodes
 
-    - name: "deploy-operators : Get worker node count"
-      set_fact:
-        worker_node_count: "{{ worker_node_count|default(0)|int + 1 }}"
-      when: "'node-role.kubernetes.io/worker' in item.metadata.labels"
-      loop: "{{ nodes.resources }}"
-
     - name: "deploy-operators : test_ Check enough worker nodes availability"
+      vars:
+        worker_node_count: "{{ nodes | length }}"
       fail:
         msg: "Not enough worker nodes ({{ worker_node_count }}) to perform required tasks"
       when:
-        - worker_node_count|int <= 1
+        - worker_node_count | int <= 1
         - install_type is undefined or install_type != 'sno'
 
     - name: "deploy-operators : Increase maxUnavailable count to n-1"
       vars:
+        worker_node_count: "{{ nodes | length }}"
         mcp_def: |
           apiVersion: machineconfiguration.openshift.io/v1
           kind: MachineConfigPool
           metadata:
             name: worker
           spec:
-            maxUnavailable: {{ hostvars.localhost.groups['workers'] | length - 1 }}
+            maxUnavailable: {{ worker_node_count | int - 1 }}
       community.kubernetes.k8s:
         state: present
         definition: "{{ mcp_def }}"
       when:
-        - hostvars.localhost.groups['workers']|length > 1
+        - worker_node_count | int > 1
 
     - name: "deploy-operators : Update image catalog"
       community.kubernetes.k8s:
@@ -185,7 +184,7 @@
 ### End CNV
 
 ### Begin Logging Operators deployment
-- name: "deploy-operators : Install Eleasticsearch operator"
+- name: "deploy-operators : Install Elasticsearch operator"
   include_role:
     name: olm-operator
   vars:
