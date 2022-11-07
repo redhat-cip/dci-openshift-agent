@@ -103,6 +103,8 @@
     name: oc-setup
     apply:
       delegate_to: localhost
+      environment:
+        - KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "installer : Apply node labels"
   include_role:
