@@ -283,7 +283,7 @@
 
 # Step 3a-2 : deploy operators, run on the provisioner so OC is automatically set
 - name: 'Deploy operators to OCP cluster'
-  hosts: provisioner
+  hosts: localhost
   tags:
     - running
     - operator-deployment
@@ -291,6 +291,7 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
+    KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
     - block:
         - include_tasks: plays/deploy-operators.yml
