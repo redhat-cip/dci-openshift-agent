@@ -94,13 +94,6 @@
         build: "ga"
       when: build == "candidate"
 
-    - name: Export the OCP component id into a file
-      copy:
-        dest: "/tmp/{{ cluster }}.ocp_prod_id"
-        content: "{{ ocp_product_id }}"
-      when:
-        - ocp_product_id is defined
-
     - name: pre-run
       dci_job:
         id: "{{ job_id }}"
