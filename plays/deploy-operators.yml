@@ -1,24 +1,7 @@
 ---
-# This playbook is executed in the provisioner host
-
-# If not set by operators-mirror then we must not be in disconnected
-# mode and should use the default entry for connected mode.
 - name: "deploy-operators : Set default redhat-operators"
   set_fact:
     opm_catalog_source_name: "{{ opm_catalog_source_name | default('redhat-operators') }}"
-
-- name: Get oc version output
-  shell: |
-    oc version
-  register: oc_version_str
-
-- name: Get OCP version
-  set_fact:
-    ocp_version: "{{ '.'.join(item.split(':')[1].strip().split('.')[0:2]) }}"
-    ocp_version_maj: "{{ item.split(':')[1].strip().split('.')[0] }}"
-    ocp_version_min: "{{ item.split(':')[1].strip().split('.')[1] }}"
-  when: "'Server Version' in item"
-  loop: "{{ oc_version_str.stdout_lines }}"
 
 - name: Configure CatalogSources for disconnected environments
   block:
@@ -26,8 +9,8 @@
       import_role:
         name: operators-catalog
       when:
-        - hostvars.localhost.mirror_list is defined
-        - hostvars.localhost.mirror_list | length
+        - mirror_list is defined
+        - mirror_list | length
 
     - name: Disable default catalog sources for disconnected deployment
       community.kubernetes.k8s:
@@ -47,10 +30,8 @@
     enable_perf_addon: true
   when: dci_prepare_cnf | bool
 
-### Begin Deployment of operators required by CNFs
 - name: "Deploy operators required by CNFs"
   block:
-    # Verify a minimum number of worker nodes are available
     - name: "deploy-operators : Get all worker nodes"
       community.kubernetes.k8s_info:
         kind: Node
@@ -60,16 +41,17 @@
 
     - name: "deploy-operators : test_ Check enough worker nodes availability"
       vars:
-        worker_node_count: "{{ nodes | length }}"
+        worker_node_count: "{{ nodes.resources | length }}"
       fail:
         msg: "Not enough worker nodes ({{ worker_node_count }}) to perform required tasks"
       when:
         - worker_node_count | int <= 1
-        - install_type is undefined or install_type != 'sno'
+        - install_type != 'sno'
+        - install_type != 'acm'
 
     - name: "deploy-operators : Increase maxUnavailable count to n-1"
       vars:
-        worker_node_count: "{{ nodes | length }}"
+        worker_node_count: "{{ nodes.resources | length }}"
         mcp_def: |
           apiVersion: machineconfiguration.openshift.io/v1
           kind: MachineConfigPool
@@ -97,19 +79,31 @@
         - operators_index is defined
         - not dci_disconnected | default(false) | bool
 
+    - name: "Get cluster version"
+      community.kubernetes.k8s_info:
+        api: config.openshift.io/v1
+        kind: ClusterVersion
+        name: version
+      register: cluster_version
+
     - name: "deploy-operators : Install Performance Addon Operator"
-      include_role:
-        name: olm-operator
       vars:
-        operator: performance-addon-operator
-        source: "{{ opm_catalog_source_name }}"
-        namespace: openshift-performance-addon-operator
-        ns_labels:
-          openshift.io/cluster-monitoring: "true"
+        current_ver_query: "history[?state=='Completed'] | [0].version"
+        full_ver: "{{ cluster_version.resources[0].status | json_query(current_ver_query) }}"
+        current_ver: "{{ full_ver.split('-')[0] }}"
+      block:
+        - name: "deploy-operators : Install Performance Addon Operator"
+          include_role:
+            name: olm-operator
+          vars:
+            operator: performance-addon-operator
+            source: "{{ opm_catalog_source_name }}"
+            namespace: openshift-performance-addon-operator
+            ns_labels:
+              openshift.io/cluster-monitoring: "true"
       when:
         - enable_perf_addon | bool
-        - ocp_version_maj|int == 4
-        - ocp_version_min|int <= 10
+        - current_ver is version("4.11", "<")
 
     - name: "deploy-operators : Install and configure SRIOV"
       block:
@@ -140,7 +134,6 @@
             name: worker
           spec:
             maxUnavailable: 1
-
   when: >
     (dci_prepare_cnf | bool) or
     (enable_perf_addon | bool ) or
@@ -159,9 +152,6 @@
     - performance_definition is defined
     - perf_profile_crd.resources|length > 0
 
-### End CNF
-
-### Begin CNV and HCO
 - name: "Deploy CNV and HCO Operators"
   block:
     - name: "deploy-operators : Install CNV operator"
@@ -181,9 +171,7 @@
 
   when:
     - enable_cnv | bool
-### End CNV
 
-### Begin Logging Operators deployment
 - name: "deploy-operators : Install Elasticsearch operator"
   include_role:
     name: olm-operator
@@ -208,9 +196,7 @@
         - openshift-logging
   when:
     - enable_clusterlogging | bool
-### End Logging Operators deployment
 
-### Begin Storage Operators
 - name: ODF Installation and setup
   block:
     - name: "deploy-operators : Install OCS Operator"
@@ -246,9 +232,7 @@
         name: odf-setup
 
   when: (enable_lso | bool) or (enable_ocs | bool)
-### End Storage Operators deployment
 
-### Begin ACM Operator deployment
 - name: "Deploy and configure the Advanced Cluster Manager"
   vars:
     acm_namespace: open-cluster-management
@@ -267,9 +251,6 @@
   when:
     - enable_acm | bool
 
-### End ACM Operator deployment
-
-### Custom operators deployments
 - name: "deploy-operators : Deploy other operators playbook"
   include_tasks: deploy-custom-operator.yml
   when:
@@ -280,7 +261,6 @@
     loop_var: dci_operator
     label: "{{ dci_operator.name }}"
 
-### Begin deploy OCP Custom Resources
 - name: "deploy-operators : Create defined Custom Resources"
   include_role:
     name: deploy-cr
@@ -290,9 +270,8 @@
     namespace: "{{ item.namespace }}"
     name: "{{ item.name }}"
     spec: "{{ item.spec }}"
-  with_list: "{{ hostvars.localhost.dci_ocp_custom_resources }}"
+  with_list: "{{ dci_ocp_custom_resources }}"
   when:
-    - hostvars.localhost.dci_ocp_custom_resources is defined
-    - hostvars.localhost.dci_ocp_custom_resources is list
-### End Deploy all CRs
+    - dci_ocp_custom_resources is defined
+    - dci_ocp_custom_resources is list
 ...
