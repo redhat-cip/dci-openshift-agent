@@ -277,46 +277,48 @@ export no_proxy
 This is the dci openshift agent settings (format is YAML). Use this to specify
 which version of OCP to install.
 
-| Variable                           | Required | Type    | Default                                          | Description                                                    |
-| ---------------------------------- | -------- | ------- | ------------------------------------------------ | -------------------------------------------------------------- |
-| dci_topic                         | True     | String  |                                                  | Name of the topic. `OCP-4.5` and up.                           |
-| dci_tags                          | False    | List    | ["debug"]                                        | List of tags to set on the job                                 |
-| dci_name                          | False    | String  |                                                  | Name of the job                                                |
-| dci_configuration                 | False    | String  |                                                  | String representing the configuration of the job               |
-| dci_comment                       | False    | String  |                                                  | Comment to associate with the job                              |
-| dci_url                           | False    | URL     |                                                  | URL to associate with the job                                  |
-| dci_components_by_query         | False    | List    | []                                               | Component by query. ['name:4.5.9']                             |
-| dci_component                     | False    | List    | []                                               | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f']    |
-| dci_previous_job_id             | False    | String  | ""                                               | Previous job UUID
-| dci_must_gather_images          | False    | List    |["registry.redhat.io/openshift4/ose-must-gather"] | List of the must-gather images to use when retrieving logs.\*  |
-| dci_teardown_on_failure         | False    | Boolean | False                                            | Whether or not execute the teardown hook on a failure          |
-| dci_teardown_on_success         | False    | Boolean | True                                             | Whether or not execute the teardown hook on success            |
-| dci_openshift_agent_conformance | False    | String  |                                                  | If defined it will run that category of conformance test       |
-| dci_disconnected                  | False    | Boolean | False                                            | Signals that the OCP agent will run in disconnected            |
-| dci_openshift_csi_test_manifest | False    | String  | ""                                               | Manifest file that contains the tests for CSI validation. Please review [test-parameters](https://redhat-connect.gitbook.io/openshift-badges/badges/container-storage-interface-csi-1/workflow/setup-test-parameters) and [csi-e2e](https://github.com/kubernetes/kubernetes/tree/v1.16.0/test/e2e/storage/external) for details about drivers capabilities |
-| dci_do_cni_tests                   | False    | Boolean | False                                            | Executes the CNI tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cni)
-| dci_do_virt_tests                  | False    | Boolean | False                                            |Execute the Kubevirt Conformance tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cnii). Hyperconverged operator must be installed on the cluster. For airgapped environments this is only supported on OCP 4.9 and newer versions.
-| baremetal_deploy_version         | False    | String  | origin/master                                    | Allows you to lock upstream baremetal repo to specific version |
-| force_upgrade                     | False    | Boolean | False                                            | Force upgrade even if no version is available                  |
-| upgrade_eus                        | False    | Boolean | False                                            | Enable the EUS upgrade. Please see the [EUS upgrade](#eus-upgrade) section for more details                                                            |
-| upgrade_operators                 | False     | Boolean   | True                                          | In upgrade mode, enable the upgrade of installed operators after the cluster upgrade |
-| update_catalog_channel            | False     | Boolean   | True                                          | When performing operators upgrade, in disconnected mode, update disconnected catalogSources for mirroring |
-| dci_workarounds                   | False    | List    | []                                               | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz\<id> or gh-org-repo-\<id> |
-| openshift_secret                  | False    | Dict    | auths:                                           | Additional auths will be combined                              |
-| operators_index                    | False    | String  | registry.redhat.io/redhat/redhat-operator-index:v<ocp_version>| Catalog index that contains the bundles for the operators that will be mirrored in disconnected environments. In connected environments, if defined it will update the operators catalog index |
-| opm_mirror_list                    | False    | List    | []                                               | List additional operators to be mirrored in disconnected environments. The package names of operators deployed using `dci_operators` must be included in this list. |
-| dci_operators                      | False    | List    | []                                               | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details|
-| apply_sriov_upgrade_settings    | False    | Boolean   | True       | Whether to apply SR-IOV recommended settings before operator upgrade |
-| dci_prepare_cnf                    | False    | Boolean   | False      | Deploys Performance Addon and SRIOV operators, Please use the `enable_sriov` or `enable_perf_addon` variables if only one of this operators is required. To complete the Performance Addon configuration it is recommended to also add a `performance_definition` |
-| enable_cnv                         | False    | Boolean   | False      | Deploys CNV and enable the HCO operator |
-| enable_elasticsearch               | False    | Boolean   | False      | Deploys the ElasticSearch Operator |
-| enable_clusterlogging              | False    | Boolean   | False      | Deploys the Cluster-Logging Operator |
-| enable_perf_addon                  | False    | Boolean   | False      | Deploys the Performance AddOn Operator. For its configuration is recommended to define a `performance_definition` |
-| enable_sriov                       | False    | Boolean   | False      | Deploys the SRIOV Operator |
-| enable_ocs                         | False    | Boolean   | False      | Deploys the OCS Operator |
-| enable_lso                         | False    | Boolean   | False      | Deploys the Local Storage Operator |
-| enable_acm                         | False    | Boolean   | False      | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator|
-| operator_skip_upgrade              | False    | List   | []      | List of operators to skip during the upgrade |
+| Variable                        | Required | Type    | Default                                                        | Description
+| ------------------------------- | -------- | ------- | -------------------------------------------------------------- | ------------
+| dci_topic                       | True     | String  |                                                                | Name of the topic. `OCP-4.5` and up.
+| dci_tags                        | False    | List    | ["debug"]                                                      | List of tags to set on the job.
+| dci_name                        | False    | String  |                                                                | Name of the job.
+| dci_configuration               | False    | String  |                                                                | String representing the configuration of the job.
+| dci_comment                     | False    | String  |                                                                | Comment to associate with the job.
+| dci_url                         | False    | URL     |                                                                | URL to associate with the job.
+| dci_components_by_query         | False    | List    | []                                                             | Component by query. ['name:4.5.9'].
+| dci_component                   | False    | List    | []                                                             | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f'].
+| dci_previous_job_id             | False    | String  | ""                                                             | Previous job UUID.
+| dci_must_gather_images          | False    | List    |["registry.redhat.io/openshift4/ose-must-gather"]               | List of the must-gather images to use when retrieving "logs.\*" .
+| dci_teardown_on_failure         | False    | Boolean | False                                                          | Whether or not execute the teardown hook on a failure.
+| dci_teardown_on_success         | False    | Boolean | True                                                           | Whether or not execute the teardown hook on success.
+| dci_openshift_agent_conformance | False    | String  |                                                                | If defined it will run that category of conformance test.
+| dci_disconnected                | False    | Boolean | False                                                          | Signals that the OCP agent will run in disconnected.
+| dci_openshift_csi_test_manifest | False    | String  | ""                                                             | Manifest file that contains the tests for CSI validation. Please review [test-parameters](https://redhat-connect.gitbook.io/openshift-badges/badges/container-storage-interface-csi-1/workflow/setup-test-parameters) and [csi-e2e](https://github.com/kubernetes/kubernetes/tree/v1.16.0/test/e2e/storage/external) for details about drivers capabilities.
+| dci_do_cni_tests                | False    | Boolean | False                                                          | Executes the CNI tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cni).
+| dci_do_virt_tests               | False    | Boolean | False                                                          | Execute the Kubevirt Conformance tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cnii). Hyperconverged operator must be installed on the cluster. For airgapped environments this is only supported on OCP 4.9 and newer versions.
+| baremetal_deploy_version        | False    | String  | origin/master                                                  | Allows you to lock upstream baremetal repo to specific version.
+| force_upgrade                   | False    | Boolean | False                                                          | Force upgrade even if no version is available.
+| upgrade_eus                     | False    | Boolean | False                                                          | Enable the EUS upgrade. Please see the [EUS upgrade](#eus-upgrade) section for more details.
+| upgrade_operators               | False    | Boolean | True                                                           | In upgrade mode, enable the upgrade of installed operators after the cluster upgrade.
+| update_catalog_channel          | False    | Boolean | True                                                           | When performing operators upgrade, in disconnected mode, update disconnected catalogSources for mirroring.
+| dci_workarounds                 | False    | List    | []                                                             | List of workarounds to be considered in the execution. Each element of the list must be a String with the following format: bz\<id> or gh-org-repo-\<id>.
+| openshift_secret                | False    | Dict    | auths:                                                         | Additional auths will be combined                              |
+| operators_index                 | False    | String  | registry.redhat.io/redhat/redhat-operator-index:v<ocp_version> | Catalog index that contains the bundles for the operators that will be mirrored in disconnected environments. In connected environments, if defined it will update the operators catalog index.
+| opm_expire                      | False    | Boolean | True                                                           | Enable or disable expiration label in the operator-mirror catalog.
+| opm_expire_time                 | False    | String  | 24h                                                            | Set the time used for the expiration label in the operator-mirror catalog.
+| opm_mirror_list                 | False    | List    | []                                                             | List additional operators to be mirrored in disconnected environments. The package names of operators deployed using `dci_operators` must be included in this list.
+| dci_operators                   | False    | List    | []                                                             | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details.
+| apply_sriov_upgrade_settings    | False    | Boolean | True                                                           | Whether to apply SR-IOV recommended settings before operator upgrade.
+| dci_prepare_cnf                 | False    | Boolean | False                                                          | Deploys Performance Addon and SRIOV operators, Please use the `enable_sriov` or `enable_perf_addon` variables if only one of this operators is required. To complete the Performance Addon configuration it is recommended to also add a `performance_definition`.
+| enable_cnv                      | False    | Boolean | False                                                          | Deploys CNV and enable the HCO operator.
+| enable_elasticsearch            | False    | Boolean | False                                                          | Deploys the ElasticSearch Operator.
+| enable_clusterlogging           | False    | Boolean | False                                                          | Deploys the Cluster-Logging Operator.
+| enable_perf_addon               | False    | Boolean | False                                                          | Deploys the Performance AddOn Operator. For its configuration is recommended to define a `performance_definition`.
+| enable_sriov                    | False    | Boolean | False                                                          | Deploys the SRIOV Operator.
+| enable_ocs                      | False    | Boolean | False                                                          | Deploys the OCS Operator.
+| enable_lso                      | False    | Boolean | False                                                          | Deploys the Local Storage Operator.
+| enable_acm                      | False    | Boolean | False                                                          | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator.
+| operator_skip_upgrade           | False    | List    | []                                                             | List of operators to skip during the upgrade.
 
 Example:
 
@@ -491,7 +493,6 @@ Please see the [settings table](#etcdci-openshift-agentsettingsyml) for the vari
 ### Customizing the Operators installation
 
 The `dci_operators` variable can be used to deploy additional operators or apply customized installations. An example of how to define `dci_operators` variable is shown below.
-
 
 ```yaml
 dci_operators:
