@@ -608,6 +608,15 @@ if [ -s "$KUBECONFIG" ]; then
         setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> ../output &
         cd ..
     else
+        # inject the common roles from doa if needed
+        if [ -d dci-openshift-agent ]; then
+            mkdir -p dci-openshift-app-agent
+            ln -s /usr/share/dci-openshift-app-agent/* dci-openshift-app-agent/
+            rm -f dci-openshift-app-agent/ansible.cfg
+            cp /usr/share/dci-openshift-app-agent/ansible.cfg dci-openshift-app-agent/
+            export DCI_OPENSHIFT_APP_AGENT_DIR=$PWD/dci-openshift-app-agent
+            sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/common-roles/:@" dci-openshift-app-agent/ansible.cfg
+        fi
         if  [ -n "$APP_NAME" ] && [ -d "/var/lib/dci-openshift-app-agent/samples/$APP_NAME" ]; then
             APP_OPT="-e dci_config_dir=/var/lib/dci-openshift-app-agent/samples/$APP_NAME"
         fi
