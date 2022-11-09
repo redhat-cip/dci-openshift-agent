@@ -31,6 +31,7 @@ NO_COMMENT=
 UPGRADE=
 UPGRADE_ARGS=
 APP_NAME=
+APP_ARGS=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -41,7 +42,7 @@ BASEDIR=$(cd $(dirname $0); pwd)
 if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno|--assisted] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    echo "Usage: $name [--virt|--sno|--assisted] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
     Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
 
     arguments:
@@ -52,6 +53,7 @@ if [ $# = 0 ] || [ "$1" = -h ]; then
     --from-topic          In upgrade, from topic.
     --to-topic            In upgrade, destination topic.
     --upgrade-args <args> Pass <args> to the upgrade command line.
+    --app-args <args>     Pass <args> to the CNF command line.
     -n                    Do not vote or comment on Gerrit reviews or GitHub PR.
     -f                    Force to run without obeying hints.
     -s                    Force a suffix to be added.
@@ -109,6 +111,12 @@ if [ $1 = --upgrade ]; then
         UPGRADE_ARGS="$1"
         shift
     fi
+fi
+
+if [ $1 = --app-args ]; then
+    shift
+    APP_ARGS="$1"
+    shift
 fi
 
 # no comment
@@ -274,6 +282,11 @@ if [[ app =~ $SUPPORTED_HINTS ]]; then
     APP_NAME=$(sed -n -e "s/^\s*Test-App-Hints:\s*//pi" <<< $DESC)
 fi
 
+# process Test-App-Args-Hints
+if [[ app-args =~ $SUPPORTED_HINTS ]]; then
+    APP_ARGS=$(sed -n -e "s/^\s*Test-App-Args-Hints:\s*//pi" <<< $DESC)
+fi
+
 # take test-runner from the local dir
 if [ -d dci-openshift-agent ]; then
     BASEDIR=$PWD/dci-openshift-agent
@@ -281,12 +294,12 @@ fi
 
 if [ -z "$NO_DCI_QUEUE" ] && [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
     if [ -n "$USE_PREFIX" ]; then
-        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
+        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
     else
-        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS"  RES=@RESOURCE APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
+        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS"  RES=@RESOURCE APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
     fi
 else
-    env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
+    env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
 fi
 
 # dci-check-change ends here

@@ -129,30 +129,37 @@ change. This will direct `dci-check-change` to test in a specific way:
 - `Test-Hints: libvirt` validate in libvirt mode (3 masters).
 - `Test-Hints: no-check` do not run a check (useful in CI mode).
 
-`Test-Args-Hints:` can also be used to specify extra parameters to
-pass to `dci-check-change`.
-
-```
-Test-Args-Hints: -e dci_topic=OCP-4.10 -e enable_lso=true -e enable_ocs=true -e enable_acm=true -e dci_teardown_on_success:false
-```
-
-`Test-Upgrade-Args-Hints:` can also be used to specify extra
-parameters to pass to `dci-check-change` for the upgrade command
-line. You can also specify the topics by using
-`Test-Upgrade-From-Topic-Hints` and `Test-Upgrade-To-Topic-Hints`.
+`Test-Upgrade-Hint: yes` can also be used to force an upgrade job after
+the installation.
 
 `Test-App-Hints:` can also be used to change the default app to be
 used (`basic_example`). If `none` is specified in `Test-App-Hints:`,
 the configuration is taken from the system.
 
-`Test-Upgrade-Hint: yes` can also be used to force an upgrade job after
-the installation.
+In case you want to provide extra parameters to the jobs deployed by
+`dci-check-change` (OCP installation, OCP upgrade or CNF), you can
+rely on different `Args-Hints` arguments, depending on your case:
+
+- `Test-Args-Hints:` can be used to specify extra parameters to
+pass to `dci-check-change` when running an OCP installation.
+
+```
+Test-Args-Hints: -e dci_topic=OCP-4.10 -e enable_lso=true -e enable_ocs=true -e enable_acm=true -e dci_teardown_on_success:false
+```
+
+- `Test-Upgrade-Args-Hints:` can also be used to specify extra
+parameters to pass to `dci-check-change` for the OCP upgrade command
+line. You can also specify the topics by using
+`Test-Upgrade-From-Topic-Hints` and `Test-Upgrade-To-Topic-Hints`.
+
+- `Test-App-Args-Hints:` can also be used to provide extra arguments to
+pass to `dci-check-change` for CNFs deployed on top of the OCP cluster.
 
 Hints need to be activated in the `SUPPORTED_HINTS` variable in
 `/etc/dci-openshift-agent/config` like this:
 
 ```console
-SUPPORTED_HINTS="sno|assisted|libvirt|no-check|args|app|upgrade|upgrade-args|upgrade-from-topic|upgrade-to-topic"
+SUPPORTED_HINTS="sno|assisted|libvirt|no-check|args|app|app-args|upgrade|upgrade-args|upgrade-from-topic|upgrade-to-topic"
 ```
 
 ## Continuous integration

@@ -524,7 +524,7 @@ if [ -z "$KCFG" ]; then
             OPTS+=(-e "dci_previous_job_id=$(cat /var/tmp/$CLUSTER.dci.job_id)")
         fi
 
-        setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" $UPGRADE_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" "$@" &>> output &
+        setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" $UPGRADE_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" &>> output &
 
         do_wait 1
     fi
@@ -605,7 +605,7 @@ if [ -s "$KUBECONFIG" ]; then
         if [ -n "$APP_NAME" ] && [ -d "$PWD/samples/$APP_NAME" ]; then
             APP_OPT="-e dci_config_dir=$PWD/samples/$APP_NAME"
         fi
-        setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> ../output &
+        setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -v "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> ../output &
         cd ..
     else
         # inject the common roles from doa if needed
@@ -620,7 +620,7 @@ if [ -s "$KUBECONFIG" ]; then
         if  [ -n "$APP_NAME" ] && [ -d "/var/lib/dci-openshift-app-agent/samples/$APP_NAME" ]; then
             APP_OPT="-e dci_config_dir=/var/lib/dci-openshift-app-agent/samples/$APP_NAME"
         fi
-        setsid dci-openshift-app-agent-ctl $PREFIX2 -s -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" "$@" &>> output &
+        setsid dci-openshift-app-agent-ctl $PREFIX2 -s -v -- -v "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> output &
     fi
 
     if [ -n "$KCFG" ]; then
