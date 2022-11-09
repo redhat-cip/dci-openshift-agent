@@ -1,32 +1,30 @@
 ---
 - block:
-  - name: "upgrader : Fetch release digest"
-    uri:
-      url: "{{ webserver_url }}/{{ version }}/release.dig"
-      return_content: true
-    register: release_digest
+  - name: "Get cluster config"
+    community.kubernetes.k8s_info:
+      kind: ConfigMap
+      namespace: kube-system
+      name: cluster-config-v1
+    register: cluster_conf
 
-  - name: "upgrader : Fetch signature for target release"
-    get_url:
-      url: "{{ webserver_url }}/{{ version }}/signature.yaml"
-      dest: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version }}.yaml"
-      mode: 0644
+  - name: "Set webserver URL"
+    vars:
+      cluster_install_info: |-
+        {{ ( cluster_conf.resources[0].data |
+        from_yaml )['install-config'] |
+        from_yaml }}
+    set_fact:
+      webserver_url: "{{ cluster_install_info.platform.baremetal.bootstrapOSImage | urlsplit('scheme') }}://{{ cluster_install_info.platform.baremetal.bootstrapOSImage | urlsplit('netloc') }}"
+    when:
+      - cluster_conf | length
 
-  - name: "upgrader : Fetch imagecontentsourcepolicy for target release"
-    get_url:
-      url: "{{ webserver_url }}/{{ version }}/imagecontentsourcepolicy.yaml"
-      dest: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version }}.yaml"
-      mode: 0644
-
-  - name: "upgrader : Apply signatures to cluster"
+  - name: "Apply required manifests"
     community.kubernetes.k8s:
-      state: present
-      src: "{{ ansible_user_dir }}/clusterconfigs/signature-{{ version }}.yaml"
-
-  - name: "upgrader : Apply imagecontentsourcepolicy to cluster"
-    community.kubernetes.k8s:
-      state: present
-      src: "{{ ansible_user_dir }}/clusterconfigs/imagecontentsourcepolicy-{{ version }}.yaml"
+      definition: '{{ item }}'
+    with_items:
+      - '{{ lookup("url", "{{ webserver_url }}/{{ version }}/signature.yaml", split_lines=False) | from_yaml_all | list }}'
+      - '{{ lookup("url", "{{ webserver_url }}/{{ version }}/imagecontentsourcepolicy.yaml", split_lines=False) | from_yaml_all | list }}'
+    when: item is not none
 
   - name: "Wait for updated MCP after applying an ICSP"
     include_role:
@@ -72,7 +70,6 @@
       - not force_upgrade | default(false) | bool
     retries: 10
     delay: 60
-
   when:
     - dci_disconnected | default(false) | bool
 
@@ -117,7 +114,7 @@
   retries: 10
   delay: 60
 
-- name: "upgrader : Wait clusterversion is refreshed"
+- name: "upgrader : Wait for an updated clusterversion"
   community.kubernetes.k8s_info:
     kind: ClusterVersion
     name: version
@@ -142,8 +139,7 @@
       --allow-upgrade-with-warnings
       {% endif %}
   command:
-    chdir: "{{ ansible_user_dir }}/clusterconfigs/auth"
-    cmd: oc adm upgrade {{ upgrade_options }}
+    cmd: "{{ oc_tool_path }} adm upgrade {{ upgrade_options }}"
   register: start_upgrade
 
 - name: "upgrader : Wait for upgrade to start"
@@ -165,11 +161,9 @@
 - name: "Upgrader: Monitor upgrade"
   include_tasks: monitor-upgrade.yml
 
-# Tasks to prepare operators for upgrade
 - name: "Upgrader : Pre-upgrade tasks"
   include_tasks: pre-upgrade.yml
 
-# Upgrading all operators
 - name: "Upgrader : Start the upgrade on installed operators"
   include_tasks: upgrade-operators.yml
   when:
@@ -192,5 +186,4 @@
     check_wait_retries: 100
     check_wait_delay: 10
     check_reason: "Upgrade - after having operators running"
-
 ...
