@@ -60,8 +60,23 @@ GitHub PR:
 dci-check-change https://github.com/myorg/lab-config/pull/42
 ```
 
-Regarding Github, you will need a token to access private repositories
-stored in `~/.github_token`.
+Regarding Github, you will need a token to access private
+repositories. To be configured in `/etc/dci-openshift-agent/config`
+like this:
+
+```shell
+GITHUB_LOGIN=<login name>
+GITHUB_TOKEN=<token>
+```
+
+If you want to use `ssh` as the transport method for `git`, you can
+also configure which ssh key to use from `~/.ssh/` like this:
+
+```shell
+GITHUB_SSH_ID=<ssh key name>
+```
+
+The ssh key needs to be without password.
 
 `dci-check-change` will launch a DCI job to perform an OCP
 installation using `dci-openshift-agent-ctl` and then launch another
@@ -72,14 +87,14 @@ You can use `dci-queue` from the `dci-pipeline` package to manage a
 queue of changes. To enable it, add the name of the queue into
 `/etc/dci-openshift-agent/config`:
 
-```console
+```shell
 DCI_QUEUE=<queue name>
 ```
 
 If you have multiple prefixes, you can also enable it in
 `/etc/dci-openshift-agent/config`:
 
-```console
+```shell
 USE_PREFIX=1
 ```
 

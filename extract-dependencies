@@ -17,6 +17,10 @@
 set -e
 set -x
 
+if [ -r /etc/dci-openshift-agent/config ]; then
+    . /etc/dci-openshift-agent/config
+fi
+
 BASEDIR=$(cd $(dirname $0); pwd)
 
 export GIT_COMMITTER_NAME="Extractor"
@@ -40,13 +44,19 @@ while read line; do
       if [ -n "$pr" -a -n "$proj" ]; then
           echo "Extracting PR $pr from $proj"
 
-          curl -s -H "Accept: application/vnd.github.v3+json" -H "Authorization: token $(cat ~/.github_token)" https://api.github.com/repos/$proj/pulls/$pr > $dir-$pr.json
+          if [ -n "$GITHUB_TOKEN" ]; then
+              curl -s -H "Accept: application/vnd.github.v3+json" -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/$proj/pulls/$pr > $dir-$pr.json
+          else
+              curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/$proj/pulls/$pr > $dir-$pr.json
+          fi
 
           if [ ! -d $dir ]; then
-              if [ -r $HOME/.ssh/id_github ]; then
-                  ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git clone git@github.com:$proj $dir"
+              if [ -n "$GITHUB_SSH_ID" ]; then
+                  ssh-agent bash -c "ssh-add $HOME/.ssh/$GITHUB_SSH_ID; git clone git@github.com:$proj $dir"
+              elif [ -n "$GITHUB_LOGIN" ] && [ -n "$GITHUB_TOKEN" ]; then
+                  git clone "https://$GITHUB_LOGIN:$GITHUB_TOKEN@github.com/$proj" "$dir"
               else
-                  git clone git@github.com:$proj $dir
+                  git clone "https://github.com/$proj" "$dir"
               fi
           fi
 
@@ -56,18 +66,18 @@ while read line; do
           git checkout "$BRANCH"
           # remove old branch if it exists
           git branch -D pr$pr || :
-          if [ -r $HOME/.ssh/id_github ]; then
-              ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git fetch origin pull/$pr/head:pr$pr"
+          if [ -n "$GITHUB_SSH_ID" ]; then
+              ssh-agent bash -c "ssh-add $HOME/.ssh/$GITHUB_SSH_ID; git fetch origin pull/$pr/head:pr$pr"
           else
-              git fetch origin pull/$pr/head:pr$pr
+              git fetch origin "pull/$pr/head:pr$pr"
           fi
           # check if branch is already merged
           if git branch -d pr$pr; then
               git checkout "$BRANCH"
           else
               git checkout pr$pr
-              if [ -r $HOME/.ssh/id_github ]; then
-                  ssh-agent bash -c "ssh-add $HOME/.ssh/id_github; git fetch origin $BRANCH"
+              if [ -n "$GITHUB_SSH_ID" ]; then
+                  ssh-agent bash -c "ssh-add $HOME/.ssh/$GITHUB_SSH_ID; git fetch origin $BRANCH"
               else
                   git fetch origin "$BRANCH"
               fi
@@ -85,7 +95,6 @@ while read line; do
           curl -s https://softwarefactory-project.io/r/changes/${changeid}?o=CURRENT_REVISION | tail -n +2 > ${changeid}.json
           PROJECT=$(jq -r .project ${changeid}.json)
           CURREV=$(jq -r .current_revision ${changeid}.json)
-          PATCHSET=$(jq -r ".revisions[\"$CURREV\"]._number" ${changeid}.json)
           REPOURL=$(jq -r ".revisions[\"$CURREV\"].fetch[\"anonymous http\"].url" ${changeid}.json)
           REVID=$(jq -r ".revisions[\"$CURREV\"].fetch[\"anonymous http\"].ref" ${changeid}.json)
 
