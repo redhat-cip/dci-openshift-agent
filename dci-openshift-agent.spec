@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
-Version:       0.5.1
-Release:       2.VERS%{?dist}
+Version:       0.5.2
+Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -12,9 +12,9 @@ BuildRequires:  /usr/bin/pathfix.py
 Requires: /usr/bin/sudo
 Requires: dci-ansible >= 0.3.0
 %if 0%{?rhel} && 0%{?rhel} < 8
-Requires: python2-dciclient >= 2.3.0
+Requires: python2-dciclient >= 2.6.0
 %else
-Requires: python3-dciclient >= 2.3.0
+Requires: python3-dciclient >= 2.6.0
 %endif
 Requires: ansible-role-dci-sync-registry
 Requires: ansible-role-dci-podman
@@ -95,6 +95,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Nov 10 2022 Frederic Lepied <flepied@redhat.com> 0.5.2-1
+- bump the requires for python-dciclient to >= 2.6.0 to get dci-diff-jobs
+
 * Wed Sep 28 2022 Frederic Lepied <flepied@redhat.com> 0.5.1-2
 - use make install
 - removed ansible-role-dci-ocp-imagesideload requires
