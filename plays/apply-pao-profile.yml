@@ -77,6 +77,13 @@
     - reg_mcpool_worker.resources[0].status.machineCount == 0
   no_log: true
 
+- name: "Pause 60 seconds to wait for MC triggered by Performance Profile starts the node changes"
+  pause:
+    seconds: 60
+  when:
+    - install_type is undefined or install_type != 'sno'
+  no_log: true
+
 - name: "Wait for SNO node to be available"
   block:
     - name: "Pause 60 seconds to wait for Performance Profile triggers SNO reboot"
