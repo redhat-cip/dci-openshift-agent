@@ -1,4 +1,22 @@
 ---
+
+- name: "Get cluster version"
+  community.kubernetes.k8s_info:
+    api: config.openshift.io/v1
+    kind: ClusterVersion
+    name: version
+  register: cluster_version
+
+- name: "Get OCP version"
+  vars:
+    current_ver_query: "history[?state=='Completed'] | [0].version"
+    full_ver: "{{ cluster_version.resources[0].status | json_query(current_ver_query) }}"
+    current_ver: "{{ full_ver.split('-')[0] }}"
+  set_fact:
+    ocp_version: "{{  current_ver }}"
+    ocp_version_maj: "{{ current_ver.split('.')[0] }}"
+    ocp_version_min: "{{ current_ver.split('.')[1] }}"
+
 - name: "deploy-operators : Set default redhat-operators"
   set_fact:
     opm_catalog_source_name: "{{ opm_catalog_source_name | default('redhat-operators') }}"
@@ -79,18 +97,7 @@
         - operators_index is defined
         - not dci_disconnected | default(false) | bool
 
-    - name: "Get cluster version"
-      community.kubernetes.k8s_info:
-        api: config.openshift.io/v1
-        kind: ClusterVersion
-        name: version
-      register: cluster_version
-
     - name: "deploy-operators : Install Performance Addon Operator"
-      vars:
-        current_ver_query: "history[?state=='Completed'] | [0].version"
-        full_ver: "{{ cluster_version.resources[0].status | json_query(current_ver_query) }}"
-        current_ver: "{{ full_ver.split('-')[0] }}"
       block:
         - name: "deploy-operators : Install Performance Addon Operator"
           include_role:
@@ -103,7 +110,7 @@
               openshift.io/cluster-monitoring: "true"
       when:
         - enable_perf_addon | bool
-        - current_ver is version("4.11", "<")
+        - ocp_version is version("4.11", "<")
 
     - name: "deploy-operators : Install and configure SRIOV"
       block:
