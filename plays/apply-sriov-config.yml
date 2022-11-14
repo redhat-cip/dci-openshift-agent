@@ -13,17 +13,22 @@
     - install_type is defined
     - install_type == "sno"
 
-- name: Get all nodes
+- name: "Get all worker nodes"
   community.kubernetes.k8s_info:
     kind: Node
+    label_selectors:
+      - "node-role.kubernetes.io/worker"
   register: nodes
 
-- name: Add sriov label to worker nodes
-  shell: |
-    oc label node {{ item.metadata.name }} feature.node.kubernetes.io/network-sriov.capable="true"
-  when:
-    - "'node-role.kubernetes.io/worker' in item.metadata.labels"
-    - "'feature.node.kubernetes.io/network-sriov.capable' not in item.metadata.labels"
+- name: "Add SRIOV label to worker nodes"
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        name: "{{ item.metadata.name }}"
+        labels:
+          feature.node.kubernetes.io/network-sriov.capable: "true"
   loop: "{{ nodes.resources }}"
 
 - name: "Check SriovNetworkNodeState application for all workers"
