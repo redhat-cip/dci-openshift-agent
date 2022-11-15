@@ -6,13 +6,6 @@
     name: version
   register: upgrader_cluster_ver
 
-- name: "upgrader : Get version and build from localhost vars"
-  set_fact:
-    version: "{{ hostvars.localhost.version }}"
-    version_pull_url: "{{ hostvars.localhost.version_pull_url }}"
-    release_url: "{{ hostvars.localhost.version_url }}"
-    build: "{{ hostvars.localhost.build }}"
-
 - name: "upgrader : Print versions"
   vars:
     current_ver_query: "history[?state=='Completed'] | [0].version"
@@ -23,7 +16,7 @@
 
 - name: Set major openshift version from topic
   set_fact:
-    major: "{{ hostvars.localhost.job_info.job.topic.name | upper | replace('OCP-', '') }}"
+    major: "{{ job_info.job.topic.name | upper | replace('OCP-', '') }}"
 
 - name: "Work-around for 4.7 -> 4.8 upgrade"
   community.kubernetes.k8s:
@@ -71,9 +64,9 @@
 
 - name: "Upgrader: Running the Intermediate upgrade - EUS"
   vars:
-    version: "{{ hostvars.localhost.version_inter }}" 
+    version: "{{ version_inter }}"
     target_version: "{{ major }}"
-    version_pull_url: "{{ hostvars.localhost.image_inter }}"
+    version_pull_url: "{{ image_inter }}"
   include_tasks: upgrade-process.yml
   when:
     - upgrade_eus | default(false) | bool
@@ -93,39 +86,4 @@
         pause: false
   when:
    - upgrade_eus | default(false) | bool
-
-- block:
-  - name: Get the ocp client tar gunzip file
-    get_url:
-      url: "{{ release_url }}openshift-client-linux-{{ version }}.tar.gz"
-      dest: /tmp/
-      mode: '0755'
-
-  - name: "Untar the openshift-client-linux-{{ version }}.tar.gz"
-    unarchive:
-      src: "/tmp/openshift-client-linux-{{ version }}.tar.gz"
-      dest: "{{ dci_cluster_configs_dir }}"
-      mode: '0755'
-      remote_src: yes
-
-  - name: "Remove the openshift-client-linux-{{ version }}.tar.gz"
-    file:
-      path: "/tmp/openshift-client-linux-{{ version }}.tar.gz"
-      state: absent
-  delegate_to: localhost
-  when: provision_cache_store is not defined
-
-- name: "Copy new oc client after upgrade is finished"
-  vars:
-    pcs: "{{ provision_cache_store | default() }}"
-    oc_path: >-
-      {{ pcs | length |
-         ternary(
-           pcs + "/" + version + "/oc",
-           dci_cluster_configs_dir + "/oc" ) }}
-  copy:
-    src: "{{ oc_path }}"
-    dest: "/usr/local/bin/oc"
-    mode: "0755"
-  become: true
 ...

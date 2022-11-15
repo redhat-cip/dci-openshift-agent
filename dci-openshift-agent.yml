@@ -313,7 +313,7 @@
 
 # Step 3a-4 : post installing
 - name: 'Launch post install'
-  hosts: provisioner
+  hosts: localhost
   tags:
     - running
     - post-installing
@@ -321,6 +321,7 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
+    KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
     - block:
         - include_tasks: plays/post-install.yml
@@ -330,7 +331,7 @@
 
 # Step 3b-1 : upgrading
 - name: 'Launch upgrade'
-  hosts: provisioner
+  hosts: localhost
   tags:
     - running
     - upgrading
@@ -338,12 +339,10 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
+    KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
     - block:
         - name: "dci-openshift-agent : Launch upgrade"
-          vars:
-            local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
-            local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
           include_tasks: plays/upgrade.yml
       when:
         - dci_main == 'upgrade'
