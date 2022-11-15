@@ -51,7 +51,7 @@ Following is an example of the configuration file highlighting the hosts
 needed for a upi install:
 
 ```INI
-[vars:all]
+[all:vars]
 bootstrap_interface=<IP ADDRESS OF PROVISIONER>
 
 [...]
