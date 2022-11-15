@@ -271,8 +271,8 @@
   include_tasks: build-upstream-catalog.yml
   when:
     - dci_disconnected | default(false) | bool
-    - build in ("dev", "candidate")
     - version.split("-")[0].split(".")[2] | int == 0
+    - ("build:dev" in tags) or ("build:candidate" in tags)
 
 - name: "Mirror Operators for offline mode"
   vars:

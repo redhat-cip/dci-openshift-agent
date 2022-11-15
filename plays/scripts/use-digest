@@ -36,7 +36,8 @@ images=(
 main_imgs=(
     $(grep "image:" ${csv_file} | grep -Po "${registry}/${org}/\S+")
 )
-images+=( ${main_imgs[@]})
+images+=( ${main_imgs[@]} )
+images=( $(for i in "${images[@]}"; do echo "${i}"; done | sort -u) )
 
 related_images=()
 for image in ${images[@]}; do
