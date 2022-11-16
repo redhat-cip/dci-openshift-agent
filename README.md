@@ -319,6 +319,7 @@ which version of OCP to install.
 | enable_lso                      | False    | Boolean | False                                                          | Deploys the Local Storage Operator.
 | enable_acm                      | False    | Boolean | False                                                          | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator.
 | operator_skip_upgrade           | False    | List    | []                                                             | List of operators to skip during the upgrade.
+| additional_catalogs             | False    | List    | []                                                             | List additional index images that will used to set up additional operators catalogs.
 
 Example:
 
@@ -488,6 +489,16 @@ In order to make additional operators available in disconnected environments is 
 
 The variable `operators_index` is used to specify the catalog image containing information for the operators that may be deployed in the cluster. By default the index is the one located at registry.redhat.io and according to the OCP version installed but it can be overridden with a custom image. In conjunction with `dci_operators` variable in allows the deployment of custom operators additionally to those directly managed by the agent.
 
+Additional catalogs can be configured for the cluster in order to allow the installation of operators not available in the one defined by `operators_index`. Set the `additional_catalogs` variable with the references to the catalog images. For example:
+
+```yaml
+additional_catalogs:
+  - quay.io/telcoci/sriov-operator-catalog:latest
+  - quay.io/telcoci/simple-demo-operator:v0.0.3
+  - quay.io/telcoci/nfv-example-cnf-catalog:v0.2.9
+  - icr.io/cpopen/ibm-operator-catalog:latest
+```
+
 Please see the [settings table](#etcdci-openshift-agentsettingsyml) for the variables names to control the Operators installation.
 
 ### Customizing the Operators installation
@@ -514,7 +525,7 @@ dci_operators:
       openshift.io/cluster-monitoring: "true"
 ```
 
-- In disconnected enviroments, the catalog `mirrored-redhat-operators` will contain the package manifests for the operators that were mirrored by combining the items defined via `opm_mirror_list` plus to the ones activated for the deployment. For example, activating the `enable_acm` flag will automatically append to the list  the following operators required to deploy ACM to de ones added to the list.
+- In disconnected environments, the catalog `mirrored-redhat-operators` will contain the package manifests for the operators that were mirrored by combining the items defined via `opm_mirror_list` plus to the ones activated for the deployment. For example, activating the `enable_acm` flag will automatically append to the list  the following operators required to deploy ACM to de ones added to the list.
 
 ```yaml
 opm_mirror_list:

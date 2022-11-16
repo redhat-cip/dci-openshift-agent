@@ -17,6 +17,27 @@
     ocp_version_maj: "{{ current_ver.split('.')[0] }}"
     ocp_version_min: "{{ current_ver.split('.')[1] }}"
 
+- name: "Create additional catalogs - Connected"
+  vars:
+    catalog_name: "{{ ((catalog | basename).split(':'))[0] }}"
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: CatalogSource
+      metadata:
+        name: "{{ catalog_name }}"
+        namespace: "openshift-marketplace"
+      spec:
+        sourceType: grpc
+        image: "{{ catalog }}"
+        displayName: "{{ catalog_name }}"
+        publisher: grpc
+  loop: "{{ additional_catalogs }}"
+  loop_control:
+    loop_var: catalog
+  when:
+    - additional_catalogs | default([]) | length
+
 - name: "deploy-operators : Set default redhat-operators"
   set_fact:
     opm_catalog_source_name: "{{ opm_catalog_source_name | default('redhat-operators') }}"
