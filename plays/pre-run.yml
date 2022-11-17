@@ -61,7 +61,7 @@
         dest: "{{ provision_cache_store }}/pull-secret.txt"
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
-        mode: '0644'
+        mode: "0644"
         force: true
 
     - name: "Set dci_pullsecret_file fact"
@@ -85,7 +85,7 @@
         dest: "{{ provision_cache_store }}/pull-secret.txt"
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
-        mode: '0644'
+        mode: "0644"
         force: true
 
     - name: "Set dci_pullsecret_file fact if pullsecret_file is not present"
@@ -112,7 +112,7 @@
         dest: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}/pull-secret.txt"
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
-        mode: '0644'
+        mode: "0644"
         force: true
 
     - name: "Set dci_pullsecret_file fact if pullsecret_file is not present"
@@ -271,17 +271,33 @@
   include_role:
     name: include-components
 
+- name: "Build operators bundles from upstream for non-GA OCP versions"
+  include_tasks: build-upstream-catalog.yml
+  when:
+    - (dci_disconnected | default(false) | bool) or (local_registry | length)
+    - version.split("-")[0].split(".")[2] | int == 0
+    - ("build:dev" in tags) or ("build:candidate" in tags)
+
+- name: "Mirror custom catalogs"
+  include_role:
+    name: mirror-catalog
+  vars:
+    mc_oc_tool_path: "{{ oc_tool_path }}"
+    mc_catalog: "{{ catalog }}"
+    mc_registry_host: "{{ local_registry_host }}"
+    mc_registry_port: "{{ local_registry_port }}"
+    mc_pullsecret: "{{ dci_pullsecret_file }}"
+  loop: "{{ custom_catalogs }}"
+  loop_control:
+    loop_var: catalog
+  when:
+    - dci_disconnected | default(false) | bool
+    - custom_catalogs | default([]) | length
+
 - name: "Get the operators mirror-list"
   include_tasks: get-mirror-list.yml
   when:
     - dci_disconnected | default(false) |  bool
-
-- name: "Build operators bundles from upstream for non-GA OCP versions"
-  include_tasks: build-upstream-catalog.yml
-  when:
-    - dci_disconnected | default(false) | bool
-    - version.split("-")[0].split(".")[2] | int == 0
-    - ("build:dev" in tags) or ("build:candidate" in tags)
 
 - name: "Mirror Operators for offline mode"
   vars:
@@ -295,6 +311,41 @@
     - dci_disconnected | default(false) | bool
     - mirror_list is defined
     - mirror_list | length
+
+- name: Append mirrors to trust bundle
+  block:
+    - name: Check trust bundle file
+      stat:
+        path: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+        get_checksum: false
+      register: trust_bundle
+
+    - name: Copy trust bundle when missing
+      copy:
+        src: "{{ hostvars[groups['registry_host'][0]].disconnected_registry_mirrors_file }}"
+        dest: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+      when:
+        - not trust_bundle.stat.exists
+
+    - name: Add sriov mirrors to trust bundle
+      blockinfile:
+        path: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+        block: >
+          {{ lookup('file', mc_icsp_file.path) |
+             from_yaml |
+             json_query('spec.repositoryDigestMirrors') |
+             to_yaml
+          }}
+        marker: "# sriov (upstream)"
+
+    - name: Override disconnected_registry_mirrors_file
+      set_fact:
+        disconnected_registry_mirrors_file: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+      delegate_facts: true
+      delegate_to: "{{ groups['registry_host'][0] if 'registry_host' in groups else 'registry_host' }}"
+
+  when:
+    - mc_icsp_file is defined
 
 - name: "Mirror Operators for EUS Upgrade"
   vars:
