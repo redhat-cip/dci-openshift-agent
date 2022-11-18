@@ -113,7 +113,18 @@ make sure all the changes are tested together.
 
 If you want to pass a prefix to the `dci-openshift-agent` use the `-p`
 option and if you want to pass a prefix to the
-`dci-openshift-app-agent` use the `-p2` option. For example:
+`dci-openshift-app-agent` use the `-p2` option.
+
+Remember that you need to set up `CONFIG_DIR`variable in `/etc/dci-openshift-agent/config`
+(and in `/etc/dci-openshift-app-agent/config`, in case you want to use
+this feature to run jobs on top of already deployed OCP clusters) to instruct
+`dci-check-change` to look for the settings file in the correct path. You should
+use different values for `CONFIG_DIR` variables on the config files for each agent
+to avoid potential issues with the files used; for example, hosts file in `dci-openshift-agent`
+is not the same than the hosts file used in `dci-openshift-app-agent`, and the same for
+settings file, so if you use the same `CONFIG_DIR` for both agents, you may find conflicts.
+
+Example of execution using prefixes:
 
 ```console
 dci-check-change https://github.com/myorg/lab-config/pull/42 -p prefix -p2 app-prefix
@@ -160,6 +171,31 @@ Hints need to be activated in the `SUPPORTED_HINTS` variable in
 
 ```console
 SUPPORTED_HINTS="sno|assisted|libvirt|no-check|args|app|app-args|upgrade|upgrade-args|upgrade-from-topic|upgrade-to-topic"
+```
+
+#### Testing changes in an already up-and-running cluster
+
+If you want to test a change in an up-and-running cluster, you can
+pass the path to the kubeconfig file to `dci-check-change`, so that
+it will directly execute `dci-openshift-app-agent` on top of that
+cluster, using the change you want to test. Note that the change to be
+tested should be related to `dci-openshift-app-agent`.
+
+```console
+dci-check-change <change> <path/to/kubeconfig>
+```
+
+In this way, the default settings file placed in
+`/etc/dci-openshift-app-agent/settings.yml` file would be used.
+If you want to customize the execution, make use of the App-Hints explained
+in the previous section.
+
+Also, if you want to make use of prefixes to launch specific settings file,
+you can do it in the following way (remember that `-p2` is the argument that
+allows to select settings files for `dci-openshift-app-agent`).
+
+```console
+dci-check-change <change> <path/to/kubeconfig> -p2 prefix
 ```
 
 ## Continuous integration
