@@ -34,26 +34,26 @@
 
 - name: Ensure proper directories are created
   file:
-    path: '{{ item }}'
+    path: "{{ item }}"
     state: directory
-    owner: '{{ ansible_user_id }}'
-    group: '{{ ansible_user_gid }}'
-  with_items:
-    - '{{ dci_cache_dir }}'
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
+  loop:
+    - "{{ dci_cache_dir }}"
   become: true
 
 - block:
-  - name: "Clean up {{ dci_cluster_configs_dir }}"
-    file:
-      path: "{{ dci_cluster_configs_dir }}"
-      state: absent
+    - name: "Clean up {{ dci_cluster_configs_dir }}"
+      file:
+        path: "{{ dci_cluster_configs_dir }}"
+        state: absent
 
-  - name: "Create {{ dci_cluster_configs_dir }}"
-    file:
-      path: "{{ dci_cluster_configs_dir }}"
-      state: directory
+    - name: "Create {{ dci_cluster_configs_dir }}"
+      file:
+        path: "{{ dci_cluster_configs_dir }}"
+        state: directory
   when:
-    - dci_main is undefined or dci_main == 'install'
+    - dci_main == 'install'
 
 - name: "Download stable openshift clients"
   vars:

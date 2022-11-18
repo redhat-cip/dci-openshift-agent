@@ -17,20 +17,6 @@
         when:
           - "'provisioner' not in groups"
 
-      - block:
-        - name: "Clean up {{ dci_cluster_configs_dir }}"
-          become: true
-          file:
-            path: "{{ dci_cluster_configs_dir }}"
-            state: absent
-
-        - name: "Create {{ dci_cluster_configs_dir }}"
-          file:
-            path: "{{ dci_cluster_configs_dir }}"
-            state: directory
-        when:
-          - dci_main is undefined or dci_main == 'install'
-
       - name: Include installed software as components
         vars:
           rpms_to_components: "{{ dci_rpms_to_components }}"

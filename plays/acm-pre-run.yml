@@ -1,7 +1,4 @@
 ---
-- name: Configure jumpbox
-  include_tasks: configure-jumpbox.yml
-
 - name: "Get registry mirror registry details"
   block:
     - name: "Get Hub ICSP"
@@ -12,7 +9,7 @@
 
     - name: "Set hub_registry location"
       set_fact:
-        hub_registry: 'docker://{{ hub_icsp.resources[0].spec.repositoryDigestMirrors[0].mirrors[0] }}'
+        hub_registry: "docker://{{ hub_icsp.resources[0].spec.repositoryDigestMirrors[0].mirrors[0] }}"
 
     - name: "Get hub cluster config"
       community.kubernetes.k8s_info:

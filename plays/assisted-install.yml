@@ -129,6 +129,8 @@
 
 - name: Reset vars for DCI
   hosts: bastion
+  vars_files:
+    - ../group_vars/all
   tasks:
     - name: Reset cluster var for DCI
       set_fact:

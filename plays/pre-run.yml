@@ -12,10 +12,6 @@
   when:
     - dci_disconnected | default(false) | bool
 
-# Prepare host
-- name: Configure jumpbox
-  include_tasks: configure-jumpbox.yml
-
 - name: Set pullsecret from job_info - Connected
   set_fact:
     pullsecret: "{{ job_info.job.topic.data.pull_secret | default({}) | combine(openshift_secret | default({}), recursive=True) }}"
