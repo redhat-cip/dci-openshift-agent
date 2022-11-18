@@ -55,6 +55,18 @@
   when:
     - dci_main is undefined or dci_main == 'install'
 
+- name: "Download stable openshift clients"
+  vars:
+    ocp_clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable"
+  unarchive:
+    src: "{{ item }}"
+    dest: "{{ dci_cluster_configs_dir }}"
+    remote_src: true
+    mode: 0755
+  loop:
+    - "{{ ocp_clients_url }}/opm-linux.tar.gz"
+    - "{{ ocp_clients_url }}/openshift-client-linux.tar.gz"
+
 - name: "Setup podman on the jumphost"
   include_role:
     name: ansible-role-dci-podman
