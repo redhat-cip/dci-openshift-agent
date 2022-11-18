@@ -1,0 +1,131 @@
+---
+- name: Configure jumpbox
+  include_tasks: configure-jumpbox.yml
+
+- name: "Get registry mirror registry details"
+  block:
+    - name: "Get Hub ICSP"
+      community.kubernetes.k8s_info:
+        api_version: operator.openshift.io/v1alpha1
+        kind: ImageContentSourcePolicy
+      register: hub_icsp
+
+    - name: "Set hub_registry location"
+      set_fact:
+        hub_registry: 'docker://{{ hub_icsp.resources[0].spec.repositoryDigestMirrors[0].mirrors[0] }}'
+
+    - name: "Get hub cluster config"
+      community.kubernetes.k8s_info:
+        kind: ConfigMap
+        namespace: kube-system
+        name: cluster-config-v1
+        kubeconfig: "{{ hub_kubeconfig_path }}"
+      register: hub_config
+
+    - name: "Set webserver URL"
+      vars:
+        cluster_install_info: |-
+          {{ ( hub_config.resources[0].data |
+          from_yaml )['install-config'] |
+          from_yaml }}
+      set_fact:
+        hub_webserver: "{{ cluster_install_info.platform.baremetal.bootstrapOSImage | urlsplit('scheme') }}://{{ cluster_install_info.platform.baremetal.bootstrapOSImage | urlsplit('netloc') }}"
+      when:
+        - hub_config | length
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: "Get hub cluster pull_secret"
+  community.kubernetes.k8s_info:
+    api: v1
+    kind: Secret
+    name: "pull-secret"
+    namespace: openshift-config
+  register: hub_pull_secret
+
+- name: "Set pull secret temp file"
+  set_fact:
+    hub_tmp_pull_secret: "/tmp/hps_{{ lookup('password', '/dev/null length=8') }}.json"
+
+- name: "Save the Hub pullsecret"
+  vars:
+    pull_secret: '{{ hub_pull_secret.resources[0].data[".dockerconfigjson"] | b64decode }}'
+  copy:
+    content: "{{ pull_secret }}"
+    dest: "{{ hub_tmp_pull_secret }}"
+    mode: 0600
+
+- name: "Mirror OCP release artifacts"
+  block:
+    - name: "Mirror OCP release artifacts - Disconnected"
+      include_role:
+        name: mirror-ocp-release
+      vars:
+        release_url: "{{ url }}"
+        webserver_url: "{{ hub_webserver | default(None) }}"
+        cache_dir: "{{  provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
+        registry_url: "{{ hub_registry }}"
+        auths_file: "{{ hub_tmp_pull_secret }}"
+        force: false
+        mirror_artifacts: "{{ dci_disconnected | default(False) | bool }}"
+        unpack_artifacts: "{{ dci_disconnected | default(False) | bool }}"
+        install_type: "{{ install_type }}"
+        mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
+        mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
+        write_custom_config: false
+
+    - name: "Set facts for install via ACM - disconnected"
+      set_fact:
+        acm_metal_iso_location: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_iso_location'] | basename }}"
+        acm_rootfs_url: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
+        acm_release_image: "{{ hub_registry | urlsplit('netloc') }}{{ hub_registry | urlsplit('path') }}:{{ version }}"
+        local_registry_host: "{{ hub_registry | urlsplit('hostname') }}"
+        local_registry_port: "{{ hub_registry | urlsplit('port') }}"
+
+    - name: "Get the operators mirror-list"
+      include_tasks: get-mirror-list.yml
+
+    - name: "Mirror Operators for offline mode"
+      vars:
+        local_registry: "{{ hub_registry | urlsplit('netloc') }}"
+        dci_pullsecret_file: "{{ hub_tmp_pull_secret }}"
+      include_role:
+        name: operators-mirror
+      when:
+        - mirror_list is defined
+        - mirror_list | length
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: "Mirror OCP release artifacts"
+  block:
+    - name: "Mirror OCP release artifacts - Connected"
+      include_role:
+        name: mirror-ocp-release
+      vars:
+        release_url: "{{ url }}"
+        webserver_url: "{{ hub_webserver | default(None) }}"
+        cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
+        registry_url: "{{ hub_registry }}"
+        auths_file: "{{ hub_tmp_pull_secret }}"
+        force: true
+        mirror_artifacts: false
+        unpack_artifacts: false
+        install_type: "{{ install_type }}"
+        mirror_disk_images: false
+        mirror_container_images: false
+        write_custom_config: false
+
+    - name: "Set facts for install via ACM - connected"
+      set_fact:
+        acm_metal_iso_location: "{{ ocp_release_data.rhcos_images.metal_iso_location }}"
+        acm_rootfs_url: "{{ ocp_release_data.rhcos_images.metal_pxe_rootfs_location }}"
+        acm_release_image: "{{ ocp_release_data['container_image'] | quote }}"
+  when:
+    - not (dci_disconnected | default(false) | bool)
+
+- name: "Remove temp pull secret"
+  file:
+    path: "{{ hub_tmp_pull_secret }}"
+    state: absent
+...

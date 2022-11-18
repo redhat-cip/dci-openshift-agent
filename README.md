@@ -38,6 +38,7 @@ There are some benefits of running the DCI OCP Agent:
   - Other install methods:
     - [User Provisioned Infrastructure](docs/upi.md)
     - [Assisted Installer](docs/a-i.md)
+    - [Advanced Cluster Management (ACM)](docs/acm.md)
   - [Deploying Operators](#deploying-operators)
   - [Interacting with your RHOCP Cluster](#interacting-with-your-rhocp-cluster)
   - [Troubleshooting common issues](#troubleshooting-common-issues)

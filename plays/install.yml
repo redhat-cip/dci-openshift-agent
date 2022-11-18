@@ -159,7 +159,6 @@
         kind: Provisioning
         name: provisioning-configuration
       register: provisioning_cr
-
     - name: Disable provisioning
       community.kubernetes.k8s:
         definition:
@@ -173,3 +172,4 @@
         - provisioning_cr.resources | length
   when:
     - dci_disable_provisioning | default(false) | bool
+...
