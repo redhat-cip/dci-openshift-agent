@@ -17,24 +17,27 @@ At this time only SNO deployments are supported. Support for multi-node deployme
 
 ## Requirements
 
-* An OCP cluster already installed and configured with the ACM operator and its dependencies. A default storage class is mandatory in order to save information about the clusters managed by ACM. This will act as the Hub Cluster.
+* An OCP cluster already installed and configured with the ACM operator and its dependencies. A default storage class is mandatory to save information about the clusters managed by ACM. This will act as the Hub Cluster.
 * A kubeconfig file to be used to interact with the Hub Cluster.
 * A node that will be the target for the SNO deployment with support for Virtual Media at its Baseboard Management Controller (BMC).
-  - CPU: 6
-  - RAM: 16 GB
-  - At least 20GB of storage
+  * CPU: 6
+  * RAM: 16 GB
+  * At least 20GB of storage
 
 ACM does not require a dedicated jumphost or provisioning node, being able to interact with the Cluster hub using a kubeconfig file is enough.
 
 The ACM integration with DCI uses the [acm-setup](../roles/acm-setup/README.md) and [acm-sno](../roles/acm-sno/README.md) to complete the deployment of SNO instances.
 
-Please read the role's documentation in order to get more information.
+Please read the role's documentation to get more information.
 
-# Configuration
+## Configuration
+
 1. Create a directory for the SNO instance on the path defined by `dci_cluster_configs_dir`. Set the directory name as the name of the target instance to host the SNO deployment.
+
     ```ShellSession
     $ mkdir ${dci_cluster_configs_dir}/clusterX
     ```
+
 1. A Hub cluster is deployed with support for ACM. It can be achieved by setting `enable_acm=true` during an OCP deployment. Please see the [Pipelines examples](#pipelines-examples) section for a snippet of a pipeline prepared for ACM.
 1. The kubeconfig file of the Cluster Hub is exported as HUB_KUBECONFIG
 `export HUB_KUBECONFIG=/<kubeconfig_path>`
@@ -73,7 +76,7 @@ Please read the role's documentation in order to get more information.
 * Set `dci_disconnected` to true, this can be done in the inventory file or the
   `settings.yml` file.
 
-### Pipelines examples
+## Pipelines examples
 
 * ACM Hub pipeline with Trident as storage backend
 
@@ -113,6 +116,7 @@ Please read the role's documentation in order to get more information.
 ```
 
 * ACM SNO pipeline
+
 ```yaml
 ---
 - name: openshift-acm-sno
@@ -142,7 +146,7 @@ Please read the role's documentation in order to get more information.
   success_tag: ocp-acm-sno-4.10-ok
 ```
 
-### Inventory example
+## Inventory example
 
 * SNO Inventory file
 

@@ -19,6 +19,6 @@ Only x86_64 is supported; contact your EPM if you would like a specific architec
 
 ## FAQ
 
-### Where can some documentation about the Red Hat OpenShift Container Platform Life Cycle?
+1. Where to find more documentation about the Red Hat OpenShift Container Platform Life Cycle?
 
-[Red Hat OpenShift Container Platform Life Cycle official document](https://access.redhat.com/support/policy/updates/openshift/)
+    - [Red Hat OpenShift Container Platform Life Cycle official document](https://access.redhat.com/support/policy/updates/openshift/)

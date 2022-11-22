@@ -144,8 +144,7 @@ In any case, it must:
   - PXE
   - HTTP/HTTPS
 
-NOTE: Make sure rhel-8-for-x86_64-appstream-rpms repo provides access to
-libvirt => 6.0.0 packages
+> NOTE: Make sure rhel-8-for-x86_64-appstream-rpms repo provides access to libvirt => 6.0.0 packages
 
 #### Systems under test
 
@@ -245,9 +244,7 @@ There are three configuration files for `dci-openshift-agent`:
 
 #### `/etc/dci-openshift-agent/dcirc.sh`
 
-!!! NOTE
-    The default `dcirc.sh` is shipped as
-    `/etc/dci-openshift-agent/dcirc.sh.dist`.
+> NOTE: The default `dcirc.sh` is shipped as `/etc/dci-openshift-agent/dcirc.sh.dist`.
 
 Copy the [recently obtained API credentials](#setting-up-access-to-dci) and
 paste it on the Jumpbox to `/etc/dci-openshift-agent/dcirc.sh`.
@@ -336,9 +333,7 @@ dci_tags: ["debug", "gerrit:22195"]
 ...
 ```
 
-!!! NOTE
-    There are certain particularities about versioning that you can read
-    more in depth in [the versioning document](docs/ocp_versioning.md)
+> NOTE: There are certain particularities about versioning that you can read more in depth in [the versioning document](docs/ocp_versioning.md)
 
 #### `/etc/dci-openshift-agent/hosts`
 
@@ -422,9 +417,7 @@ hardware_profile=default
 provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 ```
 
-NOTE: If the jumpbox server is in a different network than the baremetal
-network, then include extcirdnet=<baremetal-network/mask> in the all:vars
-section of the inventory
+> NOTE: If the jumpbox server is in a different network than the baremetal network, then include `extcirdnet=<baremetal-network/mask>` in the `all:vars` section of the inventory
 
 ### Disconnected mode in DCI OCP agent
 
@@ -571,7 +564,7 @@ After you run a DCI job you will be able to interact with the RHOCP cluster usin
     https://console-openshift-console.apps.<cluster>.<domain>
     ```
 
-Note: The dci-openshift-agent is part of a [Continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) tool aimed to perform OCP deployments, should not be considered for production workloads. Use the above connection methods if some troubleshooting is required.
+> NOTE: The dci-openshift-agent is part of a [Continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) tool aimed to perform OCP deployments, should not be considered for production workloads. Use the above connection methods if some troubleshooting is required.
 
 ## EUS upgrade
 
@@ -725,10 +718,7 @@ bar
 Then prepare a clouds.yaml with the following information, and replace the IP
 addresses and password accordingly
 
-!!! NOTE
-    Starting with OCP 4.7 `metal3-boostrap` service uses `auth_type:
-    http_basic`, but in in older versions it uses `auth_type: none` so there's
-    no need to set auth section with the credentials
+> NOTE: Starting with OCP 4.7 `metal3-boostrap` service uses `auth_type: http_basic`, but in in older versions it uses `auth_type: none` so there's no need to set auth section with the credentials
 
 ```YAML
 clouds:
@@ -854,12 +844,9 @@ Enable the dnf-automatic.timer
 6. "Post-run"
     - Start post-run to collect results: `/plays/post-run.yml` and
       `/hooks/post-run.yml`
-    - Note: All results files (logs, tests, ...) must be stored within the `{{
-      dci_cluster_configs_dir }}/` directory in order to be properly uploaded to
-      the DCI server. Test result files must follow the Junit format and the
-      file name must follow the pattern `junit_*.xml`
     - *tags: post-run*
     - *runs on: localhost*
+    > NOTE: All results files (logs, tests, ...) must be stored within the `{{ dci_cluster_configs_dir }}/` directory in order to be properly uploaded to the DCI server. Test result files must follow the Junit format and the file name must follow the pattern `junit_*.xml`
 
 7. "Success"
     - Launch additional tasks when the job is successful: `/hooks/success.yml`
@@ -872,9 +859,7 @@ The following playbooks are executed sequentially at any step that fail:
 - Teardown: `/hooks/teardown.yml` which is executed only when the boolean `dci_teardown_on_success` is set to `true` (set to `true` by default)
 - Failure: `/plays/failure.yml` and `/hooks/failure.yml` during the `running` steps and `/plays/error.yml` during the other steps. `/hooks/failure.yml` was added to allow custom debug command to gather more meaningful logs.
 
-**NOTE**: All the task files located in directory
-`/etc/dci-openshift-agent/hooks/` are empty by default and should be customized
-by the user.
+> NOTE: All the task files located in directory `/etc/dci-openshift-agent/hooks/` are empty by default and should be customized by the user.
 
 All the tasks prefixed with `test_` will get exported in Junit using the
 [Ansible Junit
