@@ -8,7 +8,6 @@
       - "python{% if ansible_python.version.major == 3 %}3{% endif %}-netaddr"
       - "jq"
       - "expect"
-      - "skopeo" # needed for image mirroring in offline mode
     state: installed
 
 - name: Install grpcurl when uninstalled
