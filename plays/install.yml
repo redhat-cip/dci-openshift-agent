@@ -85,6 +85,17 @@
     - install_type is defined
     - install_type == 'upi'
 
+- name: Check if all cluster-operators are running correctly
+  community.kubernetes.k8s_info:
+    kind: ClusterOperator
+  register: clusteroperator_info
+  vars:
+    status_query: "resources[*].status.conditions[?type=='Available'].status"
+    cluster_operators_available: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
+  retries: 6
+  delay: 10
+  until: cluster_operators_available == ['True']
+
 - name: "installer : Patch clusterversion pointing to fast channel"
   vars:
     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
