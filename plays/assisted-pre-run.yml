@@ -254,10 +254,17 @@
         when:
           - dci_disconnected | default('no') |  bool
 
+      - name: "Set facts for operators catalog"
+        set_fact:
+          local_registry: |-
+            {{ hostvars.registry_host.registry_fqdn }}
+            {%- if hostsvars.registry_host.registry_port is defined %}
+            :{{ hostvars.registry_host.registry_port }}
+            {%- endif %}
+
       - name: "Mirror Operators for offline mode"
         vars:
           version: "{{ hostvars.localhost.version }}"
-          local_registry: "{{ hostvars.registry_host.registry_fqdn }}:{{ hostvars.registry_host.registry_port }}"
           dci_pullsecret_file: "{{ hostvars.localhost.local_pull_secret_path }}"
         include_role:
           name: operators-mirror
@@ -266,10 +273,6 @@
           - mirror_list is defined
           - mirror_list | length
 
-      - name: "Set facts for operators catalog"
-        set_fact:
-          local_registry_host: "{{ hostvars.registry_host.registry_fqdn }}"
-          local_registry_port: "{{ hostvars.registry_host.registry_port }}"
       rescue: *teardown_error
 
 - name: Process KVM nodes

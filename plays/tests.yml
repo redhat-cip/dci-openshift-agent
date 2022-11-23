@@ -23,7 +23,7 @@
 - name: "dci-openshift-agent : Run the Red Hat Test Suites"
   vars:
     ts_e2e_image: "quay.io/openshift/origin-tests"
-    ts_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
+    ts_registry: "{{ local_registry }}"
     ts_registry_auth: "{{ dci_pullsecret_file }}"
     ts_ocp_version_maj: "{{ ocp_version_major | int }}"
     ts_ocp_version_min: "{{ ocp_version_minor | int }}"

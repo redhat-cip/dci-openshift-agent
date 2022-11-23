@@ -17,12 +17,11 @@
           images:
             - quay.io/openshift-kni/cnf-tests:{{ cnf_tests_image }}
             - quay.io/openshift-kni/dpdk:{{ cnf_tests_image }}
-          local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
           authfile: "{{ dci_pullsecret_file }}"
 
       - name: "Set cnf_tests_image_registry for disconnected env"
         set_fact:
-          cnf_tests_image_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
+          cnf_tests_image_registry: "{{ local_registry }}"
 
     when:
       - dci_disconnected | default(false) | bool

@@ -1,9 +1,9 @@
 - name: "Build custom index from upstream for OCP Dev/Candidate versions"
   vars:
     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
-    index_image: "{{ local_registry_host }}:{{ local_registry_port }}/telcoci/upstream/sriov-operator-catalog:{{ base_version }}"
-    sriov_bundle: "{{ local_registry_host }}:{{ local_registry_port }}/telcoci/upstream/sriov-operator-bundle"
-    sriov_bundle_tag: "{{ local_registry_host }}:{{ local_registry_port }}/telcoci/upstream/sriov-operator-bundle:{{ base_version }}"
+    index_image: "{{ local_registry }}/telcoci/upstream/sriov-operator-catalog:{{ base_version }}"
+    sriov_bundle: "{{ local_registry }}/telcoci/upstream/sriov-operator-bundle"
+    sriov_bundle_tag: "{{ local_registry }}/telcoci/upstream/sriov-operator-bundle:{{ base_version }}"
   block:
     # Blocks to build other operators bundles may be required
     - name: "Building SRIOV bundle"
