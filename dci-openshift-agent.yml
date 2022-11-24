@@ -258,7 +258,7 @@
           include_tasks: plays/install.yml
           when:
             - dci_main == 'install'
-            - install_type not in ['assisted', 'acm']
+            - install_type in ['ipi', 'upi', 'sno']
 
         - name: "ACM Installation"
           include_tasks:

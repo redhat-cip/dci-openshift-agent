@@ -261,7 +261,7 @@
   delay: 10
   until: not git_clone.failed
   when:
-    - install_type is undefined or install_type == "ipi"
+    - install_type == "ipi"
 
 - name: Include installed software as components
   vars:

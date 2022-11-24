@@ -14,6 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+set -x
+
 PID2=
 RET=1
 PIPELINE_ARG=
@@ -165,14 +167,17 @@ export DO_VOTE
 if [ "$1" = "--virt" ]; then
     VIRT="virt"
     DCI_NAME=${DCI_NAME:-"libvirt"}
+    INSTALL_OPT="-e install_type=ipi"
     shift
 elif [ "$1" = "--sno" ]; then
     VIRT="sno"
     DCI_NAME=${DCI_NAME:-"sno"}
+    INSTALL_OPT="-e install_type=sno"
     shift
 elif [ "$1" = "--assisted" ]; then
     VIRT="assisted"
     DCI_NAME=${DCI_NAME:-"assisted"}
+    INSTALL_OPT="-e install_type=assisted"
     shift
 elif [ "$1" = "--no-check" ]; then
     VIRT="no-check"
@@ -261,8 +266,6 @@ if [ -n "$GERRIT_SSH_ID" ]; then
 fi
 
 trap finish 0
-
-set -x
 
 QUEUEID="queue-id:${DCI_QUEUE_JOBID:=noqueue.$$}"
 CHANGEID=$(basename "$DIR")
@@ -507,7 +510,7 @@ if [ -z "$KCFG" ]; then
     export DCI_OPENSHIFT_AGENT_DIR="$PWD"
     export ANSIBLE_CONFIG="$PWD/ansible.cfg"
 
-    setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" "$@" >& output &
+    setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $INSTALL_OPT "$@" >& output &
 
     do_wait 1
 
