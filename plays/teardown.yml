@@ -1,1 +1,6 @@
 ---
+- name: "Remove docker auths directory"
+  file:
+    path: "{{ docker_conf.path }}"
+    state: absent
+  when: docker_conf is defined

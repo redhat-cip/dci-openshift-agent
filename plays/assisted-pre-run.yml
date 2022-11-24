@@ -261,6 +261,9 @@
           dci_pullsecret_file: "{{ hostvars.localhost.local_pull_secret_path }}"
         include_role:
           name: operators-mirror
+          apply:
+            environment:
+              - DOCKER_CONFIG: "{{ hostvars.localhost.docker_conf.path }}"
         when:
           - dci_disconnected | default('no') | bool
           - mirror_list is defined

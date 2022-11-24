@@ -124,6 +124,20 @@
     - not (dci_disconnected | default(false) | bool)
     - pullsecret_file is undefined
 
+- name: "Configure auths for docker compatible tools"
+  block:
+    - name: "Create temp directory for docker auths"
+      tempfile:
+        state: directory
+      register: docker_conf
+
+    - name: "Copy dci_pull_secret as config.json"
+      copy:
+        src: "{{ dci_pullsecret_file }}"
+        dest: "{{ docker_conf.path }}/config.json"
+  when:
+    - dci_pullsecret_file is defined
+
 - name: Mirror release
   include_role:
     name: mirror-ocp-release
@@ -276,6 +290,9 @@
     local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
   include_role:
     name: operators-mirror
+    apply:
+      environment:
+        - DOCKER_CONFIG: "{{ docker_conf.path }}"
   when:
     - dci_disconnected | default(false) | bool
     - mirror_list is defined
@@ -287,6 +304,9 @@
     local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
   include_role:
     name: operators-mirror
+    apply:
+      environment:
+        - DOCKER_CONFIG: "{{ docker_conf.path }}"
   when:
     - dci_disconnected | default(false) | bool
     - mirror_list is defined

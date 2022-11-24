@@ -88,6 +88,9 @@
         dci_pullsecret_file: "{{ hub_tmp_pull_secret }}"
       include_role:
         name: operators-mirror
+        apply:
+          environment:
+            - DOCKER_CONFIG: "{{ docker_conf.path }}"
       when:
         - mirror_list is defined
         - mirror_list | length
