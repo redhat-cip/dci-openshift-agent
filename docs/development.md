@@ -34,6 +34,7 @@ rights to `dci-openshift-agent` user:
 Finally, you can run the script:
 
 ```console
+## Option -c to take the settings.yml file placed in the directory of the git repo
 ## Option -d for dev mode
 ## Overrides variables with group_vars/dev
 $ ./dci-openshift-agent-ctl -s -c settings.yml -d -- -e @group_vars/dev

@@ -597,10 +597,10 @@ if [ -s "$KUBECONFIG" ]; then
     # you need to make sure that this will point to a correct sample. This is handled below
     if [ -z "$APP_NAME" ] && [ -n "${CONFIG_DIR}" ]; then
         if [ -f "${CONFIG_DIR}/${PREFIX2_NAME}settings.yml" ]; then
-            APP_NAME=$(sed -n -e '/dci_name/ s/.*\: *//p' ${CONFIG_DIR}/${PREFIX2_NAME}settings.yml)
+            APP_NAME=$(sed -n -e '/^dci_name/ s/.*\: *//p' ${CONFIG_DIR}/${PREFIX2_NAME}settings.yml)
             # if no dci_name field is found in the settings file, then use the prefix name as name
             if [ -z "$APP_NAME" ]; then
-                APP_NAME=${PREFIX2_NAME#-}
+                APP_NAME=${PREFIX2_NAME%-}
             fi
         fi
     fi
@@ -619,7 +619,8 @@ if [ -s "$KUBECONFIG" ]; then
         if [ -n "$APP_NAME" ] && [ -d "$PWD/samples/$APP_NAME" ]; then
             APP_OPT="-e dci_config_dir=$PWD/samples/$APP_NAME"
         fi
-        setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -v -- -v "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> ../output &
+        # running this case in dev mode (-d) to use the dci-openshift-app-agent code from the change
+        setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -v "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> ../output &
         cd ..
     else
         # inject the common roles from doa if needed
