@@ -52,6 +52,20 @@
     dest: "{{ hub_tmp_pull_secret }}"
     mode: 0600
 
+- name: "Configure auths for docker compatible tools"
+  block:
+    - name: "Create temp directory for docker auths"
+      tempfile:
+        state: directory
+      register: docker_conf
+
+    - name: "Copy hub_tmp_pull_secret as config.json"
+      copy:
+        src: "{{ hub_tmp_pull_secret }}"
+        dest: "{{ docker_conf.path }}/config.json"
+  when:
+    - hub_tmp_pull_secret is defined
+
 - name: "Mirror OCP release artifacts"
   block:
     - name: "Mirror OCP release artifacts - Disconnected"
@@ -76,6 +90,7 @@
         acm_metal_iso_location: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_iso_location'] | basename }}"
         acm_rootfs_url: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
         acm_release_image: "{{ hub_registry | urlsplit('netloc') }}{{ hub_registry | urlsplit('path') }}:{{ version }}"
+        local_registry: "{{ hub_registry | urlsplit('netloc') }}"
 
     - name: "Get the operators mirror-list"
       include_tasks: get-mirror-list.yml
