@@ -10,7 +10,7 @@
       {{ dci_must_gather_images |
          default(["registry.redhat.io/openshift4/ose-must-gather"]) |
          join(" ") }}
-    registry: "{{ local_registry_host|default('') }}:{{ local_registry_port|default('') }}"
+    registry: "{{ local_registry }}"
   vars:
     provisioner_user: "{{ hostvars[groups['provisioner'][0]]['ansible_user'] }}"
     provisioner_host: >-

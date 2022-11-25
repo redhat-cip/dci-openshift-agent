@@ -82,6 +82,11 @@ sriov_operators:
   - sriov-network-operator
 performance_addon_operators:
   - performance-addon-operator
+local_registry: |-
+  {{ local_registry_host | default('') }}
+  {%- if local_registry_port is defined %}
+  :{{ local_registry_port }}
+  {%- endif %}
 
 ...
 

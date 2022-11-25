@@ -76,8 +76,6 @@
         acm_metal_iso_location: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_iso_location'] | basename }}"
         acm_rootfs_url: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
         acm_release_image: "{{ hub_registry | urlsplit('netloc') }}{{ hub_registry | urlsplit('path') }}:{{ version }}"
-        local_registry_host: "{{ hub_registry | urlsplit('hostname') }}"
-        local_registry_port: "{{ hub_registry | urlsplit('port') }}"
 
     - name: "Get the operators mirror-list"
       include_tasks: get-mirror-list.yml

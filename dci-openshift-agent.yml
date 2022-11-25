@@ -399,7 +399,6 @@
     - block:
         - name: "dci-openshift-agent : Launch partner upgrade"
           vars:
-            local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
             local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
           include_tasks: '{{ hookdir }}/hooks/upgrade.yml'
           loop: "{{ dci_config_dirs }}"

@@ -5,8 +5,7 @@
       - webserver_url is defined
       - groups['registry_host'] is defined
       - groups['registry_host'] | length > 0
-      - local_registry_host is defined
-      - local_registry_port is defined
+      - local_registry | length
       - provision_cache_store is defined
       - hostvars[groups['registry_host'][0]].local_repo is defined
   when:
@@ -146,7 +145,7 @@
     release_url: "{{ hostvars.localhost.url }}"
     cache_dir: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
     webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
-    registry_url: "docker://{{ local_registry_host | default('localhost') }}:{{ local_registry_port | default(0)  }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
+    registry_url: "docker://{{ local_registry }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
     auths_file: "{{ dci_pullsecret_file }}"
     force: "{{ (hostvars.localhost.dci_force_mirroring | default(false)) or (hostvars.localhost.build == 'candidate') | bool }}"
     install_type: "{{ hostvars.localhost.install_type | default('ipi') }}"
@@ -230,7 +229,7 @@
       release_url: "{{ hostvars.localhost.url }}"
       cache_dir: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
       webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
-      registry_url: "docker://{{ local_registry_host | default('localhost') }}:{{ local_registry_port | default(0)  }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
+      registry_url: "docker://{{ local_registry }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
       auths_file: "{{ dci_pullsecret_file }}"
       force: "{{ (hostvars.localhost.dci_force_mirroring | default(false)) or (hostvars.localhost.build == 'candidate') | bool }}"
       install_type: "{{ hostvars.localhost.install_type | default('ipi') }}"
@@ -287,7 +286,6 @@
 - name: "Mirror Operators for offline mode"
   vars:
     version: "{{ hostvars.localhost.version }}"
-    local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
   include_role:
     name: operators-mirror
     apply:
@@ -301,7 +299,6 @@
 - name: "Mirror Operators for EUS Upgrade"
   vars:
     version: "{{ version_inter }}"
-    local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
   include_role:
     name: operators-mirror
     apply:
@@ -318,7 +315,6 @@
     name: mirror_images
   vars:
     images: "{{ dci_must_gather_images | default(['registry.redhat.io/openshift4/ose-must-gather']) }}"
-    local_registry: "{{ local_registry_host }}:{{ local_registry_port }}"
     authfile: "{{ dci_pullsecret_file }}"
   when: >
     (dci_disconnected | default(false) | bool) or
