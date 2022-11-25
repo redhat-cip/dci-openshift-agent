@@ -309,7 +309,9 @@ which version of OCP to install.
 | dci_operators                   | False    | List    | []                                                             | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details.
 | apply_sriov_upgrade_settings    | False    | Boolean | True                                                           | Whether to apply SR-IOV recommended settings before operator upgrade.
 | dci_prepare_cnf                 | False    | Boolean | False                                                          | Deploys Performance Addon and SRIOV operators, Please use the `enable_sriov` or `enable_perf_addon` variables if only one of this operators is required. To complete the Performance Addon configuration it is recommended to also add a `performance_definition`.
-| enable_cnv                      | False    | Boolean | False                                                          | Deploys CNV and enable the HCO operator.
+| enable_cnv                      | False    | Boolean | False                                                          | Deploys CNV and enables the HCO operator.
+| cnv_api_version                 | False    | String  | v1beta1
+API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | enable_elasticsearch            | False    | Boolean | False                                                          | Deploys the ElasticSearch Operator.
 | enable_clusterlogging           | False    | Boolean | False                                                          | Deploys the Cluster-Logging Operator.
 | enable_perf_addon               | False    | Boolean | False                                                          | Deploys the Performance AddOn Operator. For its configuration is recommended to define a `performance_definition`.
