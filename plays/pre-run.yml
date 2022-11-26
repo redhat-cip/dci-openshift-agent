@@ -260,7 +260,7 @@
   delay: 10
   until: not git_clone.failed
   when:
-    - install_type == "ipi"
+    - install_type in ['ipi', 'upi', 'sno']
 
 - name: Include installed software as components
   vars:
