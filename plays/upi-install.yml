@@ -1,0 +1,13 @@
+---
+
+- include_tasks: before-install.yml
+
+- name: UPI Installer tasks
+  block:
+  - name: "installer : Run UPI installer"
+    import_role:
+      name: upi-installer
+
+- include_tasks: after-install.yml
+
+...

@@ -1,0 +1,21 @@
+---
+
+- name: "installer : set EXTERNAL_SUBNET"
+  set_fact:
+    extcidrnet: "{{ ip | ipaddr('network') }}/{{ ip | ipaddr('prefix') }}"
+  vars:
+    ip: "{{ ansible_default_ipv4.address }}/{{ ansible_default_ipv4.netmask }}"
+  when:
+    - (extcidrnet is not defined or extcidrnet|length < 1)
+
+- name: "installer : Get version and build from localhost vars"
+  set_fact:
+    version: "{{ hostvars.localhost.version }}"
+    build: "{{ hostvars.localhost.build }}"
+
+- name: "installer : Get pullsecret from localhost vars"
+  set_fact:
+    pullsecret: "{{ hostvars.localhost.pullsecret | to_json }}"
+  no_log: true
+
+...

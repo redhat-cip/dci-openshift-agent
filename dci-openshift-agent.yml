@@ -254,8 +254,8 @@
     no_proxy: "{{ no_proxy_list }}"
   tasks:
     - block:
-        - name: "dci-openshift-agent : Launch install"
-          include_tasks: plays/install.yml
+        - name: "Launch {{ install_type }} install"
+          include_tasks: "plays/{{ install_type }}-install.yml"
           when:
             - dci_main == 'install'
             - install_type in ['ipi', 'upi', 'sno']
@@ -348,25 +348,6 @@
             loop_var: hookdir
       when:
         - dci_main == 'install'
-      rescue: *teardown_failure
-
-# Step 3a-4 : post installing
-- name: 'Launch post install'
-  hosts: localhost
-  tags:
-    - running
-    - post-installing
-  environment:
-    http_proxy: "{{ http_proxy }}"
-    https_proxy: "{{ https_proxy }}"
-    no_proxy: "{{ no_proxy_list }}"
-    KUBECONFIG: "{{ kubeconfig_path }}"
-  tasks:
-    - block:
-        - include_tasks: plays/post-install.yml
-      when:
-        - dci_main == 'install'
-        - install_type != 'acm'
       rescue: *teardown_failure
 
 # Step 3b-1 : upgrading
