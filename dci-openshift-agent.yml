@@ -335,10 +335,15 @@
 
 # Step 3a-3 : hook installing
 - name: 'Launch hook install'
-  hosts: provisioner
+  hosts: localhost
   tags:
     - running
     - hook-installing
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+    KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
     - block:
         - name: "dci-openshift-agent : Launch partner install"
@@ -372,15 +377,13 @@
 
 # Step 3b-2 : hook upgrading
 - name: 'Launch hook upgrade'
-  hosts: provisioner
+  hosts: localhost
   tags:
     - running
     - hook-upgrading
   tasks:
     - block:
         - name: "dci-openshift-agent : Launch partner upgrade"
-          vars:
-            local_repo: "{{ hostvars[groups['registry_host'][0]].local_repo }}"
           include_tasks: '{{ hookdir }}/hooks/upgrade.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
