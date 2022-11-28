@@ -18,7 +18,7 @@
   set_fact:
     major: "{{ job_info.job.topic.name | upper | replace('OCP-', '') }}"
 
-- name: "Work-around for 4.7 -> 4.8 upgrade"
+- name: "Enable gateway mode for 4.7 -> 4.8 upgrade"
   community.kubernetes.k8s:
     definition:
       apiVersion: v1
@@ -30,8 +30,7 @@
         mode: "local"
       immutable: true
   when:
-    - '"bz2064193" in dci_workarounds|default([])'
-    - major is version("4.8", "==")
+    - enable_gateway_mode | default(false) | bool
 
 - name: "Acknowledge deprecated API removals for 4.9 upgrade"
   vars:
