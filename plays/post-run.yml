@@ -2,14 +2,13 @@
 - name: Set outputs to be copied
   set_fact:
     outputs:
-      kubeconfig: "~/clusterconfigs/auth/kubeconfig"
+      kubeconfig: "{{ dci_cluster_configs_dir }}/kubeconfig"
 
 - name: Copy outputs if defined
-  delegate_to: "{{ groups['provisioner'][0] }}"
-  fetch:
+  copy:
     src: "{{ outputs[item.key] }}"
     dest: "{{ item.value }}"
-    flat: true
+    mode: "0644"
   with_dict: "{{ job_info.outputs }}"
   when: job_info.outputs is defined and job_info.outputs != None
 
