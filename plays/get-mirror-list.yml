@@ -5,13 +5,14 @@
 
 - name: "Add operators if enable_sriov"
   set_fact:
-    mirror_list: "{{ mirror_list + sriov_operators }}"
+    mirror_list: "{{ mirror_list + sriov_operator }}"
   when:
     - enable_sriov | bool
+    - not upstream_sriov | default(false) | bool
 
 - name: "Add operators if enable_perf_addon"
   set_fact:
-    mirror_list: "{{ mirror_list + performance_addon_operators }}"
+    mirror_list: "{{ mirror_list + performance_addon_operator }}"
   when:
     - enable_perf_addon | bool
 

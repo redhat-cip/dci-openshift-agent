@@ -17,7 +17,7 @@
     ocp_version_maj: "{{ current_ver.split('.')[0] }}"
     ocp_version_min: "{{ current_ver.split('.')[1] }}"
 
-- name: "Create additional catalogs - Connected"
+- name: "Add custom catalogs"
   vars:
     catalog_name: "{{ ((catalog | basename).split(':'))[0] }}"
   community.kubernetes.k8s:
@@ -32,11 +32,11 @@
         image: "{{ catalog }}"
         displayName: "{{ catalog_name }}"
         publisher: grpc
-  loop: "{{ additional_catalogs }}"
+  loop: "{{ custom_catalogs }}"
   loop_control:
     loop_var: catalog
   when:
-    - additional_catalogs | default([]) | length
+    - custom_catalogs | default([]) | length
 
 - name: "deploy-operators : Set default redhat-operators"
   set_fact:
@@ -140,7 +140,7 @@
             name: olm-operator
           vars:
             operator: sriov-network-operator
-            source: "{{ opm_catalog_source_name }}"
+            source: "{{ upstream_source_catalog_name | default(opm_catalog_source_name) }}"
             namespace: openshift-sriov-network-operator
             operator_group_spec:
               targetNamespaces:

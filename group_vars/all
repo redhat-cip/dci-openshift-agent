@@ -78,9 +78,9 @@ local_storage_operator:
 cnf_operators:
   - sriov-network-operator
   - performance-addon-operator
-sriov_operators:
+sriov_operator:
   - sriov-network-operator
-performance_addon_operators:
+performance_addon_operator:
   - performance-addon-operator
 local_registry: |-
   {{ local_registry_host | default('') }}
