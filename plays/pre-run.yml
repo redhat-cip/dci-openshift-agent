@@ -284,8 +284,7 @@
   vars:
     mc_oc_tool_path: "{{ oc_tool_path }}"
     mc_catalog: "{{ catalog }}"
-    mc_registry_host: "{{ local_registry_host }}"
-    mc_registry_port: "{{ local_registry_port }}"
+    mc_registry: "{{ local_registry }}"
     mc_pullsecret: "{{ dci_pullsecret_file }}"
   loop: "{{ custom_catalogs }}"
   loop_control:
@@ -294,49 +293,61 @@
     - dci_disconnected | default(false) | bool
     - custom_catalogs | default([]) | length
 
+- name: "Define a list of ImageContentSourcePolicy files"
+  set_fact:
+    icsp_files: "{{ icsp_files | default([]) + [mc_icsp_file.path] }}"
+  when: mc_icsp_file is defined
+
 - name: "Get the operators mirror-list"
   include_tasks: get-mirror-list.yml
+
+- name: "Generate catalog and mirror the operator images"
+  block:
+    - name: "Mirror Operators for offline mode"
+      include_role:
+        name: operators-mirror
+        apply:
+          environment:
+            - DOCKER_CONFIG: "{{ docker_conf.path }}"
+
+    - name: "Mirror pruned catalog"
+      include_role:
+        name: mirror-catalog
+      vars:
+        mc_oc_tool_path: "{{ oc_tool_path }}"
+        mc_catalog: "{{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
+        mc_registry: "{{ local_registry }}"
+        mc_pullsecret: "{{ dci_pullsecret_file }}"
+
+    - name: "Append the ImageContentSourcePolicy file"
+      set_fact:
+        icsp_files: "{{ icsp_files | default([]) + [mc_icsp_file.path] }}"
+      when: mc_icsp_file is defined
+
   when:
     - dci_disconnected | default(false) |  bool
-
-- name: "Mirror Operators for offline mode"
-  vars:
-    version: "{{ hostvars.localhost.version }}"
-  include_role:
-    name: operators-mirror
-    apply:
-      environment:
-        - DOCKER_CONFIG: "{{ docker_conf.path }}"
-  when:
-    - dci_disconnected | default(false) | bool
-    - mirror_list is defined
     - mirror_list | length
 
 - name: Append mirrors to trust bundle
   block:
-    - name: Check trust bundle file
-      stat:
-        path: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
-        get_checksum: false
-      register: trust_bundle
-
-    - name: Copy trust bundle when missing
+    - name: Copy initial trust bundle
       copy:
         src: "{{ hostvars[groups['registry_host'][0]].disconnected_registry_mirrors_file }}"
         dest: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
-      when:
-        - not trust_bundle.stat.exists
 
-    - name: Add sriov mirrors to trust bundle
+    - name: Add mirrors to trust bundle
       blockinfile:
         path: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
         block: >
-          {{ lookup('file', mc_icsp_file.path) |
+          {{ lookup('file', icsp_file) |
              from_yaml |
              json_query('spec.repositoryDigestMirrors') |
              to_yaml
           }}
-        marker: "# sriov (upstream)"
+        marker: "# {{ (icsp_file | basename).split('.')[0] }}"
+      loop: "{{ icsp_files | unique | select | list }}"
+      loop_control:
+        loop_var: icsp_file
 
     - name: Override disconnected_registry_mirrors_file
       set_fact:
@@ -345,16 +356,29 @@
       delegate_to: "{{ groups['registry_host'][0] if 'registry_host' in groups else 'registry_host' }}"
 
   when:
-    - mc_icsp_file is defined
+    - icsp_files is defined
+    - icsp_files | length
 
-- name: "Mirror Operators for EUS Upgrade"
-  vars:
-    version: "{{ version_inter }}"
-  include_role:
-    name: operators-mirror
-    apply:
-      environment:
-        - DOCKER_CONFIG: "{{ docker_conf.path }}"
+- name: "Catalog and mirror operators for EUS upgrade"
+  block:
+    - name: "Mirror Operators for EUS Upgrade"
+      vars:
+        version: "{{ version_inter }}"
+      include_role:
+        name: operators-mirror
+        apply:
+          environment:
+            - DOCKER_CONFIG: "{{ docker_conf.path }}"
+
+    - name: "Mirror pruned catalog"
+      include_role:
+        name: mirror-catalog
+      vars:
+        mc_oc_tool_path: "{{ oc_tool_path }}"
+        mc_catalog: "{{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
+        mc_registry: "{{ local_registry }}"
+        mc_pullsecret: "{{ dci_pullsecret_file }}"
+
   when:
     - dci_disconnected | default(false) | bool
     - mirror_list is defined
