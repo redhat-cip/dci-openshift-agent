@@ -18,35 +18,28 @@
     ocp_version_min: "{{ current_ver.split('.')[1] }}"
 
 - name: "Add custom catalogs"
+  include_role:
+    name: catalog-source
   vars:
-    catalog_name: "{{ ((catalog | basename).split(':'))[0] }}"
-  community.kubernetes.k8s:
-    definition:
-      apiVersion: operators.coreos.com/v1alpha1
-      kind: CatalogSource
-      metadata:
-        name: "{{ catalog_name }}"
-        namespace: "openshift-marketplace"
-      spec:
-        sourceType: grpc
-        image: "{{ catalog }}"
-        displayName: "{{ catalog_name }}"
-        publisher: grpc
+    cs_name: "{{ ((catalog | basename).split(':'))[0] }}"
+    cs_namespace: "openshift-marketplace"
+    cs_image: "{{ catalog }}"
   loop: "{{ custom_catalogs }}"
   loop_control:
     loop_var: catalog
   when:
     - custom_catalogs | default([]) | length
 
-- name: "deploy-operators : Set default redhat-operators"
-  set_fact:
-    opm_catalog_source_name: "{{ opm_catalog_source_name | default('redhat-operators') }}"
-
 - name: Configure CatalogSources for disconnected environments
   block:
     - name: "deploy-operators : Generate disconnected catalogSource"
-      import_role:
-        name: operators-catalog
+      include_role:
+        name: catalog-source
+      vars:
+        cs_name: "{{ opm_catalog_source_name }}"
+        cs_namespace: "{{ opm_catalog_source_namespace }}"
+        cs_image: "{{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
+        cs_publisher: "{{ opm_catalog_source_displayname }}"
       when:
         - mirror_list is defined
         - mirror_list | length
@@ -104,16 +97,14 @@
       when:
         - worker_node_count | int > 1
 
-    - name: "deploy-operators : Update image catalog"
-      community.kubernetes.k8s:
-        definition:
-          apiVersion: operators.coreos.com/v1alpha1
-          kind: CatalogSource
-          metadata:
-            name: redhat-operators
-            namespace: openshift-marketplace
-          spec:
-            image: "{{ operators_index }}"
+    - name: "deploy-operators : Override Red Hat catalog in connected"
+      include_role:
+        name: catalog-source
+      vars:
+        cs_name: "redhat-operators"
+        cs_namespace: "openshift-marketplace"
+        cs_image: "{{ operators_index }}"
+        cs_publisher: "Red Hat"
       when:
         - operators_index is defined
         - not dci_disconnected | default(false) | bool
