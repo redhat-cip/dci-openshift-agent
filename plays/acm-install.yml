@@ -1,4 +1,5 @@
 ---
+
 - name: "Deploy an SNO node via ACM"
   vars:
     acm_ocp_version: "{{ hostvars.localhost.version }}"
@@ -51,4 +52,5 @@
   loop:
   - "{{ dci_cluster_configs_dir }}/ocp_creds.txt"
   - "{{ dci_cluster_configs_dir }}/kubeconfig"
+
 ...

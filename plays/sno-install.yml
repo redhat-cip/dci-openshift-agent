@@ -1,0 +1,15 @@
+---
+
+- include_tasks: before-install.yml
+
+- name: "installer : SNO Node preparation"
+  import_role:
+    name: sno-node-prep
+
+- name: "installer : SNO Run IPI installer"
+  import_role:
+    name: sno-installer
+
+- include_tasks: after-install.yml
+
+...
