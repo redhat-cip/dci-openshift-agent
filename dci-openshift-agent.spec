@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.2
+Version:       0.5.3    
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -95,6 +95,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Dec  5 2022 Frederic Lepied <flepied@redhat.com> 0.5.3-1
+- change internal logic for rpm and git components
+
 * Thu Nov 10 2022 Frederic Lepied <flepied@redhat.com> 0.5.2-1
 - bump the requires for python-dciclient to >= 2.6.0 to get dci-diff-jobs
 

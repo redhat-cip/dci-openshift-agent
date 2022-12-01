@@ -26,13 +26,7 @@ dci_hide_secrets: true
 # cnf-tests image tag in quay.io
 cnf_tests_image: ''
 dci_cluster_configs_dir: "{{'~/clusterconfigs' | expanduser}}-{{ cluster }}"
-dci_rpms_to_components:
-  - dci-openshift-agent
-  - dci-ansible
-  - python3-dciclient
-  - python3-kubernetes
-  - python3-openshift
-  - ansible
+dci_rpms_to_components: []
 dci_gits_to_components: "{{ dci_config_dirs }}"
 dev_gits_to_components: []
 http_proxy: "{{ lookup('env','http_proxy') }}"
