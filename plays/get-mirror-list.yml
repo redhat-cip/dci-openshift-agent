@@ -58,6 +58,12 @@
   when:
     - enable_ocs | bool
 
+- name: "Add operators if enable_odf"
+  set_fact:
+    mirror_list: "{{ mirror_list + odf_operator }}"
+  when:
+    - enable_odf | bool
+
 - name: "Cleanup operators list"
   set_fact:
     mirror_list: "{{ mirror_list | unique | select | list }}"
