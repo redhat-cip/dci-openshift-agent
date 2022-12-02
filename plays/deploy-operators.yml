@@ -39,7 +39,7 @@
         cs_name: "{{ opm_catalog_source_name }}"
         cs_namespace: "{{ opm_catalog_source_namespace }}"
         cs_image: "{{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
-        cs_publisher: "{{ opm_catalog_source_displayname }}"
+        cs_publisher: "Red Hat Operators"
       when:
         - mirror_list is defined
         - mirror_list | length

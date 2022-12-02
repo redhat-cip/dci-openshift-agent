@@ -1,0 +1,52 @@
+---
+- name: "Create a tmp directory for the pruned image"
+  tempfile:
+    state: directory
+  register: tmp_prune
+
+- name: "Fallback prune counter - Try up to 3 previous versions"
+  set_fact:
+    fallback_counter: 0
+
+- name: "Prune catalog - recursive"
+  vars:
+    opm_expire: "{{ hostsvars.localhost.opm_expire | default(true) }}"
+    opm_expire_time: "{{ hostvars.localhost.opm_expire_time | default('24h') }}"
+    ocp_major: "{{ version.split('.')[0] }}"
+    ocp_minor: "{{ version.split('.')[1] }}"
+  include_tasks: prune-catalog.yml
+
+- name: "Required operators not found"
+  fail:
+    msg: "All the required operators were not found"
+  when: prune_count.stdout | int != mirror_list | length
+
+- name: "Create DCI component for pruned catalog"
+  vars:
+    catalog_version: "{{ index_tag.split('_')[0] }}"
+  dci_component:
+    name: "v{{ catalog_version }}"
+    canonical_project_name: "{{ opm_local_registry_path | basename }}:v{{ catalog_version }}"
+    team_id: "{{ job_info['job']['team_id'] }}"
+    topic_id: "{{ job_info['job']['topic_id'] }}"
+    type: "{{ opm_local_registry_path | basename }}"
+    state: present
+  register: index_component
+
+- name: "Attach pruned catalog to the component's job"
+  dci_job_component:
+    component_id: " {{ index_component.component.id }} "
+    job_id: " {{ job_id }} "
+  register: job_component_result
+  until: job_component_result is not failed
+  retries: 5
+  delay: 20
+  when:
+    - "'component' in index_component"
+    - "'id' in index_component.component"
+
+- name: "Delete tmp directory for the pruned image"
+  file:
+    state: absent
+    path: "{{ tmp_prune.path }}"
+...

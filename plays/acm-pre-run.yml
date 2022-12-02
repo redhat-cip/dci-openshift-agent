@@ -99,11 +99,7 @@
       vars:
         local_registry: "{{ hub_registry | urlsplit('netloc') }}"
         dci_pullsecret_file: "{{ hub_tmp_pull_secret }}"
-      include_role:
-        name: operators-mirror
-        apply:
-          environment:
-            - DOCKER_CONFIG: "{{ docker_conf.path }}"
+      include_tasks: build-catalog.yml
       when:
         - mirror_list is defined
         - mirror_list | length
