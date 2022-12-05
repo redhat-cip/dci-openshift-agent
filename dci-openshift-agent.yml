@@ -105,8 +105,6 @@
         opm_local_registry_path: "/pruned/redhat-operator-index"
         opm_catalog_source_name: "mirrored-redhat-operators"
         opm_catalog_source_namespace: "openshift-marketplace"
-        opm_catalog_source_displayname: "Red Hat Operators"
-        manifests_dir: "redhat-operators-manifests"
       when:
         - dci_disconnected | default(false) | bool
 

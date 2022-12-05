@@ -1,12 +1,11 @@
 ---
-
-- name: "Loop control for index prunning"
+- name: "Loop control for prunning"
   set_fact:
-    index_fallback: "{{ index_fallback | int + 1 }}"
+    fallback_counter: "{{ fallback_counter | int + 1 }}"
 
 - name: "Define pruned index tag"
   set_fact:
-      index_tag: "{{ ocp_major }}.{{ ocp_minor }}_{{ ansible_date_time.iso8601_basic }}"
+    index_tag: "{{ ocp_major }}.{{ ocp_minor }}_{{ ansible_date_time.iso8601_basic }}"
 
 - name: "Set operator source index"
   set_fact:
@@ -19,8 +18,14 @@
     mode: 0755
 
 - name: "Copy configs.Dockerfile to temp directory"
-  template:
-    src: configs.Dockerfile.j2
+  copy:
+    content: |
+      FROM quay.io/operator-framework/opm:latest
+      ENTRYPOINT ["/bin/opm"]
+      CMD ["serve", "/configs"]
+      ADD configs /configs
+      LABEL operators.operatorframework.io.index.configs.v1=/configs
+      LABEL maintainer="Telco DCI team"{% if opm_expire %} quay.expires-after={{ opm_expire_time }}{% endif %}
     dest: "{{ tmp_prune.path }}/configs.Dockerfile"
     mode: 0644
 
@@ -31,6 +36,8 @@
       set -x;
       {{ dci_cluster_configs_dir }}/opm render {{ source_index }} >
       {{ tmp_prune.path }}/index-packages
+  environment:
+    - DOCKER_CONFIG: "{{ docker_conf.path }}"
   register: prune_result
   until: prune_result.rc == 0
   retries: 3
@@ -51,12 +58,11 @@
 - name: "Build the catalog index"
   shell:
     chdir: "{{ tmp_prune.path }}"
-    cmd: |
-      set -x
-      podman build -t {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }} \
+    cmd: >
+      set -x;
+      podman build
+      -t {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
       -f {{ tmp_prune.path }}/configs.Dockerfile .
-  notify:
-    - "Fix permissions and removing tmp files"
 
 - name: "Validate the pruned index"
   shell: |
@@ -66,27 +72,36 @@
 
 - name: "Push the new index image to the local registry"
   shell:
-    cmd: |
-      podman push {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }} \
+    cmd: >
+      podman push
+      {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+      {% if dci_pullsecret_file is defined %}
       --authfile {{ dci_pullsecret_file }}
+      {% endif %}
 
 - name: "Use the grpc API to explore the pruned catalog index"
   shell:
-    cmd: |
-      podman run --rm -d -p50051 \
+    cmd: >
+      podman run
+      --rm
+      --detach
+      --publish 50051
       {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
   register: grpc_container_id
 
 - name: "Get dynamic port assigned to grpc"
   shell:
-    cmd: |
-      podman inspect {{ grpc_container_id.stdout }} | jq '.[].NetworkSettings.Ports."50051/tcp"[].HostPort'
+    cmd: >
+      podman inspect {{ grpc_container_id.stdout }} |
+      jq '.[].NetworkSettings.Ports."50051/tcp"[].HostPort'
   register: grpc_port
 
 - name: "Get the operators available in the pruned catalog"
   shell:
     cmd: >
-      grpcurl -plaintext localhost:{{ grpc_port.stdout  }} api.Registry/ListPackages |
+      grpcurl -plaintext
+      localhost:{{ grpc_port.stdout }}
+      api.Registry/ListPackages |
       jq ".name"
   register: packages_list
 
@@ -96,19 +111,26 @@
 
 - name: "Get the number of operators in the pruned catalog"
   shell:
-    cmd: |
-      grpcurl -plaintext localhost:{{ grpc_port.stdout  }} api.Registry/ListPackages | jq -s length
+    cmd: >
+      grpcurl -plaintext
+      localhost:{{ grpc_port.stdout }}
+      api.Registry/ListPackages |
+      jq -s length
   register: prune_count
 
 - name: "Remove grpc-api container"
   shell:
     cmd: >
-      podman stop --ignore {{ grpc_container_id.stdout }}
+      podman stop
+      --ignore
+      {{ grpc_container_id.stdout }}
 
 - name: "Remove local index image"
   shell:
     cmd: >
-      podman rmi -f {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+      podman rmi
+      --force
+      {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
 
 - name: "Delete image config directory"
   file:
@@ -121,8 +143,8 @@
   when: prune_count.stdout | int != mirror_list | length
 
 - name: "Fallback to previous OCP version"
-  include_tasks: index-prune.yml
+  include_tasks: prune-catalog.yml
   when:
-    - index_fallback | int <= 3
+    - fallback_counter | int <= 3
     - prune_count.stdout | int != mirror_list | length
 ...

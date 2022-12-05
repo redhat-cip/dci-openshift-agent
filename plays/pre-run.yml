@@ -301,14 +301,10 @@
 - name: "Get the operators mirror-list"
   include_tasks: get-mirror-list.yml
 
-- name: "Generate catalog and mirror the operator images"
+- name: "Prune catalog and mirror the operator images"
   block:
-    - name: "Mirror Operators for offline mode"
-      include_role:
-        name: operators-mirror
-        apply:
-          environment:
-            - DOCKER_CONFIG: "{{ docker_conf.path }}"
+    - name: "Build pruned catalog"
+      include_tasks: build-catalog.yml
 
     - name: "Mirror pruned catalog"
       include_role:
@@ -361,14 +357,10 @@
 
 - name: "Catalog and mirror operators for EUS upgrade"
   block:
-    - name: "Mirror Operators for EUS Upgrade"
+    - name: "Build pruned catalog for EUS upgrade"
       vars:
         version: "{{ version_inter }}"
-      include_role:
-        name: operators-mirror
-        apply:
-          environment:
-            - DOCKER_CONFIG: "{{ docker_conf.path }}"
+      include_tasks: "build-catalog.yml"
 
     - name: "Mirror pruned catalog"
       include_role:
