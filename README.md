@@ -321,6 +321,7 @@ API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | enable_clusterlogging           | False    | Boolean | False                                                          | Deploys the Cluster-Logging Operator.
 | enable_perf_addon               | False    | Boolean | False                                                          | Deploys the Performance AddOn Operator. For its configuration is recommended to define a `performance_definition`.
 | enable_sriov                    | False    | Boolean | False                                                          | Deploys the SRIOV Operator.
+| enable_odf                      | False    | Boolean | False                                                          | Deploys the ODF Operator.
 | enable_ocs                      | False    | Boolean | False                                                          | Deploys the OCS Operator.
 | enable_lso                      | False    | Boolean | False                                                          | Deploys the Local Storage Operator.
 | enable_acm                      | False    | Boolean | False                                                          | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator.
