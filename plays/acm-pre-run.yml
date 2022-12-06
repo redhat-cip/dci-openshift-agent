@@ -103,12 +103,22 @@
       when:
         - mirror_list is defined
         - mirror_list | length
+
+    - name: "Mirror pruned catalog"
+      include_role:
+        name: mirror-catalog
+      vars:
+        mc_oc_tool_path: "{{ oc_tool_path }}"
+        mc_catalog: "{{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
+        mc_registry: "{{ local_registry }}"
+        mc_pullsecret: "{{ hub_tmp_pull_secret }}"
+
   when:
     - dci_disconnected | default(false) | bool
 
-- name: "Mirror OCP release artifacts"
+- name: "Get OCP release artifacts"
   block:
-    - name: "Mirror OCP release artifacts - Connected"
+    - name: "Get OCP release artifacts"
       include_role:
         name: mirror-ocp-release
       vars:
