@@ -264,10 +264,17 @@
 
 - name: Include installed software as components
   vars:
-    rpms_to_components: "{{ dci_rpms_to_components }}"
-    gits_to_components:
-      - "{{ dci_gits_to_components }}"
-      - "{{ dev_gits_to_components }}"
+    mandatory_rpms:
+      - ansible
+      - dci-ansible
+      - dci-openshift-agent
+      - dci-pipeline
+      - python3-dciclient
+      - python3-kubernetes
+      - python3-openshift
+    rpms_to_components: "{{ (dci_rpms_to_components + mandatory_rpms)|flatten }}"
+    gits_to_components: "{{ dci_gits_to_components|flatten }}"
+    dev_gits_to_components: "{{ dev_gits_to_components|flatten }}"
   include_role:
     name: include-components
 
