@@ -17,6 +17,33 @@
     ocp_version_maj: "{{ current_ver.split('.')[0] }}"
     ocp_version_min: "{{ current_ver.split('.')[1] }}"
 
+- name: "Apply ICSP for ACM-SNO"
+  block:
+    - name: "Apply ICSPs for mirrored operators"
+      community.kubernetes.k8s:
+        state: present
+        src: "{{ mc_icsp_file.path }}"
+      when:
+        - mc_icsp_file is defined
+
+    - name: "Delete ICSP manifest"
+      file:
+        path: "{{ mc_icsp_file.path }}"
+        state: absent
+      when:
+        - mc_icsp_file is defined
+
+    - name: "Wait for updated MCP after applying an ICSP"
+      include_role:
+        name: check-resource
+      vars:
+        resource_to_check: "MachineConfigPool"
+        check_wait_retries: 30
+        check_wait_delay: 10
+        check_reason: "ACM - after applying ICSP"
+  when:
+    - install_type == 'acm'
+
 - name: "Add custom catalogs"
   include_role:
     name: catalog-source
