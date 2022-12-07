@@ -32,39 +32,8 @@
   when:
     - dci_disconnected | default(false) | bool
 
-- name: "Get hub cluster pull_secret"
-  community.kubernetes.k8s_info:
-    api: v1
-    kind: Secret
-    name: "pull-secret"
-    namespace: openshift-config
-  register: hub_pull_secret
-
-- name: "Set pull secret temp file"
-  set_fact:
-    hub_tmp_pull_secret: "/tmp/hps_{{ lookup('password', '/dev/null length=8') }}.json"
-
-- name: "Save the Hub pullsecret"
-  vars:
-    pull_secret: '{{ hub_pull_secret.resources[0].data[".dockerconfigjson"] | b64decode }}'
-  copy:
-    content: "{{ pull_secret }}"
-    dest: "{{ hub_tmp_pull_secret }}"
-    mode: 0600
-
-- name: "Configure auths for docker compatible tools"
-  block:
-    - name: "Create temp directory for docker auths"
-      tempfile:
-        state: directory
-      register: docker_conf
-
-    - name: "Copy hub_tmp_pull_secret as config.json"
-      copy:
-        src: "{{ hub_tmp_pull_secret }}"
-        dest: "{{ docker_conf.path }}/config.json"
-  when:
-    - hub_tmp_pull_secret is defined
+- name: "Get cluster pull-secret"
+  include_tasks: get-cluster-pullsecret.yml
 
 - name: "Mirror OCP release artifacts"
   block:
@@ -76,7 +45,7 @@
         webserver_url: "{{ hub_webserver | default(None) }}"
         cache_dir: "{{  provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
         registry_url: "{{ hub_registry }}"
-        auths_file: "{{ hub_tmp_pull_secret }}"
+        auths_file: "{{ dci_pullsecret_file }}"
         force: false
         mirror_artifacts: "{{ dci_disconnected | default(False) | bool }}"
         unpack_artifacts: "{{ dci_disconnected | default(False) | bool }}"
@@ -91,28 +60,6 @@
         acm_rootfs_url: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
         acm_release_image: "{{ hub_registry | urlsplit('netloc') }}{{ hub_registry | urlsplit('path') }}:{{ version }}"
         local_registry: "{{ hub_registry | urlsplit('netloc') }}"
-
-    - name: "Get the operators mirror-list"
-      include_tasks: get-mirror-list.yml
-
-    - name: "Mirror Operators for offline mode"
-      vars:
-        local_registry: "{{ hub_registry | urlsplit('netloc') }}"
-        dci_pullsecret_file: "{{ hub_tmp_pull_secret }}"
-      include_tasks: build-catalog.yml
-      when:
-        - mirror_list is defined
-        - mirror_list | length
-
-    - name: "Mirror pruned catalog"
-      include_role:
-        name: mirror-catalog
-      vars:
-        mc_oc_tool_path: "{{ oc_tool_path }}"
-        mc_catalog: "{{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
-        mc_registry: "{{ local_registry }}"
-        mc_pullsecret: "{{ hub_tmp_pull_secret }}"
-
   when:
     - dci_disconnected | default(false) | bool
 
@@ -126,7 +73,7 @@
         webserver_url: "{{ hub_webserver | default(None) }}"
         cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
         registry_url: "{{ hub_registry }}"
-        auths_file: "{{ hub_tmp_pull_secret }}"
+        auths_file: "{{ dci_pullsecret_file }}"
         force: true
         mirror_artifacts: false
         unpack_artifacts: false
@@ -142,9 +89,4 @@
         acm_release_image: "{{ ocp_release_data['container_image'] | quote }}"
   when:
     - not (dci_disconnected | default(false) | bool)
-
-- name: "Remove temp pull secret"
-  file:
-    path: "{{ hub_tmp_pull_secret }}"
-    state: absent
 ...

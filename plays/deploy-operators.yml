@@ -17,71 +17,8 @@
     ocp_version_maj: "{{ current_ver.split('.')[0] }}"
     ocp_version_min: "{{ current_ver.split('.')[1] }}"
 
-- name: "Apply ICSP for ACM-SNO"
-  block:
-    - name: "Apply ICSPs for mirrored operators"
-      community.kubernetes.k8s:
-        state: present
-        src: "{{ mc_icsp_file.path }}"
-      when:
-        - mc_icsp_file is defined
-
-    - name: "Delete ICSP manifest"
-      file:
-        path: "{{ mc_icsp_file.path }}"
-        state: absent
-      when:
-        - mc_icsp_file is defined
-
-    - name: "Wait for updated MCP after applying an ICSP"
-      include_role:
-        name: check-resource
-      vars:
-        resource_to_check: "MachineConfigPool"
-        check_wait_retries: 30
-        check_wait_delay: 10
-        check_reason: "ACM - after applying ICSP"
-  when:
-    - install_type == 'acm'
-
-- name: "Add custom catalogs"
-  include_role:
-    name: catalog-source
-  vars:
-    cs_name: "{{ ((catalog | basename).split(':'))[0] }}"
-    cs_namespace: "openshift-marketplace"
-    cs_image: "{{ catalog }}"
-  loop: "{{ custom_catalogs }}"
-  loop_control:
-    loop_var: catalog
-  when:
-    - custom_catalogs | default([]) | length
-
-- name: Configure CatalogSources for disconnected environments
-  block:
-    - name: "deploy-operators : Generate disconnected catalogSource"
-      include_role:
-        name: catalog-source
-      vars:
-        cs_name: "{{ opm_catalog_source_name }}"
-        cs_namespace: "{{ opm_catalog_source_namespace }}"
-        cs_image: "{{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
-        cs_publisher: "Red Hat Operators"
-      when:
-        - mirror_list is defined
-        - mirror_list | length
-
-    - name: Disable default catalog sources for disconnected deployment
-      community.kubernetes.k8s:
-        definition:
-          apiVersion: config.openshift.io/v1
-          kind: OperatorHub
-          metadata:
-            name: cluster
-          spec:
-            disableAllDefaultSources: true
-  when:
-    - dci_disconnected | default(false) | bool
+- name: "Prepare operators and catalogs"
+  include_tasks: prepare-operators.yml
 
 - name: "Enable operators required for CNFs"
   set_fact:

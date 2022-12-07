@@ -40,37 +40,6 @@
       - '{{ lookup("url", "{{ webserver_url }}/{{ version }}/imagecontentsourcepolicy.yaml", split_lines=False) | from_yaml_all | list }}'
     when: item is not none
 
-  - name: "Apply ICSPs for mirrored operators"
-    community.kubernetes.k8s:
-      state: present
-      src: "{{ icsp_file }}"
-    loop: "{{ icsp_files | unique | select | list }}"
-    loop_control:
-      loop_var: icsp_file
-    when:
-      - icsp_files is defined
-      - icsp_files | length
-
-  - name: "Delete ICSP manifest"
-    file:
-      path: "{{ icsp_file }}"
-      state: absent
-    loop: "{{ icsp_files | unique | select | list }}"
-    loop_control:
-      loop_var: icsp_file
-    when:
-      - icsp_files is defined
-      - icsp_files | length
-
-  - name: "Wait for updated MCP after applying an ICSP"
-    include_role:
-      name: check-resource
-    vars:
-      resource_to_check: "MachineConfigPool"
-      check_wait_retries: 30
-      check_wait_delay: 10
-      check_reason: "Upgrade - after applying ICSP"
-
   - name: "upgrader : Wait for nodes to become Ready"
     community.kubernetes.k8s_info:
       kind: Node
@@ -199,6 +168,9 @@
 
 - name: "Upgrader : Pre-upgrade tasks"
   include_tasks: pre-upgrade.yml
+
+- name: "Prepare operators and catalogs"
+  include_tasks: prepare-operators.yml
 
 - name: "Upgrader : Start the upgrade on installed operators"
   include_tasks: upgrade-operators.yml
