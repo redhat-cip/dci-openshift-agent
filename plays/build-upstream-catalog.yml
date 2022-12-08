@@ -29,6 +29,10 @@
           podman push
           --authfile {{ dci_pullsecret_file }}
           {{ upstream_catalog }}
+      register: cat_push
+      retries: 3
+      delay: 10
+      until: cat_push.rc == 0
 
     - name: Remove local upstream catalog image
       shell:

@@ -78,6 +78,11 @@
       {% if dci_pullsecret_file is defined %}
       --authfile {{ dci_pullsecret_file }}
       {% endif %}
+  register: cat_push
+  retries: 3
+  delay: 10
+  until: cat_push.rc == 0
+
 
 - name: "Use the grpc API to explore the pruned catalog index"
   shell:

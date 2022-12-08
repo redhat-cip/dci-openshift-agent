@@ -43,6 +43,10 @@
       podman push
       --authfile {{ dci_pullsecret_file }}
       {{ sriov_bundle }}:{{ base_version }}
+  register: cat_push
+  retries: 3
+  delay: 10
+  until: cat_push.rc == 0
 
 - name: "Get bundle image SHA256"
   shell:
