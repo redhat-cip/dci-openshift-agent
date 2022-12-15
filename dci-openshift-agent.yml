@@ -273,6 +273,18 @@
             - dci_main == 'install'
             - install_type in ['ipi', 'upi', 'sno']
 
+        - name: "Get KUBECONFIG auth/creds from provisioner node"
+          fetch:
+            src: "{{ item }}"
+            dest: "{{ dci_cluster_configs_dir }}/"
+            flat: true
+          loop:
+            - "{{ dir }}/auth/kubeconfig"
+            - "{{ dir }}/auth/kubeadmin-password"
+          when:
+            - dci_main == 'install'
+            - install_type in ['ipi', 'upi', 'sno']
+
       rescue: &teardown_failure
         - name: Run the teardown failure handler
           block:

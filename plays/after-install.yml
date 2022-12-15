@@ -1,4 +1,7 @@
 ---
+- name: "installer : Setup openshift access in jumphost"
+  include_role:
+    name: oc-setup
 
 - name: Check if all cluster-operators are running correctly
   community.kubernetes.k8s_info:
@@ -23,14 +26,6 @@
         channel: "fast-{{ base_version }}"
   retries: 6
   delay: 10
-
-- name: "installer : Setup openshift access in jumphost"
-  include_role:
-    name: oc-setup
-    apply:
-      delegate_to: localhost
-      environment:
-        - KUBECONFIG: "{{ kubeconfig_path }}"
 
 - name: "installer : Apply node labels"
   include_role:

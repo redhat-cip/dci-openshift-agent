@@ -8,6 +8,4 @@
     import_role:
       name: upi-installer
 
-- include_tasks: after-install.yml
-
 ...

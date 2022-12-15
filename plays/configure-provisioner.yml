@@ -20,6 +20,9 @@
   become: true
   package:
     name:
-      - "python{% if ansible_python.version.major == 3 %}3{% endif %}-openshift"
+      - "{{ item }}"
     state: installed
+  with_items:
+    - "python{% if ansible_python.version.major == 3 %}3{% endif %}-openshift"
+    - python3-passlib
 ...
