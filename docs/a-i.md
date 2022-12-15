@@ -19,6 +19,7 @@ OpenShift cluster through the DCI agent.
 * [Configuration](#configuration)
   * [Disconnected Environment](#disconnected-environment)
 * [Virtual Lab Quick Start](#virtual-lab-quick-start)
+  * [Single Node Openshift](#single-node-openshift)
 
 
 ## Requirements
@@ -157,3 +158,21 @@ to interact with your OCP cluster.
     The name of the cluster by default is `dciokd` which is suffixed to the
     clusterconfigs directory, if you change the cluster name then the path to
     the `kubeconfig` file will need to be adjusted
+
+
+### Single Node Openshift
+
+If you want to test SNO with Assisted Installer in your local/development
+environment, there's a few changes you need to make to your inventory:
+
+1.  Remove all workers from the inventory file and leave a single master in the
+    inventory file
+1.  Point *both* the `api_vip` and `ingress_vip` values to the **same IP
+    address you gave the single master**
+1.  Because SNO requires a minimum of 8 cores on the single master, make sure
+    your `vm_spec` in your `vm_nodes` section for your master has `cpu_cores:
+    8` (it is possible to adjust the memory and disk size in this section too)
+
+That should be all that is required to install in SNO mode, the playbooks will
+install a SNO cluster and leave you with a kubeconfig/access to the cluster
+once finished.

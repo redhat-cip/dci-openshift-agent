@@ -54,8 +54,8 @@ all:
     listen_address: 10.60.0.190
 
     # Virtual IP addresses used to access the resulting OpenShift cluster
-    api_vip: 10.60.0.96 # the IP address to be used for api.clustername.example.lab and api-int.clustername.example.lab
-    ingress_vip: 10.60.0.97 # the IP address to be used for *.apps.clustername.example.lab
+    api_vip: 10.60.0.96 # the IP address to be used for api.clustername.example.lab and api-int.clustername.example.lab, if installing SNO set to the same IP as the single master node
+    ingress_vip: 10.60.0.97 # the IP address to be used for *.apps.clustername.example.lab, if installing SNO set to the same IP as the single master node
 
     ## Allocate virtual IPs via DHCP server. Equivalent to the vip_dhcp_allocation configuration option of Assisted Installer
     vip_dhcp_allocation: false
@@ -310,8 +310,8 @@ all:
             bmc_address: @FQDN@:8082
             vm_host: vm_host1
             vm_spec:
-              cpu_cores: 4
-              ram_mib: 16384
+              cpu_cores: 4  # if installing SNO, a minimum of 8 cores is required
+              ram_mib: 16384  # if installing SNO, might be a good idea to increase this if possible
               disk_size_gb: 150
           hosts:
             dciokd-master-0:
