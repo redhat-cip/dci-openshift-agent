@@ -129,4 +129,5 @@
     check_wait_retries: 60
     check_wait_delay: 60
     check_reason: "PAO installation"
+    num_repetitions: 1
 ...
