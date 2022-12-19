@@ -148,6 +148,9 @@
   when: prune_count.stdout | int != mirror_list | length
 
 - name: "Fallback to previous OCP version"
+  vars:
+    opm_expire: "{{ hostsvars.localhost.opm_expire | default(true) }}"
+    opm_expire_time: "{{ hostvars.localhost.opm_expire_time | default('24h') }}"
   include_tasks: prune-catalog.yml
   when:
     - fallback_counter | int <= 3

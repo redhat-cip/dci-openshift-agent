@@ -256,37 +256,6 @@
         when: SETUP_REGISTRY_SERVICE == True
       rescue: *teardown_error
 
-- name: Operator mirroring
-  hosts: localhost
-  vars_files:
-    - ../group_vars/all
-  tasks:
-    - block:
-      - name: "Get the operators mirror-list"
-        include_tasks: get-mirror-list.yml
-        when:
-          - dci_disconnected | default('no') |  bool
-
-      - name: "Set facts for operators catalog"
-        set_fact:
-          local_registry: |-
-            {{ hostvars.registry_host.registry_fqdn }}
-            {%- if hostsvars.registry_host.registry_port is defined %}
-            :{{ hostvars.registry_host.registry_port }}
-            {%- endif %}
-
-      - name: "Mirror Operators for offline mode"
-        vars:
-          version: "{{ hostvars.localhost.version }}"
-          dci_pullsecret_file: "{{ hostvars.localhost.local_pull_secret_path }}"
-        include_tasks: build-catalog.yml
-        when:
-          - dci_disconnected | default('no') | bool
-          - mirror_list is defined
-          - mirror_list | length
-
-      rescue: *teardown_error
-
 - name: Process KVM nodes
   hosts: bastion
   vars_files:

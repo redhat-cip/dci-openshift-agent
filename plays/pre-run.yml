@@ -123,20 +123,6 @@
     - not (dci_disconnected | default(false) | bool)
     - pullsecret_file is undefined
 
-- name: "Configure auths for docker compatible tools"
-  block:
-    - name: "Create temp directory for docker auths"
-      tempfile:
-        state: directory
-      register: docker_conf
-
-    - name: "Copy dci_pull_secret as config.json"
-      copy:
-        src: "{{ dci_pullsecret_file }}"
-        dest: "{{ docker_conf.path }}/config.json"
-  when:
-    - dci_pullsecret_file is defined
-
 - name: Mirror release
   include_role:
     name: mirror-ocp-release
@@ -253,8 +239,6 @@
     repo: "{{ git_repo }}"
     dest: "{{ dci_cache_dir }}/baremetal_deploy_repo"
     force: true
-  # On RHEL8 git clone can sporadically fail with OpenSSL SSL_read:
-  # SSL_ERROR_SYSCALL, errno 104.
   register: git_clone
   retries: 3
   delay: 10
@@ -278,59 +262,6 @@
   include_role:
     name: include-components
 
-- name: "Build operators bundles from upstream for non-GA OCP versions"
-  include_tasks: build-upstream-catalog.yml
-  when:
-    - (dci_disconnected | default(false) | bool) or (local_registry | length)
-    - version.split("-")[0].split(".")[2] | int == 0
-    - ("build:dev" in tags) or ("build:candidate" in tags)
-
-- name: "Mirror custom catalogs"
-  include_role:
-    name: mirror-catalog
-  vars:
-    mc_oc_tool_path: "{{ oc_tool_path }}"
-    mc_catalog: "{{ catalog }}"
-    mc_registry: "{{ local_registry }}"
-    mc_pullsecret: "{{ dci_pullsecret_file }}"
-  loop: "{{ custom_catalogs }}"
-  loop_control:
-    loop_var: catalog
-  when:
-    - dci_disconnected | default(false) | bool
-    - custom_catalogs | default([]) | length
-
-- name: "Define a list of ImageContentSourcePolicy files"
-  set_fact:
-    icsp_files: "{{ icsp_files | default([]) + [mc_icsp_file.path] }}"
-  when: mc_icsp_file is defined
-
-- name: "Get the operators mirror-list"
-  include_tasks: get-mirror-list.yml
-
-- name: "Prune catalog and mirror the operator images"
-  block:
-    - name: "Build pruned catalog"
-      include_tasks: build-catalog.yml
-
-    - name: "Mirror pruned catalog"
-      include_role:
-        name: mirror-catalog
-      vars:
-        mc_oc_tool_path: "{{ oc_tool_path }}"
-        mc_catalog: "{{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
-        mc_registry: "{{ local_registry }}"
-        mc_pullsecret: "{{ dci_pullsecret_file }}"
-
-    - name: "Append the ImageContentSourcePolicy file"
-      set_fact:
-        icsp_files: "{{ icsp_files | default([]) + [mc_icsp_file.path] }}"
-      when: mc_icsp_file is defined
-
-  when:
-    - dci_disconnected | default(false) |  bool
-    - mirror_list | length
-
 - name: Append mirrors to trust bundle
   block:
     - name: Copy initial trust bundle
@@ -338,51 +269,13 @@
         src: "{{ hostvars[groups['registry_host'][0]].disconnected_registry_mirrors_file }}"
         dest: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
 
-    - name: Add mirrors to trust bundle
-      blockinfile:
-        path: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
-        block: >
-          {{ lookup('file', icsp_file) |
-             from_yaml |
-             json_query('spec.repositoryDigestMirrors') |
-             to_yaml
-          }}
-        marker: "# {{ (icsp_file | basename).split('.')[0] }}"
-      loop: "{{ icsp_files | unique | select | list }}"
-      loop_control:
-        loop_var: icsp_file
-
     - name: Override disconnected_registry_mirrors_file
       set_fact:
         disconnected_registry_mirrors_file: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
       delegate_facts: true
       delegate_to: "{{ groups['registry_host'][0] if 'registry_host' in groups else 'registry_host' }}"
-
-  when:
-    - icsp_files is defined
-    - icsp_files | length
-
-- name: "Catalog and mirror operators for EUS upgrade"
-  block:
-    - name: "Build pruned catalog for EUS upgrade"
-      vars:
-        version: "{{ version_inter }}"
-      include_tasks: "build-catalog.yml"
-
-    - name: "Mirror pruned catalog"
-      include_role:
-        name: mirror-catalog
-      vars:
-        mc_oc_tool_path: "{{ oc_tool_path }}"
-        mc_catalog: "{{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
-        mc_registry: "{{ local_registry }}"
-        mc_pullsecret: "{{ dci_pullsecret_file }}"
-
   when:
     - dci_disconnected | default(false) | bool
-    - mirror_list is defined
-    - mirror_list | length
-    - upgrade_eus | default(false) | bool
 
 - name: "Mirror must gather images"
   include_role:
