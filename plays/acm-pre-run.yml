@@ -41,7 +41,7 @@
       include_role:
         name: mirror-ocp-release
       vars:
-        release_url: "{{ url }}"
+        release_url: "{{ '/'.join(url.split('/')[:-1]) }}"
         webserver_url: "{{ hub_webserver | default(None) }}"
         cache_dir: "{{  provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
         registry_url: "{{ hub_registry }}"
@@ -69,7 +69,7 @@
       include_role:
         name: mirror-ocp-release
       vars:
-        release_url: "{{ url }}"
+        release_url: "{{ '/'.join(url.split('/')[:-1]) }}"
         webserver_url: "{{ hub_webserver | default(None) }}"
         cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
         registry_url: "{{ hub_registry }}"

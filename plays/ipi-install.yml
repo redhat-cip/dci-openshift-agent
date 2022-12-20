@@ -40,10 +40,14 @@
 - name: "installer : Node preparation"
   import_role:
     name: node-prep
+  vars:
+    release_url: "{{ (webserver_url|length) | ternary(webserver_url, '/'.join(hostvars.localhost.url.split('/')[:-1])) }}"
 
 - name: "installer : Run IPI installer"
   import_role:
     name: installer
+  vars:
+    release_url: "{{ (webserver_url|length) | ternary(webserver_url, '/'.join(hostvars.localhost.url.split('/')[:-1])) }}"
 
 - include_tasks: after-install.yml
 
