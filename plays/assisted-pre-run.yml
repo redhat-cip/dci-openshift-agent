@@ -274,7 +274,7 @@
   gather_facts: "{{ (setup_vms | default((kvm_nodes | default([])) | length | int >= 1)) | bool }}"
   vars:
     SETUP_VMS: "{{ setup_vms | default((kvm_nodes | default([])) | length | int >= 1) }}"
-    vm_bridge_name: "asssisted-br0"
+    vm_bridge_name: "assisted-br0"
   vars_files:
     - ../group_vars/all
   tasks:
