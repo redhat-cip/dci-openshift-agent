@@ -473,42 +473,32 @@ if [ -z "$KCFG" ]; then
     [ -n "$PIPELINE_ID" ] && PIPELINE_ARG="\"dci_pipeline_id\": \"$PIPELINE_ID\", "
     if [ -n "$VIRT" ]; then
         cd "$VIRTDIR"
-        if [ "$VIRT" = virt ]; then
-            if [ -n "${PREFIX}" ] && [ -n "${CONFIG_DIR}" ]; then
-                if [ -d "${CONFIG_DIR}/ocp_on_libvirt/${PREFIX#-p }" ]; then
-                    VIRT_INV="-i ${CONFIG_DIR}/ocp_on_libvirt/${PREFIX#-p }"
-                fi
+        VIRT_INV=
+
+        if [ -n "${PREFIX}" ] && [ -n "${CONFIG_DIR}" ]; then
+            SAMPLE_PROJECT=$([ "$VIRT" = virt ] && echo "ocp" || echo "$VIRT")_on_libvirt
+            if [ -d "${CONFIG_DIR}/${SAMPLE_PROJECT}/${PREFIX_NAME%-}" ]; then
+                VIRT_INV="-i ${CONFIG_DIR}/${SAMPLE_PROJECT}/${PREFIX_NAME%-}"
             fi
-            export PREFIX
+        fi
+        export PREFIX
+
+        if [ "$VIRT" = virt ]; then
             setsid ansible-playbook -v libvirt_destroy.yml ${VIRT_INV:-} &
             do_wait
             setsid ansible-playbook -v libvirt_up.yml ${VIRT_INV:-} "$@" &
             do_wait
         elif [ "$VIRT" = sno ]; then
-            if [ -n "${PREFIX}" ] && [ -n "${CONFIG_DIR}" ]; then
-                if [ -d "${CONFIG_DIR}/sno_on_libvirt/${PREFIX#-p }" ]; then
-                    VIRT_INV="-i ${CONFIG_DIR}/sno_on_libvirt/${PREFIX#-p }"
-                fi
-            fi
-            export PREFIX
             setsid ansible-playbook -v generate-hosts-file.yml ${VIRT_INV:-} &
             do_wait
         elif [ "$VIRT" = assisted ]; then
-            if [ -n "${PREFIX}" ] && [ -n "${CONFIG_DIR}" ]; then
-                if [ -d "${CONFIG_DIR}/assisted_on_libvirt/${PREFIX#-p }" ]; then
-                    VIRT_INV="-i ${CONFIG_DIR}/assisted_on_libvirt/${PREFIX#-p }"
-                fi
-            fi
             OPTS+=(-e install_type=assisted)
-            export PREFIX
             setsid ansible-playbook -v generate-hosts-file.yml ${VIRT_INV:-} &
             do_wait
         fi
 
-        # converts a PREFIX of type "-p prefix" to "prefix-"
-        INVENTORY_PREFIX="${PREFIX/${PREFIX}/${PREFIX#-p }-}"
-        sudo cp ${INVENTORY_PREFIX}hosts ${CONFIG_DIR:-/etc/dci-openshift-agent}/${INVENTORY_PREFIX}hosts
-        sudo chown "$(id -un)":"$(id -gn)" ${CONFIG_DIR:-/etc/dci-openshift-agent}/${INVENTORY_PREFIX}hosts
+        sudo cp ${PREFIX_NAME}hosts ${CONFIG_DIR:-/etc/dci-openshift-agent}/${PREFIX_NAME}hosts
+        sudo chown "$(id -un)":"$(id -gn)" ${CONFIG_DIR:-/etc/dci-openshift-agent}/${PREFIX_NAME}hosts
         cd "$DIR"
     fi
 
