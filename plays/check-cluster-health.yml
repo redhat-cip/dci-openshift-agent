@@ -1,0 +1,74 @@
+
+---
+- name: "Check if all cluster-operators are running correctly"
+  community.kubernetes.k8s_info:
+    kind: ClusterOperator
+  register: clusteroperator_info
+  vars:
+    status_query: "resources[*].status.conditions[?type=='Degraded'].status"
+    cluster_operators_degraded: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
+  failed_when: cluster_operators_degraded == ['True']
+  retries: 3
+  delay: 10
+
+- name: "Check that control-plane nodes are ready"
+  community.kubernetes.k8s_info:
+    kind: Node
+    label_selectors:
+      - "node-role.kubernetes.io/master"
+  register: nodes_info
+  vars:
+    status_query: "resources[*].status.conditions[?type=='Ready'].status"
+    nodes_status: "{{ nodes_info | json_query(status_query) | flatten | unique }}"
+  until:
+    - nodes_status == ['True']
+  retries: 3
+  delay: 10
+
+- name: "Check that Worker nodes are ready"
+  community.kubernetes.k8s_info:
+    kind: Node
+    label_selectors:
+      - "node-role.kubernetes.io/worker"
+  register: nodes_info
+  vars:
+    status_query: "resources[*].status.conditions[?type=='Ready'].status"
+    nodes_status: "{{ nodes_info | json_query(status_query) | flatten | unique }}"
+  until:
+    - nodes_status == ['True']
+  retries: 3
+  delay: 10
+
+- name: "Get cluster version information"
+  community.kubernetes.k8s_info:
+    kind: ClusterVersion
+    name: version
+  register: cluster_version
+  until: "'resources' in cluster_version and cluster_version.resources != []"
+  retries: 3
+  delay: 10
+
+- name: "Fail if cluster installation/upgrade is not Complete"
+  vars:
+    upgrade_state: "{{ cluster_version | json_query('resources[0].status.history[0].state') }}"
+  fail:
+    msg: "Install or upgrade is not Completed"
+  when:
+    upgrade_state != "Completed"
+  retries: 3
+  delay: 10
+
+- name: "Get Machine Config Pools status"
+  community.kubernetes.k8s_info:
+    api_version: machineconfiguration.openshift.io/v1
+    kind: MachineConfigPool
+  register: reg_mcpool_status
+  vars:
+    status_query: "resources[*].status.conditions[?type=='Updated'].status"
+    update_status: "{{ reg_mcpool_status | json_query(status_query) | flatten | unique }}"
+  until:
+    - reg_mcpool_status.resources is defined
+    - update_status == ['True']
+  retries: 6
+  delay: 10
+...
