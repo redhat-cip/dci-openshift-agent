@@ -47,6 +47,14 @@
     worker_network_config_template: "{{ hostvars.localhost.worker_network_config_template }}"
   when: hostvars.localhost.worker_network_config_template is defined
 
+- name: Override disconnected_registry_mirrors_file in the registry host
+  set_fact:
+    disconnected_registry_mirrors_file: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+  delegate_facts: true
+  delegate_to: "{{ groups['registry_host'][0] if 'registry_host' in groups else 'registry_host' }}"
+  when:
+    - dci_disconnected | default(false) | bool
+
 - name: "installer : Node preparation"
   import_role:
     name: node-prep
