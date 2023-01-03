@@ -61,7 +61,7 @@
           name: mirror-ocp-release
         vars:
           version: "{{ hostvars.localhost.version }}"
-          release_url: "{{ hostvars.localhost.url }}"
+          release_url: "{{ '/'.join(url.split('/')[:-1]) }}"
           cache_dir: "{{ hostvars.localhost.provision_cache_store | default(ansible_env.HOME) }}"
           auths_file: "{{ hostvars.localhost.dci_pullsecret_file }}"
           force: "{{ hostvars.localhost.dci_force_mirroring | default(false) | bool }}"
@@ -136,7 +136,7 @@
         vars:
           downloads_path: "{{ ansible_env.HOME }}"
           release_image_remote: "{{ ocp_release_data['container_image'].split('@')[0] }}"
-          release_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp{{ '-dev-preview' if hostvars.localhost.build == 'dev' else '' }}"
+          release_url: "{{ '/'.join(url.split('/')[:-1]) }}"
       rescue: &teardown_error
         - name: Run the teardown error handler
           block:

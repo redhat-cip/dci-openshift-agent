@@ -128,7 +128,7 @@
     name: mirror-ocp-release
   vars:
     version: "{{ hostvars.localhost.version }}"
-    release_url: "{{ hostvars.localhost.url }}"
+    release_url: "{{ '/'.join(hostvars.localhost.url.split('/')[:-1]) }}"
     cache_dir: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
     webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
     registry_url: "docker://{{ local_registry }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"
@@ -212,7 +212,7 @@
       name: mirror-ocp-release
     vars:
       version: "{{ version_inter }}"
-      release_url: "{{ hostvars.localhost.url }}"
+      release_url: "{{ '/'.join(hostvars.localhost.url.split('/')[:-1]) }}"
       cache_dir: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
       webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
       registry_url: "docker://{{ local_registry }}/{{ hostvars[groups['registry_host'][0]].local_repo | default('') }}"

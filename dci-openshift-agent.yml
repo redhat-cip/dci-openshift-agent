@@ -71,9 +71,8 @@
     - name: Get openshift_version from job.components
       set_fact:
         tags: "{{ item['tags'] }}"
-        url: "{{ item['url']|default('') }}"
+        url: "{{ item['url'] | regex_replace('\\/$', '') }}"
         version: "{{ item['data']['version'] }}"
-        version_url: "{{ item['data']['url'] }}"
         version_pull_url: "{{ item['data']['pull_url'] }}"
         ocp_product_id: "{{ item['id'] }}"
       with_items: "{{ job_info.job.components }}"
