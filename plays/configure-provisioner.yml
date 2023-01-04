@@ -1,7 +1,7 @@
 ---
 - name: Check on the EPEL repository status on a connected provisioner
   become: true
-  yum:
+  package:
     name: epel-release
   when: not (dci_disconnected | default(false) | bool)
 
