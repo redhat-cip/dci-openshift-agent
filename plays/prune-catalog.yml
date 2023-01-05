@@ -29,113 +29,131 @@
     dest: "{{ tmp_prune.path }}/configs.Dockerfile"
     mode: 0644
 
-- name: "Render the catalog index"
-  shell:
-    chdir: "{{ tmp_prune.path }}"
-    cmd: >
-      set -x;
-      {{ dci_cluster_configs_dir }}/opm render {{ source_index }} >
-      {{ tmp_prune.path }}/index-packages
-  environment:
-    - DOCKER_CONFIG: "{{ docker_conf.path }}"
-  register: prune_result
-  until: prune_result.rc == 0
-  retries: 3
-  delay: 10
+- name: "Set index found flag"
+  set_fact:
+    index_found: true
 
-- name: "Extract required operator's channel, and packages"
-  shell:
-    chdir: "{{ tmp_prune.path }}"
-    cmd: >
-      set -x;
-      jq 'select( .package == "{{ operator_name }}" or .name == "{{ operator_name }}")'
-      {{ tmp_prune.path }}/index-packages
-      >> {{ tmp_prune.path }}/configs/index.json
-  with_items: "{{ mirror_list }}"
-  loop_control:
-    loop_var: operator_name
+- name: "Render catalog index"
+  block:
+    - name: "Render the catalog index"
+      shell:
+        chdir: "{{ tmp_prune.path }}"
+        cmd: >
+          set -x;
+          {{ dci_cluster_configs_dir }}/opm render {{ source_index }} >
+          {{ tmp_prune.path }}/index-packages
+      environment:
+        - DOCKER_CONFIG: "{{ docker_conf.path }}"
+      register: prune_result
+      until: prune_result.rc == 0
+      retries: 3
+      delay: 10
+  rescue:
+    - name: "Fallback to previous index version if not found"
+      set_fact:
+        index_found: false
+        operators_count: 0
 
-- name: "Build the catalog index"
-  shell:
-    chdir: "{{ tmp_prune.path }}"
-    cmd: >
-      set -x;
-      podman build
-      -t {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
-      -f {{ tmp_prune.path }}/configs.Dockerfile .
+- name: "Prune and build the new index"
+  block:
+    - name: "Extract required operator's channel, and packages"
+      shell:
+        chdir: "{{ tmp_prune.path }}"
+        cmd: >
+          set -x;
+          jq 'select( .package == "{{ operator_name }}" or .name == "{{ operator_name }}")'
+          {{ tmp_prune.path }}/index-packages
+          >> {{ tmp_prune.path }}/configs/index.json
+      with_items: "{{ mirror_list }}"
+      loop_control:
+        loop_var: operator_name
 
-- name: "Validate the pruned index"
-  shell: |
-    {{ dci_cluster_configs_dir }}/opm validate configs/
-  args:
-    chdir: "{{ tmp_prune.path }}"
+    - name: "Build the index image"
+      shell:
+        chdir: "{{ tmp_prune.path }}"
+        cmd: >
+          set -x;
+          podman build
+          -t {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+          -f {{ tmp_prune.path }}/configs.Dockerfile .
 
-- name: "Push the new index image to the local registry"
-  shell:
-    cmd: >
-      podman push
-      {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
-      {% if dci_pullsecret_file is defined %}
-      --authfile {{ dci_pullsecret_file }}
-      {% endif %}
-  register: cat_push
-  retries: 3
-  delay: 10
-  until: cat_push.rc == 0
+    - name: "Validate the pruned index"
+      shell: |
+        {{ dci_cluster_configs_dir }}/opm validate configs/
+      args:
+        chdir: "{{ tmp_prune.path }}"
 
+    - name: "Push the new index image to the local registry"
+      shell:
+        cmd: >
+          podman push
+          {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+          {% if dci_pullsecret_file is defined %}
+          --authfile {{ dci_pullsecret_file }}
+          {% endif %}
+      register: cat_push
+      retries: 3
+      delay: 10
+      until: cat_push.rc == 0
 
-- name: "Use the grpc API to explore the pruned catalog index"
-  shell:
-    cmd: >
-      podman run
-      --rm
-      --detach
-      --publish 50051
-      {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
-  register: grpc_container_id
+    - name: "Use the grpc API to explore the pruned catalog index"
+      shell:
+        cmd: >
+          podman run
+          --rm
+          --detach
+          --publish 50051
+          {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+      register: grpc_container_id
 
-- name: "Get dynamic port assigned to grpc"
-  shell:
-    cmd: >
-      podman inspect {{ grpc_container_id.stdout }} |
-      jq '.[].NetworkSettings.Ports."50051/tcp"[].HostPort'
-  register: grpc_port
+    - name: "Get dynamic port assigned to grpc"
+      shell:
+        cmd: >
+          podman inspect {{ grpc_container_id.stdout }} |
+          jq '.[].NetworkSettings.Ports."50051/tcp"[].HostPort'
+      register: grpc_port
 
-- name: "Get the operators available in the pruned catalog"
-  shell:
-    cmd: >
-      grpcurl -plaintext
-      localhost:{{ grpc_port.stdout }}
-      api.Registry/ListPackages |
-      jq ".name"
-  register: packages_list
+    - name: "Get the operators available in the pruned catalog"
+      shell:
+        cmd: >
+          grpcurl -plaintext
+          localhost:{{ grpc_port.stdout }}
+          api.Registry/ListPackages |
+          jq ".name"
+      register: packages_list
 
-- name: "List operators available in the pruned catalog"
-  debug:
-    msg: "{{ packages_list.stdout }}"
+    - name: "List operators available in the pruned catalog"
+      debug:
+        msg: "{{ packages_list.stdout }}"
 
-- name: "Get the number of operators in the pruned catalog"
-  shell:
-    cmd: >
-      grpcurl -plaintext
-      localhost:{{ grpc_port.stdout }}
-      api.Registry/ListPackages |
-      jq -s length
-  register: prune_count
+    - name: "Get the number of operators in the pruned catalog"
+      shell:
+        cmd: >
+          grpcurl -plaintext
+          localhost:{{ grpc_port.stdout }}
+          api.Registry/ListPackages |
+          jq -s length
+      register: prune_count
 
-- name: "Remove grpc-api container"
-  shell:
-    cmd: >
-      podman stop
-      --ignore
-      {{ grpc_container_id.stdout }}
+    - name: "Set pruned operator count"
+      set_fact:
+        operators_count: "{{ prune_count.stdout }}"
 
-- name: "Remove local index image"
-  shell:
-    cmd: >
-      podman rmi
-      --force
-      {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+    - name: "Remove grpc-api container"
+      shell:
+        cmd: >
+          podman stop
+          --ignore
+          {{ grpc_container_id.stdout }}
+
+    - name: "Remove local index image"
+      shell:
+        cmd: >
+          podman rmi
+          --force
+          {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+  when:
+    - index_found
 
 - name: "Delete image config directory"
   file:
@@ -145,7 +163,7 @@
 - name: "Set new minor version when operators are missing"
   set_fact:
     ocp_minor: "{{ ocp_minor | int -1 }}"
-  when: prune_count.stdout | int != mirror_list | length
+  when: operators_count | int != mirror_list | length
 
 - name: "Fallback to previous OCP version"
   vars:
@@ -154,5 +172,5 @@
   include_tasks: prune-catalog.yml
   when:
     - fallback_counter | int <= 3
-    - prune_count.stdout | int != mirror_list | length
+    - operators_count | int != mirror_list | length
 ...
