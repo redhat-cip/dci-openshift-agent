@@ -42,13 +42,14 @@ BASEDIR=$(cd $(dirname $0); pwd)
 if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno|--assisted] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    echo "Usage: $name [--virt|--sno|--assisted|--sno-ai] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
     Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
 
     arguments:
     --virt                Use OCP on Libvirt.
     --sno                 Use SNO on Libvirt.
     --assisted            Use Assisted Installer on Libvirt.
+    --sno-ai              Use SNO with Assisted Installer on Libvirt.
     --upgrade             Run an upgrade job.
     --from-topic          In upgrade, from topic.
     --to-topic            In upgrade, destination topic.
@@ -88,6 +89,12 @@ elif [ $1 = --assisted ]; then
     VIRT=--assisted
     if [ -n "$ASSISTED_DCI_QUEUE" ]; then
         DCI_QUEUE="$ASSISTED_DCI_QUEUE"
+    fi
+    shift
+elif [ $1 = --sno-ai ]; then
+    VIRT=--sno-ai
+    if [ -n "$SNO_AI_DCI_QUEUE" ]; then
+        DCI_QUEUE="$SNO_AI_DCI_QUEUE"
     fi
     shift
 fi
@@ -226,11 +233,18 @@ fi
 # extract Depends-On
 echo "$DESC" | tr -d '\r' | sort -u | $BASEDIR/extract-dependencies $DIR
 
-# process Test-Hints (only no-check, sno or libvirt for now)
+# process Test-Hints
 if [[ sno =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno\s*" <<< $DESC; then
     VIRT=--sno
     if [ -n "$SNO_DCI_QUEUE" ]; then
         DCI_QUEUE="$SNO_DCI_QUEUE"
+    fi
+fi
+
+if [[ sno-ai =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno-ai\s*" <<< $DESC; then
+    VIRT=--sno-ai
+    if [ -n "$SNO_AI_DCI_QUEUE" ]; then
+        DCI_QUEUE="$SNO_AI_DCI_QUEUE"
     fi
 fi
 

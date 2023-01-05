@@ -138,6 +138,7 @@ change. This will direct `dci-check-change` to test in a specific way:
 
 - `Test-Hints: sno` validate the change in SNO mode.
 - `Test-Hints: assisted` validate the change in assisted installer mode.
+- `Test-Hints: sno-ai` validate the change in SNO with assisted installer mode.
 - `Test-Hints: libvirt` validate in libvirt mode (3 masters).
 - `Test-Hints: no-check` do not run a check (useful in CI mode).
 
@@ -171,7 +172,7 @@ Hints need to be activated in the `SUPPORTED_HINTS` variable in
 `/etc/dci-openshift-agent/config` like this:
 
 ```console
-SUPPORTED_HINTS="sno|assisted|libvirt|no-check|args|app|app-args|upgrade|upgrade-args|upgrade-from-topic|upgrade-to-topic"
+SUPPORTED_HINTS="sno|assisted|sno-ai|libvirt|no-check|args|app|app-args|upgrade|upgrade-args|upgrade-from-topic|upgrade-to-topic"
 ```
 
 #### Testing changes in an already up-and-running cluster

@@ -140,7 +140,7 @@ do_wait() {
 BASEDIR=$(cd $(dirname $0); pwd)
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 (--virt|--sno|--assisted|--no-check) [--upgrade [--from-topic <topic>] [--to-topic <topic>]] (-n) <change directory> [<kubeconfig path>] [-p <prefix>] [-p2 <prefix>] [<options for agents>]" 1>&2
+    echo "Usage: $0 (--virt|--sno|--assisted|--sno-ai|--no-check) [--upgrade [--from-topic <topic>] [--to-topic <topic>]] (-n) <change directory> [<kubeconfig path>] [-p <prefix>] [-p2 <prefix>] [<options for agents>]" 1>&2
     exit 1
 fi
 
@@ -177,6 +177,11 @@ elif [ "$1" = "--sno" ]; then
 elif [ "$1" = "--assisted" ]; then
     VIRT="assisted"
     DCI_NAME=${DCI_NAME:-"assisted"}
+    INSTALL_OPT="-e install_type=assisted"
+    shift
+elif [ "$1" = "--sno-ai" ]; then
+    VIRT="sno-ai"
+    DCI_NAME=${DCI_NAME:-"sno-ai"}
     INSTALL_OPT="-e install_type=assisted"
     shift
 elif [ "$1" = "--no-check" ]; then
@@ -360,6 +365,9 @@ if [ -d dci-openshift-agent ]; then
         VIRTDIR="$PWD"/dci-openshift-agent/samples/sno_on_libvirt
     elif [ "$VIRT" = assisted ]; then
         VIRTDIR="$PWD"/dci-openshift-agent/samples/assisted_on_libvirt
+    elif [ "$VIRT" = "sno-ai" ]; then
+        # sno-ai uses the same templates as assisted
+        VIRTDIR="$PWD"/dci-openshift-agent/samples/assisted_on_libvirt
     fi
     # needed for ctl to take the settings.yml from the change if not taken from an existing CONFIG_DIR
     export CONFIG_DIR=${CONFIG_DIR:-$PWD}
@@ -374,6 +382,8 @@ else
     elif [ $VIRT = sno ]; then
         VIRTDIR=/var/lib/dci-openshift-agent/samples/sno_on_libvirt
     elif [ $VIRT = assisted ]; then
+        VIRTDIR=/var/lib/dci-openshift-agent/samples/assisted_on_libvirt
+    elif [ $VIRT = "sno-ai" ]; then
         VIRTDIR=/var/lib/dci-openshift-agent/samples/assisted_on_libvirt
     fi
 fi
@@ -492,6 +502,10 @@ if [ -z "$KCFG" ]; then
             setsid ansible-playbook -v generate-hosts-file.yml ${VIRT_INV:-} &
             do_wait
         elif [ "$VIRT" = assisted ]; then
+            OPTS+=(-e install_type=assisted)
+            setsid ansible-playbook -v generate-hosts-file.yml ${VIRT_INV:-} &
+            do_wait
+        elif [ "$VIRT" = "sno-ai" ]; then
             OPTS+=(-e install_type=assisted)
             setsid ansible-playbook -v generate-hosts-file.yml ${VIRT_INV:-} &
             do_wait
