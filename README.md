@@ -5,53 +5,13 @@ Red Hat Distributed CI service.
 
 There are some benefits of running the DCI OCP Agent:
 
-1. Automation of nightly/candidate OCP component testing
+1. Automation of nightly/dev preview/candidate/ga OCP component testing
 2. CI runs on your own hardware
 3. Red Hat doesn't have access to your hardware, the agent reports metrics/logs
    back to distributed-ci.io
-4. The agent leverages the OpenShift IPI Installer which in turn is based on
-   proven ansible tech
+4. The agent leverages the OpenShift IPI/UPI/AI/ACM installers
 5. You have access to all your jobs logs and metrics through distributed-ci.io
    where you can also set notifications for errors/exceptions
-
-## Table of Contents
-
-- [DCI OpenShift Agent](#dci-openshift-agent)
-    - [Requirements](#requirements)
-        - [Network requirements](#network-requirements)
-        - [Systems requirements](#systems-requirements)
-            - [Jumpbox requirements](#jumpbox-requirements)
-            - [Systems under test](#systems-under-test)
-        - [Optional](#optional)
-    - [Setting up access to DCI](#setting-up-access-to-dci)
-    - [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
-        - [Installation of OCP Provision Host](#installation-of-ocp-provision-host)
-        - [Copying the ssh key to your provisioner](#copying-the-ssh-key-to-your-provisioner)
-        - [Jumpbox Configuration](#jumpbox-configuration)
-            - [`/etc/dci-openshift-agent/dcirc.sh`](#etcdci-openshift-agentdcircsh)
-            - [`/etc/dci-openshift-agent/settings.yml`](#etcdci-openshift-agentsettingsyml)
-            - [`/etc/dci-openshift-agent/hosts`](#etcdci-openshift-agenthosts)
-        - [Disconnected mode in DCI OCP agent](#disconnected-mode-in-dci-ocp-agent)
-        - [Overloading settings and hooks directories](#overloading-settings-and-hooks-directories)
-        - [Storing secrets](#storing-secrets)
-    - [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
-    - Other install methods:
-        - [User Provisioned Infrastructure](docs/upi.md)
-        - [Assisted Installer](docs/a-i.md)
-        - [Advanced Cluster Management (ACM)](docs/acm.md)
-    - [Deploying Operators](#deploying-operators)
-    - [Interacting with your RHOCP Cluster](#interacting-with-your-rhocp-cluster)
-    - [Troubleshooting common issues](#troubleshooting-common-issues)
-        - [Troubleshooting basic configuration](#troubleshooting-basic-configuration)
-        - [Troubleshooting network connectivity](#troubleshooting-network-connectivity)
-        - [Troubleshooting OCP bootstrapping](#troubleshooting-ocp-bootstrapping)
-        - [Troubleshooting OCP install](#troubleshooting-ocp-install)
-    - [Keep the DCI OCP Agent Updated](#keep-the-dci-ocp-agent-updated)
-    - [dci-openshift-agent workflow](#dci-openshift-agent-workflow)
-    - [Getting involved](#getting-involved)
-    - [Create your DCI account on distributed-ci.io](#create-your-dci-account-on-distributed-ciio)
-    - [License](#license)
-    - [Contact](#contact)
 
 ## Requirements
 
@@ -172,16 +132,17 @@ deployment (More info at [Jumpbox Configuration](#jumpbox-configuration)).
 The DCI dashboard gives you a view into what jobs you have run in your distributed agent. In order to gain access to it
 you have to:
 
-1. Go to distributed-ci.io and click login. You will be redirected to
-   ssh.redhat.com so you'll use your RH account credentials
+1. Go to https://www.distributed-ci.io/ and click login. You will be redirected to
+   sso.redhat.com so you'll use your RH account credentials
 2. If you are not part of any teams you can contact an admin to get yourself
    added
 3. You will have to create a Remote CI for use later, go on the left navigation bar on the `Remotecis` option and click
    on "Create a new remoteci"
 4. Fill out the description and which team it belongs to then click Create
-5. You should see your newly created remoteci in the list, you can get the
-   credentials by click the button in the Authentication column. You will need
-   these to [configure your jumpbox](#jumpbox-configuration) further down
+5. You should see your newly created remoteci in the list, you can get
+   the credentials in YAML format by click the button in the
+   Authentication column. This should be saved under
+   `~/.config/dci-pipeline/dci_credentials.yml`.
 
 ## Installation of DCI Jumpbox
 
@@ -239,57 +200,41 @@ host are:
 % ssh-copy-id kni@provisionhost
 ```
 
-### Jumpbox Configuration
+### Pipelines
 
-There are three configuration files for `dci-openshift-agent`:
-`/etc/dci-openshift-agent/dcirc.sh`, `/etc/dci-openshift-agent/hosts` and
-`/etc/dci-openshift-agent/settings.yml`.
+To configure your DCI job pipelines, you need to install `dci-pipeline`. Instructions at [dci-pipeline documentation](../dci-pipeline/).
 
-#### `/etc/dci-openshift-agent/dcirc.sh`
+Here is an example of a pipeline job definition for `dci-openshift-agent`:
 
-> NOTE: The default `dcirc.sh` is shipped as `/etc/dci-openshift-agent/dcirc.sh.dist`.
-
-Copy the [recently obtained API credentials](#setting-up-access-to-dci) and
-paste it on the Jumpbox to `/etc/dci-openshift-agent/dcirc.sh`.
-
-This file should be edited once and looks similar to this:
-
-```bash
-DCI_CS_URL="https://api.distributed-ci.io/"
-DCI_CLIENT_ID=remoteci/<remoteci_id>
-DCI_API_SECRET=<remoteci_api_secret>
-export DCI_CLIENT_ID
-export DCI_API_SECRET
-export DCI_CS_URL
+```YAML
+- name: ocp-install
+  stage: ocp
+  ansible_playbook: /usr/share/dci-openshift-agent/dci-openshift-agent.yml
+  ansible_cfg: ~/my-lab-config/pipelines/ansible.cfg
+  ansible_inventory: ~/my-lab-config/inventories/inventory
+  dci_credentials: ~/.config/dci-pipeline/dci_credentials.yml
+  ansible_extravars:
+    dci_cache_dir: ~/dci-cache-dir
+    dci_config_dirs:
+      - ~/my-lab-config/ocp-install
+    dci_gits_to_components:
+      - ~/config
+    dci_local_log_dir: ~/upload-errors
+    dci_tags: []
+  topic: OCP-4.11
+  components:
+    - ocp
+  outputs:
+    kubeconfig: kubeconfig
 ```
 
-If you need any proxy settings, you can also add them to your `dcirc.sh`:
+#### Ansible variables
 
-```bash
-http_proxy="<your http proxy>"
-https_proxy="<your https proxy>"
-no_proxy="<your proxy exception list comma separated>"
-export http_proxy
-export https_proxy
-export no_proxy
-```
-
-#### `/etc/dci-openshift-agent/settings.yml`
-
-This is the dci openshift agent settings (format is YAML). Use this to specify
-which version of OCP to install.
+This is the dci-openshift-agent variables that can be set in the
+`ansible_extravars` section of your pipeline job definition:
 
 | Variable                        | Required | Type    | Default                                                        | Description
 | ------------------------------- | -------- | ------- | -------------------------------------------------------------- | ------------
-| dci_topic                       | True     | String  |                                                                | Name of the topic. `OCP-4.5` and up.
-| dci_tags                        | False    | List    | ["debug"]                                                      | List of tags to set on the job.
-| dci_name                        | False    | String  |                                                                | Name of the job.
-| dci_configuration               | False    | String  |                                                                | String representing the configuration of the job.
-| dci_comment                     | False    | String  |                                                                | Comment to associate with the job.
-| dci_url                         | False    | URL     |                                                                | URL to associate with the job.
-| dci_components_by_query         | False    | List    | []                                                             | Component by query. ['name:4.5.9'].
-| dci_component                   | False    | List    | []                                                             | Component by UUID. ['acaf3f29-22bb-4b9f-b5ac-268958a9a67f'].
-| dci_previous_job_id             | False    | String  | ""                                                             | Previous job UUID.
 | dci_must_gather_images          | False    | List    |["registry.redhat.io/openshift4/ose-must-gather"]               | List of the must-gather images to use when retrieving "logs.\*" .
 | dci_teardown_on_failure         | False    | Boolean | False                                                          | Whether or not execute the teardown hook on a failure.
 | dci_teardown_on_success         | False    | Boolean | True                                                           | Whether or not execute the teardown hook on success.
@@ -328,25 +273,13 @@ API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | operator_skip_upgrade           | False    | List    | []                                                             | List of operators to skip during the upgrade.
 | custom_catalogs                 | False    | List    | []                                                             | List of custom catalogs to install alongside default catalog sources.
 
-Example:
-
-```YAML
----
-dci_topic: "OCP-4.11"
-dci_name: "ocp-4.11-job"
-dci_configuration: "baremetal"
-dci_url: "https://softwarefactory-project.io/r/c/dci-openshift-agent/+/22195"
-dci_comment: "test-runner: use the new url metadata for jobs"
-dci_tags: [ "debug", "gerrit:22195" ]
-...
-```
 
 > NOTE: There are certain particularities about versioning that you can read more in depth
 > in [the versioning document](docs/ocp_versioning.md)
 
-#### `/etc/dci-openshift-agent/hosts`
+#### Inventory
 
-This file is an Ansible inventory file (format is `.ini`) and includes the
+The Ansible inventory file specified in the pipeline job definition includes the
 configuration for the `dci-openshift-agent` job and the inventory for the
 masters, workers (if any) and the provisioner.
 
@@ -434,51 +367,10 @@ provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_arg
 When using the agent in a disconnected environment, special variables should be used. See
 the [disconnected doc](docs/disconnected_en.md) for more details.
 
-### Overloading settings and hooks directories
-
-To allow storing the settings and the hooks in a different directory,
-you can set `/etc/dci-openshift-agent/config` like this:
-
-```console
-CONFIG_DIR=/var/lib/dci-openshift-agent/config
-```
-
-This will allow you to use a version control system for all your settings.
-
-If you want to also store the hooks in the same directory, you have to specify `dci_config_dirs` in your `settings.yml`.
-Example:
-
-```YAML
----
-dci_topic: OCP-4.11
-dci_config_dirs: [ /var/lib/dci-openshift-agent/config ]
-```
-
 ### Storing secrets
 
-You can store secrets in an encrypted manner in your `settings.yml` and YAML inventories by using `dci-vault` to
+You can store secrets in an encrypted manner in your pipelines and YAML inventories by using `dci-vault` to
 generate your encrypted secrets. Details in the [python-dciclient documentation](../python-dciclient/).
-
-## Starting the DCI OCP Agent
-
-Now that you have configured the `DCI OpenShift Agent`, you can start the
-service.
-
-Please note that the service is a systemd `Type=oneshot`. This means that if
-you need to run a DCI job periodically, you have to configure a `systemd timer`
-or a `crontab`.
-
-```console
-systemctl start dci-openshift-agent
-```
-
-If you need to run the `dci-openshift-agent` manually in foreground,
-you can use this command line:
-
-```console
-# su - dci-openshift-agent
-% dci-openshift-agent-ctl -s -- -v
-```
 
 ## Deploying operators
 
@@ -512,7 +404,7 @@ custom_catalogs:
   - icr.io/cpopen/ibm-operator-catalog:latest
 ```
 
-Please see the [settings table](#etcdci-openshift-agentsettingsyml) for the variables names to control the Operators
+Please see the [settings table](#ansible_variables) for the variables names to control the Operators
 installation.
 
 ### Customizing the Operators installation
@@ -626,9 +518,9 @@ place:
 
 - Is the DCI repo configured?
 - Is the dci-openshift-agent package the latest version?
-- Does my `/etc/dci-openshift-agent/dcirc.sh` file contain my remote CI
+- Does my credentials file contain my remote CI
   credentials as per the distributed-ci.io dashboard?
-- Does my `/etc/dci-openshift-agent/hosts` reflect my cluster's expected
+- Does my inventory reflect my cluster's expected
   configuration? Check the following variables:
     - `cluster`
     - `domain`
@@ -637,7 +529,7 @@ place:
     - IPMI configuration for all nodes in OCP cluster: `ipmi_user`,
       `ipmi_password`, `ipmi_address`
     - MAC addresses for all nodes in OCP cluster
-- Does my `/etc/dci-openshift-agent/settings.yml` file reflect the right
+- Does my pipeline file reflect the right
   topic/component for my needs?
 - Is my `dci-openshift-agent` SSH key transferred to the provision host? e.g.
   can I SSH without a password from Jumpbox -> provisioner?
