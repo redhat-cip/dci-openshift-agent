@@ -105,7 +105,7 @@
           spec:
             disableAllDefaultSources: true
 
-    - name: "Validate Red Hat catalogSources are not available"
+    - name: "Validate Red Hat catalogSources are disabled"
       community.kubernetes.k8s_info:
         api: operators.coreos.com/v1alpha1
         kind: CatalogSource
@@ -115,6 +115,8 @@
         - catalogs_list.resources | length == 0
       retries: 6
       delay: 10
+      when:
+        - dci_main == 'install'
 
     - name: "Create Red Hat disconnected catalogSource"
       include_role:
