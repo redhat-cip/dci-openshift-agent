@@ -9,5 +9,7 @@
 - name: "installer : SNO Run IPI installer"
   import_role:
     name: sno-installer
+  vars:
+    pull_url: "{{ hostvars.localhost.version_pull_url }}"
 
 ...

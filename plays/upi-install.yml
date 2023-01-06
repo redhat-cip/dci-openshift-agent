@@ -7,5 +7,7 @@
   - name: "installer : Run UPI installer"
     import_role:
       name: upi-installer
+  vars:
+    pull_url: "{{ hostvars.localhost.version_pull_url }}"
 
 ...
