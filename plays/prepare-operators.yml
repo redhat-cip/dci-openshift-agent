@@ -20,11 +20,12 @@
     - dci_pullsecret_file is defined
 
 - name: "Build catalog from upstream only for non-GA OCP versions"
+  vars:
+    short_ver: "{{ '.'.join(version.split('-')[0].split('.')[:2]) }}"
   include_tasks: build-upstream-catalog.yml
   when:
     - (dci_disconnected | default(false) | bool) or (local_registry | length)
-    - version.split("-")[0].split(".")[2] | int == 0
-    - ("build:dev" in tags) or ("build:candidate" in tags)
+    - short_ver is version("4.12", ">=")
 
 - name: "Get the operators mirror-list"
   include_tasks: get-mirror-list.yml
