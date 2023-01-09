@@ -143,10 +143,10 @@
     ASSISTED_INSTALLER_BASE_URL: "{{ secure | ternary('https', 'http') }}://{{ hostvars['assisted_installer']['host'] }}:{{ hostvars['assisted_installer']['port'] }}/api/assisted-install/v2"
     CLUSTER_ID: "{{ cluster_id | default(hostvars['bastion']['cluster_id']) }}"
     URL_ASSISTED_INSTALLER_CLUSTER: "{{ ASSISTED_INSTALLER_BASE_URL }}/clusters/{{ CLUSTER_ID }}"
-    kube_filename: "{{ kubeconfig_dest_filename | default(cluster_name + '-kubeconfig') }}"
+    kube_filename: "kubeconfig"
     dest_dir: "{{ kubeconfig_dest_dir | default(ansible_env.HOME) }}"
     kubeconfig_path: "{{ dest_dir }}/{{ kube_filename }}"
-    kubeadmin_vault_name: "{{ kubeadmin_dest_filename | default(cluster_name +'-kubeadmin.vault.yml') }}"
+    kubeadmin_vault_name: "kubeadmin-password"
   vars_files:
     - ../group_vars/all
   environment:

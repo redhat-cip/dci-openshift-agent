@@ -256,7 +256,7 @@
       rescue: *teardown_error
 
 # Step 3a-1 : installing
-- name: 'Launch [IPI/SNO/UPI/ACM] install'
+- name: 'Launch [IPI/SNO/UPI] install'
   hosts: provisioner
   tags:
     - running
@@ -349,10 +349,31 @@
 
       rescue: *teardown_failure
 
-# Step 3a-1
-- import_playbook: plays/assisted-install.yml
+# Step 3a-1 : installing
+- name: 'Launch Assisted Install'
+  import_playbook: plays/assisted-install.yml
   when:
     - install_type == 'assisted'
+
+# Step 3a-1 : installing
+- name: 'Launch after install'
+  hosts: localhost
+  tags:
+    - running
+    - installing
+    - after
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  tasks:
+    - block:
+        - name: "Launch after install"
+          include_tasks: "plays/after-install.yml"
+          when:
+            - dci_main == 'install'
+      rescue: *teardown_failure
 
 # Step 3a-2 : deploy operators
 - name: 'Deploy operators to OCP cluster'
