@@ -37,6 +37,16 @@
     bootstraposimage: "{{ hostvars.localhost.bootstraposimage }}"
   when: hostvars.localhost.bootstraposimage is defined
 
+- name: "installer : Populate master_network_config_template"
+  set_fact:
+    master_network_config_template: "{{ hostvars.localhost.master_network_config_template }}"
+  when: hostvars.localhost.master_network_config_template is defined
+
+- name: "installer : Populate worker_network_config_template"
+  set_fact:
+    worker_network_config_template: "{{ hostvars.localhost.worker_network_config_template }}"
+  when: hostvars.localhost.worker_network_config_template is defined
+
 - name: "installer : Node preparation"
   import_role:
     name: node-prep
