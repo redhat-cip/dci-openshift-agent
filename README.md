@@ -504,6 +504,19 @@ you will need to specify an intermediate version, for example: `version_inter=4.
 candidate version, then you could do that by doing: `version_inter=4.11.5-*`, please note the addition to `-*` this will
 help to include candidate versions in the search.
 
+
+## Non-GA versions of API
+
+| API                     | Why it is used   |
+| ----------------------- | ---------------- |
+| hco.kubevirt.io/v1beta1                    | As of Jan 2023, [v1beta1 is the latest version for HyperConverged Cluster Operator](https://github.com/kubevirt/hyperconverged-cluster-operator/blob/main/docs/cluster-configuration.md#storage-resource-configurations-example). |
+| kubevirt.io/v1alpha3                       | We only keep v1alpha3 for VirtualMachine on OCP-4.7 (k8s 1.20) because v1 does not exist yet for this version. For OCP versions >= 4.8, we use v1. |
+| metal3.io/v1alpha1                         | As of Jan 2023, [v1alpha1 is the latest version for the Provisioning API](https://docs.openshift.com/container-platform/4.11/rest_api/provisioning_apis/baremetalhost-metal3-io-v1alpha1.html).      |
+| operators.coreos.com/v1alpha1              | As of Jan 2023, v1alpha1 is the latest version for [OperatorHub APIs](https://docs.openshift.com/container-platform/4.11/rest_api/operatorhub_apis/operatorhub-apis-index.html) such as CatalogSource, Subscription, CSV, and InstallPlan.                                 |
+| extensions.hive.openshift.io/v1beta1       | As of Jan 2023, AgentClusterInstall API uses [v1beta1](https://github.com/openshift/assisted-service/tree/master/api/hiveextension) as the latest version.                                     |
+| agent-install.openshift.io/v1beta1         | As of Jan 2023, both InfraEnv and AgentServiceConfig API use [v1beta1](https://github.com/openshift/assisted-service/tree/master/api) as the latest version.                                     |
+
+
 ## Troubleshooting common issues
 
 - [Basic configuration](#troubleshooting-basic-configuration)
