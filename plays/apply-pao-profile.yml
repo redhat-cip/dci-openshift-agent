@@ -24,8 +24,11 @@
   register: kubelet
   retries: 30
   delay: 10
-  until: "kubelet.resources|length == 1"
-  failed_when: "kubelet.resources|length != 1"
+  until:
+    - kubelet.resources is defined
+    - kubelet.resources | length == 1
+  failed_when:
+    - kubelet.resources | length != 1
   when:
     - profile_state is defined
     - profile_state.changed | bool

@@ -112,6 +112,7 @@
         namespace: openshift-marketplace
       register: catalogs_list
       until:
+        - catalogs_list.resources is defined
         - catalogs_list.resources | length == 0
       retries: 6
       delay: 10

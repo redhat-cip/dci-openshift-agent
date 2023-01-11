@@ -12,6 +12,7 @@
   retries: 10
   delay: 5
   until:
+    - packagemanifest.resources is defined
     - packagemanifest.resources | length == 1
 
 - name: "Get new operator's default channel name"
@@ -92,6 +93,7 @@
       retries: 120
       delay: 60
       until:
+        - csv.resources is defined
         - csv.resources | length == 1
         - "'status' in csv.resources[0]"
         - "'phase' in csv.resources[0].status"
