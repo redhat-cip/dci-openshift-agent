@@ -33,6 +33,8 @@
   vars:
     label_loop: "{{ groups['masters'] + groups['workers'] }}"
     label_item: "{{ hostvars }}"
+  when:
+    - install_type in ['ipi', 'upi', 'sno']
 
 - name: Upload the rhcos_kernel component if possible
   block:
@@ -70,7 +72,6 @@
         - "'component' in kernel_component"
         - "'id' in kernel_component.component"
   ignore_errors: yes
-  delegate_to: localhost
 
 - name: Disable provisioning
   block:
