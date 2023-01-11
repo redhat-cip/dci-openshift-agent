@@ -53,15 +53,12 @@ Please use the [OpenShift Baremetal Deploy Guide (a.k.a.
 `openshift-kni`)](https://openshift-kni.github.io/baremetal-deploy/) as a
 reference for how to properly configure the OCP networks, systems and DNS.
 
-Choose the OCP version you want to install and follow steps 1 to 3 to configure
-the networks and install RHEL 8 on the **OpenShift Provisioning node**. Steps
-after 4 will be handled by the `dci-openshift-agent`.
+Choose the OCP version you want to install and follow these steps to configure
+the networks and install RHEL 8 on the **OpenShift Provisioning node**.
 
 1. [Setting up access to DCI](#setting-up-access-to-dci)
 2. [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
-3. [Jumpbox Configuration](#jumpbox-configuration)
-4. [Copying the ssh key to your provisioner](#copying-the-ssh-key-to-your-provisioner)
-5. [Starting the DCI OCP Agent](#starting-the-dci-ocp-agent)
+3. [Installation of Provision Host](#installation-of-ocp-provision-host)
 
 As mentioned before, the **DCI Jumpbox** is NOT part of the RHOCP cluster. It
 is only dedicated to download `RHOCP` artifacts from `DCI` public
@@ -75,7 +72,7 @@ The 3 remaining systems will run the freshly installed OCP Cluster. “3” is t
 minimum required number of nodes to run RHOCP but it can be more if you need
 to.
 
-#### Jumpbox requirements
+### Jumpbox requirements
 
 The `Jumpbox` can be a physical server or a virtual machine.
 In any case, it must:
@@ -94,6 +91,8 @@ In any case, it must:
     - RED HAT SSO: <https://access.redhat.com>
     - RED HAT CATALOG: <https://catalog.redhat.com>
     - OpenShift Mirrors: <https://rhcos.mirror.openshift.com> and <https://mirror.openshift.com>
+    - GitHub: <https://github.com>
+    - Software Factory (gerrit): <https://softwarefactory-project.io>
 - Have a static internal (network lab) IP
 - Be able to reach all systems under test (SUT) using (mandatory, but not
   limited to):
@@ -107,7 +106,7 @@ In any case, it must:
 
 > NOTE: Make sure rhel-8-for-x86_64-appstream-rpms repo provides access to libvirt => 6.0.0 packages
 
-#### Systems under test
+## Systems under test
 
 `Systems under test` will be **installed** through DCI workflow with each job
 and form the new “fresh” RHOCP cluster.
@@ -118,7 +117,7 @@ Therefore, every expected customization and tests have to be automated from the
 DCI Jumpbox (by using hooks) and will therefore be applied after each
 deployment (More info at [Jumpbox Configuration](#jumpbox-configuration)).
 
-### Optional
+## Optional DCI Access
 
 - We strongly advise the partners to provide the Red Hat DCI team with access
   to their jumpbox. This way, Red Hat engineers can help with initial setup and
@@ -178,7 +177,7 @@ dnf -y install https://packages.distributed-ci.io/dci-release.el8.noarch.rpm
 dnf -y install dci-openshift-agent
 ```
 
-### Installation of OCP Provision Host
+## Installation of OCP Provision Host
 
 The provision host is part of the OCP requirements, as such you should follow
 the guide linked before. The main things you need to know about the provision
@@ -200,7 +199,7 @@ host are:
 % ssh-copy-id kni@provisionhost
 ```
 
-### Pipelines
+## Pipelines
 
 To configure your DCI job pipelines, you need to install `dci-pipeline`. Instructions at [dci-pipeline documentation](../dci-pipeline/).
 
@@ -228,7 +227,7 @@ Here is an example of a pipeline job definition for `dci-openshift-agent`:
     kubeconfig: kubeconfig
 ```
 
-#### Ansible variables
+## Ansible variables
 
 This is the dci-openshift-agent variables that can be set in the
 `ansible_extravars` section of your pipeline job definition:
@@ -277,7 +276,7 @@ API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 > NOTE: There are certain particularities about versioning that you can read more in depth
 > in [the versioning document](docs/ocp_versioning.md)
 
-#### Inventory
+## Inventory
 
 The Ansible inventory file specified in the pipeline job definition includes the
 configuration for the `dci-openshift-agent` job and the inventory for the
@@ -362,12 +361,12 @@ provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_arg
 > NOTE: If the jumpbox server is in a different network than the baremetal network, then
 > include `extcirdnet=<baremetal-network/mask>` in the `all:vars` section of the inventory
 
-### Disconnected mode in DCI OCP agent
+## Disconnected mode in DCI OCP agent
 
 When using the agent in a disconnected environment, special variables should be used. See
 the [disconnected doc](docs/disconnected_en.md) for more details.
 
-### Storing secrets
+## Storing secrets
 
 You can store secrets in an encrypted manner in your pipelines and YAML inventories by using `dci-vault` to
 generate your encrypted secrets. Details in the [python-dciclient documentation](../python-dciclient/).
@@ -404,7 +403,7 @@ custom_catalogs:
   - icr.io/cpopen/ibm-operator-catalog:latest
 ```
 
-Please see the [settings table](#ansible_variables) for the variables names to control the Operators
+Please see the [settings table](#ansible-variables) for the variables names to control the Operators
 installation.
 
 ### Customizing the Operators installation
