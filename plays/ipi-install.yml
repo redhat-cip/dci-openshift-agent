@@ -55,6 +55,29 @@
   when:
     - dci_disconnected | default(false) | bool
 
+
+# TODO: Add nightly build support to IPI
+# Web page is built on the fly for nightly builds.
+# During 10 minutes, we will try to retrieve the url by making a request every 10 seconds.
+# We reproduce the behavior of the HTML page (which refreshes the page every 5 seconds)
+# We look at the "Extracting tools" keywords in the content of the HTML page.
+- name: "Check base page"
+  ansible.builtin.uri:
+    url: "{{ hostvars.localhost.url }}"
+    return_content: true
+    status_code:
+      - 200
+      - 503
+      - -1
+  register: base_page
+  retries: 60
+  delay: 10
+  until:
+    - base_page.content is defined
+    - "'Extracting tools' not in base_page.content"
+  when:
+    - hostvars.localhost.url.startswith("https://openshift-release-artifacts.apps")
+
 - name: "installer : Node preparation"
   import_role:
     name: node-prep
