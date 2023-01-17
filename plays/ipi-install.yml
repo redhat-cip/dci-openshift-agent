@@ -1,5 +1,4 @@
 ---
-
 - include_tasks: before-install.yml
 
 - name: "installer: Check if .cache directory exists"
@@ -55,38 +54,79 @@
   when:
     - dci_disconnected | default(false) | bool
 
+- name: "Public builds"
+  when: hostvars.localhost.build != "nightly"
+  block:
+  - name: "installer : Node preparation"
+    import_role:
+      name: node-prep
 
-# TODO: Add nightly build support to IPI
-# Web page is built on the fly for nightly builds.
-# During 10 minutes, we will try to retrieve the url by making a request every 10 seconds.
-# We reproduce the behavior of the HTML page (which refreshes the page every 5 seconds)
-# We look at the "Extracting tools" keywords in the content of the HTML page.
-- name: "Check base page"
-  ansible.builtin.uri:
-    url: "{{ hostvars.localhost.url }}"
-    return_content: true
-    status_code:
-      - 200
-      - 503
-      - -1
-  register: base_page
-  retries: 60
-  delay: 10
-  until:
-    - base_page.content is defined
-    - "'Extracting tools' not in base_page.content"
-  when:
-    - hostvars.localhost.url.startswith("https://openshift-release-artifacts.apps")
+  - name: "installer : Run IPI installer"
+    import_role:
+      name: installer
 
-- name: "installer : Node preparation"
-  import_role:
-    name: node-prep
-  vars:
-    release_url: "{{ (webserver_url|length) | ternary(webserver_url, '/'.join(hostvars.localhost.url.split('/')[:-1])) }}"
+- name: "Nightly builds"
+  when: hostvars.localhost.build == "nightly"
+  block:
+  - name: "Start artifact webserver"
+    vars:
+      cache_dir: >-
+        {{ hostvars.localhost.provision_cache_store |
+           default((hostvars.localhost.ansible_env.HOME, 'releases') |
+           join('/')) }}
+    containers.podman.podman_container:
+      name: "{{ hostvars.localhost.job_id }}"
+      image: quay.io/centos7/httpd-24-centos7:latest
+      state: started
+      publish_all: true
+      volumes:
+        - "{{ cache_dir }}:/var/www/html"
+    register: aw_container
+    delegate_to: localhost
 
-- name: "installer : Run IPI installer"
-  import_role:
-    name: installer
-  vars:
-    release_url: "{{ (webserver_url|length) | ternary(webserver_url, '/'.join(hostvars.localhost.url.split('/')[:-1])) }}"
+  - name: Get dynamic web port
+    set_fact:
+      aw_dynamic_port: >-
+        {{ aw_container |
+           json_query('container.NetworkSettings.Ports."8080/tcp"[].HostPort') |
+           first }}
+
+  - name: "Allow HTTP traffic"
+    firewalld:
+      port: "{{ aw_dynamic_port }}/tcp"
+      permanent: false
+      immediate: true
+      state: enabled
+    become: true
+    delegate_to: localhost
+
+  - name: Set artifact web URL
+    vars:
+      controller_ip: "{{ hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[0] }}"
+    set_fact:
+      release_url: "http://{{ controller_ip }}:{{ aw_dynamic_port }}"
+
+  - name: "installer : Node preparation"
+    import_role:
+      name: node-prep
+
+  - name: "installer : Run IPI installer"
+    import_role:
+      name: installer
+
+  - name: "Remove artifact webserver"
+    containers.podman.podman_container:
+      name: not_random
+      state: absent
+    delegate_to: localhost
+
+  - name: "Disallow HTTP traffic"
+    firewalld:
+      port: "{{ aw_dynamic_port }}/tcp"
+      permanent: false
+      immediate: true
+      state: disabled
+    become: true
+    delegate_to: localhost
+
 ...
