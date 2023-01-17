@@ -9,5 +9,5 @@
       name: upi-installer
   vars:
     pull_url: "{{ hostvars.localhost.version_pull_url }}"
-
+    pullsecret_file: "{{ hostvars.localhost.dci_pullsecret_file }}"
 ...
