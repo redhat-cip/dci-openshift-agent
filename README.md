@@ -294,8 +294,6 @@ pub_nic=eno2
 domain=example.com
 # Name of the cluster
 cluster=dciokd
-# The Provisioning IP used by the cluster
-prov_ip=172.22.0.3
 # Disable the provisioning within the cluster (after installation)
 #dci_disable_provisioning=false
 # The directory used to store the cluster configuration files (install-config.yaml, pull-secret.txt, metal3-config.yaml)
