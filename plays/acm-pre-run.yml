@@ -41,46 +41,49 @@
       include_role:
         name: mirror-ocp-release
       vars:
-        release_url: "{{ '/'.join(url.split('/')[:-1]) }}"
-        webserver_url: "{{ hub_webserver | default(None) }}"
-        cache_dir: "{{  provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
-        registry_url: "{{ hub_registry }}"
-        auths_file: "{{ dci_pullsecret_file }}"
-        force: false
-        mirror_artifacts: "{{ dci_disconnected | default(False) | bool }}"
-        unpack_artifacts: "{{ dci_disconnected | default(False) | bool }}"
-        install_type: "{{ install_type }}"
-        mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
-        mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
-        write_custom_config: false
+        mor_version: "{{ version }}"
+        mor_pull_url: "{{ version_pull_url }}"
+        mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
+        mor_webserver_url: "{{ hub_webserver_url | default(None) }}"
+        mor_registry_url: "{{ hub_registry | urlsplit('netloc') }}"
+        mor_registry_path: "{{ (hub_registry | urlsplit('path'))[1:] | default('ocp4/openshift4', true) }}"
+        mor_auths_file: "{{ dci_pullsecret_file }}"
+        mor_force: false
+        mor_install_type: "{{ install_type }}"
+        mor_mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
+        mor_mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
+        mor_write_custom_config: false
+        mor_build: "{{ build }}"
+        mor_oc: "{{ oc_tool_path }}"
 
     - name: "Set facts for install via ACM - disconnected"
       set_fact:
         acm_metal_iso_location: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_iso_location'] | basename }}"
         acm_rootfs_url: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
-        acm_release_image: "{{ hub_registry | urlsplit('netloc') }}{{ hub_registry | urlsplit('path') }}:{{ version }}"
+        acm_release_image: "{{ hub_registry | urlsplit('netloc') }}{{ hub_registry | urlsplit('path') | default('/ocp4/openshift4', true) }}:{{ version }}"
         local_registry: "{{ hub_registry | urlsplit('netloc') }}"
   when:
     - dci_disconnected | default(false) | bool
 
 - name: "Get OCP release artifacts"
   block:
-    - name: "Get OCP release artifacts"
+    - name: Mirror release
       include_role:
         name: mirror-ocp-release
       vars:
-        release_url: "{{ '/'.join(url.split('/')[:-1]) }}"
-        webserver_url: "{{ hub_webserver | default(None) }}"
-        cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
-        registry_url: "{{ hub_registry }}"
-        auths_file: "{{ dci_pullsecret_file }}"
-        force: true
-        mirror_artifacts: false
-        unpack_artifacts: false
-        install_type: "{{ install_type }}"
-        mirror_disk_images: false
-        mirror_container_images: false
-        write_custom_config: false
+        mor_version: "{{ version }}"
+        mor_pull_url: "{{ version_pull_url }}"
+        mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
+        mor_webserver_url: "{{ hub_webserver_url | default(None) }}"
+        mor_registry_url: "{{ hub_registry }}"
+        mor_auths_file: "{{ dci_pullsecret_file }}"
+        mor_force: true
+        mor_install_type: "{{ install_type }}"
+        mor_mirror_disk_images: false
+        mor_mirror_container_images: false
+        mor_write_custom_config: false
+        mor_build: "{{ build }}"
+        mor_oc: "{{ oc_tool_path }}"
 
     - name: "Set facts for install via ACM - connected"
       set_fact:

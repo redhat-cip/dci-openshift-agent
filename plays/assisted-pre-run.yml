@@ -56,20 +56,20 @@
         when:
           - dci_pullsecret_file is defined
 
-      - name: "Mirror OCP release artifacts"
+      - name: Mirror release
         include_role:
           name: mirror-ocp-release
         vars:
-          version: "{{ hostvars.localhost.version }}"
-          pull_url: "{{ version_pull_url }}"
-          cache_dir: "{{ hostvars.localhost.provision_cache_store | default(ansible_env.HOME) }}"
-          auths_file: "{{ hostvars.localhost.dci_pullsecret_file }}"
-          force: "{{ hostvars.localhost.dci_force_mirroring | default(false) | bool }}"
-          mirror_artifacts: "{{ dci_disconnected | default(False) | bool }}"
-          unpack_artifacts: "{{ dci_disconnected | default(False) | bool }}"
-          mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
-          mirror_container_images: false
-          write_custom_config: false
+          mor_version: "{{ version }}"
+          mor_pull_url: "{{ version_pull_url }}"
+          mor_cache_dir: "{{ hostvars.localhost.provision_cache_store | default(ansible_env.HOME) }}"
+          mor_auths_file: "{{ dci_pullsecret_file }}"
+          mor_force: "{{ (dci_force_mirroring | default(false)) or (hostvars.localhost.build == 'candidate') | bool }}"
+          mor_mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
+          mor_mirror_container_images: false
+          mor_write_custom_config: false
+          mor_build: "{{ build }}"
+          mor_oc: "{{ oc_tool_path }}"
 
       - name: "Set override facts for AI"
         delegate_to: "{{ item }}"
