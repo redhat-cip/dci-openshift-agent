@@ -267,6 +267,7 @@
       copy:
         src: "{{ hostvars[groups['registry_host'][0]].disconnected_registry_mirrors_file }}"
         dest: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+        mode: "0644"
 
     - name: Add mirrors to trust bundle
       vars:

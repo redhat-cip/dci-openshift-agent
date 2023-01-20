@@ -16,6 +16,7 @@
       copy:
         src: "{{ dci_pullsecret_file }}"
         dest: "{{ docker_conf.path }}/config.json"
+        mode: "0640"
   when:
     - dci_pullsecret_file is defined
 

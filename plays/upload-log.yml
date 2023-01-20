@@ -17,9 +17,11 @@
       file:
         path: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}"
         state: directory
+        mode: "0775"
 
     - name: "Copy {{ item.path | basename }} locally"
       copy:
         src: "{{ item.path }}"
         dest: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}/"
+        mode: "0640"
 ...
