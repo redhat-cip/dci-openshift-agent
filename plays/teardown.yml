@@ -1,6 +1,6 @@
 ---
 
-- name: "Remove temp pull secret"
+- name: "Remove ACM temp pull secret"
   file:
     path: "{{ dci_pullsecret_file }}"
     state: absent

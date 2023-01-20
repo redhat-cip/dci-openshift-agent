@@ -11,7 +11,7 @@
   when:
     - dci_disconnected | default(false) | bool
 
-- name: Set pullsecret from job_info - Connected
+- name: "Set pullsecret from job_info - Connected"
   set_fact:
     pullsecret: "{{ job_info.job.topic.data.pull_secret | default({}) | combine(openshift_secret | default({}), recursive=True) }}"
   no_log: true
@@ -19,7 +19,7 @@
     - not (dci_disconnected | default(false) | bool)
 
 # Removing secret for cloud.openshift.com in order to disable the insights operator
-- name: Set pullsecret from job_info - Disconnected
+- name: "Set pullsecret from job_info - Disconnected"
   vars:
     dci_pullsecret: "{{ job_info.job.topic.data.pull_secret | default({}) | combine(openshift_secret | default({}), recursive=True) }}"
   set_fact:
@@ -37,7 +37,7 @@
   when:
     - dci_disconnected | default(false) | bool
 
-- name: Read Disconnected auths
+- name: "Read Disconnected auths"
   include_vars:
     file: "{{ hostvars[groups['registry_host'][0]].disconnected_registry_auths_file }}"
     name: disconnected_auths
@@ -53,48 +53,56 @@
   when:
     - pullsecret_file is defined
 
-- name: "Set dci_pullsecret_file if pullsecret_file var exists"
+- name: "Override Job pull secret with what is defined in pullsecret_file var"
   block:
     - name: "Copy pull secret file to cache directory"
       copy:
         src: "{{ pullsecret_file }}"
-        dest: "{{ provision_cache_store }}/pull-secret.txt"
+        dest: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
-        mode: "0644"
+        mode: "0400"
         force: true
-
-    - name: "Set dci_pullsecret_file fact"
-      set_fact:
-        dci_pullsecret_file: "{{ pullsecret_file }}"
-      no_log: true
   when:
     - pullsecret_file is defined
     - pullfile.stat.exists | bool
 
-- name: "Set auths fact if pullsecret_file var is not present"
+- name: "Combine Job pullsecret and disconnected_auths"
   block:
-    - name: "Combine pull secret and disconnected_auths vars"
+    - name: "Combine secrets"
       set_fact:
-        auths: "{{ pullsecret | combine({'auths': hostvars.localhost.disconnected_auths}, recursive=True) }}"
+        auths: "{{ pullsecret | combine({'auths': disconnected_auths}, recursive=True) }}"
       no_log: true
 
-    - name: "Copy auths fact content to a file"
+    - name: "Save combined secrets to a file"
       copy:
         content: "{{ auths }}"
-        dest: "{{ provision_cache_store }}/pull-secret.txt"
+        dest: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
-        mode: "0644"
+        mode: "0400"
         force: true
-
-    - name: "Set dci_pullsecret_file fact if pullsecret_file is not present"
-      set_fact:
-        dci_pullsecret_file: "{{ provision_cache_store }}/pull-secret.txt"
-      no_log: true
   when:
     - dci_disconnected | default(false) | bool
     - pullsecret_file is undefined
+
+- name: "Set dci_pullsecret_file in connected environments"
+  block:
+    - name: "Save Job pullsecret content to a file"
+      copy:
+        content: "{{ pullsecret }}"
+        dest: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid }}"
+        mode: "0400"
+        force: true
+  when:
+    - not (dci_disconnected | default(false) | bool)
+    - pullsecret_file is undefined
+
+- name: "Set dci_pullsecret_file"
+  set_fact:
+    dci_pullsecret_file: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
 
 - name: "Create releases dir in home directory if needed"
   file:
@@ -103,25 +111,6 @@
     mode: "0775"
   when:
     - provision_cache_store is undefined
-
-- name: "Set dci_pullsecret_file in connected environments"
-  block:
-    - name: "Copy pullsecret fact content to a file"
-      copy:
-        content: "{{ pullsecret }}"
-        dest: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}/pull-secret.txt"
-        owner: "{{ ansible_user_id }}"
-        group: "{{ ansible_user_gid }}"
-        mode: "0644"
-        force: true
-
-    - name: "Set dci_pullsecret_file fact if pullsecret_file is not present"
-      set_fact:
-        dci_pullsecret_file: "{{ hostvars.localhost.provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}/pull-secret.txt"
-      no_log: true
-  when:
-    - not (dci_disconnected | default(false) | bool)
-    - pullsecret_file is undefined
 
 - name: Mirror release
   include_role:
@@ -231,8 +220,8 @@
 
 - name: "Clone/update baremetal-deploy repo"
   vars:
-    git_repo: "{{ hostvars.localhost.baremetal_deploy_repo }}"
-    git_ref: "{{ hostvars.localhost.baremetal_deploy_version }}"
+    git_repo: "{{ baremetal_deploy_repo }}"
+    git_ref: "{{ baremetal_deploy_version }}"
   git:
     version: "{{ git_ref }}"
     repo: "{{ git_repo }}"
@@ -320,8 +309,9 @@
 - name: Empty Console log files if present
   command: dd if=/dev/null of="{{ item }}"
   with_fileglob:
-    - "/var/consoles/{{ hostvars.localhost.cluster }}/{{ hostvars.localhost.cluster }}*"
-  when: hostvars.localhost.cluster is defined
+    - "/var/consoles/{{ cluster }}/{{ cluster }}*"
+  when:
+    - cluster is defined
   become: true
 
 - name: "Storage service test (during upgrade only)"

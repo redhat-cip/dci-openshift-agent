@@ -364,6 +364,43 @@ provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_arg
 When using the agent in a disconnected environment, special variables should be used. See
 the [disconnected doc](docs/disconnected_en.md) for more details.
 
+## Pull secrets
+
+Pull secrets are credentials used against container registries that require authentication.
+
+DCI provide pull secrets used to deploy OCP on every job.
+
+- `cloud.openshift.com` - Insights monitoring
+- `quay.io` - Openshift releases
+- `registry.ci.openshift.org` - Nightly builds
+- `registry.connect.redhat.com` - Red Hat images
+- `registry.redhat.io` - Red Hat images
+
+These pull secrets are used by default, but the agent allows using other pull secrets if
+needed through some variables.
+
+- `openshift_secret`: String with secrets that are appended to the job's provided
+pull secrets. Used to include additional credentials. This is an agent variable.
+- `pullsecret_file`: File with secrets that will be used instead of the ones
+provided by DCI job and the `openshift_secret`, if any. This is an
+[inventory variable](#inventory).
+
+> NOTE: The use of `pullsecret_file` has two main implications:
+>
+> - They should contain at the very least the
+> [OCP Bare Metal pull secrets for user-provisioned](https://cloud.redhat.com/openshift/install/metal/user-provisioned)
+> - The above does not contain access to Nightly builds, limiting its functionality
+
+### Disconnected environment
+
+Another related variable is `disconnected_registry_auths_files` used in IPI or SNO installs.
+
+This is an inventory variable used in disconnected environments.
+The content of this file is appended to the list of DCI provided pull secrets. This file is used for two main purposes.
+
+- To allow the cluster to communicate to a local registry
+- To use to mirror images to the local registry
+
 ## Storing secrets
 
 You can store secrets in an encrypted manner in your pipelines and YAML inventories by using `dci-vault` to
