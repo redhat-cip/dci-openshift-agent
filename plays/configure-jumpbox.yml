@@ -37,6 +37,7 @@
     state: directory
     owner: "{{ ansible_user_id }}"
     group: "{{ ansible_user_gid }}"
+    mode: "0770"
   loop:
     - "{{ dci_cache_dir }}"
   become: true
@@ -51,6 +52,7 @@
       file:
         path: "{{ dci_cluster_configs_dir }}"
         state: directory
+        mode: "0755"
   when:
     - dci_main == 'install'
 

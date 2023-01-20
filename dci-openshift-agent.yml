@@ -16,10 +16,10 @@
 
     - name: Read credentials from env vars
       set_fact:
-        dci_client_id="{{ lookup('env','DCI_CLIENT_ID') }}"
-        dci_api_secret="{{ lookup('env','DCI_API_SECRET') }}"
-        dci_cs_url="{{ lookup('env','DCI_CS_URL') }}"
-        dci_ui_url="{{ lookup('env','DCI_UI_URL') | default('https://www.distributed-ci.io', True) }}"
+        dci_client_id: "{{ lookup('env','DCI_CLIENT_ID') }}"
+        dci_api_secret: "{{ lookup('env','DCI_API_SECRET') }}"
+        dci_cs_url: "{{ lookup('env','DCI_CS_URL') }}"
+        dci_ui_url: "{{ lookup('env','DCI_UI_URL') | default('https://www.distributed-ci.io', True) }}"
       no_log: "{{ dci_hide_secrets }}"
 
     # Schedule a new job only if not passed via dci-pipeline
@@ -44,7 +44,10 @@
         job_id: '{{ job_info.job.id }}'
 
     - name: copy the job_id to the JOB_ID_FILE if it exists
-      copy: content="{{ job_id }}" dest={{ JOB_ID_FILE }}
+      copy:
+        content: "{{ job_id }}"
+        dest: "{{ JOB_ID_FILE }}"
+        mode: "0644"
       when: JOB_ID_FILE is defined
 
     # Keep in sync with test-runner parsing
