@@ -13,7 +13,6 @@ Required images are retrieved directly from Quay.io.
 | OCP-4.9  | x86\_64      |
 | OCP-4.8  | x86\_64      |
 | OCP-4.7  | x86\_64      |
-| OCP-4.6  | x86\_64      |
 
 Only x86_64 is supported; contact your EPM if you would like a specific architecture (or version) not listed here.
 

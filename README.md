@@ -496,11 +496,10 @@ To perform this upgrade with DCI, you must meet the following conditions:
 There also exists an optional variable `version_inter` to specify the intermediate OCP version to use, instead of the
 one the upgrade path would provide.
 
-Let's say you want to upgrade from 4.10 to 4.12, since 4.12 is not yet a GA release at the time of this writing, then
+Let's say you want to upgrade to a version that there's no path for it yet. For example 4.10 to 4.12, then
 you will need to specify an intermediate version, for example: `version_inter=4.11.4`. Or maybe you need to land in a
 candidate version, then you could do that by doing: `version_inter=4.11.5-*`, please note the addition to `-*` this will
 help to include candidate versions in the search.
-
 
 ## Non-GA versions of API
 
