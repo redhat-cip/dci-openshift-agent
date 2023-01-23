@@ -27,7 +27,7 @@ rem="timeout -v 20m ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/n
 shift 2
 masters=()
 for name in "$@"; do
-      mod=$(echo "$name" | tr -d ,][)
+      mod=$(echo "$name" | tr -d ,][ | cut -d"." -f1)
       masters+=($mod)
 done
 
@@ -70,7 +70,7 @@ if [ -n "$ip" ]; then
     if [ "$nodes" -gt 0 ]; then
 
       # Get nodes journals and outputs
-      for h in $($rem oc get nodes -o custom-columns=NAME:.metadata.name --no-headers -l node-role.kubernetes.io/master= 2>/dev/null); do
+      for h in $($rem oc get nodes -o custom-columns=NAME:.metadata.name --no-headers -l node-role.kubernetes.io/master= | cut -d "." -f1 2>/dev/null); do
         # Journal logs
         $rem ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
           core@$h.$domain sudo journalctl --all > $dir/journal-$h.log
@@ -94,7 +94,7 @@ else
 
     # Get nodes journals and outputs
     if [ -n "$remdir" ]; then
-        for h in $($rem oc get nodes|tail -n +2|awk '{print $1;}'); do
+        for h in $($rem oc get nodes|tail -n +2|awk '{print $1;}'|cut -d"." -f1); do
           # Journal logs
             $rem ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
               core@$h.$domain sudo journalctl --all > $dir/journal-$h.log
