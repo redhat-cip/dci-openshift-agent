@@ -116,7 +116,7 @@
 
   - name: "Remove artifact webserver"
     containers.podman.podman_container:
-      name: not_random
+      name: "{{ hostvars.localhost.job_id }}"
       state: absent
     delegate_to: localhost
 
