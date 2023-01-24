@@ -33,7 +33,7 @@
         copy:
           content: "{{ pull_secret | to_json }}"
           dest: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
-          mode: '0644'
+          mode: "0400"
           force: true
 
       - name: "Set dci_pullsecret_file fact"
