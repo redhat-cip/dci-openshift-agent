@@ -35,6 +35,8 @@ upstream [Network requirements guide from OpenShift](https://openshift-kni.githu
   configuration](https://openshift-kni.github.io/baremetal-deploy/latest/Deployment#DNS)
   as a reference guide
 - Optional - Include DNS entries for the hostnames for each of the servers
+- Nightly builds require that the provisionhost (SNO or IPI installs) is able
+  to communicate directly to the controller server.
 
 ![Proposed network diagram](https://lucid.app/publicSegments/view/bedb0b3c-0cca-43ef-9dc6-7ed40ac35506/image.png "Proposed network diagram")
 

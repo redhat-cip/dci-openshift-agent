@@ -84,12 +84,40 @@
     register: aw_container
     delegate_to: localhost
 
-  - name: Get dynamic web port
+  - name: "Get dynamic web port"
     set_fact:
       aw_dynamic_port: >-
         {{ aw_container |
            json_query('container.NetworkSettings.Ports."8080/tcp"[].HostPort') |
            first }}
+    delegate_to: localhost
+
+  - name: "Get routable interface to provisionhost"
+    vars:
+      target_ip: "{{ hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[2] }}"
+    shell:
+      cmd: /usr/sbin/ip route get {{ target_ip }}
+    register: aw_route
+    delegate_to: localhost
+
+  - name: "Get all active zones in controller"
+    ansible.posix.firewalld_info:
+      active_zones: true
+    register: aw_fw_zones
+    become: true
+    delegate_to: localhost
+
+  - name: "Get firewall zone in controller"
+    vars:
+      aw_interface: "{{ aw_route.stdout_lines[0].split(' ')[2] }}"
+      zone_interfaces: "{{ aw_fw_zones.firewalld_info.zones[zone].interfaces }}"
+    set_fact:
+      aw_zone: "{{ zone }}"
+    when:
+      - aw_interface in zone_interfaces
+    loop: "{{ aw_fw_zones.collected_zones }}"
+    loop_control:
+      loop_var: zone
 
   - name: "Allow HTTP traffic"
     firewalld:
@@ -97,6 +125,7 @@
       permanent: false
       immediate: true
       state: enabled
+      zone: "{{ aw_zone }}"
     become: true
     delegate_to: localhost
 
@@ -126,6 +155,7 @@
       permanent: false
       immediate: true
       state: disabled
+      zone: "{{ aw_zone }}"
     become: true
     delegate_to: localhost
 
