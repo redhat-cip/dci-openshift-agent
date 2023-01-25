@@ -14,6 +14,25 @@
     state: absent
   when: docker_conf is defined
 
+- name: "Remove artifact webserver for IPI installs"
+  block:
+    - name: "Remove artifact webserver"
+      containers.podman.podman_container:
+        name: "{{ job_id }}"
+        state: absent
+
+    - name: "Disallow HTTP traffic"
+      firewalld:
+        port: "{{ aw_dynamic_port }}/tcp"
+        permanent: false
+        immediate: true
+        state: disabled
+      become: true
+      when: aw_dynamic_port is defined
+  when:
+    - dci_main == 'install'
+    - install_type == 'ipi'
+
 - name: "Teardown for storage service tester"
   include_role:
     name: storage-tester
