@@ -20,6 +20,9 @@
       - name: "assisted installer: create cluster"
         include_role:
           name: create_cluster
+#      - name: "assisted installer: patch cluster"
+#        include_role:
+#          name: patch_cluster
       - name: "assisted installer: generate discovery iso"
         include_role:
           name: generate_discovery_iso
@@ -58,6 +61,20 @@
               include_tasks: failure.yml
           delegate_to: localhost
           ignore_unreachable: true
+
+- name: Mount Discovery ISO for PXE
+  hosts: http_store
+  vars:
+    MOUNT_DISCOVERY_ISO: "{{ setup_pxe_service | default(False)}}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: mount discovery iso for pxe"
+        include_role:
+          name: mount_discovery_iso_for_pxe
+        when: MOUNT_DISCOVERY_ISO == True
+      rescue: *teardown_failure
 
 - name: Mounting, Booting the Assisted Installer Discovery ISO
   hosts: masters, workers
