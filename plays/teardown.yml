@@ -27,8 +27,11 @@
         permanent: false
         immediate: true
         state: disabled
+        zone: "{{ aw_zone }}"
       become: true
-      when: aw_dynamic_port is defined
+      when:
+        - aw_dynamic_port is defined
+        - aw_zone is defined
   when:
     - dci_main == 'install'
     - install_type == 'ipi'
