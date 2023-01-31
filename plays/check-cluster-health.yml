@@ -36,7 +36,7 @@
     nodes_status: "{{ nodes_info | json_query(status_query) | flatten | unique }}"
   until:
     - nodes_status == ['True']
-  retries: 3
+  retries: 6
   delay: 10
 
 - name: "Get cluster version information"
