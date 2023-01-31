@@ -8,6 +8,7 @@
       - "python{% if ansible_python.version.major == 3 %}3{% endif %}-netaddr"
       - "jq"
       - "expect"
+      - python3-passlib
     state: installed
 
 - name: Install grpcurl when uninstalled
