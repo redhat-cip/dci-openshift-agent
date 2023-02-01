@@ -31,7 +31,7 @@
   include_role:
     name: label-nodes
   vars:
-    label_loop: "{{ groups['masters'] + groups['workers'] }}"
+    label_loop: "{{ groups['masters'] + groups['workers'] | default([]) }}"
     label_item: "{{ hostvars }}"
   when:
     - install_type in ['ipi', 'upi', 'sno']
