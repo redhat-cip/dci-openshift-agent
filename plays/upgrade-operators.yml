@@ -10,10 +10,11 @@
 - name: "Get Operator's subscription Details"
   vars:
     subs_details: >
-      resources[*].{ subcriptionName: metadata.name,
+      resources[*].{ subscriptionName: metadata.name,
         operatorName: spec.name,
         namespace: metadata.namespace,
         installedCSV: status.installedCSV,
+        catalogSource: spec.source,
         installPlanApproval: spec.installPlanApproval
       }
   set_fact:
@@ -34,7 +35,7 @@
       apiVersion: operators.coreos.com/v1alpha1
       kind: Subscription
       metadata:
-        name: "{{ sub.subcriptionName }}"
+        name: "{{ sub.subscriptionName }}"
         namespace:  "{{ sub.namespace }}"
       spec:
         name: "{{ sub.operatorName }}"
@@ -42,7 +43,7 @@
   loop: "{{ subscriptions }}"
   loop_control:
     loop_var: sub
-    label: "{{ sub.subcriptionName }}"
+    label: "{{ sub.subscriptionName }}"
 
 - name: "upgrader : Update disconnected catalogSources"
   import_role:
@@ -66,5 +67,5 @@
   loop: "{{ subscriptions }}"
   loop_control:
     loop_var: sub
-    label: "{{ sub.subcriptionName }}"
+    label: "{{ sub.subscriptionName }}"
 ...
