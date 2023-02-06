@@ -74,7 +74,7 @@
         cmd: >
           set -x;
           podman build
-          -t {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+          -t {{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
           -f {{ tmp_prune.path }}/configs.Dockerfile .
 
     - name: "Validate the pruned index"
@@ -87,7 +87,7 @@
       shell:
         cmd: >
           podman push
-          {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+          {{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
           {% if dci_pullsecret_file is defined %}
           --authfile {{ dci_pullsecret_file }}
           {% endif %}
@@ -103,7 +103,7 @@
           --rm
           --detach
           --publish 50051
-          {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+          {{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
       register: grpc_container_id
 
     - name: "Get dynamic port assigned to grpc"
@@ -151,7 +151,7 @@
         cmd: >
           podman rmi
           --force
-          {{ local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+          {{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
   when:
     - index_found
 

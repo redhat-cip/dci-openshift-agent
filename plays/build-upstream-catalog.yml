@@ -3,14 +3,14 @@
   include_tasks: plays/upstream-sriov-bundle.yml
   vars:
     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
-    sriov_bundle: "{{ local_registry }}/telcoci/upstream/sriov-operator-bundle"
+    sriov_bundle: "{{ dci_local_registry }}/telcoci/upstream/sriov-operator-bundle"
   when:
     - enable_sriov | bool
 
 - name: Create catalog with upstream bundles
   vars:
     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
-    upstream_catalog: "{{ local_registry }}/telcoci/upstream/upstream-operators-catalog:{{ base_version }}"
+    upstream_catalog: "{{ dci_local_registry }}/telcoci/upstream/upstream-operators-catalog:{{ base_version }}"
   when:
     - upstream_bundles is defined
     - upstream_bundles | length

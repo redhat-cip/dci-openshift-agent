@@ -4,11 +4,11 @@
   vars:
     mc_oc_tool_path: "{{ oc_tool_path }}"
     mc_catalog: "{{ catalog }}"
-    mc_registry: "{{ local_registry }}"
+    mc_registry: "{{ dci_local_registry }}"
     mc_pullsecret: "{{ dci_pullsecret_file }}"
   when:
-    - local_registry is defined
-    - local_registry | length
+    - dci_local_registry is defined
+    - dci_local_registry | length
 
 - name: "Append to list of ImageContentSourcePolicy files"
   set_fact:

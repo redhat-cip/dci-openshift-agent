@@ -29,11 +29,11 @@
       kind: ImageContentSourcePolicy
     register: cluster_icsp
 
-  - name: "Set local_registry"
+  - name: "Set dci_local_registry"
     vars:
       loc_reg: "docker://{{ cluster_icsp.resources[0].spec.repositoryDigestMirrors[0].mirrors[0] }}"
     set_fact:
-      local_registry: "{{ loc_reg | urlsplit('netloc') }}"
+      dci_local_registry: "{{ loc_reg | urlsplit('netloc') }}"
     when:
       - cluster_icsp.resources | length
 

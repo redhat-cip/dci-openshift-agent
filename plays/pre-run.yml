@@ -5,7 +5,7 @@
       - webserver_url is defined
       - groups['registry_host'] is defined
       - groups['registry_host'] | length > 0
-      - local_registry | length
+      - dci_local_registry | length
       - provision_cache_store is defined
       - hostvars[groups['registry_host'][0]].local_repo is defined
   when:
@@ -120,7 +120,7 @@
     mor_pull_url: "{{ version_pull_url }}"
     mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
     mor_webserver_url: "{{ webserver_url | default(None) }}"
-    mor_registry_url: "{{ local_registry }}"
+    mor_registry_url: "{{ dci_local_registry }}"
     mor_auths_file: "{{ dci_pullsecret_file }}"
     mor_force: "{{ (dci_force_mirroring | default(false)) or (build == 'candidate') | bool }}"
     mor_install_type: "{{ install_type }}"
@@ -203,7 +203,7 @@
       mor_pull_url: "{{ image_inter }}"
       mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
       mor_webserver_url: "{{ webserver_url | default(None) }}"
-      mor_registry_url: "{{ local_registry }}"
+      mor_registry_url: "{{ dci_local_registry }}"
       mor_registry_path: "{{ hostvars[groups['registry_host'][0]].local_repo | default('ocp4/openshift4', true) }}"
       mor_auths_file: "{{ dci_pullsecret_file }}"
       mor_force: "{{ (dci_force_mirroring | default(false)) or (build == 'candidate') | bool }}"

@@ -21,7 +21,7 @@
 
       - name: "Set cnf_tests_image_registry for disconnected env"
         set_fact:
-          cnf_tests_image_registry: "{{ local_registry }}"
+          cnf_tests_image_registry: "{{ dci_local_registry }}"
 
     when:
       - dci_disconnected | default(false) | bool

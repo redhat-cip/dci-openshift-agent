@@ -61,7 +61,7 @@
         acm_metal_iso_location: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_iso_location'] | basename }}"
         acm_rootfs_url: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
         acm_release_image: "{{ hub_registry | urlsplit('netloc') }}{{ hub_registry | urlsplit('path') | default('/ocp4/openshift4', true) }}:{{ version }}"
-        local_registry: "{{ hub_registry | urlsplit('netloc') }}"
+        dci_local_registry: "{{ hub_registry | urlsplit('netloc') }}"
   when:
     - dci_disconnected | default(false) | bool
 

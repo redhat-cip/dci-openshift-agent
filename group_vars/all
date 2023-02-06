@@ -80,7 +80,7 @@ sriov_operator:
   - sriov-network-operator
 performance_addon_operator:
   - performance-addon-operator
-local_registry: |-
+dci_local_registry: |-
   {{ local_registry_host | default('') }}
   {%- if local_registry_port is defined %}
   :{{ local_registry_port }}
