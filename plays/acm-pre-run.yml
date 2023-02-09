@@ -36,6 +36,8 @@
   include_tasks: get-cluster-pullsecret.yml
 
 - name: "Mirror OCP release artifacts"
+  vars:
+    version_core: "{{ version.split('.')[:2] | join('.') }}"
   block:
     - name: "Mirror OCP release artifacts - Disconnected"
       include_role:
@@ -46,7 +48,7 @@
         mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
         mor_webserver_url: "{{ hub_webserver_url | default(None) }}"
         mor_registry_url: "{{ hub_registry | urlsplit('netloc') }}"
-        mor_registry_path: "{{ (hub_registry | urlsplit('path'))[1:] | default('ocp4/openshift4', true) }}"
+        mor_registry_path: "{{ hostvars[groups['registry_host'][0]].local_repo | default( 'ocp-'+ version.split('.')[:2] | join('.') +'/'+ version, true) }}"
         mor_auths_file: "{{ dci_pullsecret_file }}"
         mor_force: false
         mor_install_type: "{{ install_type }}"
@@ -56,11 +58,33 @@
         mor_build: "{{ build }}"
         mor_oc: "{{ oc_tool_path }}"
 
+    - name: "Convert ICSP to registries.conf format"
+      vars:
+        icsp_path: "{{ provision_cache_store }}/{{ version }}/imagecontentsourcepolicy.yaml"
+        registries: >
+          {{ lookup('file', icsp_path ) |
+             from_yaml |
+             json_query('spec.repositoryDigestMirrors[*].{ mirrors: mirrors[0], source: source  }')
+          }}
+      set_fact:
+        acm_registries: |
+
+          {% for registry in registries %}
+          [[registry]]
+            prefix = ""
+            location = "{{ registry.source }}"
+            mirror-by-digest-only = true
+
+            [[registry.mirror]]
+              location = "{{ registry.mirrors }}"
+
+          {% endfor %}
+
     - name: "Set facts for install via ACM - disconnected"
       set_fact:
         acm_metal_iso_location: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_iso_location'] | basename }}"
         acm_rootfs_url: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
-        acm_release_image: "{{ hub_registry | urlsplit('netloc') }}{{ hub_registry | urlsplit('path') | default('/ocp4/openshift4', true) }}:{{ version }}"
+        acm_release_image: "{{ hub_registry | urlsplit('netloc') }}/{{ 'ocp-'+version_core+'/'+version }}:{{ version }}"
         dci_local_registry: "{{ hub_registry | urlsplit('netloc') }}"
   when:
     - dci_disconnected | default(false) | bool

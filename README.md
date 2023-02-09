@@ -329,7 +329,7 @@ dnsvip=1.2.3.4
 #local_registry_host=local-registry
 # Registry port
 #local_registry_port=4443
-# Registry namespace
+# Registry namespace. In disconnected environments, the default value is set by the mirror-ocp-role
 #local_repo=ocp4/openshift4
 
 # Master nodes
