@@ -58,6 +58,17 @@
   retries: 3
   delay: 10
 
+- name: "Check machine-config clusteroperator latest status"
+  community.kubernetes.k8s_info:
+    api_version: config.openshift.io/v1
+    kind: ClusterOperator
+    name: machine-config
+  register: co
+  retries: 120
+  delay: 10
+  until:
+    - co | json_query('resources[*].status.conditions[]')| sort(attribute='lastTransitionTime') | last | json_query('status')
+
 - name: "Get Machine Config Pools status"
   community.kubernetes.k8s_info:
     api_version: machineconfiguration.openshift.io/v1
@@ -69,6 +80,6 @@
   until:
     - reg_mcpool_status.resources is defined
     - update_status == ['True']
-  retries: 6
+  retries: 60
   delay: 10
 ...
