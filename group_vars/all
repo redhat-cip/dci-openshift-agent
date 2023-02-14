@@ -49,6 +49,7 @@ enable_cnv: false
 enable_odf: false
 enable_ocs: false
 enable_acm: false
+storage_cluster: false
 enable_clusterlogging: false
 enable_perf_addon: false
 enable_sriov: false
@@ -71,6 +72,9 @@ ocs_operator:
   - ocs-operator
 odf_operator:
   - odf-operator
+  - mcg-operator
+  - ocs-operator
+  - odf-csi-addons-operator
 local_storage_operator:
   - local-storage-operator
 cnf_operators:

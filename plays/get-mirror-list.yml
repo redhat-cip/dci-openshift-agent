@@ -58,13 +58,6 @@
   when:
     - enable_ocs | bool
 
-- name: "Add MCG operator if enable_ocs"
-  set_fact:
-    mirror_list: "{{ mirror_list + [ 'mcg-operator' ] }}"
-  when:
-    - enable_ocs | bool
-    - version is version("4.11", ">=")
-
 - name: "Add operators if enable_odf"
   set_fact:
     mirror_list: "{{ mirror_list + odf_operator }}"
