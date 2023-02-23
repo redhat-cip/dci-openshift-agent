@@ -94,6 +94,10 @@
     - icsp_files is defined
     - icsp_files | length
 
+- name: "Clean-up the ICSPs list"
+  set_fact:
+    icsp_files: []
+
 - name: "Configure Red Hat catalogSources for disconnected environments"
   block:
     - name: "Disable default catalog sources for disconnected deployment"
