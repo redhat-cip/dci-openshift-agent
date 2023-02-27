@@ -519,28 +519,6 @@ After you run a DCI job you will be able to interact with the RHOCP cluster usin
 > a [Continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) tool aimed to perform OCP deployments,
 > should not be considered for production workloads. Use the above connection methods if some troubleshooting is required.
 
-## EUS upgrade
-
-Openshift offers a way to facilitate the upgrade between two EUS versions.
-It handles upgrading from 4.8 to 4.10, or 4.10 to 4.12, etc.
-
-Documentation is
-available [Here](https://docs.openshift.com/container-platform/4.10/updating/preparing-eus-eus-upgrade.html)
-
-To perform this upgrade with DCI, you must meet the following conditions:
-
-- Activate the boolean `upgrade_eus` to true.
-- The cluster has to be installed in an EUS version.
-- The topic should be the targeted an EUS version.
-
-There also exists an optional variable `version_inter` to specify the intermediate OCP version to use, instead of the
-one the upgrade path would provide.
-
-Let's say you want to upgrade to a version that there's no path for it yet. For example 4.10 to 4.12, then
-you will need to specify an intermediate version, for example: `version_inter=4.11.4`. Or maybe you need to land in a
-candidate version, then you could do that by doing: `version_inter=4.11.5-*`, please note the addition to `-*` this will
-help to include candidate versions in the search.
-
 ## Non-GA versions of API
 
 Some of the APIs used by the `dci-openshift-agent` are still in the beta or alpha version. See the following table for details regarding its status.
@@ -765,34 +743,6 @@ Finally from the pod you started, you can run ironic baremetal commands
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
 ```
 
-## Keep the DCI OCP Agent Updated
-
-It is recommended to keep the Jumpbox server updated, enable dnf-automatic
-updates to make sure system is using latest dci-openshift-agent
-
-Install dnf-automatic
-
-```console
-# dnf install -y dnf-automatic
-```
-
-Modify the default configuration to enable automatic downloads and apply
-updates
-
-```console
-# vi /etc/dnf/automatic.conf
-...
-download_updates = yes
-apply_updates = yes
-...
-```
-
-Enable the dnf-automatic.timer
-
-```console
-# systemctl enable --now dnf-automatic.timer
-```
-
 ## dci-openshift-agent workflow
 
 0. "New DCI job"
@@ -870,6 +820,131 @@ All the tasks prefixed with `test_` will get exported in Junit using the
 [Ansible Junit
 callback](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/junit_callback.html)
 and submitted automatically to the DCI control server.
+
+## OCP upgrades using dci-openshift-agent
+
+### Test OCP upgrades using the dci-openshift agent
+
+The `dci-openshift-agent` supports testing cluster upgrades by executing an `upgrade pipeline`.
+
+See below and an example of a pipeline job definition:
+
+```yaml
+- name: openshift-vanilla-upgrade-4.10
+  stage: ocp-upgrade
+  prev_stages: [ocp-upgrade, ocp]
+  ansible_playbook: /usr/share/dci-openshift-agent/dci-openshift-agent.yml
+  ansible_cfg: /var/lib/dci/pipelines/ansible.cfg
+  ansible_inventory: /var/lib/dci/inventories/inventory
+  dci_credentials: /etc/dci-openshift-agent/dci_credentials.yml
+  configuration: "@QUEUE"
+  ansible_extravars:
+    dci_config_dirs: [/var/lib/dci/dallas-config/dci-openshift-agent]
+    dci_local_log_dir: /var/lib/dci-pipeline/upload-errors
+    dci_tags: []
+    dci_cache_dir: /var/lib/dci-pipeline
+    dci_base_ip: "{{ ansible_default_ipv4.address }}"
+    dci_baseurl: "http://{{ dci_base_ip }}"
+    dci_main: upgrade
+    cnf_test_suites: []
+    enable_perf_addon: true
+    enable_sriov: true
+  topic: OCP-4.10
+  components:
+    - ocp
+  outputs:
+    kubeconfig: "kubeconfig"
+  success_tag: ocp-upgrade-4.10-ok
+```
+
+Please note the following settings:
+
+1. `prev_stages`: Indicates that this pipeline can only be executed after an OCP install or another OCP upgrade, as those will provide the `kubeconfig` used to interact with the cluster during the upgrade.
+1. `dci_main`: Instructs the agent to execute only the tasks related to a cluster upgrade. Accepted values are `install` and `upgrade`.
+1. `enable_perf_addon`: Enables the mirroring of the Performance Add-On operator for the target OCP version.
+
+See: [dci-pipeline](https://docs.distributed-ci.io/dci-pipeline/) documentation for more details about the configuration settings.
+
+The agent supports 2 types of upgrades:
+
+1. Upgrades to the next support <major>.<minor>-<patch> release version according the [OCP update graph](https://access.redhat.com/labsinfo/ocpupgradegraph).
+1. Extended Update Support (EUS) upgrades, if the current cluster version is EUS supported version. See [preparing EUS-EUS upgrade](https://docs.openshift.com/container-platform/4.10/updating/preparing-eus-eus-upgrade.html).
+
+#### The upgrade process
+
+Some of the relevant tasks executed during a cluster upgrade are listed below:
+
+1. A DCI job is created to track the upgrade process.
+1. The specific target version is calculated based on the [OCP upgrade graph](https://access.redhat.com/labs/ocpupgradegraph/update_path).
+1. The target OCP release is mirrored to the same images <registry>/<path> that was used for the cluster deployment. For EUS upgrades, the intermediate release images are also mirrored <sup>1</sup>.
+1. The ISO, rootfs, and other artifacts are mirrored to the same `webserver_url` used for the initial cluster deployment <sup>1</sup>.
+1. The Image Content Source Policies and OCP signature for the new version are applied <sup>1</sup>.
+1. The "cluster version" is patched for the new target version based on the calculated target version.
+1. The upgrade is executed and monitored for completion.
+1. The Red Hat operators catalog for the new OCP version is pruned and mirrored according to the `enable_<operators>` variables defined in the pipeline file <sup>1</sup>.
+1. The current Red Hat operators catalog is replaced with the new one for the target OCP version.
+1. Information about installed operators is collected based on the current subscriptions.
+1. The operator upgrade is executed for operators not listed in the `operator_skip_upgrade` list.
+1. An operator upgrade will be triggered if:
+   * There is a new CSV version available for the currently installed operator in the current channel.
+   * There is a new default channel available for the currently installed operator. That will usually imply the availability of a new CSV.
+1. Operators' upgrade starts and is monitored until it reaches the target CSV.
+1. Cluster resources, machine config pools, cluster operators, etc. are validated to declare a cluster as successfully upgraded.
+1. The relevant logs and cluster information are uploaded to the "Files" section of the DCI-UI.
+
+<sup>1</sup> Only in disconnected environments.
+
+#### The EUS upgrade
+
+OpenShift offers a way to facilitate the upgrade between two EUS versions. This allows upgrading between even versions, for example from ocp-4.8 to ocp-4.10. Detailed documentation is available in [preparing EUS-EUS upgrade](https://docs.openshift.com/container-platform/4.10/updating/preparing-eus-eus-upgrade.html)
+
+To perform this type of upgrade with DCI, the following conditions must be met:
+
+- Activate the boolean `upgrade_eus` to true.
+- The cluster has to be installed in an EUS version.
+- The topic or target version must be an EUS release.
+
+Transitioning between two OCP releases requires an intermediate version. It's possible to specify the intermediate version through `version_inter`, this ignores the upgrade path.
+
+For example, to upgrade to a version where there's no path to it. Specify the intermediate version. `version_inter=4.11.5` or to use candidate versions use `version_inter=4.11.5-*`. 
+
+Note the `-*`, this will help to include candidate versions in the search.
+
+Upgrade notes:
+
+* The upgrade process is only supported when the installation was performed with the dci-openshift-agent.
+
+* For disconnected environments, it's required to enable the same operators (`enable_<operator>`) installed  by dci-openshift-agent to upgrade them.
+
+* Please see the [ansible-variables](#ansible-variables) section for more settings related to the upgrade process.
+
+## Keep the DCI OCP Agent Updated
+
+It is recommended to keep the Jumpbox server updated, enable dnf-automatic
+updates to make sure system is using latest dci-openshift-agent
+
+Install dnf-automatic
+
+```console
+# dnf install -y dnf-automatic
+```
+
+Modify the default configuration to enable automatic downloads and apply
+updates
+
+```console
+# vi /etc/dnf/automatic.conf
+...
+download_updates = yes
+apply_updates = yes
+...
+```
+
+Enable the dnf-automatic.timer
+
+```console
+# systemctl enable --now dnf-automatic.timer
+```
 
 ## Getting involved
 
