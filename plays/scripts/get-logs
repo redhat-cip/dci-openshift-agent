@@ -80,6 +80,13 @@ if [ -n "$ip" ]; then
       $rem oc get nodes > $dir/nodes.txt
       $rem oc get csr > $dir/csr.txt
       $rem oc get clusteroperator > $dir/clusteroperator.txt
+      $rem oc get mcp >> $dir/machine-configs.txt
+      $rem oc get mc >> $dir/machine-configs.txt
+      for node in $($rem oc get node -o=custom-columns=name:.metadata.name --no-headers 2>/dev/null ); do
+        (echo ${node}; $rem oc get nodes ${node} -o yaml|egrep 'desiredConfig|currentConfig') >> $dir/machine-configs.txt;
+      done
+      $rem oc get imagecontentsourcepolicies -o yaml > $dir/image-content-source-policies.yaml
+
     else
       # Get only journals of master nodes
       for h in ${masters[@]}; do
@@ -120,6 +127,12 @@ else
         $rem oc get nodes -o yaml > $dir/all-nodes.yaml
         $rem oc get events --all-namespaces --sort-by='.metadata.creationTimestamp' > $dir/events.txt
         $rem oc get pods --all-namespaces -o wide > $dir/pods.txt
+        $rem oc get mcp >> $dir/machine-configs.txt
+        $rem oc get mc >> $dir/machine-configs.txt
+        for node in $($rem oc get node -o=custom-columns=name:.metadata.name --no-headers 2>/dev/null ); do
+          (echo ${node}; $rem oc get nodes ${node} -o yaml|egrep 'desiredConfig|currentConfig') >> $dir/machine-configs.txt;
+        done
+        $rem oc get imagecontentsourcepolicies -o yaml > $dir/image-content-source-policies.yaml
 
         # must-gather
         for image in ${DCI_MUST_GATHER_IMAGES:-"registry.redhat.io/openshift4/ose-must-gather"}
