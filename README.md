@@ -263,6 +263,7 @@ This is the dci-openshift-agent variables that can be set in the
 | enable_cnv                      | False    | Boolean | False                                                          | Deploys CNV and enables the HCO operator.
 | cnv_api_version                 | False    | String  | v1beta1
 API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
+| enable_logs_stack               | False    | Boolean | False                                                          | Deploys the Loki and cluster-logging operators.
 | enable_elasticsearch            | False    | Boolean | False                                                          | Deploys the ElasticSearch Operator.
 | enable_clusterlogging           | False    | Boolean | False                                                          | Deploys the Cluster-Logging Operator.
 | enable_perf_addon               | False    | Boolean | False                                                          | Deploys the Performance AddOn Operator. For its configuration is recommended to define a `performance_definition`.
@@ -272,6 +273,7 @@ API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | enable_lso                      | False    | Boolean | False                                                          | Deploys the Local Storage Operator.
 | storage_cluster                 | False    | Boolean | False                                                          | Creates a storage cluster using OCS or ODF operators. Staring OCP 4.10, ODF replaces OCS. See: [Openshift Data Foundation](https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.9/html/deploying_openshift_data_foundation_using_bare_metal_infrastructure/preparing_to_deploy_openshift_data_foundation) documentation for details about the nodes requirements.
 | enable_acm                      | False    | Boolean | False                                                          | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator.
+| enable_nfd                      | False    | Boolean | False                                                          | Deploys the [NFD](https://docs.openshift.com/container-platform/4.10/hardware_enablement/psap-node-feature-discovery-operator.html) Operator.
 | operator_skip_upgrade           | False    | List    | []                                                             | List of operators to skip during the upgrade.
 | custom_catalogs                 | False    | List    | []                                                             | List of custom catalogs to install alongside default catalog sources.
 

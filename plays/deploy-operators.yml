@@ -178,7 +178,20 @@
       targetNamespaces:
         - openshift-logging
   when:
-    - enable_clusterlogging | bool
+    - enable_logs_stack | bool or
+      enable_clusterlogging | bool
+
+- name: "deploy-operators : Install the Loki Operator"
+  include_role:
+    name: olm-operator
+  vars:
+    operator: loki-operator
+    source: "{{ opm_catalog_source_name }}"
+    namespace: openshift-operators-redhat
+    ns_labels:
+      openshift.io/cluster-monitoring: "true"
+  when:
+    - enable_logs_stack | bool
 
 - name: ODF Installation and setup
   block:
@@ -252,6 +265,117 @@
             - "{{ acm_namespace }}"
   when:
     - enable_acm | bool
+
+- name: "deploy-operators : Install and configure the Node Discovery Operator"
+  vars:
+    nfd_namespace: "openshift-nfd"
+    nfd_instance_name: "nfd-instance"
+    nfd_image_tag: "v{{ version.split('.')[:2] | join('.') }}"
+  block:
+    - name: "deploy-operators : Install the Node Discovery Operator"
+      include_role:
+        name: olm-operator
+      vars:
+        operator: nfd
+        source: "{{ opm_catalog_source_name }}"
+        namespace: "{{ nfd_namespace }}"
+        ns_labels:
+          openshift.io/cluster-monitoring: "true"
+        operator_group_spec:
+          targetNamespaces:
+            - "{{ nfd_namespace }}"
+
+    - name: "Get the release ose-node-feature-discovery image digest"
+      shell:
+        cmd: >
+          skopeo inspect
+          --no-tags
+          {% if dci_pullsecret_file is defined %}
+          --authfile {{ dci_pullsecret_file }}
+          {% endif %}
+          docker://registry.redhat.io/openshift4/ose-node-feature-discovery:{{ nfd_image_tag }} |
+          jq -r '.Digest'
+      register: nfd_digest
+
+    - name: "deploy-operators : Configure the Node Discovery Operator"
+      vars:
+        image_ref: "{{  dci_disconnected | default(false) | bool |
+                    ternary('ose-node-feature-discovery@'+nfd_digest.stdout,
+                    'ose-node-feature-discovery:'+nfd_image_tag) }}"
+        ndf_def: |
+          apiVersion: nfd.openshift.io/v1
+          kind: NodeFeatureDiscovery
+          metadata:
+            name: "{{ nfd_instance_name }}"
+            namespace: "{{ nfd_namespace }}"
+          spec:
+            instance: "" # instance is empty by default
+            topologyupdater: false # False by default
+            operand:
+              image: registry.redhat.io/openshift4/{{ image_ref }}
+              imagePullPolicy: Always
+            workerConfig:
+              configData: |
+                sources:
+                  cpu:
+                    cpuid:
+                      attributeBlacklist:
+                        - "BMI1"
+                        - "BMI2"
+                        - "CLMUL"
+                        - "CMOV"
+                        - "CX16"
+                        - "ERMS"
+                        - "F16C"
+                        - "HTT"
+                        - "LZCNT"
+                        - "MMX"
+                        - "MMXEXT"
+                        - "NX"
+                        - "POPCNT"
+                        - "RDRAND"
+                        - "RDSEED"
+                        - "RDTSCP"
+                        - "SGX"
+                        - "SSE"
+                        - "SSE2"
+                        - "SSE3"
+                        - "SSE4.1"
+                        - "SSE4.2"
+                        - "SSSE3"
+                      attributeWhitelist:
+                  kernel:
+                    configOpts:
+                      - "NO_HZ"
+                      - "X86"
+                      - "DMI"
+                  pci:
+                    deviceClassWhitelist:
+                      - "0200"
+                      - "03"
+                      - "12"
+                    deviceLabelFields:
+                      - "class"
+            customConfig:
+              configData: |
+                    - name: "more.kernel.features"
+                      matchOn:
+                      - loadedKMod: ["example_kmod3"]
+      community.kubernetes.k8s:
+        state: present
+        definition: "{{ ndf_def }}"
+
+    - name: "Wait for NFD pods to be Running"
+      community.kubernetes.k8s_info:
+        api_version: v1
+        kind: Pod
+        namespace: "{{ nfd_namespace }}"
+      register: pod_list
+      until: pod_list|json_query('resources[*].status.phase')|unique == ["Running"]
+      retries: 20
+      delay: 15
+  when:
+    - enable_nfd | bool
 
 - name: "deploy-operators : Deploy other operators playbook"
   include_tasks: deploy-custom-operator.yml

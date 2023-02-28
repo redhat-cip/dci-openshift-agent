@@ -49,7 +49,10 @@ enable_cnv: false
 enable_odf: false
 enable_ocs: false
 enable_acm: false
+enable_nfd: false
 storage_cluster: false
+enable_loki: false
+enable_logs_stack: false
 enable_clusterlogging: false
 enable_perf_addon: false
 enable_sriov: false
@@ -84,6 +87,11 @@ sriov_operator:
   - sriov-network-operator
 performance_addon_operator:
   - performance-addon-operator
+nfd_operator:
+  - nfd
+logging_operators:
+  - loki-operator
+  - cluster-logging
 dci_local_registry: |-
   {{ local_registry_host | default('') }}
   {%- if local_registry_port is defined %}
