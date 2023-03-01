@@ -142,7 +142,7 @@ change. This will direct `dci-check-change` to test in a specific way:
 - `Test-Hints: libvirt` validate in libvirt mode (3 masters).
 - `Test-Hints: no-check` do not run a check (useful in CI mode).
 
-`Test-Upgrade-Hint: yes` can also be used to force an upgrade job after
+`Test-Upgrade-Hints: yes` can also be used to force an upgrade job after
 the installation.
 
 `Test-App-Hints:` can also be used to change the default app to be
