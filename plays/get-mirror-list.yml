@@ -64,6 +64,18 @@
   when:
     - enable_odf | bool
 
+- name: "Add operators if enable_nfd"
+  set_fact:
+    mirror_list: "{{ mirror_list + nfd_operator }}"
+  when:
+    - enable_nfd | bool
+
+- name: "Add operators if enable_logs_stack"
+  set_fact:
+    mirror_list: "{{ mirror_list + logging_operators }}"
+  when:
+    - enable_logs_stack | bool
+
 - name: "Cleanup operators list"
   set_fact:
     mirror_list: "{{ mirror_list | unique | select | list }}"
