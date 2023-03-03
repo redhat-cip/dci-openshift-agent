@@ -97,7 +97,7 @@ dci_local_registry: |-
   {%- if local_registry_port is defined %}
   :{{ local_registry_port }}
   {%- endif %}
-
+enable_nfs_storage: false
 ...
 
 # Local Variables:

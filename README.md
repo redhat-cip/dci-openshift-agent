@@ -276,7 +276,9 @@ API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | enable_nfd                      | False    | Boolean | False                                                          | Deploys the [NFD](https://docs.openshift.com/container-platform/4.10/hardware_enablement/psap-node-feature-discovery-operator.html) Operator.
 | operator_skip_upgrade           | False    | List    | []                                                             | List of operators to skip during the upgrade.
 | custom_catalogs                 | False    | List    | []                                                             | List of custom catalogs to install alongside default catalog sources.
-
+| enable_nfs_storage              | False    | Boolean | false                                                          | Enable an NFS as external storage provisioner. Values for `nfs_server` and `nfs_path` are required if for this. See [nfs-external-storage](roles/nfs-external-storage) for details.
+| nfs_server                      | False    | String  |                                                                | NFS server's FQDN or IP Address. eg. my-nfs.mylab.local
+| nfs_path                        | False    | String  |                                                                | NFS export path. e.g. /exports/nfs-provisioner
 
 > NOTE: There are certain particularities about versioning that you can read more in depth
 > in [the versioning document](docs/ocp_versioning.md)
@@ -333,6 +335,10 @@ dnsvip=1.2.3.4
 #local_registry_port=4443
 # Registry namespace. In disconnected environments, the default value is set by the mirror-ocp-role
 #local_repo=ocp4/openshift4
+# NFS external storage variables
+#enable_nfs_storage: false
+#nfs_server=""
+#nfs_path=""
 
 # Master nodes
 [masters]

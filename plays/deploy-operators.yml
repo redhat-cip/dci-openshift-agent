@@ -20,6 +20,28 @@
 - name: "Prepare operators and catalogs"
   include_tasks: prepare-operators.yml
 
+- name: "Mirroring the NFS external storage provisioner image"
+  include_role:
+    name: mirror_images
+  vars:
+    images: ['registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2']
+    authfile: "{{ dci_pullsecret_file }}"
+  when:
+    - dci_disconnected | default(false) | bool
+    - enable_nfs_storage | bool
+
+- name: "Deploy NFS external storage"
+  include_role:
+    name: nfs-external-storage
+  vars:
+    nes_nfs_server: "{{ nfs_server }}"
+    nes_nfs_path: "{{ nfs_path }}"
+    nes_provisioner_image: "{{ dci_disconnected | default(false) | bool |
+                            ternary( dci_local_registry+'/sig-storage/nfs-subdir-external-provisioner:v4.0.2',
+                            'registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2' ) }}"
+  when:
+    - enable_nfs_storage | bool
+
 - name: "Enable operators required for CNFs"
   set_fact:
     enable_sriov: true
