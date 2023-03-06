@@ -116,7 +116,7 @@
 
       - name: "Prereq facts check"
         vars:
-          ssh_public_check: "{{ not (generate_ssh_keys | default(False)) }}"
+          ssh_public_check: "{{ not (generate_ssh_keys | default(True)) }}"
           mirror_certificate_check: "{{ ((use_local_mirror_registry | default(False)) == True) and ((setup_registry_service | default(True)) == False) }}"
         include_role:
           name: prereq_facts_check
@@ -329,6 +329,20 @@
           - setup_vms
       rescue: *teardown_error
 
+- name: Setup TFTP
+  hosts: tftp_host
+  vars:
+    SETUP_TFTP_SERVICE: "{{ setup_pxe_service | default(False) }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+        - name: Setup TFTP
+          include_role:
+            name: setup_tftp
+          when: SETUP_TFTP_SERVICE == True
+      rescue: *teardown_error
+
 - name: Setup DNS Records
   hosts: dns_host
   gather_facts: "{{ (setup_dns_service | default(True)) | bool }}"
@@ -408,11 +422,9 @@
       - name: Setup assisted installer
         include_role:
           name: setup_assisted_installer
-        when: SETUP_ASSISTED_INSTALLER == True
-
       - name: Wait for up to 60 minutes for the assisted installer to come online
         uri:
-          url: "http://{{ ansible_host }}:8090/api/assisted-install/v2/clusters"
+          url: "http://{{ ansible_host }}:8090/ready"
           method: GET
           status_code: [200, 201]
         register: result
@@ -420,7 +432,17 @@
         retries: 120
         delay: 30
         delegate_to: bastion
-        when: SETUP_ASSISTED_INSTALLER == True
+      - name: Wait for up to 60 minutes for the assisted installer image service to come online
+        uri:
+          url: "http://{{ ansible_host }}:8888/health"
+          method: GET
+          status_code: [200, 201]
+        register: result
+        until: result is succeeded
+        retries: 120
+        delay: 30
+        delegate_to: bastion
+      when: SETUP_ASSISTED_INSTALLER == True
       rescue: *teardown_error
 
 - name: Deploy sushy tools

@@ -94,6 +94,21 @@ file in the source repo and adjust as needed. This file comes ready to work in
 a connected environment, if this fits your use case you only need to adjust
 your node details e.g. your cluster node details.
 
+### Vendor
+
+Under the nodes section where each master and worker is defined you will see a vendor variable.  If it's not specified at the node level it's probably specified at the parent and inherited.
+
+Types of vendors:
+
+* KVM
+* PXE
+* DELL
+* HPE
+* LENOVO
+* SUPERMICRO
+* ZT
+
+KVM will generate virtual hosts in libvirt and PXE will setup dhcp and tftpboot so that your systems can netboot.  All the other types are vendor specific and use redfish to attach virtual media for discovery.
 
 ### Disconnected environment
 

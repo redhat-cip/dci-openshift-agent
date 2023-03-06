@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.3    
+Version:       0.5.4
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -23,6 +23,7 @@ Requires: ansible-collection-containers-podman
 Requires: ansible-collection-community-general
 Requires: ansible-collection-community-libvirt
 Requires: ansible-collection-ansible-posix
+Requires: ansible-collection-ansible-utils
 Requires: python3-pyyaml python3-openshift
 Requires: jq
 Requires: git
@@ -95,6 +96,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Mar  1 2023 Bill Peck <bpeck@redhat.com> 0.5.4-1
+- added requires on ansible-collection-ansible-utils
+
 * Mon Dec  5 2022 Frederic Lepied <flepied@redhat.com> 0.5.3-1
 - change internal logic for rpm and git components
 
