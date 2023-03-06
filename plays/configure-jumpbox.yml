@@ -65,6 +65,10 @@
     dest: "{{ dci_cluster_configs_dir }}"
     remote_src: true
     mode: 0755
+  register: result
+  retries: 3
+  delay: 10
+  until: result is not failed
   loop:
     - "{{ ocp_clients_url }}/opm-linux.tar.gz"
     - "{{ ocp_clients_url }}/openshift-client-linux.tar.gz"
