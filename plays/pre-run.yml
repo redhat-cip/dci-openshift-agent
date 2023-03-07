@@ -10,6 +10,16 @@
   when:
     - dci_disconnected | default(false) | bool
 
+- name: "Validate NFS provisioner variables"
+  assert:
+    that:
+      - nfs_server is defined
+      - nfs_server | length > 0
+      - nfs_path is defined
+      - nfs_path | length > 0
+  when:
+    - enable_nfs_storage | bool
+
 - name: "Set pullsecret from job_info - Connected"
   set_fact:
     pullsecret: "{{ job_info.job.topic.data.pull_secret | default({}) | combine(openshift_secret | default({}), recursive=True) }}"
