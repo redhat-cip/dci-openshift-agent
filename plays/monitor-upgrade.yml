@@ -15,7 +15,9 @@
 
 - name: "Print upgrade status"
   debug:
-    msg: "Upgrade history: {{ upgrade_version }} {{ upgrade_state }} {{ current_status }}"
+    msg:
+      - "Upgrade history: {{ upgrade_version }} {{ upgrade_state }} {{ current_status }}"
+      - "Approximated elapsed time: {{ elapsed_time | int / 60  }} mins"
 
 - name: Wait for upgrade
   block:
