@@ -48,7 +48,6 @@
         mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
         mor_webserver_url: "{{ hub_webserver_url | default(None) }}"
         mor_registry_url: "{{ hub_registry | urlsplit('netloc') }}"
-        mor_registry_path: "{{ hostvars[groups['registry_host'][0]].local_repo | default( 'ocp-'+ version.split('.')[:2] | join('.') +'/'+ version, true) }}"
         mor_auths_file: "{{ dci_pullsecret_file }}"
         mor_force: false
         mor_install_type: "{{ install_type }}"
