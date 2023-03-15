@@ -96,7 +96,7 @@
     vars:
       target_ip: "{{ hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[2] }}"
     shell:
-      cmd: /usr/sbin/ip route get {{ target_ip }}
+      cmd: /usr/sbin/ip -j route get {{ target_ip }}
     register: aw_route
     delegate_to: localhost
 
@@ -109,7 +109,7 @@
 
   - name: "Get firewall zone in controller"
     vars:
-      aw_interface: "{{ aw_route.stdout_lines[0].split(' ')[2] }}"
+      aw_interface: "{{ aw_route.stdout | from_json | community.general.json_query('[].dev') }}"
       zone_interfaces: "{{ aw_fw_zones.firewalld_info.zones[zone].interfaces }}"
     set_fact:
       aw_zone: "{{ zone }}"
