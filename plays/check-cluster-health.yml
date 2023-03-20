@@ -80,6 +80,6 @@
   until:
     - reg_mcpool_status.resources is defined
     - update_status == ['True']
-  retries: 150
+  retries: 180
   delay: 10
 ...
