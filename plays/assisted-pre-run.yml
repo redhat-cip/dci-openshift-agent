@@ -113,6 +113,8 @@
         retries: 3
         delay: 10
         until: not git_clone.failed
+        when:
+          - "dci_cache_dir + '/assisted_deploy_repo/roles' in roles_path"
 
       - name: "Prereq facts check"
         vars:
