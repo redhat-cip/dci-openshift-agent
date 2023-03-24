@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2021-2022 Red Hat, Inc.
+# Copyright (C) 2021-2023 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -32,6 +32,8 @@ UPGRADE=
 UPGRADE_ARGS=
 APP_NAME=
 APP_ARGS=
+FORCE_CHECK=
+TAG=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -42,7 +44,7 @@ BASEDIR=$(cd $(dirname $0); pwd)
 if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno|--assisted|--sno-ai] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    echo "Usage: $name [--virt|--sno|--assisted|--sno-ai] [--force-check] [--tag <tag>] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
     Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
 
     arguments:
@@ -50,6 +52,8 @@ if [ $# = 0 ] || [ "$1" = -h ]; then
     --sno                 Use SNO on Libvirt.
     --assisted            Use Assisted Installer on Libvirt.
     --sno-ai              Use SNO with Assisted Installer on Libvirt.
+    --force-check         Force to run a check even if there is no code change.
+    --tag <tag>           Specify the tag to set on the job (default: debug).
     --upgrade             Run an upgrade job.
     --from-topic          In upgrade, from topic.
     --to-topic            In upgrade, destination topic.
@@ -96,6 +100,17 @@ elif [ $1 = --sno-ai ]; then
     if [ -n "$SNO_AI_DCI_QUEUE" ]; then
         DCI_QUEUE="$SNO_AI_DCI_QUEUE"
     fi
+    shift
+fi
+
+if [ "$1" = --force-check ]; then
+    FORCE_CHECK=--force-check
+    shift
+fi
+
+if [ "$1" = --tag ]; then
+    shift
+    TAG="--tag $1"
     shift
 fi
 
@@ -233,39 +248,45 @@ fi
 # extract Depends-On
 echo "$DESC" | tr -d '\r' | sort -u | $BASEDIR/extract-dependencies $DIR
 
-# process Test-Hints
-if [[ sno =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno\s*" <<< $DESC; then
-    VIRT=--sno
-    if [ -n "$SNO_DCI_QUEUE" ]; then
-        DCI_QUEUE="$SNO_DCI_QUEUE"
+# process Test-Hints if not specified on the command line
+if [ -z "$VIRT" ]; then
+    if [[ sno =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno\s*" <<< $DESC; then
+        VIRT=--sno
+        if [ -n "$SNO_DCI_QUEUE" ]; then
+            DCI_QUEUE="$SNO_DCI_QUEUE"
+        fi
+    fi
+
+    if [[ sno-ai =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno-ai\s*" <<< $DESC; then
+        VIRT=--sno-ai
+        if [ -n "$SNO_AI_DCI_QUEUE" ]; then
+            DCI_QUEUE="$SNO_AI_DCI_QUEUE"
+        fi
+    fi
+
+    if [[ assisted =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*assisted\s*" <<< $DESC; then
+        VIRT=--assisted
+        if [ -n "$ASSISTED_DCI_QUEUE" ]; then
+            DCI_QUEUE="$ASSISTED_DCI_QUEUE"
+        fi
+    fi
+
+    if [[ libvirt =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*libvirt\s*" <<< $DESC; then
+        VIRT=--virt
+    fi
+
+    if [[ no-check =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*no-check\s*" <<< $DESC; then
+        VIRT=--no-check
+        NO_DCI_QUEUE=1
     fi
 fi
 
-if [[ sno-ai =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno-ai\s*" <<< $DESC; then
-    VIRT=--sno-ai
-    if [ -n "$SNO_AI_DCI_QUEUE" ]; then
-        DCI_QUEUE="$SNO_AI_DCI_QUEUE"
-    fi
+if [[ force-check =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*force-check\s*" <<< $DESC; then
+    FORCE_CHECK=--force-check
 fi
 
-if [[ assisted =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*assisted\s*" <<< $DESC; then
-    VIRT=--assisted
-    if [ -n "$ASSISTED_DCI_QUEUE" ]; then
-        DCI_QUEUE="$ASSISTED_DCI_QUEUE"
-    fi
-fi
-
-if [[ libvirt =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*libvirt\s*" <<< $DESC; then
-    VIRT=--virt
-fi
-
-if [[ no-check =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*no-check\s*" <<< $DESC; then
-    VIRT=--no-check
-    NO_DCI_QUEUE=1
-fi
-
-# process Test-Upgrade
-if [[ upgrade =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Upgrade-Hints:\s*yes\s*" <<< $DESC; then
+# process Test-Upgrade if not specified on the command line
+if [ -z "$UPGRADE" ] && [[ upgrade =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Upgrade-Hints:\s*yes\s*" <<< $DESC; then
     UPGRADE=--upgrade
 
     # process Test-Upgrade-Args-Hints
@@ -308,12 +329,12 @@ fi
 
 if [ -z "$NO_DCI_QUEUE" ] && [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
     if [ -n "$USE_PREFIX" ]; then
-        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
+        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
     else
-        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS"  RES=@RESOURCE APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
+        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS"  RES=@RESOURCE APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
     fi
 else
-    env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
+    env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
 fi
 
 # dci-check-change ends here

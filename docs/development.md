@@ -141,6 +141,7 @@ change. This will direct `dci-check-change` to test in a specific way:
 - `Test-Hints: sno-ai` validate the change in SNO with assisted installer mode.
 - `Test-Hints: libvirt` validate in libvirt mode (3 masters).
 - `Test-Hints: no-check` do not run a check (useful in CI mode).
+- `Test-Hints: force-check` run a check even if there is no code change (useful in CI mode).
 
 `Test-Upgrade-Hints: yes` can also be used to force an upgrade job after
 the installation.
