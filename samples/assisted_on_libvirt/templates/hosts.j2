@@ -264,7 +264,7 @@ all:
 #          network_config:
 #            interfaces:
 #              - type: linux-bridge
-#                name: assisted-br0
+#                name: "{% raw %}{{ vm_bridge_name }}{% endraw %}"
 #                addresses:
 #                  ipv4:
 #                    - ip: "{{ '{{ vm_bridge_ip }}' }}"

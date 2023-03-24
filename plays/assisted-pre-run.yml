@@ -275,7 +275,6 @@
   gather_facts: "{{ (setup_vms | default((kvm_nodes | default([])) | length | int >= 1)) | bool }}"
   vars:
     SETUP_VMS: "{{ setup_vms | default((kvm_nodes | default([])) | length | int >= 1) }}"
-    vm_bridge_name: "assisted-br0"
   vars_files:
     - ../group_vars/all
   tasks:
@@ -296,7 +295,7 @@
         block:
           - name: Move bridge to designated firewall zone
             community.general.nmcli:
-              conn_name: "assisted-br0"
+              conn_name: "{{ vm_bridge_name }}"
               state: present
               zone: "{{ vm_bridge_zone }}"
 
