@@ -167,6 +167,124 @@
           delegate_to: localhost
           ignore_unreachable: true
 
+- name: Process KVM nodes
+  hosts: bastion
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Process kvm nodes
+        include_role:
+          name: process_kvm_nodes
+        when: (setup_vms | default(true))
+      rescue: *teardown_error
+
+- name: Provision VMS
+  hosts: vm_hosts
+  gather_facts: "{{ (setup_vms | default((kvm_nodes | default([])) | length | int >= 1)) | bool }}"
+  vars:
+    SETUP_VMS: "{{ setup_vms | default((kvm_nodes | default([])) | length | int >= 1) }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Destroy vms
+        include_role:
+          name: destroy_vms
+        when: SETUP_VMS | bool
+        tags:
+          - destroy_vms
+
+      - name: Setup vm host network
+        include_role:
+          name: setup_vm_host_network
+        when: (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
+
+      - name: Configure firewall for vm_bridge_zone
+        block:
+          - name: Move bridge to designated firewall zone
+            community.general.nmcli:
+              conn_name: "{{ vm_bridge_name }}"
+              state: present
+              zone: "{{ vm_bridge_zone }}"
+
+          - name: Create Iptables NAT chain
+            iptables:
+              table: nat
+              chain: POSTROUTING
+              source: '{{ machine_network_cidr }}'
+              destination: '! {{ machine_network_cidr }}'
+              jump: MASQUERADE
+              protocol: all
+              comment: Ansible NAT Masquerade
+
+          - name: Manage IPv4 forwarding
+            sysctl:
+              name: net.ipv4.ip_forward
+              value: '1'
+              state: present
+              reload: True
+        when:
+          - (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
+          - vm_bridge_zone is defined
+        become: true
+
+      - name: Create vms
+        include_role:
+          name: create_vms
+        when: SETUP_VMS | bool
+        tags:
+          - setup_vms
+      rescue: *teardown_error
+
+- name: Setup DNS Records
+  hosts: dns_host
+  gather_facts: "{{ (setup_dns_service | default(True)) | bool }}"
+  vars:
+    SETUP_DNS_SERVICE: "{{ setup_dns_service | default(True) }}"
+    domain: "{{ cluster_name + '.' + base_dns_domain }}"
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+        - name: Insert dns records
+          include_role:
+            name: insert_dns_records
+          when: SETUP_DNS_SERVICE == True
+
+        - name: Use /etc/hosts
+          copy:
+            content: |
+              # /etc/NetworkManager/dnsmasq.d/02-add-hosts.conf
+              # By default, the plugin does not read from /etc/hosts.
+              # This forces the plugin to slurp in the file.
+              #
+              # If you didn't want to write to the /etc/hosts file.  This could
+              # be pointed to another file.
+              #
+              addn-hosts=/etc/hosts
+            dest: /etc/NetworkManager/dnsmasq.d/02-add-hosts.conf
+            mode: '0644'
+          become: true
+
+        - name: Remove expand-hosts entry
+          lineinfile:
+            path: /etc/NetworkManager/dnsmasq.d/dnsmasq.{{ cluster_name }}.conf
+            state: absent
+            regexp: ^expand-hosts
+          become: true
+
+        - name: "Restart NetworkManager"
+          service:
+            name: NetworkManager
+            state: restarted
+          become: true
+
+        - name: Validate dns records
+          include_role:
+            name: validate_dns_records
+      rescue: *teardown_error
+
 - name: Setup NTP
   hosts: ntp_host
   gather_facts: "{{ (setup_ntp_service | default(True)) | bool }}"
@@ -258,76 +376,6 @@
         when: SETUP_REGISTRY_SERVICE == True
       rescue: *teardown_error
 
-- name: Process KVM nodes
-  hosts: bastion
-  vars_files:
-    - ../group_vars/all
-  tasks:
-    - block:
-      - name: Process kvm nodes
-        include_role:
-          name: process_kvm_nodes
-        when: (setup_vms | default(true))
-      rescue: *teardown_error
-
-- name: Provision VMS
-  hosts: vm_hosts
-  gather_facts: "{{ (setup_vms | default((kvm_nodes | default([])) | length | int >= 1)) | bool }}"
-  vars:
-    SETUP_VMS: "{{ setup_vms | default((kvm_nodes | default([])) | length | int >= 1) }}"
-  vars_files:
-    - ../group_vars/all
-  tasks:
-    - block:
-      - name: Destroy vms
-        include_role:
-          name: destroy_vms
-        when: SETUP_VMS | bool
-        tags:
-          - destroy_vms
-
-      - name: Setup vm host network
-        include_role:
-          name: setup_vm_host_network
-        when: (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
-
-      - name: Configure firewall for vm_bridge_zone
-        block:
-          - name: Move bridge to designated firewall zone
-            community.general.nmcli:
-              conn_name: "{{ vm_bridge_name }}"
-              state: present
-              zone: "{{ vm_bridge_zone }}"
-
-          - name: Create Iptables NAT chain
-            iptables:
-              table: nat
-              chain: POSTROUTING
-              source: '{{ machine_network_cidr }}'
-              destination: '! {{ machine_network_cidr }}'
-              jump: MASQUERADE
-              protocol: all
-              comment: Ansible NAT Masquerade
-
-          - name: Manage IPv4 forwarding
-            sysctl:
-              name: net.ipv4.ip_forward
-              value: '1'
-              state: present
-              reload: True
-        when:
-          - (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
-          - vm_bridge_zone is defined
-        become: true
-
-      - name: Create vms
-        include_role:
-          name: create_vms
-        when: SETUP_VMS | bool
-        tags:
-          - setup_vms
-      rescue: *teardown_error
-
 - name: Setup TFTP
   hosts: tftp_host
   vars:
@@ -340,54 +388,6 @@
           include_role:
             name: setup_tftp
           when: SETUP_TFTP_SERVICE == True
-      rescue: *teardown_error
-
-- name: Setup DNS Records
-  hosts: dns_host
-  gather_facts: "{{ (setup_dns_service | default(True)) | bool }}"
-  vars:
-    SETUP_DNS_SERVICE: "{{ setup_dns_service | default(True) }}"
-    domain: "{{ cluster_name + '.' + base_dns_domain }}"
-  vars_files:
-    - ../group_vars/all
-  tasks:
-    - block:
-        - name: Insert dns records
-          include_role:
-            name: insert_dns_records
-          when: SETUP_DNS_SERVICE == True
-
-        - name: Use /etc/hosts
-          copy:
-            content: |
-              # /etc/NetworkManager/dnsmasq.d/02-add-hosts.conf
-              # By default, the plugin does not read from /etc/hosts.
-              # This forces the plugin to slurp in the file.
-              #
-              # If you didn't want to write to the /etc/hosts file.  This could
-              # be pointed to another file.
-              #
-              addn-hosts=/etc/hosts
-            dest: /etc/NetworkManager/dnsmasq.d/02-add-hosts.conf
-            mode: '0644'
-          become: true
-
-        - name: Remove expand-hosts entry
-          lineinfile:
-            path: /etc/NetworkManager/dnsmasq.d/dnsmasq.{{ cluster_name }}.conf
-            state: absent
-            regexp: ^expand-hosts
-          become: true
-
-        - name: "Restart NetworkManager"
-          service:
-            name: NetworkManager
-            state: restarted
-          become: true
-
-        - name: Validate dns records
-          include_role:
-            name: validate_dns_records
       rescue: *teardown_error
 
 - name: Play to populate image_hashes for relevant images
