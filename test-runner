@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2021-2022 Red Hat, Inc.
+# Copyright (C) 2021-2023 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -140,7 +140,7 @@ do_wait() {
 BASEDIR=$(cd $(dirname $0); pwd)
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 (--virt|--sno|--assisted|--sno-ai|--no-check) [--upgrade [--from-topic <topic>] [--to-topic <topic>]] (-n) <change directory> [<kubeconfig path>] [-p <prefix>] [-p2 <prefix>] [<options for agents>]" 1>&2
+    echo "Usage: $0 (--virt|--sno|--assisted|--sno-ai|--no-check) [--force-check] [--tag <tag>] [--upgrade [--from-topic <topic>] [--to-topic <topic>]] (-n) <change directory> [<kubeconfig path>] [-p <prefix>] [-p2 <prefix>] [<options for agents>]" 1>&2
     exit 1
 fi
 
@@ -155,6 +155,8 @@ PREFIX2_NAME=
 UPGRADE=
 TO_TOPIC=
 FROM_TOPIC=
+FORCE_CHECK=
+JOBTAG=debug
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -186,6 +188,17 @@ elif [ "$1" = "--sno-ai" ]; then
     shift
 elif [ "$1" = "--no-check" ]; then
     VIRT="no-check"
+    shift
+fi
+
+if [ "$1" = --force-check ]; then
+    FORCE_CHECK=1
+    shift
+fi
+
+if [ "$1" = --tag ]; then
+    shift
+    JOBTAG=$1
     shift
 fi
 
@@ -311,7 +324,7 @@ if [ "$VIRT" = "no-check" ] ||
        }; then
     if [ "$VIRT" = "no-check" ]; then
         NUMBER_CODE_FILES=0
-    else
+    elif [ -z "$FORCE_CHECK" ]; then
         CODE_FILES_REGEX='ansible.cfg|group_vars/all|plays/scripts/get-logs|dci-check-change|test-runner|send-feedback|extract-dependencies|dci-openshift-(app-)?agent-ctl|\.(yml|j2|py)'
         NUMBER_CODE_FILES=$(
         (for d in dci-openshift-*agent; do
@@ -520,7 +533,7 @@ if [ -z "$KCFG" ]; then
     export DCI_OPENSHIFT_AGENT_DIR="$PWD"
     export ANSIBLE_CONFIG="$PWD/ansible.cfg"
 
-    setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $INSTALL_OPT "$@" >& output &
+    setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $INSTALL_OPT "$@" >& output &
 
     do_wait 1
 
@@ -537,7 +550,7 @@ if [ -z "$KCFG" ]; then
             OPTS+=(-e "dci_previous_job_id=$(cat /var/tmp/$CLUSTER.dci.job_id)")
         fi
 
-        setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" $UPGRADE_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" &>> output &
+        setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" $UPGRADE_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" &>> output &
 
         do_wait 1
     fi
@@ -633,7 +646,7 @@ if [ -s "$KUBECONFIG" ]; then
             APP_OPT="-e dci_config_dir=$PWD/samples/$APP_NAME"
         fi
         # running this case in dev mode (-d) to use the dci-openshift-app-agent code from the change
-        setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -v "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> ../output &
+        setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -v "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> ../output &
         cd ..
     else
         # inject the common roles from doa if needed
@@ -648,7 +661,7 @@ if [ -s "$KUBECONFIG" ]; then
         if  [ -n "$APP_NAME" ] && [ -d "/var/lib/dci-openshift-app-agent/samples/$APP_NAME" ]; then
             APP_OPT="-e dci_config_dir=/var/lib/dci-openshift-app-agent/samples/$APP_NAME"
         fi
-        setsid dci-openshift-app-agent-ctl $PREFIX2 -s -v -- -v "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"debug\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> output &
+        setsid dci-openshift-app-agent-ctl $PREFIX2 -s -v -- -v "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> output &
     fi
 
     if [ -n "$KCFG" ]; then
