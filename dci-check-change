@@ -77,26 +77,27 @@ if [ ! -x $BASEDIR/extract-dependencies ]; then
 fi
 
 ARGS="$@"
+ARGVIRT=
 
 SUFFIX=-$(echo "$@"|md5sum|cut -f1|cut -f1 -d ' ')
 
 if [ $1 = --virt ]; then
-    VIRT=--virt
+    ARGVIRT=--virt
     shift
 elif [ $1 = --sno ]; then
-    VIRT=--sno
+    ARGVIRT=--sno
     if [ -n "$SNO_DCI_QUEUE" ]; then
         DCI_QUEUE="$SNO_DCI_QUEUE"
     fi
     shift
 elif [ $1 = --assisted ]; then
-    VIRT=--assisted
+    ARGVIRT=--assisted
     if [ -n "$ASSISTED_DCI_QUEUE" ]; then
         DCI_QUEUE="$ASSISTED_DCI_QUEUE"
     fi
     shift
 elif [ $1 = --sno-ai ]; then
-    VIRT=--sno-ai
+    ARGVIRT=--sno-ai
     if [ -n "$SNO_AI_DCI_QUEUE" ]; then
         DCI_QUEUE="$SNO_AI_DCI_QUEUE"
     fi
@@ -114,7 +115,7 @@ if [ "$1" = --tag ]; then
     shift
 fi
 
-if [ $1 = --upgrade ]; then
+if [ "$1" = --upgrade ]; then
     UPGRADE=--upgrade
     shift
     if [ $1 = --from-topic ]; then
@@ -123,19 +124,19 @@ if [ $1 = --upgrade ]; then
         shift
     fi
 
-    if [ $1 = --to-topic ]; then
+    if [ "$1" = --to-topic ]; then
         shift
         UPGRADE="$UPGRADE --to-topic $1"
         shift
     fi
-    if [ $1 = --upgrade-args ]; then
+    if [ "$1" = --upgrade-args ]; then
         shift
         UPGRADE_ARGS="$1"
         shift
     fi
 fi
 
-if [ $1 = --app-args ]; then
+if [ "$1" = --app-args ]; then
     shift
     APP_ARGS="$1"
     shift
@@ -249,7 +250,9 @@ fi
 echo "$DESC" | tr -d '\r' | sort -u | $BASEDIR/extract-dependencies $DIR
 
 # process Test-Hints if not specified on the command line
-if [ -z "$VIRT" ]; then
+if [ -n "$ARGVIRT" ]; then
+    VIRT="$ARGVIRT"
+else
     if [[ sno =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*sno\s*" <<< $DESC; then
         VIRT=--sno
         if [ -n "$SNO_DCI_QUEUE" ]; then

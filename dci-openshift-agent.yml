@@ -37,7 +37,6 @@
         pipeline_id: "{{ dci_pipeline_id }}"
       register: job_info
       when: job_info is not defined
-      no_log: "{{ dci_hide_secrets }}"
 
     - name: Set the job id
       set_fact:
