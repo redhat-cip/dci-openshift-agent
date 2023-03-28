@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.4
+Version:       0.5.5
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -84,6 +84,7 @@ exit 0
 %{_datadir}/dci-openshift-agent/plays/scripts/*
 %{_datadir}/dci-openshift-agent/roles/*
 %{_datadir}/dci-openshift-agent/action_plugins/*
+%{_datadir}/dci-openshift-agent/utils/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 
@@ -96,6 +97,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Mar 30 2023 Beto Rdz <josearod@redhat.com> 0.5.5-1
+- Add utils scripts
+
 * Wed Mar  1 2023 Bill Peck <bpeck@redhat.com> 0.5.4-1
 - added requires on ansible-collection-ansible-utils
 

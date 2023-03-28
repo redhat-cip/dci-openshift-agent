@@ -25,6 +25,9 @@ install:
 	  install -p -D -m 755 $$script $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$script; \
 	done
 
+	install -dm 755 "$(BUILDROOT)$(DATADIR)/dci-openshift-agent/utils/"
+	install -Dm 755 utils/cleanup-scripts/*{.sh,.py} "$(BUILDROOT)$(DATADIR)/dci-openshift-agent/utils/"
+
 	for role in $$(ls roles); do \
 	  find roles/$$role -type f -exec install -v -p -D -m 644 "{}" "$(BUILDROOT)$(DATADIR)/dci-openshift-agent/{}" \; ; \
 	done
