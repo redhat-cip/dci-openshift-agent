@@ -67,6 +67,8 @@
           }}
       set_fact:
         acm_registries: |
+          unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
+          short-name-mode = ""
 
           {% for registry in registries %}
           [[registry]]
@@ -78,6 +80,14 @@
               location = "{{ registry.mirrors }}"
 
           {% endfor %}
+
+          [[registry]]
+            prefix = ""
+            location = "registry.redhat.io/multicluster-engine"
+            mirror-by-digest-only = true
+
+            [[registry.mirror]]
+              location = "{{ hub_registry | urlsplit('netloc') }}/multicluster-engine"
 
     - name: "Set facts for install via ACM - disconnected"
       set_fact:
