@@ -73,6 +73,11 @@
        - cnf_test_suites is defined
        - '"ptp" in ( cnf_test_suites | lower )'
 
+  - name: "Remove CNF test image"
+    containers.podman.podman_image:
+      name: "{{ cnf_tests_image_registry }}"
+      state: absent
+
   - name: "Run performance tests"
     environment:
       REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
