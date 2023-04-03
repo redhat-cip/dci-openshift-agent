@@ -37,6 +37,11 @@
   include_role:
     name: redhat-tests
 
+- name: "Remove origin-tests image"
+  containers.podman.podman_image:
+    name: "quay.io/openshift/origin-tests"
+    state: absent
+
 - name: Run cnf tests
   include_tasks: cnf-tests-run.yml
 
