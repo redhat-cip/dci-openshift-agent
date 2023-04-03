@@ -27,6 +27,23 @@
   retries: 6
   delay: 10
 
+- name: "installer : Check all nodes have been provisioned"
+  vars:
+    query: "resources[*].status.provisioning.state"
+    bmh_states: >
+      {% for s in bmh_info | json_query(query) | unique %}
+        {{ s.split() | last }}
+      {% endfor %}
+    bmh_unique_states: "{{ bmh_states.split() | unique }}"
+  community.kubernetes.k8s_info:
+    kind: BareMetalHost
+    api: metal3.io/v1alpha1
+    namespace: openshift-machine-api
+  register: bmh_info
+  retries: "{{ 10 * (groups['workers'] | default([]) | length + 1 ) }}"
+  delay: 30
+  until: bmh_unique_states == ['provisioned']
+
 - name: "installer : Apply node labels"
   include_role:
     name: label-nodes
