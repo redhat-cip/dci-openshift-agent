@@ -43,6 +43,8 @@
   retries: "{{ 10 * (groups['workers'] | default([]) | length + 1 ) }}"
   delay: 30
   until: bmh_unique_states == ['provisioned']
+  when:
+    - install_type in ['ipi', 'upi']
 
 - name: "installer : Apply node labels"
   include_role:
