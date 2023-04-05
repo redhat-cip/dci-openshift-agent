@@ -1,0 +1,81 @@
+#!/bin/bash
+#
+# Copyright (C) 2023 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+# Description: A shell script that collects logs from an OCP cluster
+# It requires access to the a valid KUBECONFIG env variable and a log directory
+
+set -x
+
+oc_path=$(which oc)
+
+function usage(){
+  printf "Usage: %s <log_dir>\n" "$(basename "$0")"
+  printf "A log directory is required.\n"
+}
+
+if [[ $# != 1 ]]; then
+  printf "Error: missing log directory argument.\n" >&2
+  usage
+  exit 1
+fi
+
+log_dir="${1}"
+
+# Gather host's MCP status
+cluster_nodes=$(${oc_path} get node -o=custom-columns=name:.metadata.name --no-headers 2>/dev/null )
+for h in ${cluster_nodes}; do
+  (echo "${h}"; ${oc_path} get nodes "${h}" -o yaml|grep -E 'desiredConfig|currentConfig') >> "${log_dir}/machine-configs.txt";
+done
+
+# Collect must-gather
+for image in ${DCI_MUST_GATHER_IMAGES:-"registry.redhat.io/openshift4/ose-must-gather"}
+do
+    if [ -n "${REGISTRY}" ] && [ "${REGISTRY}" != ":" ]
+    then
+        image="${REGISTRY}/${image#*/}"
+    fi
+    must_gather_opts="${must_gather_opts} --image=${image}"
+done
+
+must_gather_dir="${log_dir}/must_gather"
+mkdir -p "${must_gather_dir}"
+${oc_path} adm must-gather \
+  --dest-dir="${must_gather_dir}" \
+  ${must_gather_opts} \
+  >/dev/null
+
+# Compress must-gather
+tar \
+  --use-compress-program='pigz --best --recursive' \
+  --directory "${log_dir}" \
+  --create \
+  --file "${must_gather_dir}.tar.gz" must_gather/
+
+rm -Rf "${must_gather_dir}"
+
+# Get some misc outputs
+${oc_path} version > "${log_dir}/version.txt"
+${oc_path} get clusterversion/version > "${log_dir}/clusterversion.txt"
+${oc_path} get clusteroperator > "${log_dir}/clusteroperator.txt"
+${oc_path} get network cluster -o yaml > "${log_dir}/clusternetwork.yaml"
+${oc_path} get nodes -o wide > "${log_dir}/nodes.txt"
+${oc_path} get nodes -o yaml > "${log_dir}/all-nodes.yaml"
+${oc_path} get events --all-namespaces --sort-by='.metadata.creationTimestamp' > "${log_dir}/events.txt"
+${oc_path} get pods --all-namespaces -o wide > "${log_dir}/pods.txt"
+${oc_path} get mcp >> "${log_dir}/machine-configs.txt"
+${oc_path} get mc >> "${log_dir}/machine-configs.txt"
+${oc_path} get imagecontentsourcepolicies -o yaml > "${log_dir}/image-content-source-policies.yaml"
+${oc_path} get csr > "${log_dir}/csr.txt"

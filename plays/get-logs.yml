@@ -4,27 +4,36 @@
   include_tasks: log-dir.yml
   when: job_logs is undefined
 
-- name: Get logs from OCP deployment
-  environment:
-    DCI_MUST_GATHER_IMAGES: >-
-      {{ dci_must_gather_images |
-         default(["registry.redhat.io/openshift4/ose-must-gather"]) |
-         join(" ") }}
-    registry: "{{ dci_local_registry }}"
+- name: "Get logs from IPI/UPI deployment"
   vars:
     provisioner_user: "{{ hostvars[groups['provisioner'][0]]['ansible_user'] }}"
     provisioner_host: >-
       {{ hostvars[groups.provisioner.0].ansible_host |
-         default(groups['provisioner'][0]) }}
+        default(groups['provisioner'][0]) }}
   script:
     cmd: >
-      ./scripts/get-logs
+      ./scripts/get-ipi-logs
       {{ provisioner_user }}@{{ provisioner_host }}
       {{ job_logs.path }}
-      {{ groups['masters'] }}
+      {{ groups['masters'] | union(groups['workers']) | join(' ') }}
   ignore_errors: true
   when:
-  - install_type not in ['assisted', 'acm']
+    - install_type in ['ipi', 'upi']
+
+- name: "Get logs from OCP deployment"
+  environment:
+    DCI_MUST_GATHER_IMAGES: >-
+      {{ dci_must_gather_images |
+        default(["registry.redhat.io/openshift4/ose-must-gather"]) |
+        join(" ") }}
+    REGISTRY: "{{ dci_local_registry }}"
+    KUBECONFIG: "{{ (install_type == 'acm') | ternary(hub_kubeconfig_path, kubeconfig_path) }}"
+    PATH: "{{ ansible_env.PATH }}:/sbin:/usr/sbin:/usr/local/bin/"
+  script:
+    cmd: >
+      ./scripts/get-ocp-logs
+      {{ job_logs.path }}
+  ignore_errors: true
 
 - name: "Find test Junit files"
   find:

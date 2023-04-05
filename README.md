@@ -554,7 +554,7 @@ A DCI job produces a set of relevant configuration files, logs, reports, and tes
 | \<journal\>-\<master\|worker\>.log             | Files   | A dump of the node systemd logs for the cluster nodes                                     |
 | clusternetwork.yaml                            | Files   | File describing the network configuration of the cluster                                  |
 | clusteroperator.txt                            | Files   | Report of the status of the cluster operators                                             |
-| dci-openshift-agent-<timestamp>                | Files   | `dci-openshift-agent` tests report as JUnit format                                        |
+| dci-openshift-agent-\<timestamp\>              | Files   | `dci-openshift-agent` tests report as JUnit format                                        |
 | clusterversion.txt                             | Files   | Report of the OCP version applied to the cluster                                          |
 | events.txt                                     | Files   | Output of the `oc get events -A` command                                                  |
 | kubeadmin-password                             | Files   | Password assigned to the `kubeadmin` user                                                 |
