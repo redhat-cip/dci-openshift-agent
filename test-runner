@@ -409,6 +409,10 @@ if [ -d baremetal-deploy ]; then
     sed -i -e "s@/var/lib/dci-openshift-agent/baremetal_deploy_repo/@$PWD/baremetal-deploy/@g" ansible.cfg
 fi
 
+if [ -d crucible ]; then
+    sed -i -e "s@/var/lib/dci-openshift-agent/assisted_deploy_repo/@$PWD/crucible/@g" ansible.cfg
+fi
+
 if [ -d dci-ansible ]; then
     sed -i \
     -e "s@/usr/share/dci/\(modules\|module_utils\|action_plugins\|filter_plugins\)@$PWD/dci-ansible/\1@g" \

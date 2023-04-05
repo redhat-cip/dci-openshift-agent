@@ -43,6 +43,14 @@
     - "{{ dci_cache_dir }}"
   become: true
 
+- name: "Get Ansible roles path"
+  shell: "set -o pipefail && ansible-config dump|grep DEFAULT_ROLES_PATH|sed -e 's/.*=\\s*//'"
+  register: roles_path_cmd
+
+- name: "Set roles_path"
+  set_fact:
+    roles_path: "{{ roles_path_cmd.stdout }}"
+
 - block:
     - name: "Clean up {{ dci_cluster_configs_dir }}"
       file:
