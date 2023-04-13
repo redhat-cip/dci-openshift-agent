@@ -1,6 +1,7 @@
 all:
   vars:
     vm_node_prefix: ''
+    use_agent_based_installer: "{{ use_agent_based_installer | default(false) }}"
 
     # START Restricted Network configuration
     #
@@ -173,10 +174,24 @@ all:
     bastions: # n.b. Currently only a single bastion is supported
       hosts:
         bastion:
+{% if (use_agent_based_installer | default(false)) | bool %}
+          ansible_host: "localhost"
+          ansible_connection: local
+{% else %}
           ansible_host: "{{ provisioner_hostname }}" # Must be reachable from the Ansible control node
           ansible_user: {{ provisioner_username | default('root') }}
 {% if provisioner_hostname == 'localhost' %}
-          ansible_connection: local
+           ansible_connection: local
+{% endif %}
+{% endif %}
+
+    provisioner:
+      hosts:
+        provisioner:
+          ansible_host: "{{ provisioner_hostname }}" # Must be reachable from the Ansible control node
+          ansible_user: {{ provisioner_username | default('root') }}
+{% if provisioner_hostname == 'localhost' %}
+           ansible_connection: local
 {% endif %}
 
     # Configuration and access information for the pre-requisite services
@@ -298,6 +313,20 @@ all:
               cpu_cores: 8
               ram_mib: 16384
               disk_size_gb: 150
+            network_config:
+              interfaces:
+                - name: enp1s0
+                  mac: "{{ '{{ mac }}' }}"
+                  addresses:
+                    ipv4:
+                      - ip: "{{ '{{ ansible_host}}' }}"
+                        prefix: "25"
+              dns_server_ips:
+               - 192.168.16.10
+              routes: # optional
+                - destination: 0.0.0.0/0
+                  address: 192.168.16.1
+                  interface: enp1s0
           hosts:
 {% if nodes['sno'] | default({}) | length > 0 %}
             sno:
@@ -320,6 +349,20 @@ all:
               cpu_cores: 16
               ram_mib: 32768
               disk_size_gb: 200
+            network_config:
+              interfaces:
+                - name: enp1s0
+                  mac: "{{ '{{ mac }}' }}"
+                  addresses:
+                    ipv4:
+                      - ip: "{{ '{{ ansible_host}}' }}"
+                        prefix: "25"
+              dns_server_ips:
+               - 192.168.16.10
+              routes: # optional
+                - destination: 0.0.0.0/0
+                  address: 192.168.16.1
+                  interface: enp1s0
             role: worker
           hosts:
 {% for w in nodes['workers'] %}

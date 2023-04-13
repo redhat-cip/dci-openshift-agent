@@ -1,0 +1,14 @@
+---
+- name: Monitoring cluster installation
+  hosts: bastion
+  gather_facts: False
+  vars_files:
+    - ../../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: monitor cluster"
+        include_role:
+          name: monitor_cluster
+      rescue:
+        - include_tasks: teardown_failure.yml
+...

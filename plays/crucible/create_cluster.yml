@@ -1,0 +1,19 @@
+---
+- name: Create cluster
+  hosts: bastion
+  gather_facts: False
+  vars:
+    pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
+  vars_files:
+    - ../../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: create cluster"
+        include_role:
+          name: create_cluster
+#      - name: "assisted installer: patch cluster"
+#        include_role:
+#          name: patch_cluster
+      rescue:
+        - include_tasks: teardown_failure.yml
+...

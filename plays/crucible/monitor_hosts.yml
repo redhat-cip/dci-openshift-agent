@@ -1,0 +1,15 @@
+---
+- name: Monitoring hosts installation
+  hosts: masters, workers
+  gather_facts: False
+  strategy: free
+  vars_files:
+    - ../../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: monitor host"
+        include_role:
+          name: monitor_host
+      rescue:
+        - include_tasks: teardown_failure.yml
+...

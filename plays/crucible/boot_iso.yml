@@ -1,0 +1,16 @@
+---
+- name: Mounting, Booting the Assisted Installer Discovery ISO
+  hosts: masters, workers
+  gather_facts: False
+  strategy: "{{ use_boot_iso_strategy_free | default(True) | bool | ternary('free', omit) }}"
+  serial: "{{ use_boot_iso_strategy_free | default(True) | bool | ternary(omit, 1) }}"
+  vars_files:
+    - ../../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: boot iso"
+        include_role:
+          name: boot_iso
+      rescue:
+        - include_tasks: teardown_failure.yml
+...
