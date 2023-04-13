@@ -1,9 +1,39 @@
 ---
-- name: "installer : Setup openshift access in jumphost"
-  include_role:
-    name: oc-setup
+- name: "Get cluster install-config"
+  community.kubernetes.k8s_info:
+    api: v1
+    kind: ConfigMap
+    name: cluster-config-v1
+    namespace: kube-system
+  register: ic
+  until: "'resources' in ic and ic.resources != []"
+  retries: 12
+  delay: 5
 
-- name: Check if all cluster-operators are running correctly
+- name: "Save the install-config"
+  vars:
+    install_config: '{{ ic.resources[0].data["install-config"] }}'
+  copy:
+    content: "{{ install_config }}"
+    dest: "{{ dci_cluster_configs_dir }}/cluster-install-config.yml"
+    mode: 0600
+
+- name: "Upload cluster's files to DCI Control Server"
+  environment:
+    - DCI_CLIENT_ID: "{{ dci_client_id }}"
+    - DCI_API_SECRET: "{{ dci_api_secret }}"
+    - DCI_CS_URL: "{{ dci_cs_url }}"
+  dci_file:
+    path: "{{ item }}"
+    name: "{{ item | basename }}"
+    job_id: "{{ job_id }}"
+    mime: "text/plain"
+  loop:
+  - "{{ dci_cluster_configs_dir }}/kubeconfig"
+  - "{{ dci_cluster_configs_dir }}/kubeadmin-password"
+  - "{{ dci_cluster_configs_dir }}/cluster-install-config.yml"
+
+- name: "Check if all cluster-operators are running correctly"
   community.kubernetes.k8s_info:
     kind: ClusterOperator
   register: clusteroperator_info
@@ -14,7 +44,88 @@
   delay: 10
   until: cluster_operators_available == ['True']
 
-- name: "installer : Patch clusterversion pointing to fast channel"
+- name: "Get control plane nodes"
+  community.kubernetes.k8s_info:
+    kind: Node
+    label_selectors:
+      - "node-role.kubernetes.io/master"
+  register: control_nodes
+
+- name: "Get compute plane nodes"
+  community.kubernetes.k8s_info:
+    kind: Node
+    label_selectors:
+      - "node-role.kubernetes.io/worker"
+  register: compute_nodes
+
+- name: "Check all nodes have been provisioned"
+  vars:
+    install_config: "{{ ic.resources[0].data['install-config'] | from_yaml }}"
+    requested_compute: "{{ install_config | json_query('compute[? name==`worker` ].replicas') | first }}"
+    query: "resources[*].status.provisioning.state"
+    bmh_states: >
+      {% for s in bmh_info | json_query(query) | unique %}
+        {{ s.split() | last }}
+      {% endfor %}
+    bmh_unique_states: "{{ bmh_states.split() | unique }}"
+  community.kubernetes.k8s_info:
+    kind: BareMetalHost
+    api: metal3.io/v1alpha1
+    namespace: openshift-machine-api
+  register: bmh_info
+  retries: "{{ requested_compute | int * 10 + 1 }}"
+  delay: 30
+  until: bmh_unique_states == ['provisioned']
+  when:
+    - install_type in ['ipi', 'upi']
+
+- name: "Validate control/compute nodes"
+  vars:
+    install_config: "{{ ic.resources[0].data['install-config'] | from_yaml }}"
+    requested_control: "{{ install_config | json_query('controlPlane.replicas') }}"
+    requested_compute: "{{ install_config | json_query('compute[? name==`worker` ].replicas') | first }}"
+    control_nodes_count: "{{ control_nodes.resources | length }}"
+    compute_nodes_count: "{{ compute_nodes.resources | length }}"
+  fail:
+    msg:
+      - "The available control/compute nodes are not according to the provided inventory or"
+      - "are not enough to have an operational cluster"
+  when:
+    - ( control_nodes_count | int != requested_control | int ) or
+      ( compute_nodes_count | int < requested_compute | int )
+
+- name: "Create a DCI component for the rhcos_kernel"
+  block:
+    - name: "Create component with the rhcos kernel in use"
+      vars:
+        - kernel_version: "{{ control_nodes.resources[0].status.nodeInfo.kernelVersion }}"
+      environment:
+        - DCI_CLIENT_ID: "{{ dci_client_id }}"
+        - DCI_API_SECRET: "{{ dci_api_secret }}"
+        - DCI_CS_URL: "{{ dci_cs_url }}"
+      dci_component:
+        name: "{{ kernel_version }}"
+        canonical_project_name: "rhcos_kernel {{ kernel_version }}"
+        team_id: "{{ job_info['job']['team_id'] }}"
+        topic_id: "{{ job_info['job']['topic_id'] }}"
+        type: kernel
+        state: present
+      register: kernel_component
+
+    - name: "Attach kernel component to the job"
+      dci_job_component:
+        component_id: "{{ kernel_component.component.id }}"
+        job_id: "{{ job_id }}"
+      register: job_component_result
+      until: job_component_result is not failed
+      retries: 5
+      delay: 20
+      when:
+        - "'component' in kernel_component"
+        - "'id' in kernel_component.component"
+  ignore_errors: yes
+
+- name: "Patch clusterversion pointing to fast channel"
   vars:
     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
   community.kubernetes.k8s:
@@ -27,26 +138,7 @@
   retries: 6
   delay: 10
 
-- name: "installer : Check all nodes have been provisioned"
-  vars:
-    query: "resources[*].status.provisioning.state"
-    bmh_states: >
-      {% for s in bmh_info | json_query(query) | unique %}
-        {{ s.split() | last }}
-      {% endfor %}
-    bmh_unique_states: "{{ bmh_states.split() | unique }}"
-  community.kubernetes.k8s_info:
-    kind: BareMetalHost
-    api: metal3.io/v1alpha1
-    namespace: openshift-machine-api
-  register: bmh_info
-  retries: "{{ 10 * (groups['workers'] | default([]) | length + 1 ) }}"
-  delay: 30
-  until: bmh_unique_states == ['provisioned']
-  when:
-    - install_type in ['ipi', 'upi']
-
-- name: "installer : Apply node labels"
+- name: "Apply node labels"
   include_role:
     name: label-nodes
   vars:
@@ -55,46 +147,9 @@
   when:
     - install_type in ['ipi', 'upi', 'sno']
 
-- name: Upload the rhcos_kernel component if possible
+- name: "Disable provisioning"
   block:
-    - name: Get nodes information
-      community.kubernetes.k8s_info:
-        kubeconfig: "{{ kubeconfig_path }}"
-        kind: Node
-      register: nodes_info
-
-    - name: Create component with the rhcos kernel used
-      vars:
-        - kernel_version: "{{ nodes_info.resources[0].status.nodeInfo.kernelVersion }}"
-      environment:
-        - DCI_CLIENT_ID: "{{ hostvars.localhost.dci_client_id }}"
-        - DCI_API_SECRET: "{{ hostvars.localhost.dci_api_secret }}"
-        - DCI_CS_URL: "{{ hostvars.localhost.dci_cs_url }}"
-      dci_component:
-        name: "{{ kernel_version }}"
-        canonical_project_name: "rhcos_kernel {{ kernel_version }}"
-        team_id: "{{ hostvars.localhost.job_info['job']['team_id'] }}"
-        topic_id: "{{ hostvars.localhost.job_info['job']['topic_id'] }}"
-        type: kernel
-        state: present
-      register: kernel_component
-
-    - name: Attach kernel component to the job
-      dci_job_component:
-        component_id: "{{ kernel_component.component.id }}"
-        job_id: "{{ hostvars.localhost.job_id }}"
-      register: job_component_result
-      until: job_component_result is not failed
-      retries: 5
-      delay: 20
-      when:
-        - "'component' in kernel_component"
-        - "'id' in kernel_component.component"
-  ignore_errors: yes
-
-- name: Disable provisioning
-  block:
-    - name: Get provisioning
+    - name: "Get provisioning"
       community.kubernetes.k8s_info:
         api_version: metal3.io/v1alpha1
         kind: Provisioning
@@ -114,4 +169,22 @@
   when:
     - dci_disable_provisioning | default(false) | bool
 
+- name: "Setup additional credentials to OCP"
+  vars:
+    os_config_dir: "{{ dci_cluster_configs_dir }}"
+  include_role:
+    name: oc-setup
+
+- name: "Upload additional credentials to DCI Control Server"
+  environment:
+    - DCI_CLIENT_ID: "{{ dci_client_id }}"
+    - DCI_API_SECRET: "{{ dci_api_secret }}"
+    - DCI_CS_URL: "{{ dci_cs_url }}"
+  dci_file:
+    path: "{{ item }}"
+    name: "{{ item | basename }}"
+    job_id: "{{ job_id }}"
+    mime: "text/plain"
+  loop:
+  - "{{ dci_cluster_configs_dir }}/ocp_creds.txt"
 ...
