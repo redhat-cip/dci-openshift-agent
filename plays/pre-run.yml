@@ -237,6 +237,8 @@
   until: not git_clone.failed
   when:
     - install_type == 'ipi'
+  tags:
+    - clone_upstream_repos
 
 - name: Include installed software as components
   vars:

@@ -115,6 +115,8 @@
         until: not git_clone.failed
         when:
           - "dci_cache_dir + '/assisted_deploy_repo/roles' in roles_path"
+        tags:
+          - clone_upstream_repos
 
       - name: "Prereq facts check"
         vars:
