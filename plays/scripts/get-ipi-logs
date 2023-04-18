@@ -52,7 +52,7 @@ done
 # Gather host's journals
 for h in "${nodes[@]}"; do
   ${prov_cmd} ssh ${ssh_ops} \
-    core@"${h}.${domain}" 'sudo journalctl --all --since \"2 hours ago\"' > "${log_dir}/journal-${h}.log"
+    core@"${h}.${domain}" 'sudo journalctl --all --since \"4 hours ago\"' > "${log_dir}/journal-${h}.log"
 done
 
 # Collect logs from bootstrap VM if available
