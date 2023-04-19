@@ -109,7 +109,7 @@ finish() {
     # Workaround to delete any temporary directory created without u+w
     find "${DIR}" -type d -not -perm -u=w -exec chmod u+w {} \;
 
-    rm -rf $DIR
+    rm -rf "$DIR"
 
     exit $RET
 }
@@ -415,7 +415,7 @@ fi
 
 if [ -d dci-ansible ]; then
     sed -i \
-    -e "s@/usr/share/dci/\(modules\|module_utils\|action_plugins\|filter_plugins\)@$PWD/dci-ansible/\1@g" \
+    -e "s@/usr/share/dci/\(callback\|modules\|module_utils\|action_plugins\|filter_plugins\)@$PWD/dci-ansible/\1@g" \
     -e "s@/usr/share/dci/callback/@$PWD/dci-ansible/callback/@" \
     ansible.cfg
     # for d-o-a-a-ctl
@@ -453,8 +453,16 @@ REQS=$(ls */requirements.txt 2> /dev/null)
 
 if [ -n "$REQS" ]; then
     rm -rf .venv
-    virtualenv .venv
+    # use --system-site-packages to get libselinux-python and
+    # python-dnf from the system (not possible via pip)
+    virtualenv --system-site-packages .venv
     . .venv/bin/activate
+
+    # force the python interpreter for the ansible controler
+    # (localhost for doa or jumphost for doaa)
+    OPTS+=(-e ansible_playbook_python="$PWD/.venv/bin/python3")
+
+    pip install pip --upgrade
 
     # substitute dependencies from the changes into requirements.txt
     for req in $REQS; do
@@ -469,7 +477,7 @@ if [ -n "$REQS" ]; then
 
     # install python dependencies into the virtualenv
     for req in $REQS; do
-        pip install -r "$req"
+        pip install -U -I -r "$req"
         cd $(dirname "$req")
         python setup.py develop || :
         cd -
@@ -511,26 +519,30 @@ if [ -z "$KCFG" ]; then
         export PREFIX
 
         if [ "$VIRT" = virt ]; then
-            setsid ansible-playbook -v libvirt_destroy.yml ${VIRT_INV:-} &
+            setsid ansible-playbook -vv libvirt_destroy.yml ${VIRT_INV:-} &
             do_wait
-            setsid ansible-playbook -v libvirt_up.yml ${VIRT_INV:-} "$@" &
+            setsid ansible-playbook -vv libvirt_up.yml ${VIRT_INV:-} "$@" &
             do_wait
         elif [ "$VIRT" = sno ]; then
-            setsid ansible-playbook -v generate-hosts-file.yml ${VIRT_INV:-} &
+            setsid ansible-playbook -vv generate-hosts-file.yml ${VIRT_INV:-} &
             do_wait
         elif [ "$VIRT" = assisted ]; then
             OPTS+=(-e install_type=assisted)
-            setsid ansible-playbook -v generate-hosts-file.yml ${VIRT_INV:-} &
+            setsid ansible-playbook -vv generate-hosts-file.yml ${VIRT_INV:-} &
             do_wait
         elif [ "$VIRT" = "sno-ai" ]; then
             OPTS+=(-e install_type=assisted)
-            setsid ansible-playbook -v generate-hosts-file.yml ${VIRT_INV:-} &
+            setsid ansible-playbook -vv generate-hosts-file.yml ${VIRT_INV:-} &
             do_wait
         fi
 
         sudo cp ${PREFIX_NAME}hosts ${CONFIG_DIR:-/etc/dci-openshift-agent}/${PREFIX_NAME}hosts
         sudo chown "$(id -un)":"$(id -gn)" ${CONFIG_DIR:-/etc/dci-openshift-agent}/${PREFIX_NAME}hosts
         cd "$DIR"
+    fi
+
+    if [ -x "$PWD/.venv/bin/python3" ]; then
+        sed -i -e '/interpreter_python/d' ansible.cfg
     fi
 
     # needed for dci-openshift-agent-ctl
@@ -568,6 +580,7 @@ fi
 # no side effect from d-o-a
 unset ANSIBLE_CONFIG
 unset CONFIG_DIR
+find . -maxdepth 1 -type l -print0|xargs -0 rm -f
 
 if [ -r /etc/dci-openshift-app-agent/config ]; then
     . /etc/dci-openshift-app-agent/config
@@ -649,8 +662,11 @@ if [ -s "$KUBECONFIG" ]; then
         if [ -n "$APP_NAME" ] && [ -d "$PWD/samples/$APP_NAME" ]; then
             APP_OPT="-e dci_config_dir=$PWD/samples/$APP_NAME"
         fi
+        if [ -x "$PWD/.venv/bin/python3" ]; then
+            sed -i -e '/interpreter_python/d' ansible.cfg
+        fi
         # running this case in dev mode (-d) to use the dci-openshift-app-agent code from the change
-        setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -v "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> ../output &
+        setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -vv "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> ../output &
         cd ..
     else
         # inject the common roles from doa if needed
@@ -661,11 +677,20 @@ if [ -s "$KUBECONFIG" ]; then
             cp /usr/share/dci-openshift-app-agent/ansible.cfg dci-openshift-app-agent/
             export DCI_OPENSHIFT_APP_AGENT_DIR=$PWD/dci-openshift-app-agent
             sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/common-roles/:@" dci-openshift-app-agent/ansible.cfg
+            if [ -x "$PWD/.venv/bin/python3" ]; then
+                sed -i -e '/interpreter_python/d' dci-openshift-app-agent/ansible.cfg
+            fi
+        else
+            if [ -x $PWD/.venv/bin/python3 ]; then
+                cp /usr/share/dci-openshift-app-agent/ansible.cfg .
+                sed -i -e '/interpreter_python/d' ansible.cfg
+                export ANSIBLE_CONFIG=$PWD/ansible.cfg
+            fi
         fi
         if  [ -n "$APP_NAME" ] && [ -d "/var/lib/dci-openshift-app-agent/samples/$APP_NAME" ]; then
             APP_OPT="-e dci_config_dir=/var/lib/dci-openshift-app-agent/samples/$APP_NAME"
         fi
-        setsid dci-openshift-app-agent-ctl $PREFIX2 -s -v -- -v "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> output &
+        setsid dci-openshift-app-agent-ctl $PREFIX2 -s -v -- -vv "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> output &
     fi
 
     if [ -n "$KCFG" ]; then

@@ -25,8 +25,8 @@
   vars:
     catalog_version: "{{ index_tag.split('_')[0] }}"
   dci_component:
-    name: "v{{ catalog_version }}"
-    canonical_project_name: "{{ opm_local_registry_path | basename }}:v{{ catalog_version }}"
+    display_name: "{{ opm_local_registry_path | basename }}:v{{ catalog_version }}"
+    version: "v{{ catalog_version }}"
     team_id: "{{ job_info['job']['team_id'] }}"
     topic_id: "{{ job_info['job']['topic_id'] }}"
     type: "{{ opm_local_registry_path | basename }}"

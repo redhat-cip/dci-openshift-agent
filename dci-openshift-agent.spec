@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.5
+Version:       0.5.6
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -10,11 +10,11 @@ Source0:       dci-openshift-agent-%{version}.tar.gz
 BuildRequires: systemd
 BuildRequires:  /usr/bin/pathfix.py
 Requires: /usr/bin/sudo
-Requires: dci-ansible >= 0.3.0
+Requires: dci-ansible >= 0.3.1
 %if 0%{?rhel} && 0%{?rhel} < 8
-Requires: python2-dciclient >= 2.6.0
+Requires: python2-dciclient >= 3.1.0
 %else
-Requires: python3-dciclient >= 2.6.0
+Requires: python3-dciclient >= 3.1.0
 %endif
 Requires: ansible-role-dci-sync-registry
 Requires: ansible-role-dci-podman
@@ -97,6 +97,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Fri Apr 28 2023 Frederic Lepied <flepied@redhat.com> 0.5.6-1
+- Requires dci-ansible >= 3.1.0 for the new component fields
+
 * Thu Mar 30 2023 Beto Rdz <josearod@redhat.com> 0.5.5-1
 - Add utils scripts
 
