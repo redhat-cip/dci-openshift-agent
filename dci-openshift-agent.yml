@@ -554,9 +554,6 @@
         - name: Run the post-run
           include_tasks: plays/post-run.yml
 
-      when:
-        - install_type != 'acm'
-
       rescue: *teardown_error
 
     - name: success
