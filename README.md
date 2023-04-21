@@ -328,6 +328,8 @@ dnsvip=1.2.3.4
 # Path on the jumpbox
 #disconnected_registry_mirrors_file=/path/to/trust-bundle.yml
 # Path on the jumpbox, must have enough space to hold your qcow images
+# Please set setype to container_file_t if you create this folder manually
+# sudo /usr/bin/chcon -t container_file_t /path/to/qcow/cache
 #provision_cache_store="/path/to/qcow/cache"
 # Registry host that will mirror all container images
 #local_registry_host=local-registry
@@ -369,6 +371,14 @@ provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_arg
 
 > NOTE: If the jumpbox server is in a different network than the baremetal network, then
 > include `extcirdnet=<baremetal-network/mask>` in the `all:vars` section of the inventory
+
+> NOTE: If you choose to create the `provision_cache_store` folder manually, make sure to set the `container_file_t` setype for it. This will help ensure a smooth installation of OCP nightly builds.
+
+```
+# sudo /usr/bin/chcon -t container_file_t /path/to/qcow/cache
+# ls -lZd /path/to/qcow/cache
+drwxr-xr-x. 19 dci dci system_u:object_r:container_file_t:s0 4096 may 02 18:28 /path/to/qcow/cache
+```
 
 ## Disconnected mode in DCI OCP agent
 
