@@ -252,7 +252,7 @@
         vars:
           status_query: "resources[*].status.history[?state=='Completed'].state"
           cluster_version_available: "{{ cluster_version | json_query(status_query) | flatten | unique }}"
-        retries: 24
+        retries: 60
         delay: 10
         until: cluster_version_available == ['Completed']
 
