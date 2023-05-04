@@ -90,6 +90,18 @@ ${oc_path} get events --all-namespaces --sort-by='.metadata.creationTimestamp' >
 ${oc_path} get pods --all-namespaces -o wide > "${log_dir}/${prefix}pods.txt"
 ${oc_path} get mcp >> "${log_dir}/${prefix}machine-configs.txt"
 ${oc_path} get mc >> "${log_dir}/${prefix}machine-configs.txt"
-${oc_path} get imagecontentsourcepolicies -o yaml > "${log_dir}/${prefix}image-content-source-policies.yaml"
 ${oc_path} get csr > "${log_dir}/${prefix}csr.txt"
 ${oc_path} get subs -A -o json | jq '[.items[] | {operator_name: .spec.name, version: .status.currentCSV, catalog: .spec.source }]' > "${log_dir}/operators.json"
+
+# Check for ImageDigestMirrorSets
+idms=$(\
+    ${oc_path} get imagedigestmirrorset -o json 2>/dev/null ||
+    echo "{}"
+)
+
+# Get ImageContentSourcePolicies if no ImageDigestMirrorSets are found
+if [[ $(jq '.items | length // 0' <<< "${idms}") -eq 0 ]]; then
+  ${oc_path} get imagecontentsourcepolicies -o yaml 2>/dev/null > "${log_dir}/${prefix}image-sources.yaml"
+else
+  ${oc_path} get imagedigestmirrorset -o yaml 2>/dev/null > "${log_dir}/${prefix}image-sources.yaml"
+fi

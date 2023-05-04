@@ -1,15 +1,22 @@
 ---
 - name: "Get registry mirror registry details"
   block:
-    - name: "Get Hub ICSP"
+    - name: Find ImageDigestMirrorSet in the cluster
       community.kubernetes.k8s_info:
-        api_version: operator.openshift.io/v1alpha1
-        kind: ImageContentSourcePolicy
-      register: hub_icsp
+        api_version: config.openshift.io/v1
+        kind: ImageDigestMirrorSet
+      register: idms_res
+
+    - name: "Get Hub Image Source"
+      community.kubernetes.k8s_info:
+        kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
+      register: hub_is
 
     - name: "Set hub_registry location"
+      vars:
+        hub_query: "spec.*[*].mirrors[0]"
       set_fact:
-        hub_registry: "docker://{{ hub_icsp.resources[0].spec.repositoryDigestMirrors[0].mirrors[0] }}"
+        hub_registry: "docker://{{ hub_is.resources[0] | json_query(hub_query) | flatten | first }}"
 
     - name: "Get hub cluster config"
       community.kubernetes.k8s_info:
@@ -19,14 +26,20 @@
         kubeconfig: "{{ hub_kubeconfig_path }}"
       register: hub_config
 
-    - name: "Set webserver URL"
+    - name: "Set webserver URL and hub mirrors"
       vars:
         cluster_install_info: |-
           {{ ( hub_config.resources[0].data |
           from_yaml )['install-config'] |
           from_yaml }}
+        hub_mirrors_type: |-
+          {{ idms_res.resources is defined and idms_res.resources |
+             length |
+            ternary('imageDigestSources', 'imageContentSources')
+          }}
       set_fact:
         hub_webserver: "{{ cluster_install_info.platform.baremetal.bootstrapOSImage | urlsplit('scheme') }}://{{ cluster_install_info.platform.baremetal.bootstrapOSImage | urlsplit('netloc') }}"
+        hub_mirrors: "{{ cluster_install_info | json_query(hub_mirrors_type) }}"
       when:
         - hub_config | length
   when:
@@ -58,28 +71,47 @@
         mor_build: "{{ build }}"
         mor_oc: "{{ oc_tool_path }}"
 
-    - name: "Convert ICSP to registries.conf format"
+    - name: "Convert Image Source to registries.conf format"
       vars:
-        icsp_path: "{{ provision_cache_store }}/{{ version }}/imagecontentsourcepolicy.yaml"
-        registries: >
-          {{ lookup('file', icsp_path ) |
+        img_src_paths:
+          - "{{ provision_cache_store }}/{{ version }}/imagesource.yaml"
+          - "{{ provision_cache_store }}/{{ version }}/imagecontentsourcepolicy.yaml"
+        hub_src_path: "{{ lookup('first_found', img_src_paths) }}"
+        hub_query: "spec.*[*].{mirrors: mirrors, source: source}"
+        spoke_mirrors: >
+          {{ lookup('file', hub_src_path) |
              from_yaml |
-             json_query('spec.repositoryDigestMirrors[*].{ mirrors: mirrors[0], source: source  }')
+             json_query(hub_query) |
+             first
           }}
+        combined_mirrors: |-
+          {%- set c = dict() %}
+          {%- for mirror in hub_mirrors + spoke_mirrors %}
+          {%- set s = mirror.source %}
+          {%- set m = mirror.mirrors %}
+          {%- if c.get(s) %}
+          {{ c.update({s: c[s] + m}) }}
+          {%- else %}
+          {{ c.update({s: m}) }}
+          {%- endif %}
+          {%- endfor %}
+          {{ c }}
       set_fact:
         acm_registries: |
           unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
           short-name-mode = ""
 
-          {% for registry in registries %}
+          {% for registry in combined_mirrors.keys() | list %}
           [[registry]]
             prefix = ""
-            location = "{{ registry.source }}"
+            location = "{{ registry }}"
             mirror-by-digest-only = true
 
+          {% for mirror in combined_mirrors[registry] | unique | list %}
             [[registry.mirror]]
-              location = "{{ registry.mirrors }}"
+              location = "{{ mirror }}"
 
+          {% endfor %}
           {% endfor %}
 
           [[registry]]
@@ -118,7 +150,6 @@
         mor_pull_url: "{{ version_pull_url }}"
         mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
         mor_webserver_url: "{{ hub_webserver_url | default(None) }}"
-        mor_registry_url: "{{ hub_registry }}"
         mor_auths_file: "{{ dci_pullsecret_file }}"
         mor_force: true
         mor_install_type: "{{ install_type }}"
@@ -136,4 +167,3 @@
   when:
     - not (dci_disconnected | default(false) | bool)
     - acm_cluster_type == 'sno'
-...

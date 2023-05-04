@@ -17,6 +17,12 @@
     - name: "Build pruned catalog"
       include_tasks: build-catalog.yml
 
+    - name: Find ImageDigestMirrorSet in the cluster
+      community.kubernetes.k8s_info:
+        api_version: config.openshift.io/v1
+        kind: ImageDigestMirrorSet
+      register: idms_res
+
     - name: "Mirror pruned catalog"
       include_role:
         name: mirror-catalog
@@ -25,11 +31,12 @@
         mc_catalog: "{{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
         mc_registry: "{{ dci_local_registry }}"
         mc_pullsecret: "{{ dci_pullsecret_file }}"
+        mc_is_type: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('idms', 'icsp') }}"
 
-    - name: "Append the ImageContentSourcePolicy file"
+    - name: "Append the Image Source file"
       set_fact:
-        icsp_files: "{{ icsp_files | default([]) + [mc_icsp_file.path] }}"
-      when: mc_icsp_file is defined
+        is_files: "{{ is_files | default([]) + [mc_is_file.path] }}"
+      when: mc_is_file is defined
 
     - name: "Create Red Hat disconnected catalogSource"
       include_role:

@@ -41,24 +41,43 @@
   failed_when:
     - icsp_manifest.matched == 0
 
-- name: "Read ICSP file"
+- name: Set image source file fact
+  set_fact:
+    image_source_file: "{{ icsp_manifest.files[0].path }}"
+
+- name: "Read Image Source file"
   slurp:
-    src: "{{ icsp_manifest.files[0].path }}"
+    src: "{{ image_source_file }}"
   register: file_content
 
 # This task is required for a specific use case at this moment
 # Will need to revisit this for other customer cases
-- name: "Replace references to internal registries in the ICSP file"
+- name: "Replace references to internal registries in the Image Source file"
   replace:
-    path: "{{ icsp_manifest.files[0].path }}"
+    path: "{{ image_source_file }}"
     regexp: 'brew.registry.redhat.io'
     replace: 'registry.redhat.io'
     backup: yes
   when: file_content.content | b64decode | regex_search('brew.registry.redhat.io')
 
-- name: "Apply the ICSP manifest"
+- name: ICSP to IDMS on 4.14+
+  when: ocp_version is version('4.14', '>=')
+  block:
+    - name: Transform ICSP to IDMS on 4.14+
+      shell:
+        cmd: >
+          {{ oc_tool_path }} adm migrate icsp
+          {{ image_source_file }}
+          --dest-dir {{ image_dir }}
+      register: migrate_result
+
+    - name: Set image source file fact
+      set_fact:
+        image_source_file: "{{ migrate_result.stdout_lines[0].split(' ')[-1] }}"
+
+- name: "Apply the Image Source manifest"
   community.kubernetes.k8s:
-    definition: "{{ lookup('template', '{{ icsp_manifest.files[0].path }}') | from_yaml }}"
+    definition: "{{ lookup('template', image_source_file) | from_yaml }}"
 
 - name: "Check the Catalogsource manifests"
   find:

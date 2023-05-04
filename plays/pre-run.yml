@@ -235,19 +235,26 @@
         dest: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
         mode: "0644"
 
+    - name: Use imageDigestSources in OCP 4.14+
+      replace:
+        path: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+        regexp: "^imageContentSources:$"
+        replace: "imageDigestSources:"
+      when: version is version('4.14', '>=')
+
     - name: Add mirrors to trust bundle
       vars:
-        icsp_path: "{{ provision_cache_store }}/{{ version }}/imagecontentsourcepolicy.yaml"
+        img_src_paths:
+          - "{{ provision_cache_store }}/{{ version }}/imagesource.yaml"
+          - "{{ provision_cache_store }}/{{ version }}/imagecontentsourcepolicy.yaml"
+        img_src_found: "{{ lookup('first_found', img_src_paths) }}"
+        img_src_content: "{{ lookup('file', img_src_found) | from_yaml }}"
       copy:
         dest: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
         mode: "0644"
         content: |
           {{ lookup('file', dci_cluster_configs_dir + '/trust-bundle.yml') }}
-          {{ lookup('file', icsp_path ) |
-             from_yaml |
-             json_query('spec.repositoryDigestMirrors') |
-             to_yaml
-          }}
+          {{ img_src_content | json_query('spec.*') | first | to_yaml }}
   when:
     - dci_disconnected | default(false) | bool
 

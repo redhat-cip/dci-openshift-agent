@@ -23,19 +23,25 @@
     when:
       - cluster_conf.resources | length
 
-  - name: "Get Cluster ICSP"
+  - name: Find ImageDigestMirrorSet in the cluster
     community.kubernetes.k8s_info:
-      api_version: operator.openshift.io/v1alpha1
-      kind: ImageContentSourcePolicy
-    register: cluster_icsp
+      api_version: config.openshift.io/v1
+      kind: ImageDigestMirrorSet
+    register: idms_res
+
+  - name: "Get Cluster Image Sources"
+    community.kubernetes.k8s_info:
+      kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
+    register: cluster_is
 
   - name: "Set dci_local_registry"
     vars:
-      loc_reg: "docker://{{ cluster_icsp.resources[0].spec.repositoryDigestMirrors[0].mirrors[0] }}"
+      cluster_query: "spec.*[*].mirrors[0]"
+      loc_reg: "docker://{{ cluster_is.resources[0] | json_query(cluster_query) | flatten | first }}"
     set_fact:
       dci_local_registry: "{{ loc_reg | urlsplit('netloc') }}"
     when:
-      - cluster_icsp.resources | length
+      - cluster_is.resources | length
 
   - name: "Get and apply release signature"
     block:
@@ -76,9 +82,9 @@
           definition: "{{ signature_cm }}"
     when: build != "nightly"
 
-  - name: "Apply new OCP release ICSP"
+  - name: "Apply new OCP release Image Source"
     community.kubernetes.k8s:
-      definition: '{{ lookup("url", "{{ webserver_url }}/{{ version }}/imagecontentsourcepolicy.yaml", split_lines=False) | from_yaml_all | list }}'
+      definition: '{{ lookup("url", "{{ webserver_url }}/{{ version }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
 
   - name: "upgrader : Wait for nodes to become Ready"
     community.kubernetes.k8s_info:
