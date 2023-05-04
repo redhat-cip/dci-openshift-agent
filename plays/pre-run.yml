@@ -117,6 +117,7 @@
   file:
     path: "{{ (ansible_env.HOME, 'releases') | join('/') }}"
     state: directory
+    setype: "container_file_t"
     mode: "0775"
   when:
     - provision_cache_store is undefined
