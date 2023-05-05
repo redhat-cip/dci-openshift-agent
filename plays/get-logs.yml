@@ -27,7 +27,6 @@
         default(["registry.redhat.io/openshift4/ose-must-gather"]) |
         join(" ") }}
     REGISTRY: "{{ dci_local_registry }}"
-    KUBECONFIG: "{{ (install_type == 'acm') | ternary(hub_kubeconfig_path, kubeconfig_path) }}"
     PATH: "{{ ansible_env.PATH }}:/sbin:/usr/sbin:/usr/local/bin/"
   script:
     cmd: >
