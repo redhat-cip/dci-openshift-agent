@@ -29,35 +29,36 @@ fi
 user_at_provisioner=$1
 log_dir="$2"
 
-ssh_ops="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+ssh_ops="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=10"
 prov_cmd="timeout -v 20m ssh ${ssh_ops} ${user_at_provisioner}"
 
 # Copy openshift install log_dir and rendered install config
 scp ${ssh_ops} "${user_at_provisioner}":clusterconfigs/.openshift_install.log "${log_dir}/openshift_install.log"
 scp ${ssh_ops} "${user_at_provisioner}":clusterconfigs/install-config.yaml.bkup "${log_dir}/install-config-yaml.txt"
 
-# Get IP from Bootstrap VM if it's running
+# Get bootstrap VM hostname if it's running
+vm_hostname=""
 vm=$(LANG=en_US.UTF-8 ${prov_cmd} sudo virsh list | awk '/.*-bootstrap\s+running/ {print $2}')
-ip=$(${prov_cmd} sudo virsh domifaddr --source arp "${vm}" 2>/dev/null | grep -m1 -oP '(\d{1,3}\.){3}\d{1,3}')
-domain=$(${prov_cmd} hostname -d)
+if [ -n "${vm}" ]; then
+  cidr=$(grep -oP '(?<=provisioningNetworkCIDR: )[0-9\.]*(?=\/)' "${log_dir}/install-config-yaml.txt" | cut -d. -f1-3)
+  ip="$cidr.2"
 
-shift 2
-# Removing domain name
-nodes=()
-for name in "$@"; do
-  host_name=$(echo "$name" | cut -d"." -f1)
-  nodes+=("${host_name}")
-done
+  if ! vm_hostname=$(${prov_cmd} ssh ${ssh_ops} core@"$ip" hostname 2>/dev/null); then
+    # Fallback to apiVIP
+    ip=$(grep 'apiVIP' "${log_dir}/install-config-yaml.txt" | awk '{print $2 }')
 
-# Gather host's journals
-for h in "${nodes[@]}"; do
-  ${prov_cmd} ssh ${ssh_ops} \
-    core@"${h}.${domain}" 'sudo journalctl --all --since \"4 hours ago\"' > "${log_dir}/journal-${h}.log"
-done
+    if ! vm_hostname=$(${prov_cmd} ssh ${ssh_ops} core@"$ip" hostname 2>/dev/null); then
+      echo "Failed to get VM hostname"
+    fi
+  fi
+else
+  echo "No running bootstrap VM found"
+fi
 
-# Collect logs from bootstrap VM if available
-if [ -n "${ip}" ]; then
-  echo "found VM IPv4 $ip"
+echo "Collect logs from bootstrap VM if SSHable"
+if [ -n "${vm_hostname}" ]; then
+  echo "Collect logs on VM via: $ip"
+  core="ssh ${ssh_ops} core@$ip"
 
   # Installer logs
   for nodes in "${nodes[@]}"; do
@@ -66,9 +67,9 @@ if [ -n "${ip}" ]; then
 
   # Collect the bootstrap logs
   ${prov_cmd} openshift-baremetal-install gather bootstrap --dir=/tmp/gatherBootstrap --bootstrap "${ip} ${nodes_param}"
-  scp "${ssh_ops}" "${user_at_provisioner}:/tmp/gatherBootstrap/*" "${log_dir}"
+  scp ${ssh_ops} "${user_at_provisioner}:/tmp/gatherBootstrap/*" "${log_dir}"
 
-  core="ssh ${ssh_ops} core@$ip"
+  $prov_cmd rm /tmp/gatherBootstrap/*
 
   # Collect services logs
   for serv in release-image bootkube; do
@@ -80,3 +81,18 @@ if [ -n "${ip}" ]; then
     $prov_cmd "${core}" sudo podman logs "${pod}" >> "${log_dir}/${pod}.log" 2>&1
   done
 fi
+
+echo "Gather host's journals"
+domain=$(${prov_cmd} hostname -d)
+shift 2
+# Removing domain name
+nodes=()
+for name in "$@"; do
+  host_name=$(echo "$name" | cut -d"." -f1)
+  nodes+=("${host_name}")
+done
+
+for h in "${nodes[@]}"; do
+  ${prov_cmd} ssh ${ssh_ops} \
+    core@"${h}.${domain}" 'sudo journalctl --all --since \"4 hours ago\"' > "${log_dir}/journal-${h}.log"
+done
