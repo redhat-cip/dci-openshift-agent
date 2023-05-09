@@ -325,7 +325,18 @@ if [ "$VIRT" = "no-check" ] ||
     if [ "$VIRT" = "no-check" ]; then
         NUMBER_CODE_FILES=0
     elif [ -z "$FORCE_CHECK" ]; then
-        CODE_FILES_REGEX='ansible.cfg|group_vars/all|plays/scripts/get-logs|dci-check-change|test-runner|send-feedback|extract-dependencies|dci-openshift-(app-)?agent-ctl|\.(yml|j2|py)'
+        CODE_FILES=(
+            'ansible.cfg'
+            'group_vars/all'
+            'plays/scripts'
+            'dci-check-change'
+            'test-runner'
+            'send-feedback'
+            'extract-dependencies'
+            'dci-openshift-(app-)?agent-ctl'
+            '\.(yml|j2|py)'
+        )
+        CODE_FILES_REGEX=$(printf '%s|' "${CODE_FILES[@]}")
         NUMBER_CODE_FILES=$(
         (for d in dci-openshift-*agent; do
              cd $d
@@ -333,7 +344,7 @@ if [ "$VIRT" = "no-check" ] ||
              cd ..
          done
         ) |
-        grep -E "(${CODE_FILES_REGEX})" |
+        grep -E "(${CODE_FILES_REGEX%|})" |
         grep -v 'requirements.yml' |
         wc -l
         )
