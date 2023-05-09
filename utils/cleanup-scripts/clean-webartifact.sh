@@ -48,7 +48,7 @@ do
   job_status=$(dcictl --format json job-show "${name}" | jq -er .job.jobstates[-1].status)
   if [[ " ${fail_states[*]} " =~ ${job_status} ]]; then
     port=$(podman inspect "${name}" | jq -r '.[].NetworkSettings.Ports."8080/tcp"[0].HostPort')
-    sudo firewallcmd --remove-port="${port}"/tcp
+    sudo firewall-cmd --remove-port="${port}"/tcp
     podman rm -f "${name}"
   fi
 done <<< "${containers}"
