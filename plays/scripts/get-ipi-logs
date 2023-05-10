@@ -35,17 +35,17 @@ prov_cmd="timeout -v 20m ssh ${ssh_ops} ${user_at_provisioner}"
 # Copy openshift install log_dir and rendered install config
 scp ${ssh_ops} "${user_at_provisioner}":clusterconfigs/.openshift_install.log "${log_dir}/openshift_install.log"
 scp ${ssh_ops} "${user_at_provisioner}":clusterconfigs/install-config.yaml.bkup "${log_dir}/install-config-yaml.txt"
+scp ${ssh_ops} "${user_at_provisioner}":clusterconfigs/.openshift_install_state.json "${log_dir}/openshift_install_state.json"
 
 # Get bootstrap VM hostname if it's running
 vm_hostname=""
 vm=$(LANG=en_US.UTF-8 ${prov_cmd} sudo virsh list | awk '/.*-bootstrap\s+running/ {print $2}')
 if [ -n "${vm}" ]; then
-  cidr=$(grep -oP '(?<=provisioningNetworkCIDR: )[0-9\.]*(?=\/)' "${log_dir}/install-config-yaml.txt" | cut -d. -f1-3)
-  ip="$cidr.2"
+  ip=$(jq '."*installconfig.InstallConfig".config.platform.baremetal.bootstrapProvisioningIP' "${log_dir}/openshift_install_state.json")
 
   if ! vm_hostname=$(${prov_cmd} ssh ${ssh_ops} core@"$ip" hostname 2>/dev/null); then
     # Fallback to apiVIP
-    ip=$(grep 'apiVIP' "${log_dir}/install-config-yaml.txt" | awk '{print $2 }')
+    ip=$(jq '."*installconfig.InstallConfig".config.platform.baremetal.apiVIP' "${log_dir}/openshift_install_state.json")
 
     if ! vm_hostname=$(${prov_cmd} ssh ${ssh_ops} core@"$ip" hostname 2>/dev/null); then
       echo "Failed to get VM hostname"
