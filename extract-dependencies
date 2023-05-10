@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2021-2022 Red Hat, Inc.
+# Copyright (C) 2021-2023 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,6 +16,7 @@
 
 set -e
 set -x
+GIT_CLONE_OPTIONS="--filter=tree:0"
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -31,12 +32,12 @@ test -n "$TARGET" -a -d "$TARGET" && cd "$TARGET"
 
 # git log -1 | while read line; do
 while read line; do
-  if ! egrep -iq '^\s*(build-depends|depends-on):' <<< $line; then
+  if ! grep -Eiq '^\s*(build-depends|depends-on):' <<< $line; then
       continue
   fi
   echo "Processing line '$line'"
   # try to find a github pr first
-  if egrep -iq 'https://github.com/.*/pull' <<< $line; then
+  if grep -Eiq 'https://github.com/.*/pull' <<< $line; then
       pr=$(sed -e 's@.*/pull/'@@ <<< $line)
       proj=$(sed -e 's@\(build-Depends\|depends-on\):\s*https://github.com/\(.*\)/pull/.*@\2@i' <<< $line)
       dir=$(basename $proj)
@@ -52,11 +53,11 @@ while read line; do
 
           if [ ! -d $dir ]; then
               if [ -n "$GITHUB_SSH_ID" ]; then
-                  ssh-agent bash -c "ssh-add $HOME/.ssh/$GITHUB_SSH_ID; git clone git@github.com:$proj $dir"
+                  ssh-agent bash -c "ssh-add $HOME/.ssh/$GITHUB_SSH_ID; git clone ${GIT_CLONE_OPTIONS} git@github.com:$proj $dir"
               elif [ -n "$GITHUB_LOGIN" ] && [ -n "$GITHUB_TOKEN" ]; then
-                  git clone "https://$GITHUB_LOGIN:$GITHUB_TOKEN@github.com/$proj" "$dir"
+                  git clone ${GIT_CLONE_OPTIONS} "https://$GITHUB_LOGIN:$GITHUB_TOKEN@github.com/$proj" "$dir"
               else
-                  git clone "https://github.com/$proj" "$dir"
+                  git clone ${GIT_CLONE_OPTIONS} "https://github.com/$proj" "$dir"
               fi
           fi
 
@@ -82,9 +83,12 @@ while read line; do
                   git fetch origin "$BRANCH"
               fi
               if ! git rebase "origin/$BRANCH"; then
-                  $BASEDIR/send-feedback $TARGET "error in dci-check-change: unable to rebase PR $pr from $proj branch $BRANCH"
-                  rm -rf $TARGET
-                  exit 1
+                  git rebase --abort
+                  if ! git merge "origin/$BRANCH"; then
+                      $BASEDIR/send-feedback $TARGET "ERROR unable to rebase PR $pr from $proj branch $BRANCH"
+                      rm -rf $TARGET
+                      exit 1
+                  fi
               fi
           fi
       fi
@@ -99,7 +103,7 @@ while read line; do
           REVID=$(jq -r ".revisions[\"$CURREV\"].fetch[\"anonymous http\"].ref" ${changeid}.json)
 
           if [ ! -d $PROJECT ]; then
-              git clone $REPOURL $PROJECT
+              git clone ${GIT_CLONE_OPTIONS} $REPOURL $PROJECT
           fi
 
           cd $PROJECT
@@ -115,7 +119,7 @@ while read line; do
               git checkout gr$changeid
               git fetch origin master
               if ! git rebase origin/master; then
-                  $BASEDIR/send-feedback $TARGET "error in dci-check-command: unable to rebase Gerrit review $changeid from $PROJECT"
+                  $BASEDIR/send-feedback $TARGET "ERROR unable to rebase Gerrit review $changeid from $PROJECT"
                   rm -rf $TARGET
                   exit 1
               fi

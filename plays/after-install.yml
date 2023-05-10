@@ -104,8 +104,8 @@
         - DCI_API_SECRET: "{{ dci_api_secret }}"
         - DCI_CS_URL: "{{ dci_cs_url }}"
       dci_component:
-        name: "{{ kernel_version }}"
-        canonical_project_name: "rhcos_kernel {{ kernel_version }}"
+        display_name: "rhcos_kernel {{ kernel_version }}"
+        version: "{{ kernel_version }}"
         team_id: "{{ job_info['job']['team_id'] }}"
         topic_id: "{{ job_info['job']['topic_id'] }}"
         type: kernel
