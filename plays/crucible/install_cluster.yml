@@ -1,0 +1,14 @@
+---
+- name: Installing the cluster
+  hosts: bastion
+  gather_facts: False
+  vars_files:
+    - ../../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: install cluster"
+        include_role:
+          name: install_cluster
+      rescue:
+        - include_tasks: teardown_failure.yml
+...

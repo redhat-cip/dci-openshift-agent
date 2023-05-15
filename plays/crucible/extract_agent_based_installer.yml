@@ -1,0 +1,28 @@
+---
+- name: Extract openshift installer
+  hosts: bastion
+  gather_facts: false
+  environment:
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+  vars:
+    destination_hosts:
+      - bastion
+    pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
+    extract_dest_path: "{{ dci_cluster_configs_dir }}/extract"
+  vars_files:
+    - ../../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: pre-compute need to get hashes"
+        set_fact:
+          run_get_hash: "{{ assisted_installer_release_images | default({}) | length == 0  }}"
+      - name: "assisted installer: get image hash"
+        include_role:
+          name: get_image_hash
+        when: run_get_hash | bool
+      - name: "assisted installer: extract openshift installer"
+        include_role:
+          name: extract_openshift_installer
+      rescue:
+        - include_tasks: teardown_failure.yml
+...

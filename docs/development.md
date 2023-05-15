@@ -138,6 +138,7 @@ change. This will direct `dci-check-change` to test in a specific way:
 
 - `Test-Hints: sno` validate the change in SNO mode.
 - `Test-Hints: assisted` validate the change in assisted installer mode.
+- `Test-Hints: assisted-abi` validate the change in assisted installer mode using the agent based installer.
 - `Test-Hints: sno-ai` validate the change in SNO with assisted installer mode.
 - `Test-Hints: libvirt` validate in libvirt mode (3 masters).
 - `Test-Hints: no-check` do not run a check (useful in CI mode).

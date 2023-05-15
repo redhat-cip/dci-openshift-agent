@@ -1,0 +1,16 @@
+---
+- name: Generate Assisted Installer Discovery ISO
+  hosts: bastion
+  gather_facts: False
+  vars:
+    pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
+  vars_files:
+    - ../../group_vars/all
+  tasks:
+    - block:
+      - name: "assisted installer: generate discovery iso"
+        include_role:
+          name: generate_discovery_iso
+      rescue:
+        - include_tasks: teardown_failure.yml
+...

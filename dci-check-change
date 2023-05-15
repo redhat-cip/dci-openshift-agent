@@ -51,6 +51,7 @@ if [ $# = 0 ] || [ "$1" = -h ]; then
     --virt                Use OCP on Libvirt.
     --sno                 Use SNO on Libvirt.
     --assisted            Use Assisted Installer on Libvirt.
+    --assisted-abi        Use Assisted Installer on Libvirt with Agent Based Installer.
     --sno-ai              Use SNO with Assisted Installer on Libvirt.
     --force-check         Force to run a check even if there is no code change.
     --tag <tag>           Specify the tag to set on the job (default: debug).
@@ -92,6 +93,12 @@ elif [ $1 = --sno ]; then
     shift
 elif [ $1 = --assisted ]; then
     ARGVIRT=--assisted
+    if [ -n "$ASSISTED_DCI_QUEUE" ]; then
+        DCI_QUEUE="$ASSISTED_DCI_QUEUE"
+    fi
+    shift
+elif [ $1 = --assisted-abi ]; then
+    ARGVIRT=--assisted-abi
     if [ -n "$ASSISTED_DCI_QUEUE" ]; then
         DCI_QUEUE="$ASSISTED_DCI_QUEUE"
     fi
@@ -269,6 +276,13 @@ else
 
     if [[ assisted =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*assisted\s*" <<< $DESC; then
         VIRT=--assisted
+        if [ -n "$ASSISTED_DCI_QUEUE" ]; then
+            DCI_QUEUE="$ASSISTED_DCI_QUEUE"
+        fi
+    fi
+
+    if [[ assisted-abi =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*assisted-abi\s*" <<< $DESC; then
+        VIRT=--assisted-abi
         if [ -n "$ASSISTED_DCI_QUEUE" ]; then
             DCI_QUEUE="$ASSISTED_DCI_QUEUE"
         fi

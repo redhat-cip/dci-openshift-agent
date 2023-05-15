@@ -181,6 +181,11 @@ elif [ "$1" = "--assisted" ]; then
     DCI_NAME=${DCI_NAME:-"assisted"}
     INSTALL_OPT="-e install_type=assisted"
     shift
+elif [ "$1" = "--assisted-abi" ]; then
+    VIRT="assisted-abi"
+    DCI_NAME=${DCI_NAME:-"assisted-abi"}
+    INSTALL_OPT="-e install_type=assisted"
+    shift
 elif [ "$1" = "--sno-ai" ]; then
     VIRT="sno-ai"
     DCI_NAME=${DCI_NAME:-"sno-ai"}
@@ -378,6 +383,8 @@ if [ -d dci-openshift-agent ]; then
         VIRTDIR="$PWD"/dci-openshift-agent/samples/sno_on_libvirt
     elif [ "$VIRT" = assisted ]; then
         VIRTDIR="$PWD"/dci-openshift-agent/samples/assisted_on_libvirt
+    elif [ "$VIRT" = "assisted-abi" ]; then
+        VIRTDIR="$PWD"/dci-openshift-agent/samples/assisted_on_libvirt
     elif [ "$VIRT" = "sno-ai" ]; then
         # sno-ai uses the same templates as assisted
         VIRTDIR="$PWD"/dci-openshift-agent/samples/assisted_on_libvirt
@@ -395,6 +402,8 @@ else
     elif [ $VIRT = sno ]; then
         VIRTDIR=/var/lib/dci-openshift-agent/samples/sno_on_libvirt
     elif [ $VIRT = assisted ]; then
+        VIRTDIR=/var/lib/dci-openshift-agent/samples/assisted_on_libvirt
+    elif [ $VIRT = "assisted-abi" ]; then
         VIRTDIR=/var/lib/dci-openshift-agent/samples/assisted_on_libvirt
     elif [ $VIRT = "sno-ai" ]; then
         VIRTDIR=/var/lib/dci-openshift-agent/samples/assisted_on_libvirt
@@ -527,6 +536,10 @@ if [ -z "$KCFG" ]; then
             setsid ansible-playbook -vv generate-hosts-file.yml ${VIRT_INV:-} &
             do_wait
         elif [ "$VIRT" = assisted ]; then
+            OPTS+=(-e install_type=assisted)
+            setsid ansible-playbook -vv generate-hosts-file.yml ${VIRT_INV:-} &
+            do_wait
+        elif [ "$VIRT" = "assisted-abi" ]; then
             OPTS+=(-e install_type=assisted)
             setsid ansible-playbook -vv generate-hosts-file.yml ${VIRT_INV:-} &
             do_wait
