@@ -95,6 +95,14 @@
         acm_rootfs_url: "{{ hub_webserver }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
         acm_release_image: "{{ hub_registry | urlsplit('netloc') }}/{{ 'ocp-'+version_core+'/'+version }}:{{ version }}"
         dci_local_registry: "{{ hub_registry | urlsplit('netloc') }}"
+
+    - name: "Mirror must gather images"
+      include_role:
+        name: mirror_images
+      vars:
+        images: "{{ dci_must_gather_images | default(['registry.redhat.io/openshift4/ose-must-gather']) }}"
+        authfile: "{{ dci_pullsecret_file }}"
+
   when:
     - dci_disconnected | default(false) | bool
 
