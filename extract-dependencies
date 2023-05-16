@@ -73,7 +73,7 @@ while read line; do
               git fetch origin "pull/$pr/head:pr$pr"
           fi
           # check if branch is already merged
-          if git branch -d pr$pr; then
+          if [ "$(jq -r .merged ../$dir-$pr.json)" = true ]; then
               git checkout "$BRANCH"
           else
               git checkout pr$pr
@@ -113,7 +113,7 @@ while read line; do
           git branch -D gr$changeid || :
           git fetch $REPOURL $REVID:gr$changeid
           # check if branch is already merged
-          if git branch -d gr$changeid; then
+          if [ "$(jq -r .status ../${changeid}.json)" = "MERGED" ]; then
               git checkout master
           else
               git checkout gr$changeid
