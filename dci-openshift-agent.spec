@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.6
+Version:       0.5.7
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -85,6 +85,7 @@ exit 0
 %{_datadir}/dci-openshift-agent/roles/*
 %{_datadir}/dci-openshift-agent/action_plugins/*
 %{_datadir}/dci-openshift-agent/utils/*
+%{_datadir}/dci-openshift-agent/plays/crucible/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 
@@ -97,6 +98,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon May 15 2023 Bill Peck <bpeck@redhat.com> 0.5.7-1
+- Move crucible playbooks into crucible directory in the agent
+
 * Fri Apr 28 2023 Frederic Lepied <flepied@redhat.com> 0.5.6-1
 - Requires dci-ansible >= 3.1.0 for the new component fields
 

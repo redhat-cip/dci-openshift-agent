@@ -25,6 +25,10 @@ install:
 	  install -p -D -m 755 $$script $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$script; \
 	done
 
+	for cru_play in plays/crucible/*.yml; do \
+	  install -p -D -m 755 $$cru_play $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$cru_play; \
+	done
+
 	install -dm 755 "$(BUILDROOT)$(DATADIR)/dci-openshift-agent/utils/"
 	install -Dm 755 utils/cleanup-scripts/*{.sh,.py} "$(BUILDROOT)$(DATADIR)/dci-openshift-agent/utils/"
 
