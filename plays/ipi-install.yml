@@ -149,11 +149,11 @@
       release_url: "http://{{ controller_url }}:{{ aw_dynamic_port }}"
 
   - name: "installer : Node preparation"
-    environment: "{{ disconnected_envs | default({}) }}"
     import_role:
       name: node-prep
 
   - name: "installer : Run IPI installer"
+    environment: "{{ disconnected_envs | default({}) }}"
     import_role:
       name: installer
 
