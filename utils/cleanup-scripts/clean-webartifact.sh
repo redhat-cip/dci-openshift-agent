@@ -15,6 +15,7 @@
 # under the License.
 
 # A shell script to remove dangling containers for the artifacts web server
+# Lingering images named with job IDs are also removed
 # The Remore CI is used to confirm the Job status
 # Params: The path to a valid remote CI
 
@@ -37,6 +38,10 @@ if [[ ! -f $remote_ci ]]; then
 fi
 source "${remote_ci}"
 
+###
+# Cleaning web artifacts
+###
+
 # Get the container names
 containers=$(podman ps -a --sort created --filter 'name=\w{8}(-\w{4}){3}-\w{8}' --format "{{.Names}}");
 
@@ -52,3 +57,22 @@ do
     podman rm -f "${name}"
   fi
 done <<< "${containers}"
+
+####
+# Remove lingering images
+####
+
+# Get the container names
+images=$(podman images --sort created --filter 'reference=*/cnf-certification-test:*' --format "{{.Repository}}:{{.Tag}}" | grep -E '\w{8}(-\w{4}){3}-\w{12}');
+
+# Loop over the images and check their job status
+while IFS=, read -r name
+do
+  job_id=$(echo "$name" | cut -d':' -f2 | cut -d'-' -f2-)
+  # Check if the job is in a failure state
+  fail_states=( failure error killed )
+  job_status=$(dcictl --format json job-show "${job_id}" | jq -er .job.jobstates[-1].status)
+  if [[ " ${fail_states[*]} " =~ ${job_status} ]]; then
+    podman rmi -f "${name}"
+  fi
+done <<< "${images}"
