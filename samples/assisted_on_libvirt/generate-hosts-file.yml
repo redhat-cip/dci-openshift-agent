@@ -1,15 +1,10 @@
 ---
 - name: Create hosts inventory file
+  import_playbook: parse-template.yml
+
+- name: Create directories
   hosts: provisioner
   tasks:
-    - name: Generating hosts inventory file
-      template:
-        src: ./templates/hosts.j2
-        dest: "{{ inventory_prefix }}hosts"
-      vars:
-        input_prefix: "{{ lookup('env', 'PREFIX') }}"
-        inventory_prefix: "{{ (input_prefix | replace('-p ', '')) + '-' if input_prefix != '' else '' }}"
-      delegate_to: localhost
     - name: Create cache_dir_base Directory
       become: true
       file:

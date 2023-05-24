@@ -1,15 +1,16 @@
 all:
   vars:
     vm_node_prefix: ''
-    use_agent_based_installer: "{{ use_agent_based_installer | default(false) }}"
+    use_agent_based_installer: {{ use_agent_based_installer | default(false) | bool | string | lower }}  # uses ABI install instead of OnPrem
 
-    # START Restricted Network configuration
-    #
-    setup_registry_service: false # set to true on restricted network
-    setup_http_store_service: true # set to true on restricted network
-    use_local_mirror_registry: false # set to true on restricted network
-
-    SETUP_VM_BRIDGE: false  # Use existing bridge br0
+    # Flags to enable/disable prerequisite service setup
+    # You will need to ensure alternatives are available for anything that will not be automatically set up
+    setup_assisted_installer: true  # always required
+    setup_http_store_service: true  # always required to serve boot.iso to nodes
+    setup_ntp_service: {{ setup_ntp_service | default('false') | bool | string | lower }}  # recommended true for libvirt setups
+    setup_dns_service: {{ setup_dns_service | default('false') | bool | string | lower }}  # recommended true for libvirt setups
+    setup_registry_service: {{ setup_registry_service | default('false') | bool | string | lower }}  # set to true on restricted network
+    use_local_mirror_registry: {{ use_local_mirror_registry | default('false') | bool | string | lower }}  # set to true on restricted network
 
     # Local cache configuration
     cache_dir_base: "{{ cache_dir_base | default('/var/cache/dci-openshift-agent') }}"
@@ -21,9 +22,6 @@ all:
     http_dir: "{{ '{{ cache_dir_base }}' }}/http"
     iso_download_dest_path: "{{ '{{ http_dir }}' }}/data"
     rootfs_directory: "{{ '{{ iso_download_dest_path }}' }}/pxe"
-    images_dir: /var/lib/libvirt/images
-    #
-    # END Restricted Network configuration
 
     # HTTP Secret for the Container Registry.
     # More information on the vars used to configure the Registry can be found here:
@@ -54,7 +52,6 @@ all:
     cluster_name: "{{ cluster_name }}"
 
     base_dns_domain: "{{ domain }}"
-#    listen_address: 10.60.0.190
 
     # Virtual IP addresses used to access the resulting OpenShift cluster
     api_vip: "{{ api_vip }}" # the IP address to be used for api.clustername.example.lab and api-int.clustername.example.lab, if installing SNO set to the same IP as the single master node
@@ -64,7 +61,7 @@ all:
     vip_dhcp_allocation: false
 
     # The subnet on which all nodes are (or will be) accessible.
-    machine_network_cidr: 192.168.16.0/25
+    machine_network_cidr: "{{ machine_network_cidr }}"
 
     # The IP address pool to use for service IP addresses
     service_network_cidr: 172.30.0.0/16
@@ -82,18 +79,11 @@ all:
     # Prerequisite Service Configuration #
     ######################################
 
-    # Flags to enable/disable prerequisite service setup
-    # You will need to ensure alternatives are available for anything that will not be automatically set up
-    setup_ntp_service: {{ setup_ntp_service | default('false') }}
-    setup_dns_service: false
-    setup_assisted_installer: true # default is true you may wish to turn it off if multiple users are using the same instance.
-
-
     # NTP Service
     # ntp_server is the address at which the NTP service is (or will be) available
-    ntp_server: "{{ ntp_server | default(lookup('community.general.dig', provisioner_hostname)) }}"
+    ntp_server: "{{ ntp_server | default(ansible_default_ipv4.address) }}"
     # ntp_server_allow is the range of IPs the NTP service will respond to
-    # ntp_server_allow: 192.168.16.0/25 # not required if setup_ntp_service is false
+    ntp_server_allow: "{{ machine_network_cidr }}"  # not required if setup_ntp_service is false
 
     # HTTP Store Configuration
     # ISO name must include the `discovery` directory if you have a SuperMicro machine
@@ -174,25 +164,21 @@ all:
     bastions: # n.b. Currently only a single bastion is supported
       hosts:
         bastion:
-{% if (use_agent_based_installer | default(false)) | bool %}
+{% if (use_agent_based_installer | default(false) | bool) %}
           ansible_host: "localhost"
-          ansible_connection: local
+          ansible_connection: "local"
 {% else %}
-          ansible_host: "{{ provisioner_hostname }}" # Must be reachable from the Ansible control node
-          ansible_user: {{ provisioner_username | default('root') }}
-{% if provisioner_hostname == 'localhost' %}
-           ansible_connection: local
-{% endif %}
+          ansible_host: "{{ provisioner_hostname }}"
+          ansible_user: "{{ provisioner_username | default('root') }}"
+          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
 {% endif %}
 
     provisioner:
       hosts:
         provisioner:
-          ansible_host: "{{ provisioner_hostname }}" # Must be reachable from the Ansible control node
-          ansible_user: {{ provisioner_username | default('root') }}
-{% if provisioner_hostname == 'localhost' %}
-           ansible_connection: local
-{% endif %}
+          ansible_host: "{{ provisioner_hostname }}"
+          ansible_user: "{{ provisioner_username | default('root') }}"
+          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
 
     # Configuration and access information for the pre-requisite services
     # TODO: document differences needed for already-deployed and auto-deployed
@@ -200,20 +186,16 @@ all:
       hosts:
         assisted_installer:
           ansible_host: "{{ provisioner_hostname }}"
-          ansible_user: {{ provisioner_username | default('root') }}
-{% if provisioner_hostname == 'localhost' %}
-          ansible_connection: local
-{% endif %}
+          ansible_user: "{{ provisioner_username | default('root') }}"
+          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
           host: "{{ provisioner_hostname }}"
           port: 8090 # Do not change
           dns: "{{ provisioner_dns }}"
 
         registry_host:
           ansible_host: "{{ provisioner_hostname }}"
-          ansible_user: {{ provisioner_username | default('root') }}
-{% if provisioner_hostname == 'localhost' %}
-          ansible_connection: local
-{% endif %}
+          ansible_user: "{{ provisioner_username | default('root') }}"
+          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
           registry_port: 5000
           registry_fqdn: "{{ provisioner_hostname }}"
           cert_common_name: "{{ '{{ registry_fqdn }}' }}"
@@ -230,63 +212,63 @@ all:
 
         dns_host:
           ansible_host: "{{ provisioner_hostname }}"
-          ansible_user: {{ provisioner_username | default('root') }}
-{% if provisioner_hostname == 'localhost' %}
-          ansible_connection: local
-{% endif %}
-          upstream_dns: {{ provisioner_dns }} # an optional upstream dns server
+          ansible_user: "{{ provisioner_username | default('root') }}"
+          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
+{% if setup_dns_service | default(false) | bool %}
           # The following are required for DHCP setup
+          upstream_dns: "{{ provisioner_dns }}"
           use_dhcp: true
-          dhcp_range_first: 10.60.0.101
-          dhcp_range_last:  10.60.0.105
-          prefix: 24
-          gateway: 10.60.0.190
+          dhcp_range_first: "{{ machine_network_cidr | ipaddr('101') | ipaddr('address') }}"
+          dhcp_range_last: "{{ machine_network_cidr | ipaddr('105') | ipaddr('address') }}"
+          prefix: "{{ machine_network_cidr | ipaddr('prefix') }}"
+          listen_address: "{{ vm_bridge_ip }}"
+          gateway: "{{ vm_bridge_ip }}"
+{% endif %}
 
         http_store:
           ansible_host: "{{ provisioner_hostname }}"
-          ansible_user: {{ provisioner_username | default('root') }}
-{% if provisioner_hostname == 'localhost' %}
-          ansible_connection: local
-{% endif %}
+          ansible_user: "{{ provisioner_username | default('root') }}"
+          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
 
         tftp_host:
           ansible_host: "{{ provisioner_hostname }}"
-          ansible_user: {{ provisioner_username | default('root') }}
-{% if provisioner_hostname == 'localhost' %}
-          ansible_connection: local
-{% endif %}
+          ansible_user: "{{ provisioner_username | default('root') }}"
+          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
           tftp_directory: /var/lib/tftpboot/
 
         ntp_host:
           ansible_host: "{{ provisioner_hostname }}"
-          ansible_user: {{ provisioner_username | default('root') }}
-{% if provisioner_hostname == 'localhost' %}
-          ansible_connection: local
-{% endif %}
+          ansible_user: "{{ provisioner_username | default('root') }}"
+          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
 
     vm_hosts:
       hosts:
         vm_host1: # Required for using "KVM" nodes, ignored if not.
-          ansible_user: {{ provisioner_username | default('root') }}
           ansible_host: "{{ provisioner_hostname }}"
+          ansible_user: "{{ provisioner_username | default('root') }}"
+          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
+          qemu_user: root  # we want the VMs to belong to root
           host_ip_keyword: ansible_host # the varname in the KVM node hostvars which contains the *IP* of the VM
-          images_dir: /home/redhat/libvirt/images # directory where qcow images will be placed.
-          vm_bridge_name: br0
-#          vm_bridge_ip: 10.60.0.190 # IP for the bridge between VMs and machine network
-#          vm_bridge_zone: libvirt
-#          vm_bridge_interface: eno2 # Interface to be connected to the bridge. DO NOT use your primary interface.
-#          network_config:
-#            interfaces:
-#              - type: linux-bridge
-#                name: "{% raw %}{{ vm_bridge_name }}{% endraw %}"
-#                addresses:
-#                  ipv4:
-#                    - ip: "{{ '{{ vm_bridge_ip }}' }}"
-#                      prefix: "{% raw %}{{ machine_network_cidr | ipaddr('prefix') }}{% endraw %}"
-#                bridge:
-#                  stp: True
-
-          dns: "{{ provisioner_hostname }}" # DNS used by the bridge
+          images_dir: /var/lib/libvirt/images
+          vm_bridge_name: "{{ vm_bridge_name | default('br0') }}"
+          vm_network_test_ip: "{{ ansible_default_ipv4.address }}"
+          SETUP_VM_BRIDGE: {{ setup_vm_bridge | default(false) | bool | string | lower }}
+{% if setup_vm_bridge | default(false) | bool %}
+          vm_bridge_ip: "{{ vm_bridge_ip }}" # IP for the bridge between VMs and machine network
+          vm_bridge_zone: libvirt
+          # vm_bridge_interface: eno2  # If you want to bind a physical interface, do *not* use your primary interface
+          network_config:
+            interfaces:
+              - type: linux-bridge
+                name: "{% raw %}{{ vm_bridge_name }}{% endraw %}"
+                addresses:
+                  ipv4:
+                    - ip: "{{ '{{ vm_bridge_ip }}' }}"
+                      prefix: "{% raw %}{{ machine_network_cidr | ipaddr('prefix') }}{% endraw %}"
+                bridge:
+                  stp: True
+{% endif %}
+          dns: "{{ vm_bridge_ip }}"  # DNS used by the bridge
           # ssl cert configuration
           # sushy_fqdn: ... # use in case of different FQDN for the cert
           cert_vars_host_var_key: registry_host # Look up cert values from another host by name (excluding cert_common_name)
@@ -302,37 +284,42 @@ all:
       vars:
         bmc_user: "{{ '{{ VAULT_NODES_BMC_USER | mandatory }}' }}"
         bmc_password: "{{ '{{ VAULT_NODES_BMC_PASSWORD | mandatory }}' }}"
+        bmc_address: "{{ provisioner_hostname }}:8082"
+        vm_host: vm_host1
+        vendor: KVM
+        vm_spec:
+          cpu_cores: 8
+          ram_mib: 16384
+          disk_size_gb: 150
+        network_config:
+          interfaces:
+            - name: enp1s0
+              mac: "{{ '{{ mac }}' }}"
+              addresses:
+                ipv4:
+                  - ip: "{{ '{{ ansible_host}}' }}"
+                    prefix: "25"
+          dns_server_ips:
+           - "{{ ansible_default_ipv4.address if (setup_dns_service | default('false') | bool) else provisioner_dns }}"
+          routes: # optional
+            - destination: 0.0.0.0/0
+              address: "{{ machine_network_cidr | ipaddr('1') | ipaddr('address') }}"
+              interface: enp1s0
       children:
         masters:
           vars:
             role: master
-            vendor: KVM
-            bmc_address: "{{ provisioner_hostname }}:8082"
-            vm_host: vm_host1
-            vm_spec:
-              cpu_cores: 8
-              ram_mib: 16384
-              disk_size_gb: 150
-            network_config:
-              interfaces:
-                - name: enp1s0
-                  mac: "{{ '{{ mac }}' }}"
-                  addresses:
-                    ipv4:
-                      - ip: "{{ '{{ ansible_host}}' }}"
-                        prefix: "25"
-              dns_server_ips:
-               - 192.168.16.10
-              routes: # optional
-                - destination: 0.0.0.0/0
-                  address: 192.168.16.1
-                  interface: enp1s0
-          hosts:
 {% if nodes['sno'] | default({}) | length > 0 %}
+            vm_spec:
+              cpu_cores: 16  # Use a bigger instance for SNO
+              ram_mib: 32718  # Use a bigger instance for SNO
+              disk_size_gb: 200  # Use a bigger instance for SNO
+          hosts:
             sno:
               ansible_host: "{{ nodes['sno']['ip'] }}"
               mac: "{{ nodes['sno']['mac'] }}"
 {% else %}
+          hosts:
 {% for m in nodes['masters'] %}
             dciokd-{{ m['name'] }}:
               ansible_host: "{{ m['ip'] }}"
@@ -341,28 +328,6 @@ all:
 {% if nodes['workers'] | default([]) | length > 0 %}
         workers:
           vars:
-            role: worker
-            vendor: KVM
-            bmc_address: "{{ provisioner_hostname }}:8082"
-            vm_host: vm_host1
-            vm_spec:
-              cpu_cores: 16
-              ram_mib: 32768
-              disk_size_gb: 200
-            network_config:
-              interfaces:
-                - name: enp1s0
-                  mac: "{{ '{{ mac }}' }}"
-                  addresses:
-                    ipv4:
-                      - ip: "{{ '{{ ansible_host}}' }}"
-                        prefix: "25"
-              dns_server_ips:
-               - 192.168.16.10
-              routes: # optional
-                - destination: 0.0.0.0/0
-                  address: 192.168.16.1
-                  interface: enp1s0
             role: worker
           hosts:
 {% for w in nodes['workers'] %}
