@@ -27,7 +27,7 @@
         default(["registry.redhat.io/openshift4/ose-must-gather"]) |
         join(" ") }}
     REGISTRY: "{{ dci_local_registry }}"
-    PATH: "{{ ansible_env.PATH }}:/sbin:/usr/sbin:/usr/local/bin/"
+    PATH: "{{ ansible_env.PATH }}:{{ dci_cluster_configs_dir }}:/sbin:/usr/sbin:/usr/local/bin/"
   script:
     cmd: >
       ./scripts/get-ocp-logs
