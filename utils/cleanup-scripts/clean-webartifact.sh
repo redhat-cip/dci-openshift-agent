@@ -50,7 +50,7 @@ while IFS=, read -r name
 do
   # Check if the job is in a failure state
   fail_states=( failure error killed )
-  job_status=$(dcictl --format json job-show "${name}" | jq -er .job.jobstates[-1].status)
+  job_status=$(dcictl --format json job-show "${name}" | jq -er .job.status)
   if [[ " ${fail_states[*]} " =~ ${job_status} ]]; then
     port=$(podman inspect "${name}" | jq -r '.[].NetworkSettings.Ports."8080/tcp"[0].HostPort')
     sudo firewall-cmd --remove-port="${port}"/tcp
@@ -71,7 +71,7 @@ do
   job_id=$(echo "$name" | cut -d':' -f2 | cut -d'-' -f2-)
   # Check if the job is in a failure state
   fail_states=( failure error killed )
-  job_status=$(dcictl --format json job-show "${job_id}" | jq -er .job.jobstates[-1].status)
+  job_status=$(dcictl --format json job-show "${job_id}" | jq -er .job.status)
   if [[ " ${fail_states[*]} " =~ ${job_status} ]]; then
     podman rmi -f "${name}"
   fi
