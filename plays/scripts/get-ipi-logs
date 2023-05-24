@@ -37,28 +37,52 @@ scp ${ssh_ops} "${user_at_provisioner}":clusterconfigs/.openshift_install.log "$
 scp ${ssh_ops} "${user_at_provisioner}":clusterconfigs/install-config.yaml.bkup "${log_dir}/install-config-yaml.txt"
 scp ${ssh_ops} "${user_at_provisioner}":clusterconfigs/.openshift_install_state.json "${log_dir}/openshift_install_state.json"
 
-# Get bootstrap VM hostname if it's running
-vm_hostname=""
+# Get all possible IPs used by bootstrap VM
+ips=()
+bm_data=$(jq '."*installconfig.InstallConfig".config.platform.baremetal' "${log_dir}/openshift_install_state.json")
+## provisioning IP
+if jq -e '.bootstrapProvisioningIP' <<< "${bm_data}" >/dev/null; then
+  ips+=($(jq -r '.bootstrapProvisioningIP' <<< "${bm_data}"))
+fi
+
+## bootstrap static IP
+if jq -e '.bootstrapExternalStaticIP' <<< "${bm_data}" >/dev/null; then
+  ips+=($(jq -r '.bootstrapExternalStaticIP' <<< "${bm_data}"))
+fi
+
+## bootstrap DHCP IP
+ext_mac=$(jq -r '.externalMACAddress' <<< "${bm_data}")
 vm=$(LANG=en_US.UTF-8 ${prov_cmd} sudo virsh list | awk '/.*-bootstrap\s+running/ {print $2}')
 if [ -n "${vm}" ]; then
-  ip=$(jq '."*installconfig.InstallConfig".config.platform.baremetal.bootstrapProvisioningIP' "${log_dir}/openshift_install_state.json")
+  ips+=($(LANG=en_US.UTF-8 ${prov_cmd} sudo virsh domifaddr --source arp "${vm}" |
+    awk '/'${ext_mac}'/ {print $4}' |
+    cut -d'/' -f1)
+  )
+fi
 
-  if ! vm_hostname=$(${prov_cmd} ssh ${ssh_ops} core@"$ip" hostname 2>/dev/null); then
-    # Fallback to apiVIP
-    ip=$(jq '."*installconfig.InstallConfig".config.platform.baremetal.apiVIP' "${log_dir}/openshift_install_state.json")
+## apiVIPs
+api_key="apiVIPs[0]"
+if jq -e '.apiVIP' <<< "${bm_data}" >/dev/null; then
+  api_key=apiVIP
+fi
+ips+=($(jq -r ".${api_key}" <<< "${bm_data}"))
 
-    if ! vm_hostname=$(${prov_cmd} ssh ${ssh_ops} core@"$ip" hostname 2>/dev/null); then
-      echo "Failed to get VM hostname"
+active_ip=""
+if [ -n "${vm}" ]; then
+  for ip in "${ips[@]}"; do
+    if ${prov_cmd} ssh ${ssh_ops} core@"${ip}" hostname 2>/dev/null; then
+      active_ip=${ip}
+      break
     fi
-  fi
+  done
 else
   echo "No running bootstrap VM found"
 fi
 
 echo "Collect logs from bootstrap VM if SSHable"
-if [ -n "${vm_hostname}" ]; then
-  echo "Collect logs on VM via: $ip"
-  core="ssh ${ssh_ops} core@$ip"
+if [ -n "${active_ip}" ]; then
+  echo "Collect logs on VM via: ${active_ip}"
+  core="ssh ${ssh_ops} core@${active_ip}"
 
   # Installer logs
   for nodes in "${nodes[@]}"; do
@@ -66,7 +90,7 @@ if [ -n "${vm_hostname}" ]; then
   done
 
   # Collect the bootstrap logs
-  ${prov_cmd} openshift-baremetal-install gather bootstrap --dir=/tmp/gatherBootstrap --bootstrap "${ip} ${nodes_param}"
+  ${prov_cmd} openshift-baremetal-install gather bootstrap --dir=/tmp/gatherBootstrap --bootstrap "${active_ip} ${nodes_param}"
   scp ${ssh_ops} "${user_at_provisioner}:/tmp/gatherBootstrap/*" "${log_dir}"
 
   $prov_cmd rm /tmp/gatherBootstrap/*
