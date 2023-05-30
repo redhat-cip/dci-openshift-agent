@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2020-2022 Red Hat, Inc.
+# Copyright (C) 2020-2023 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -76,7 +76,7 @@ function finish ()
             # Keep job id in /var/tmp/$CLUSTER.dci.job_id to survive
             # execution and be in a known location for test-runner to find
             # it. Keep in sync with test-runner.
-            CLUSTER=$(sed -n -e 's@.*changed:.*/clusterconfigs-\([^\"]*\)/kubeconfig.*@\1@p' "$ANSIBLE_LOG_PATH" | head -1)
+            CLUSTER=$(sed -n -e 's@.*changed:.*/clusterconfigs-\([^\"/]*\)/kubeconfig.*@\1@p' "$ANSIBLE_LOG_PATH" | head -1)
             mv -f "$JOB_ID_FILE" "/var/tmp/$CLUSTER.dci.job_id"
         fi
 

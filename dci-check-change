@@ -44,7 +44,7 @@ BASEDIR=$(cd $(dirname $0); pwd)
 if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno|--assisted|--sno-ai] [--force-check] [--tag <tag>] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    echo "Usage: $name [--virt|--sno|--assisted|--assisted-abi|--sno-ai] [--force-check] [--tag <tag>] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
     Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
 
     arguments:

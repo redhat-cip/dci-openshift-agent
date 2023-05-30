@@ -638,7 +638,7 @@ if [ -n "$KCFG" ]; then
     CLUSTER=$($OC config view -o jsonpath='{.clusters[0].name}')
 else
     # get the name of the cluster from the ansible output
-    CLUSTER=$(sed -n -e 's@^changed:.*/clusterconfigs-\([^\/]*\)/kubeconfig".*@\1@p' output | head -1)
+    CLUSTER=$(sed -n -e 's@.*changed:.*/clusterconfigs-\([^\"/]*\)/kubeconfig".*@\1@p' output | head -1)
     export KUBECONFIG="$HOME/clusterconfigs-$CLUSTER/kubeconfig"
 fi
 
