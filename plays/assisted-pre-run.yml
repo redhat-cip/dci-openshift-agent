@@ -150,7 +150,7 @@
           name: populate_mirror_registry
           tasks_from: prerequisites.yml
         vars:
-          downloads_path: "{{ ansible_env.HOME }}"
+          downloads_path: "{{ ai_releases_dir }}"
           release_image_remote: "{{ ocp_release_data['container_image'].split('@')[0] }}"
           config_file_path: "{{ dci_cluster_configs_dir }}"
       rescue: &teardown_error
@@ -363,7 +363,7 @@
     - ansible.posix
   gather_facts: "{{ (setup_registry_service | default(True)) | bool }}"
   vars:
-    downloads_path: "{{ hostvars.localhost.provision_cache_store | default(ansible_env.HOME) }}"
+    downloads_path: "{{ hostvars.localhost.provision_cache_store | default(ai_releases_dir) }}"
     config_file_path: "{{ dci_cluster_configs_dir }}"
     SETUP_REGISTRY_SERVICE: "{{ setup_registry_service | default(True)}}"
   vars_files:
