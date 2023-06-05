@@ -76,6 +76,12 @@
   when:
     - enable_logs_stack | bool
 
+- name: "Add operators if enable_mlb"
+  set_fact:
+    mirror_list: "{{ mirror_list + metallb_operators }}"
+  when:
+    - enable_mlb | bool
+
 - name: "Cleanup operators list"
   set_fact:
     mirror_list: "{{ mirror_list | unique | select | list }}"
