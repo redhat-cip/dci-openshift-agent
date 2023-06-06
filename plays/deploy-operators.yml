@@ -401,6 +401,16 @@
   when:
     - enable_nfd | bool
 
+- name: "deploy-operators : Install the MetalLB operator"
+  include_role:
+    name: olm-operator
+  vars:
+    operator: metallb-operator
+    source: "{{ opm_catalog_source_name }}"
+    namespace: metallb-system
+  when:
+    - enable_mlb | bool
+
 - name: "deploy-operators : Deploy other operators playbook"
   include_tasks: deploy-custom-operator.yml
   when:

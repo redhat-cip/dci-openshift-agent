@@ -58,6 +58,8 @@ enable_perf_addon: false
 enable_sriov: false
 enable_elasticsearch: false
 enable_lso: false
+enable_nfs_storage: false
+enable_mlb: false
 # Lists of packages for each operator
 cnv_operator:
   - kubevirt-hyperconverged
@@ -92,12 +94,13 @@ nfd_operator:
 logging_operators:
   - loki-operator
   - cluster-logging
+metallb_operators:
+  - metallb-operator
 dci_local_registry: |-
   {{ local_registry_host | default('') }}
   {%- if local_registry_port is defined %}
   :{{ local_registry_port }}
   {%- endif %}
-enable_nfs_storage: false
 ...
 
 # Local Variables:
