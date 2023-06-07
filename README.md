@@ -263,7 +263,7 @@ This is the dci-openshift-agent variables that can be set in the
 | enable_cnv                      | False    | Boolean | False                                                          | Deploys CNV and enables the HCO operator.
 | cnv_api_version                 | False    | String  | v1beta1
 API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
-| enable_logs_stack               | False    | Boolean | False                                                          | Deploys the Loki and cluster-logging operators.
+| enable_logs_stack               | False    | Boolean | False                                                          | Enables the OCP cluster logging subsystem using the Loki and ClusterLogging Operators. Please see the [Logging Stack settings](#logging-stack) section for more details.
 | enable_elasticsearch            | False    | Boolean | False                                                          | Deploys the ElasticSearch Operator.
 | enable_clusterlogging           | False    | Boolean | False                                                          | Deploys the Cluster-Logging Operator.
 | enable_perf_addon               | False    | Boolean | False                                                          | Deploys the Performance AddOn Operator. For its configuration is recommended to define a `performance_definition`.
@@ -508,6 +508,24 @@ The resulting list of operators to mirror is:
   - redhat-oadp-operator
   - multicluster-engine
 ```
+
+## Logging stack
+
+The `enable_logs_stack` variable allows configuring OCP to send log files and metrics produced by the infrastructure and workloads to a logging stack. This stack is integrated by the ClusterLogging, Loki and an Object storage system.
+
+The following variables allow customizing the logs stack deployment. Please see the [ocp-logging](roles/ocp-logging) role for additional details.
+
+| Variable                        | Required | Type    | Default                                                        | Description
+| ------------------------------- | -------- | ------- | -------------------------------------------------------------- | ------------
+| logs_access_key_id              | False    | String  | undefined                                                      | Key ID for the Object storage system.
+| logs_access_key_secret          | False    | String  | undefined                                                      | Key Secret for the Object Storage system.
+| logs_bucket                     | False    | String  | undefined                                                      | Object Storage bucket name.
+| logs_endpoint                   | False    | String  | undefined                                                      | Object Storage endpoint.
+| logs_region                     | False    | String  | undefined                                                      | Object Storage region.
+| logs_loki_size                  | False    | String  | undefined                                                      | Loki Deployment Size. See [Sizing](https://docs.openshift.com/container-platform/4.13/logging/cluster-logging-loki.html#deployment-sizing_cluster-logging-loki) for more details.
+| logs_storage_class              | False    | String  | undefined                                                      | Cluster Storage class for Loki components.
+| logs_event_router_image         | False    | String  | registry.redhat.io/openshift-logging/eventrouter-rhel8:v5.2.1-1| Event Router image.
+| logs_settings                   | False    | String  | ""                                                             | An optional yaml file with the variables listed above. The variables defined there take precedence over the ones defined at role level
 
 ## Interacting with your RHOCP Cluster
 

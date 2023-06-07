@@ -49,4 +49,13 @@
     - dci_main is defined
     - dci_main == 'upgrade'
     - storage_upgrade_tester | default(false) | bool
+
+- name: "Cleanup ClusterLogging resources"
+  vars:
+    - ol_action: 'cleanup'
+  include_role:
+    name: ocp-logging
+    tasks_from: clean-resources
+  when:
+    - enable_logs_stack | bool
 ...
