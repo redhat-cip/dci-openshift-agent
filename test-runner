@@ -527,7 +527,6 @@ if [ -z "$KCFG" ]; then
     PIPELINE_ID="$(dcictl --format json pipeline-create --name $PIPELINENAME --team-id $TEAM_ID|jq -r .pipeline.id)"
     [ -n "$PIPELINE_ID" ] && PIPELINE_ARG="\"dci_pipeline_id\": \"$PIPELINE_ID\", "
     if [ -n "$VIRT" ]; then
-        cd "$VIRTDIR"
         VIRT_INV=
 
         if [ -n "${PREFIX}" ] && [ -n "${CONFIG_DIR}" ]; then
@@ -538,9 +537,21 @@ if [ -z "$KCFG" ]; then
         fi
         export PREFIX
 
-        if [ "$VIRT" = virt ]; then
-            setsid ansible-playbook -vv libvirt_destroy.yml ${VIRT_INV:-} &
+        # For IPI, assisted and assisted-abi, run the same cleanup playbook
+        if [ "$VIRT" = virt ] || [ "$VIRT" = assisted ] || [ "$VIRT" = "assisted-abi" ]; then
+            cd "$VIRTDIR/../ocp_on_libvirt"
+            IPI_VIRT_INV=
+            if [ -d "${CONFIG_DIR}/ocp_on_libvirt/${PREFIX_NAME%-}" ]; then
+                IPI_VIRT_INV="-i ${CONFIG_DIR}/ocp_on_libvirt/${PREFIX_NAME%-}"
+            fi
+            
+            setsid ansible-playbook -vv libvirt_destroy.yml ${IPI_VIRT_INV:-} &
             do_wait
+        fi
+
+        cd "$VIRTDIR"
+
+        if [ "$VIRT" = virt ]; then
             setsid ansible-playbook -vv libvirt_up.yml ${VIRT_INV:-} "$@" &
             do_wait
         elif [ "$VIRT" = sno ]; then
