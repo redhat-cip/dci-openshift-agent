@@ -84,11 +84,20 @@ while read line; do
               fi
               if ! git rebase "origin/$BRANCH"; then
                   git rebase --abort
+                  # set username and email for git merge to work
+                  git config user.name "extract-dependencies"
+                  git config user.email "extract-dependencies@dci.com"
                   if ! git merge "origin/$BRANCH"; then
+                      # unset username and email
+                      git config --unset user.name
+                      git config --unset user.email
                       $BASEDIR/send-feedback $TARGET "ERROR unable to rebase PR $pr from $proj branch $BRANCH"
                       rm -rf $TARGET
                       exit 1
                   fi
+                  # unset username and email
+                  git config --unset user.name
+                  git config --unset user.email
               fi
           fi
       fi
