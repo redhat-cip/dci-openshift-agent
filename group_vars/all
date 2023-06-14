@@ -101,8 +101,11 @@ dci_local_registry: |-
   {%- if local_registry_port is defined %}
   :{{ local_registry_port }}
   {%- endif %}
-...
 
+# Image tags
+eventrouter_rhel_tag: v5.2.1-1
+nfs_subdir_external_provisioner_tag: v4.0.2
+...
 # Local Variables:
 # mode: yaml
 # End:

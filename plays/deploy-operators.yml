@@ -38,9 +38,12 @@
     nes_nfs_path: "{{ nfs_path }}"
     nes_path_pattern: "{{ job_id is defined |
                         ternary( job_id+'_${.PVC.name}', omit) }}"
-    nes_provisioner_image: "{{ dci_disconnected | default(false) | bool |
-                            ternary( dci_local_registry+'/sig-storage/nfs-subdir-external-provisioner:v4.0.2',
-                            'registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2' ) }}"
+    nes_provisioner_image: |-
+      {%- if dci_disconnected | default(false) %}
+      {{ dci_local_registry }}/sig-storage/nfs-subdir-external-provisioner:{{ nfs_subdir_external_provisioner_tag }}
+      {%- else %}
+      registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:{{ nfs_subdir_external_provisioner_tag }}
+      {%- endif %}
   when:
     - enable_nfs_storage | bool
 
@@ -271,6 +274,37 @@
         - storage_cluster | bool
 
   when: (enable_lso | bool) or (enable_ocs | bool)
+
+- name: "Setup OCP logging stack"
+  block:
+    - name: "Mirroring the event router image"
+      include_role:
+        name: mirror_images
+      vars:
+        images: ["registry.redhat.io/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}"]
+        authfile: "{{ dci_pullsecret_file }}"
+      when:
+        - dci_disconnected | default(false) | bool
+
+    - name: "Setup OCP logging stack"
+      include_role:
+        name: ocp-logging
+      vars:
+        ol_access_key_id: "{{ logs_access_key_id }}"
+        ol_access_key_secret: "{{ logs_access_key_secret }}"
+        ol_bucket: "{{ logs_bucket }}"
+        ol_endpoint: "{{ logs_endpoint }}"
+        ol_region: "{{ logs_region }}"
+        ol_loki_size: "{{ logs_loki_size }}"
+        ol_storage_class: "{{ logs_storage_class }}"
+        ol_event_router_image: |-
+          {%- if dci_disconnected | default(false) %}
+          {{ dci_local_registry }}/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}
+          {%- else %}
+          registry.redhat.io/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}
+          {%- endif %}
+  when:
+    - enable_logs_stack | bool
 
 - name: "Deploy and configure the Advanced Cluster Manager"
   vars:
