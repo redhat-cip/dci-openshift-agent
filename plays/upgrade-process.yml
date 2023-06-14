@@ -37,9 +37,43 @@
     when:
       - cluster_icsp.resources | length
 
-  - name: "Apply OCP signature"
-    community.kubernetes.k8s:
-      definition: '{{ lookup("url", "{{ webserver_url }}/{{ version }}/signature.yaml", split_lines=False) | from_yaml_all | list }}'
+  - name: "Get and apply release signature"
+    block:
+      - name: "Fetch release.txt"
+        uri:
+          url: "{{ webserver_url }}/{{ version }}/release.txt"
+          return_content: true
+          timeout: 10
+        register: release_file
+        no_log: true
+
+      - name: "release digest"
+        set_fact:
+          release_digest: "{{ release_file.content | regex_search('^Digest:\\s+sha256:(.*)$', '\\1', multiline=True) | first }}"
+
+      - name: "Download the release signature"
+        uri:
+          url: "https://mirror.openshift.com/pub/openshift-v4/signatures/openshift/release/sha256={{ release_digest }}/signature-1"
+          return_content: true
+          timeout: 900
+        register: release_signature
+
+      - name: "Apply signature config map"
+        vars:
+          encoded_sig: "{{ release_signature.content | b64encode }}"
+          signature_cm: |
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: signature-{{ version }}
+              namespace: openshift-config-managed
+              labels:
+                release.openshift.io/verification-signatures: ""
+            binaryData:
+              sha256-{{ release_digest }}-1 : {{ encoded_sig }}
+        community.kubernetes.k8s:
+          state: present
+          definition: "{{ signature_cm }}"
     when: build != "nightly"
 
   - name: "Apply new OCP release ICSP"
