@@ -174,15 +174,19 @@
   retries: 10
   delay: 60
 
-- name: "upgrader : Execute the upgrade"
+- name: "upgrader : Execute the upgrade to {{ target_version }}"
   vars:
     upgrade_options: >-
       --to-image={{ version_pull_url }}
       {% if force_upgrade | default(false) %}
       --force
+      {%- endif %}
+      {% if force_upgrade | default(false) or allow_explicit_upgrade | default(false) %}
       --allow-explicit-upgrade
+      {%- endif %}
+      {% if force_upgrade | default(false) or allow_upgrade_warnings | default(false) %}
       --allow-upgrade-with-warnings
-      {% endif %}
+      {%- endif %}
   command:
     cmd: "{{ oc_tool_path }} adm upgrade {{ upgrade_options }}"
   register: start_upgrade
