@@ -16,7 +16,7 @@ install_type: ipi
 baremetal_deploy_repo: https://github.com/openshift-kni/baremetal-deploy
 baremetal_deploy_version: origin/master
 assisted_deploy_repo: https://github.com/redhat-partner-solutions/crucible.git
-assisted_deploy_version: bc3ccc1679dc15eca0e497b1c371d4cfec22bc7c
+assisted_deploy_version: 20a91c84d29fdf9e36308096d703aa364e442f0a
 ai_version: v2.18.1
 dci_openshift_agent_conformance: ''
 dci_openshift_csi_test_manifest: ''
