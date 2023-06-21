@@ -32,15 +32,13 @@
       become: true
       when: not grpcurl_path.stat.exists
 
-- name: Ensure proper directories are created
+- name: Ensure DCI cache directory is present
   file:
-    path: "{{ item }}"
+    path: "{{ dci_cache_dir }}"
     state: directory
     owner: "{{ ansible_user_id }}"
     group: "{{ ansible_user_gid }}"
-    mode: "0770"
-  loop:
-    - "{{ dci_cache_dir }}"
+    mode: "0750"
   become: true
 
 - name: "Get Ansible roles path"
