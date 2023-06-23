@@ -64,14 +64,14 @@ done <<< "${containers}"
 
 ### Collect information about lingering images
 # Get the CNF images
-images=$(podman images --sort created --filter 'reference=*/cnf-certification-test:*' --format "{{.Repository}}:{{.Tag}}" | grep -E '\w{8}(-\w{4}){3}-\w{12}' | tr '\n' ' ');
+podman images --sort created --filter 'reference=*/cnf-certification-test:*' --format "{{.Repository}}:{{.Tag}}" | grep -E '\w{8}(-\w{4}){3}-\w{12}' > /tmp/clean-images
 
 # Preflight images
-images+="$(podman images --sort created --filter 'reference=*/preflight:*' --format "{{.Repository}}:{{.Tag}}" | grep -E '\w{8}(-\w{4}){3}-\w{12}')"
+podman images --sort created --filter 'reference=*/preflight:*' --format "{{.Repository}}:{{.Tag}}" | grep -E '\w{8}(-\w{4}){3}-\w{12}' >> /tmp/clean-images
 
 # Loop over the images and check their job status
 # Remove the image if job is already in failure, error, or killed state
-while IFS=, read -r name
+while read -r name
 do
   job_id=$(echo "${name##*:}" |  cut -d'-' -f2-)
   # Check if the job is in a failure state
@@ -80,4 +80,4 @@ do
   if [[ " ${fail_states[*]} " =~ ${job_status} ]]; then
     podman rmi -f "${name}"
   fi
-done <<< "${images}"
+done < /tmp/clean-images
