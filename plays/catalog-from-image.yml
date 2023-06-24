@@ -1,0 +1,49 @@
+---
+- name: "Build catalog from upstream only for non-GA OCP versions"
+  vars:
+    short_ver: "{{ '.'.join(version.split('-')[0].split('.')[:2]) }}"
+  include_tasks: build-upstream-catalog.yml
+  when:
+    - dci_disconnected | default(false) | bool or (dci_local_registry | length )
+    - short_ver is version("4.14", ">=")
+
+- name: "Get the operators mirror-list"
+  include_tasks: get-mirror-list.yml
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: "Prune catalog and mirror the Red Hat operators"
+  block:
+    - name: "Build pruned catalog"
+      include_tasks: build-catalog.yml
+
+    - name: "Mirror pruned catalog"
+      include_role:
+        name: mirror-catalog
+      vars:
+        mc_oc_tool_path: "{{ oc_tool_path }}"
+        mc_catalog: "{{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
+        mc_registry: "{{ dci_local_registry }}"
+        mc_pullsecret: "{{ dci_pullsecret_file }}"
+
+    - name: "Append the ImageContentSourcePolicy file"
+      set_fact:
+        icsp_files: "{{ icsp_files | default([]) + [mc_icsp_file.path] }}"
+      when: mc_icsp_file is defined
+
+    - name: "Create Red Hat disconnected catalogSource"
+      include_role:
+        name: catalog-source
+      vars:
+        cs_name: "{{ opm_catalog_source_name }}"
+        cs_namespace: "{{ opm_catalog_source_namespace }}"
+        cs_image: "{{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
+        cs_publisher: "Red Hat Operators"
+      when:
+        - mirror_list is defined
+        - mirror_list | length
+  when:
+    - dci_disconnected | default(false) | bool
+    - mirror_list is defined
+    - mirror_list | length
+...
