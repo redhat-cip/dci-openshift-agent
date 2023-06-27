@@ -445,6 +445,31 @@
   when:
     - enable_mlb | bool
 
+- name: Deploy k8s NMState operator
+  vars:
+    nmstate_namespace: openshift-nmstate
+  block:
+    - name: "deploy-operators : Install the k8s NMState Operator"
+      include_role:
+        name: olm-operator
+      vars:
+        operator: kubernetes-nmstate-operator
+        source: "{{ opm_catalog_source_name }}"
+        namespace: "{{ nmstate_namespace }}"
+        operator_group_spec:
+          targetNamespaces:
+            - "{{ nmstate_namespace }}"
+
+    - name: Initialize instance
+      community.kubernetes.k8s:
+        definition:
+          apiVersion: nmstate.io/v1
+          kind: NMState
+          metadata:
+            name: nmstate
+  when:
+    - enable_nmstate | bool
+
 - name: "deploy-operators : Deploy other operators playbook"
   include_tasks: deploy-custom-operator.yml
   when:

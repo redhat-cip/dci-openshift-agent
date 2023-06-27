@@ -82,6 +82,12 @@
   when:
     - enable_mlb | bool
 
+- name: "Add operators if enable_nmstate"
+  set_fact:
+    mirror_list: "{{ mirror_list + nmstate_operators }}"
+  when:
+    - enable_nmstate | bool
+
 - name: "Cleanup operators list"
   set_fact:
     mirror_list: "{{ mirror_list | unique | select | list }}"

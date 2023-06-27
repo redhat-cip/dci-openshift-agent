@@ -280,6 +280,7 @@ API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | nfs_server                      | False    | String  |                                                                | NFS server's FQDN or IP Address. eg. my-nfs.mylab.local
 | nfs_path                        | False    | String  |                                                                | NFS export path. e.g. /exports/nfs-provisioner
 | enable_mlb                      | False    | Boolean | False                                                          | Deploys MetalLB operator.
+| enable_nmstate                  | False    | Boolean | False                                                          | Deploys the k8s NMstate operator and creates initial instance.
 
 > NOTE: There are certain particularities about versioning that you can read more in depth
 > in [the versioning document](docs/ocp_versioning.md)
