@@ -1,7 +1,7 @@
 all:
   vars:
     vm_node_prefix: ''
-    use_agent_based_installer: {{ use_agent_based_installer | default(false) | bool | string | lower }}  # uses ABI install instead of OnPrem
+    use_agent_based_installer: {{ use_agent_based_installer | default(true) | bool | string | lower }}  # uses ABI install instead of OnPrem
 
     # Flags to enable/disable prerequisite service setup
     # You will need to ensure alternatives are available for anything that will not be automatically set up
