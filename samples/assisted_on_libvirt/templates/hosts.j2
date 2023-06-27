@@ -164,7 +164,7 @@ all:
     bastions: # n.b. Currently only a single bastion is supported
       hosts:
         bastion:
-{% if (use_agent_based_installer | default(false) | bool) %}
+{% if (use_agent_based_installer | default(true) | bool) %}
           ansible_host: "localhost"
           ansible_connection: "local"
 {% else %}
