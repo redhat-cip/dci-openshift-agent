@@ -60,6 +60,7 @@ enable_elasticsearch: false
 enable_lso: false
 enable_nfs_storage: false
 enable_mlb: false
+enable_nmstate: false
 # Lists of packages for each operator
 cnv_operator:
   - kubevirt-hyperconverged
@@ -96,6 +97,8 @@ logging_operators:
   - cluster-logging
 metallb_operators:
   - metallb-operator
+nmstate_operators:
+  - kubernetes-nmstate-operator
 dci_local_registry: |-
   {{ local_registry_host | default('') }}
   {%- if local_registry_port is defined %}
