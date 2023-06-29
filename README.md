@@ -263,6 +263,7 @@ This is the dci-openshift-agent variables that can be set in the
 | apply_sriov_upgrade_settings    | False    | Boolean | True                                                           | Whether to apply SR-IOV recommended settings before operator upgrade.
 | dci_prepare_cnf                 | False    | Boolean | False                                                          | Deploys Performance Addon and SRIOV operators, Please use the `enable_sriov` or `enable_perf_addon` variables if only one of this operators is required. To complete the Performance Addon configuration it is recommended to also add a `performance_definition`.
 | enable_cnv                      | False    | Boolean | False                                                          | Deploys CNV and enables the HCO operator.
+| dci_cnv_test                    | False    | Boolean | False                                                          | Test the deploy of a VM using CNV and HCO operator.
 | cnv_api_version                 | False    | String  | v1beta1
 API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | enable_logs_stack               | False    | Boolean | False                                                          | Enables the OCP cluster logging subsystem using the Loki and ClusterLogging Operators. Please see the [Logging Stack settings](#logging-stack) section for more details.

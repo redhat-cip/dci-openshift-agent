@@ -1,5 +1,4 @@
 ---
-
 - name: "Get cluster version"
   community.kubernetes.k8s_info:
     api: config.openshift.io/v1
@@ -178,6 +177,10 @@
     - name: "configure-operators : Deploy Hyperconverged Operator"
       include_role:
         name: hco-setup
+      vars:
+        hs_pullsecret_file: "{{ dci_pullsecret_file }}"
+        hs_registry: "{{ dci_local_registry }}"
+        hs_test_vm: "{{ dci_cnv_test | default(false) | bool }}"
 
   when:
     - enable_cnv | bool
