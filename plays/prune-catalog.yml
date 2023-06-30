@@ -42,8 +42,6 @@
           set -x;
           {{ dci_cluster_configs_dir }}/opm render {{ source_index }} >
           {{ tmp_prune.path }}/index-packages
-      environment:
-        - DOCKER_CONFIG: "{{ docker_conf.path }}"
       register: prune_result
       until: prune_result.rc == 0
       retries: 3

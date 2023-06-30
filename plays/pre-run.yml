@@ -10,6 +10,15 @@
   when:
     - dci_disconnected | default(false) | bool
 
+- name: "Assert that file_catalog exists if enabled"
+  stat:
+    path: "{{ file_catalog }}"
+  register: catalog_path
+  failed_when:
+    - not catalog_path.stat.exists
+  when:
+    - file_catalog | length
+
 - name: "Validate NFS provisioner variables"
   assert:
     that:
