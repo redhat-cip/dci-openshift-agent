@@ -88,6 +88,13 @@
   when:
     - enable_nmstate | bool
 
+- name: "Add operators if enable_gitops and enable_acm"
+  set_fact:
+    mirror_list: "{{ mirror_list + gitops_operator }}"
+  when:
+    - enable_acm | bool
+    - enable_gitops | bool
+
 - name: "Cleanup operators list"
   set_fact:
     mirror_list: "{{ mirror_list | unique | select | list }}"

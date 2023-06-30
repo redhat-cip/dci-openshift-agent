@@ -284,6 +284,7 @@ API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | nfs_path                        | False    | String  |                                                                | NFS export path. e.g. /exports/nfs-provisioner
 | enable_mlb                      | False    | Boolean | False                                                          | Deploys MetalLB operator.
 | enable_nmstate                  | False    | Boolean | False                                                          | Deploys the k8s NMstate operator and creates initial instance.
+| enable_gitops                   | False    | Boolean | False                                                          | Deploys the [GitOps](https://www.redhat.com/en/technologies/cloud-computing/openshift/gitops) Operator.
 | file_catalog                    | False    | String  | ""                                                             | Absolute path to a local tar file created using the oc mirror plugin that contains operators for full disconnected environments. See [Mirroring from file](#mirroring-from-file) section for more information.
 | file_catalog_name               | False    | String  | catalog-from-file                                              | Name for the catalog created operators mirrored from `file_catalog`.
 

@@ -473,6 +473,19 @@
   when:
     - enable_nmstate | bool
 
+# GitOps Operator is used for ZTP, in combination with ACM, so
+# both must be enabled.
+- name: "deploy-operators : Install the GitOps Operator"
+  include_role:
+    name: olm-operator
+  vars:
+    operator: openshift-gitops-operator
+    source: "{{ opm_catalog_source_name }}"
+    namespace: openshift-gitops
+  when:
+    - enable_acm | bool
+    - enable_gitops | bool
+
 - name: "deploy-operators : Deploy other operators playbook"
   include_tasks: deploy-custom-operator.yml
   when:
