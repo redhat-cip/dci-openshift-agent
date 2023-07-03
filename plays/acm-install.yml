@@ -24,15 +24,26 @@
   when:
     - acm_cluster_type == 'sno'
 
-- name: "Save the SNO kubeconfig"
+- name: "Deploy a Hypershift cluster via ACM"
+  vars:
+    ah_ocp_version: "{{ hostvars.localhost.version }}"
+  include_role:
+    name: acm-hypershift
+    apply:
+      environment:
+        - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+  when:
+    - acm_cluster_type == 'hypershift'
+
+- name: "Save the {{ acm_cluster_type }} kubeconfig"
   copy:
     content: "{{ acm_kubeconfig_text }}"
     dest: "{{ dci_cluster_configs_dir }}/kubeconfig"
     mode: '0600'
 
-- name: "Save SNO credentials"
+- name: "Save {{ acm_cluster_type }} credentials"
   copy:
-    content: "SNO credentials\n
+    content: "{{ acm_cluster_type }} credentials\n
               ---\n
               username: {{ acm_kubeconfig_user }}\n
               password: {{ acm_kubeconfig_pass }}\n"

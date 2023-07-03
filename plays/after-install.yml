@@ -43,6 +43,8 @@
   retries: 6
   delay: 10
   until: cluster_operators_available == ['True']
+  when:
+    - acm_cluster_type | default('') != 'hypershift'
 
 - name: "Get control plane nodes"
   community.kubernetes.k8s_info:
@@ -91,6 +93,7 @@
       - "The available control/compute nodes are not according to the provided inventory or"
       - "are not enough to have an operational cluster"
   when:
+    - acm_cluster_type | default('') != 'hypershift'
     - ( control_nodes_count | int != requested_control | int ) or
       ( compute_nodes_count | int < requested_compute | int )
 
@@ -137,6 +140,8 @@
         channel: "fast-{{ base_version }}"
   retries: 6
   delay: 10
+  when:
+    - acm_cluster_type | default('') != 'hypershift'
 
 - name: "Apply node labels"
   include_role:
@@ -155,6 +160,7 @@
         kind: Provisioning
         name: provisioning-configuration
       register: provisioning_cr
+
     - name: Disable provisioning
       community.kubernetes.k8s:
         definition:
@@ -168,6 +174,7 @@
         - provisioning_cr.resources | length
   when:
     - dci_disable_provisioning | default(false) | bool
+    - acm_cluster_type | default('') != 'hypershift'
 
 - name: "Setup additional credentials to OCP"
   vars:
