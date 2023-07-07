@@ -36,7 +36,7 @@
     nes_nfs_server: "{{ nfs_server }}"
     nes_nfs_path: "{{ nfs_path }}"
     nes_path_pattern: "{{ job_id is defined |
-                        ternary( job_id+'_${.PVC.name}', omit) }}"
+                        ternary( job_id+'_${.PVC.namespace}.${.PVC.name}', omit) }}"
     nes_provisioner_image: |-
       {%- if dci_disconnected | default(false) %}
       {{ dci_local_registry }}/sig-storage/nfs-subdir-external-provisioner:{{ nfs_subdir_external_provisioner_tag }}
