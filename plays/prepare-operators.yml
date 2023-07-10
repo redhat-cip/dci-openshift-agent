@@ -54,7 +54,7 @@
       environment:
         DOCKER_CONFIG: "{{ docker_conf.path }}"
   when:
-    - file_catalog | length == 0
+    - operator_catalog_dir | length == 0
 
 - name: "Catalog from File"
   include_tasks:
@@ -63,7 +63,7 @@
       environment:
         DOCKER_CONFIG: "{{ docker_conf.path }}"
   when:
-    - file_catalog | length
+    - operator_catalog_dir | length
     - dci_local_registry | length
 
 - name: "Mirror custom catalogs"

@@ -10,14 +10,17 @@
   when:
     - dci_disconnected | default(false) | bool
 
-- name: "Assert that file_catalog exists if enabled"
-  stat:
-    path: "{{ file_catalog }}"
+- name: "Assert that operator_catalog_dir exists and has tar files"
+  find:
+    path: "{{ operator_catalog_dir }}"
+    recurse: true
+    patterns: "*.tar"
   register: catalog_path
   failed_when:
-    - not catalog_path.stat.exists
+    - catalog_path is undefined or
+      catalog_path.matched == 0
   when:
-    - file_catalog | length
+    - operator_catalog_dir | length
 
 - name: "Validate NFS provisioner variables"
   assert:

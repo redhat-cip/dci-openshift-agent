@@ -27,7 +27,7 @@
     cmd: >
       set -x;
       {{ image_dir }}/oc-mirror
-      --from={{ file_catalog }}
+      --from={{ operator_catalog_dir }}
       docker://{{ dci_local_registry }}
       --skip-metadata-check
       --dest-skip-tls
@@ -78,7 +78,7 @@
       include_role:
         name: catalog-source
       vars:
-        cs_name: "{{ file_catalog_name }}"
+        cs_name: "{{ operator_catalog_dir_name }}"
         cs_image: "{{ index_image }}"
 
 - name: "Delete working directory"
@@ -88,5 +88,5 @@
 
 - name: "Update catalogSource name"
   set_fact:
-    opm_catalog_source_name: "{{ file_catalog_name }}"
+    opm_catalog_source_name: "{{ operator_catalog_dir_name }}"
 ...

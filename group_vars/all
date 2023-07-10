@@ -113,8 +113,8 @@ eventrouter_rhel_tag: v5.2.1-1
 nfs_subdir_external_provisioner_tag: v4.0.2
 
 # Catalog from file vars
-file_catalog: ""
-file_catalog_name: "catalog-from-file"
+operator_catalog_dir: ""
+operator_catalog_dir_name: "catalog-from-file"
 
 ...
 # Local Variables:
