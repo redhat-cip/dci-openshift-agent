@@ -615,6 +615,16 @@ A DCI job produces a set of relevant configuration files, logs, reports, and tes
 | image-content-source-policies.yaml             | Tests   | Image Content Source policies applied to the cluster                                      |
 | openshift_install_state.json                   | Files   | File used to track the installation state the cluster, in contains paramaters used, progress, etc. |
 
+You may find extra files for the case of Assisted jobs:
+
+| File                                           | Section | Description                                                                               |
+| ---------------------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
+| agent-config.yaml                              | Files   | agent-config file related to the Assisted deployment |
+| install-config.yaml                            | Files   | install-config file related to the Assisted deployment |
+| \<pod_name\>_ai_pod.log                        | Files   | Log files from some pods deployed during Assisted bootstrap stage. \<pod_name\> can be `assisted-db`, `assisted-installer`, `cluster-bootstrap` and `service` |
+| \<service_name\>.log                           | Files   | Log files from some services running during Assisted bootstrap stage. \<service_name\> can be `bootkube` and `release-image` |
+| log-bundle-\<date\>                            | Files   | If present, it represents the output of `openshift-install gather bootstrap` command
+
 ## Troubleshooting common issues
 
 - [Basic configuration](#troubleshooting-basic-configuration)
