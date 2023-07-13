@@ -31,7 +31,9 @@
   script:
     cmd: >
       ./scripts/get-ocp-logs
-      {% if install_type == 'acm' %} -p sno {% endif %}
+      {% if install_type == 'acm' %}
+      -p {{ acm_cluster_type }}
+      {% endif %}
       {{ job_logs.path }}
   ignore_errors: true
 

@@ -31,6 +31,7 @@
         - hub_config | length
   when:
     - dci_disconnected | default(false) | bool
+    - acm_cluster_type == 'sno'
 
 - name: "Get cluster pull-secret"
   include_tasks: get-cluster-pullsecret.yml
@@ -105,6 +106,7 @@
 
   when:
     - dci_disconnected | default(false) | bool
+    - acm_cluster_type == 'sno'
 
 - name: "Get OCP release artifacts"
   block:
@@ -133,4 +135,5 @@
         acm_release_image: "{{ ocp_release_data['container_image'] | quote }}"
   when:
     - not (dci_disconnected | default(false) | bool)
+    - acm_cluster_type == 'sno'
 ...

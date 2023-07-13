@@ -396,6 +396,7 @@
           include_tasks: plays/deploy-operators.yml
       when:
       - dci_main == 'install'
+      - acm_cluster_type | default('') != 'hypershift'
 
       rescue: *teardown_failure
 
@@ -421,6 +422,7 @@
             loop_var: hookdir
       when:
         - dci_main == 'install'
+        - acm_cluster_type | default('') != 'hypershift'
 
       rescue: *teardown_failure
 
@@ -523,6 +525,8 @@
             loop_var: hookdir
         - name: "Run cluster health checks"
           include_tasks: plays/check-cluster-health.yml
+      when:
+        - acm_cluster_type | default('') != 'hypershift'
       rescue: *teardown_failure
 
     - name: post-run
