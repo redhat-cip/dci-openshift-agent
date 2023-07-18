@@ -22,7 +22,7 @@ registry_cert_alt_name: "DNS:{{ registry_fqdn }}"
 registry_cache_dir: "{{ provision_cache_store | default('/opt/cache') }}"
 registry_cache_http_port: 8080
 registry_cache_container: cached-images
-registry_cache_container_image: registry.centos.org/centos/httpd-24-centos7:latest
+registry_cache_container_image: quay.io/centos7/httpd-24-centos7:latest
 registry_services:
 - svc: "{{ registry_container }}"
   cmd: >
