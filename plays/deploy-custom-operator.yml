@@ -9,3 +9,4 @@
     ns_labels: "{{ dci_operator.ns_labels | default(omit) }}"
     channel: "{{ dci_operator.channel | default('') }}"
     starting_csv: "{{ dci_operator.starting_csv | default('') }}"
+    operator_group_name: "{{ dci_operator.operator_group_name | default(dci_operator.name) }}"

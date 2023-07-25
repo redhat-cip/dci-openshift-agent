@@ -488,6 +488,9 @@ dci_operators:
   - name: local-storage-operator
     catalog_source: mirrored-redhat-operators
     namespace: openshift-local-storage
+    channel: stable
+    starting_csv: 4.14.0-202307190803
+    operator_group_name: local-storage
     operator_group_spec:
       targetNamespaces:
         - openshift-local-storage
