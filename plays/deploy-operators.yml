@@ -486,6 +486,11 @@
     - enable_acm | bool
     - enable_gitops | bool
 
+- name: "deploy-operators : All operators from a catalog"
+  include_tasks: all-from-catalog.yml
+  when:
+    - install_all_from_catalog | default('') | length
+
 - name: "deploy-operators : Deploy other operators playbook"
   include_tasks: deploy-custom-operator.yml
   when:

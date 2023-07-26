@@ -115,7 +115,6 @@ nfs_subdir_external_provisioner_tag: v4.0.2
 # Catalog from file vars
 operator_catalog_dir: ""
 operator_catalog_dir_name: "catalog-from-file"
-
 ...
 # Local Variables:
 # mode: yaml

@@ -1,0 +1,63 @@
+---
+- name: "Create an additional NS for {{ package }} operator"
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ item.value.required_ns }}"
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
+          pod-security.kubernetes.io/enforce-version: latest
+          security.openshift.io/scc.podSecurityLabelSync: "false"
+  loop: "{{ lookup('ansible.builtin.dict', additional_ns, wantlist=True) }}"
+  when:
+    - package == item.key
+
+- name: "Get operator's package manifests for {{ package }}"
+  community.kubernetes.k8s_info:
+    api: packages.operators.coreos.com/v1
+    kind: PackageManifest
+    namespace: default
+    name: "{{ package }}"
+    label_selectors:
+      - "catalog={{ install_all_from_catalog }}"
+  register: operator_packagemanifest
+  retries: 5
+  delay: 3
+  no_log: true
+  until:
+    - operator_packagemanifest.resources is defined
+    - operator_packagemanifest.resources | length
+    - operator_packagemanifest.resources[0].status is defined
+    - operator_packagemanifest.resources[0].status.catalogSource == install_all_from_catalog
+
+- name: "Check if own namespace installation mode is supported by {{ package }}"
+  set_fact:
+    ownNameSpace: "{{ operator_packagemanifest |
+                   json_query('resources[*].status.channels[0].currentCSVDesc.installModes[0].supported') |
+                   first }}"
+
+- name: "Set operator group spec according install Mode"
+  set_fact:
+    group_spec:
+      targetNamespaces:
+        - "{{ package }}"
+  when:
+    - ownNameSpace | bool
+
+- name: "deploy-operators : Install the operator {{ package }}"
+  include_role:
+    name: olm-operator
+  vars:
+    operator: "{{ package }}"
+    source: "{{ install_all_from_catalog }}"
+    namespace: "{{ package }}"
+    source_ns: "{{ install_all_from_catalog_source | default('openshift-marketplace') }}"
+    operator_group_name: "{{ package }}"
+    operator_group_spec: "{{ group_spec | default('') }}"
+
+- name: "Unset operator group spec"
+  set_fact:
+    group_spec: ''
+...

@@ -287,6 +287,8 @@ API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | enable_gitops                   | False    | Boolean | False                                                          | Deploys the [GitOps](https://www.redhat.com/en/technologies/cloud-computing/openshift/gitops) Operator.
 | operator_catalog_dir            | False    | String  | ""                                                             | Absolute path to a directory that contains archive files created using the oc mirror plugin. See [Mirroring from directory](#mirroring-from-directory) section for more information.
 | operator_catalog_dir_name       | False    | String  | catalog-from-file                                              | Name for the operator's catalog created using the images from `operator_catalog_dir` path.
+| install_all_from_catalog        | False    | String  | ''                                                             | Name of a catalog from which all its operators need to be installed.
+| install_all_from_catalog_source | False    | String  | openshift-marketplace                                          | Namespace where the catalog defined in `install_all_from_catalog` was created.
 
 > NOTE: There are certain particularities about versioning that you can read more in depth
 > in [the versioning document](docs/ocp_versioning.md)
@@ -525,6 +527,24 @@ The resulting list of operators to mirror is:
   - advanced-cluster-management
   - redhat-oadp-operator
   - multicluster-engine
+```
+
+### Install all operators from a catalog
+
+All the operators available in a catalog can be installed on the cluster by setting `install_all_from_catalog` to an already created operator's catalog. This is mainly to test if the operators are deployable by OLM. There is no additional testing, or configuration executed after a running CSV is detected.
+
+Setting as value a valid catalog name for this variable will:
+  1. Create a namespace for the operator
+  1. If single mode install is supported it will create the proper Operator group to listen on the operator's namespace
+  1. If single mode install is not available, the operator group will be created for all namespaces
+  1. Create the subscription
+  1. Wait for the operator CSV to show up
+
+The catalog source namepace defaults to `openshift-marketplace` but that can be set using the `install_all_from_catalog` variable in case the catalog was created on a different namespace.
+
+```yaml
+install_all_from_catalog: <my-ocp-catalog>
+install_all_from_catalog_source: <my-ocp-catalog-ns>
 ```
 
 ## Logging stack
