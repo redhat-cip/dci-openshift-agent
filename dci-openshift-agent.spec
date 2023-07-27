@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.8
+Version:       0.5.9
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -28,6 +28,7 @@ Requires: python3-pyyaml python3-openshift
 Requires: jq
 Requires: git
 Requires: python3-netaddr
+Requires: python3-jmespath
 Requires: skopeo
 Requires: podman
 
@@ -98,6 +99,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Jul 31 2023 Beto Rdz <josearod@redhat.com> 0.5.9-1
+- Add jmespath dependency
+
 * Mon Jul 31 2023 Beto Rdz <josearod@redhat.com> 0.5.8-1
 - Bump for changes in common-roles
 
