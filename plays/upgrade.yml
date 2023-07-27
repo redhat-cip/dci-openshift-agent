@@ -32,7 +32,7 @@
   when:
     - enable_gateway_mode | default(false) | bool
 
-- name: "Acknowledge deprecated API removals for 4.9 upgrade"
+- name: "Acknowledge deprecated API removals for 4.13 upgrade"
   vars:
     current_ver_query: "history[?state=='Completed'] | [0].version"
     full_ver: "{{ upgrader_cluster_ver.resources[0].status | json_query(current_ver_query) }}"
@@ -45,10 +45,10 @@
         name: admin-acks
         namespace: openshift-config
       data:
-        ack-4.8-kube-1.22-api-removals-in-4.9: "true"
+        ack-4.12-kube-1.26-api-removals-in-4.13: "true"
   when:
-    - current_ver is version("4.8","<=")
-    - major is version("4.9", ">=")
+    - current_ver is version("4.12","==")
+    - major is version("4.13", "==")
 
 - name: "Deactivate the upgrade of worker nodes - EUS"
   community.kubernetes.k8s:
