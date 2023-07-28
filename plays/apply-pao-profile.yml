@@ -60,7 +60,7 @@
   when:
     - install_type is undefined or install_type != 'sno'
     - reg_mcpool_worker.resources[0].status.machineCount >= 1
-  no_log: true
+    - profile_state.result.spec.nodeSelector is search('worker')
 
 - name: Wait (up to 10 mins) for rendered-master MC triggered by Performance Profile
   community.kubernetes.k8s_info:
@@ -72,19 +72,20 @@
     master_mc_timestamp: "{{ reg_master_mc.resources | to_json | from_json | json_query(master_mc_query) | sort | last }}"
   until:
     - reg_master_mc.resources is defined
-    - master_mc_timestamp > perf_kubelet_timestamp
+    - master_mc_timestamp >= perf_kubelet_timestamp
   retries: 60
   delay: 10
   when:
     - install_type is undefined or install_type != 'sno'
-    - reg_mcpool_worker.resources[0].status.machineCount == 0
-  no_log: true
+    - reg_mcpool_worker.resources[0].status.machineCount >= 1
+    - profile_state.result.spec.nodeSelector is search('master')
 
 - name: "Pause 60 seconds to wait for MC triggered by Performance Profile starts the node changes"
   pause:
     seconds: 60
   when:
     - install_type is undefined or install_type != 'sno'
+    - reg_mcpool_worker.resources[0].status.machineCount >= 1
   no_log: true
 
 - name: "Wait for SNO node to be available"
@@ -98,7 +99,7 @@
 
     - name: "Wait for API to be available"
       uri:
-        url: 'https://api.{{ cluster }}.{{ domain }}:6443/readyz'
+        url: "https://api.{{ cluster }}.{{ domain is defined | ternary(domain, base_dns_domain) }}:6443/readyz"
         validate_certs: no
         return_content: yes
       register: api_ready
@@ -122,7 +123,7 @@
       delay: 10
   when:
     - install_type is defined
-    - install_type == "sno"
+    - install_type == "sno" or reg_mcpool_worker.resources[0].status.machineCount == 0
 
 - name: Wait for MCP status
   include_role:
