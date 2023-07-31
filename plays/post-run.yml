@@ -4,6 +4,14 @@
     outputs:
       kubeconfig: "{{ dci_cluster_configs_dir }}/kubeconfig"
 
+- name: "Setup Advanced Cluster Management"
+  include_role:
+    name: acm-setup
+  vars:
+    hub_disconnected: "{{ dci_disconnected | default(false) | bool }}"
+  when:
+    - enable_acm | bool
+
 - name: Copy outputs if defined
   copy:
     src: "{{ outputs[item.key] }}"
