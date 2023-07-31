@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.7
+Version:       0.5.8
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -98,6 +98,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Jul 31 2023 Beto Rdz <josearod@redhat.com> 0.5.8-1
+- Bump for changes in common-roles
+
 * Mon May 15 2023 Bill Peck <bpeck@redhat.com> 0.5.7-1
 - Move crucible playbooks into crucible directory in the agent
 
