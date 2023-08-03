@@ -78,8 +78,8 @@
           mor_auths_file: "{{ dci_pullsecret_file }}"
           mor_force: "{{ (dci_force_mirroring | default(false)) or (hostvars.localhost.build == 'candidate') | bool }}"
           mor_mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
-          mor_mirror_container_images: false
-          mor_write_custom_config: false
+          mor_mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
+          mor_write_custom_config: "{{ dci_disconnected | default(False) | bool }}"
           mor_build: "{{ build }}"
           mor_oc: "{{ oc_tool_path }}"
 
@@ -150,7 +150,7 @@
           name: populate_mirror_registry
           tasks_from: prerequisites.yml
         vars:
-          downloads_path: "{{ ai_releases_dir }}"
+          downloads_path: "{{ hostvars.localhost.provision_cache_store | default(ai_releases_dir) }}"
           release_image_remote: "{{ ocp_release_data['container_image'].split('@')[0] }}"
           config_file_path: "{{ dci_cluster_configs_dir }}"
       rescue: &teardown_error
