@@ -422,4 +422,35 @@
           name: setup_sushy_tools
         when: SETUP_SUSHY_TOOLS == True
       rescue: *teardown_error
+
+- name: Clean-up nodes - Mainly Baremetal use cases
+  hosts: bastion
+  vars_files:
+    - ../group_vars/all
+  tasks:
+    - block:
+      - name: Erase bootloader to prevent old OS to boot
+        delegate_to: "{{ item }}"
+        become: true
+        shell: |
+          if grep 'Red Hat Enterprise Linux CoreOS' /etc/os-release; then
+            for disk in /dev/sd?; do
+              dd if=/dev/zero of=$disk bs=512 count=1
+            done
+          fi
+        when:
+          - dci_erase_bootloader_on_disk|default(False)|bool
+          - dci_main is not defined or dci_main == 'install'
+        with_items: "{{ groups['masters'] + groups['workers'] | default([]) }}"
+        ignore_unreachable: true
+        ignore_errors: true
+
+      - name: Empty Console log files if present
+        command: dd if=/dev/null of="{{ item }}"
+        with_fileglob:
+          - "/var/consoles/{{ cluster }}/{{ cluster }}*"
+        when:
+          - cluster is defined
+        become: true
+        ignore_errors: true
 ...
