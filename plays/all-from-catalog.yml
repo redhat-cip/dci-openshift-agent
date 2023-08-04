@@ -35,18 +35,15 @@
 
 - name: "deploy-operators : Deploy all operators from an index"
   vars:
-    # Some operators may have hardcoded references to specific namespaces that will host some
-    # deployment resources. Adding those to the following list will take care of creating those during the
-    # operator installation
-    additional_ns:
+    # Some operators must be installed in specific namespaces.
+    #Adding those to the following list will take care of creating those during the installation
+    operator_ns:
       ptp-operator:
         required_ns: "openshift-ptp"
+      sriov-network-operator:
+        required_ns: "openshift-sriov-network-operator"
   include_tasks: install-all-operators.yml
   loop: "{{ index_operators | sort }}"
   loop_control:
     loop_var: package
-
-- name: "Undefine additional namespaces"
-  set_fact:
-    additional_ns: ''
 ...

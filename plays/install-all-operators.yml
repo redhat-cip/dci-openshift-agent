@@ -1,16 +1,8 @@
 ---
-- name: "Create an additional NS for {{ package }} operator"
-  community.kubernetes.k8s:
-    definition:
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: "{{ item.value.required_ns }}"
-        labels:
-          pod-security.kubernetes.io/enforce: privileged
-          pod-security.kubernetes.io/enforce-version: latest
-          security.openshift.io/scc.podSecurityLabelSync: "false"
-  loop: "{{ lookup('ansible.builtin.dict', additional_ns, wantlist=True) }}"
+- name: "Get specific namespace name for {{ package }} operator"
+  set_fact:
+    operator_ns_name: "{{ item.value.required_ns }}"
+  loop: "{{ lookup('ansible.builtin.dict', operator_ns, wantlist=True) }}"
   when:
     - package == item.key
 
@@ -52,12 +44,13 @@
   vars:
     operator: "{{ package }}"
     source: "{{ install_all_from_catalog }}"
-    namespace: "{{ package }}"
+    namespace: "{{ operator_ns_name | default(package, True) }}"
     source_ns: "{{ install_all_from_catalog_source | default('openshift-marketplace') }}"
     operator_group_name: "{{ package }}"
     operator_group_spec: "{{ group_spec | default('') }}"
 
-- name: "Unset operator group spec"
+- name: "Unset operator group spec and namespace name"
   set_fact:
     group_spec: ''
+    operator_ns_name: ''
 ...
