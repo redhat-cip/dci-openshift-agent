@@ -289,6 +289,7 @@ API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | operator_catalog_dir_name       | False    | String  | catalog-from-file                                              | Name for the operator's catalog created using the images from `operator_catalog_dir` path.
 | install_all_from_catalog        | False    | String  | ''                                                             | Name of a catalog from which all its operators need to be installed.
 | install_all_from_catalog_source | False    | String  | openshift-marketplace                                          | Namespace where the catalog defined in `install_all_from_catalog` was created.
+| dci_erase_bootloader_on_disk    | False    | Boolean | False                                                          | Boolean to define if node disks should be deleted before powering off during the pre-run
 
 > NOTE: There are certain particularities about versioning that you can read more in depth
 > in [the versioning document](docs/ocp_versioning.md)
