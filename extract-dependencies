@@ -103,7 +103,7 @@ while read line; do
       fi
   else
       # try to find a gerrit review
-      changeid=$(sed -e 's@\s*\(build-depends\|depends-on\):\s*\(.*\)\s*@\2@i' <<< $line)
+      changeid=$(sed -e 's@\s*\(build-depends\|depends-on\):\s*\(https://softwarefactory-project.io/.*/\)\{0,1\}\(.*\)\s*@\3@i' <<< $line)
       if [ -n "$changeid" ]; then
           curl -s https://softwarefactory-project.io/r/changes/${changeid}?o=CURRENT_REVISION | tail -n +2 > ${changeid}.json
           PROJECT=$(jq -r .project ${changeid}.json)
