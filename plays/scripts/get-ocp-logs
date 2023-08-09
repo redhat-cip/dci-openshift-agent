@@ -67,6 +67,7 @@ mkdir -p "${must_gather_dir}"
 ${oc_path} adm must-gather \
   --dest-dir="${must_gather_dir}" \
   ${must_gather_opts} \
+  --timeout=15m \
   >/dev/null
 
 # Compress must-gather
