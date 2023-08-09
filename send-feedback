@@ -38,16 +38,18 @@ fi
 for json in $(ls $DIR/*.json); do
     # gerrit
     if [ $(jq -r .url $json) = null ]; then
+        if [ -z "$GERRIT_SSH_ID" ] || [ -z "$GERRIT_USER" ]; then
+            continue
+        fi
         CHANGEID=$(jq -r ._number $json)
         CURREV=$(jq -r .current_revision $json)
         PATCHSET=$(jq -r ".revisions[\"$CURREV\"]._number" $json)
-        if [ -n "$GERRIT_USER" ]; then
-            echo "${GERRIT_JSON}" |
-                ssh \
-                -p 29418 \
-                $GERRIT_USER \
-                gerrit review -j $CHANGEID,$PATCHSET
-        fi
+        echo "${GERRIT_JSON}" |
+            ssh \
+            -i ~/.ssh/"$GERRIT_SSH_ID" \
+            -p 29418 \
+            $GERRIT_USER \
+            gerrit review -j $CHANGEID,$PATCHSET
     # github
     else
         ISSUE_URL=$(jq -r .issue_url $json)

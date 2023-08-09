@@ -29,10 +29,6 @@ PROJECTS=(
     python-dciauth
 )
 
-cleanup() {
-    ssh-agent -k
-}
-
 unschedule_gerrit_change() {
     number=$1
     if ! grep -qP '^\d+' <<< ${number}; then
@@ -61,16 +57,10 @@ unschedule_gerrit_change() {
 
 . /etc/dci-openshift-agent/config
 
-if [ -n "$GERRIT_SSH_ID" ]; then
-    eval $(ssh-agent)
-    ssh-add ~/.ssh/"$GERRIT_SSH_ID"
-    trap cleanup 0
-fi
-
 if [ -n "$GERRIT_USER" ]; then
     tracking_projects=$(echo "(${PROJECTS[@]})" | tr ' ' '|')
     while :; do
-        ssh -p 29418 $GERRIT_USER gerrit stream-events|while read -r data; do
+        ssh -i ~/.ssh/"$GERRIT_SSH_ID" -p 29418 $GERRIT_USER gerrit stream-events|while read -r data; do
             type=$(jq -r .type <<< $data)
             project=$(jq -r .change.project <<< $data)
             number=$(jq -r .change.number <<< $data)

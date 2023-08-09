@@ -102,10 +102,6 @@ finish() {
 
     cd
 
-    if [ -n "$GERRIT_SSH_ID" ]; then
-        ssh-agent -k
-    fi
-
     # Workaround to delete any temporary directory created without u+w
     find "${DIR}" -type d -not -perm -u=w -exec chmod u+w {} \;
 
@@ -164,6 +160,7 @@ fi
 
 # needed by send-feddback
 export GERRIT_USER
+export GERRIT_SSH_ID
 export DO_VOTE
 
 if [ "$1" = "--virt" ]; then
@@ -281,11 +278,6 @@ fi
 
 if [ ! -x $BASEDIR/extract-dependencies ]; then
     BASEDIR=/usr/share/dci-openshift-agent
-fi
-
-if [ -n "$GERRIT_SSH_ID" ]; then
-    eval $(ssh-agent)
-    ssh-add ~/.ssh/"$GERRIT_SSH_ID"
 fi
 
 trap finish 0
