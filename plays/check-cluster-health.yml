@@ -1,13 +1,13 @@
 
 ---
-- name: "Check if all cluster-operators are running correctly"
+- name: "Fail if there are degraded cluster-operators - {{ version }}"
   community.kubernetes.k8s_info:
     kind: ClusterOperator
   register: clusteroperator_info
   vars:
     status_query: "resources[*].status.conditions[?type=='Degraded'].status"
     cluster_operators_degraded: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
-  failed_when: cluster_operators_degraded == ['True']
+  failed_when: "'True' in cluster_operators_degraded"
   retries: 3
   delay: 10
 
