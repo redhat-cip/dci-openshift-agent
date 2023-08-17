@@ -664,6 +664,10 @@ if [ -d openshift-preflight ]; then
     OPTS+=(-e "preflight_source_dir=$PWD/openshift-preflight")
 fi
 
+if [ -d operator-sdk ]; then
+    OPTS+=(-e "operator_sdk_source_dir=$PWD/operator-sdk")
+fi
+
 APP_OPT=
 
 if [ -s "$KUBECONFIG" ]; then
