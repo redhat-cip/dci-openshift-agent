@@ -81,10 +81,13 @@
         cs_name: "{{ operator_catalog_dir_name }}"
         cs_image: "{{ index_image }}"
 
-- name: "Delete working directory"
+- name: "Delete workspaces directories"
   file:
     state: absent
-    path: "{{ image_dir }}"
+    path: "{{ item }}"
+  with_items:
+    - "{{ image_dir }}"
+    - "{{ operator_catalog_dir }}/oc-mirror-workspace"
 
 - name: "Update catalogSource name"
   set_fact:
