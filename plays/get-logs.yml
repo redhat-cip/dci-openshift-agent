@@ -10,9 +10,9 @@
     provisioner_host: >-
       {{ hostvars[groups.provisioner.0].ansible_host |
         default(groups['provisioner'][0]) }}
-  script:
+  shell:
     cmd: >
-      ./scripts/get-ipi-logs
+      plays/scripts/get-ipi-logs
       {{ provisioner_user }}@{{ provisioner_host }}
       {{ job_logs.path }}
       {{ groups['masters'] | union(groups['workers']) | join(' ') }}
@@ -32,9 +32,10 @@
         join(" ") }}
     REGISTRY: "{{ dci_local_registry }}"
     PATH: "{{ ansible_env.PATH }}:{{ dci_cluster_configs_dir }}:/sbin:/usr/sbin:/usr/local/bin/"
-  script:
+  shell:
     cmd: >
-      ./scripts/get-ocp-logs
+      timeout -v 20m
+      plays/scripts/get-ocp-logs
       {% if install_type == 'acm' %}
       -p {{ acm_cluster_type }}
       {% endif %}
@@ -50,9 +51,9 @@
     REGISTRY: "{{ dci_local_registry }}"
     KUBECONFIG: "{{ hub_kubeconfig_path }}"
     PATH: "{{ ansible_env.PATH }}:/sbin:/usr/sbin:/usr/local/bin/"
-  script:
+  shell:
     cmd: >
-      ./scripts/get-ocp-logs
+      plays/scripts/get-ocp-logs
       {{ job_logs.path }}
   ignore_errors: true
   when:
