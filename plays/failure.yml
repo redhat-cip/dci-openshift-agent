@@ -1,4 +1,11 @@
 ---
+- name: "Remove pull secret file"
+  file:
+    path: "{{ dci_pullsecret_file }}"
+    state: absent
+  when:
+    - dci_pullsecret_file is defined
+
 - name: "Gathering results for storage service tester"
   include_role:
     name: storage-tester

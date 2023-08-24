@@ -27,81 +27,14 @@
         include_role:
           name: include-components
 
-      - name: "Get pullsecret from pullsecret_file when defined"
-        block:
-          - name: "Check if pullsecret_file path exists when the variable is defined"
-            stat:
-              path: "{{ pullsecret_file }}"
-              get_checksum: false
-            register: pullfile
-
-          - name: "Copy pull secret file to cache directory"
-            copy:
-              src: "{{ pullsecret_file }}"
-              dest: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
-              owner: "{{ ansible_user_id }}"
-              group: "{{ ansible_user_gid }}"
-              mode: "0400"
-              force: true
-            when:
-              - pullfile is defined
-              - pullfile.stat is defined
-              - pullfile.stat.exists | bool
-
-          - name: "Load pull secret from file"
-            slurp:
-              src: "{{ pullsecret_file }}"
-            register: pullsecret_b64
-            no_log: true
-
-          - name: "Set pull_secret fact"
-            set_fact:
-              pull_secret: "{{ pullsecret_b64.content | string | b64decode }}"
-            no_log: true
-        when:
-          - pullsecret_file is defined
-
-      - name: "Get pullsecret from job_info when pullsecret_file is undefined"
-        block:
-          - name: "Set pullsecret from job_info - Connected"
-            set_fact:
-              pull_secret: "{{ job_info.job.topic.data.pull_secret | default({}) | combine(openshift_secret | default({}), recursive=True) }}"
-            no_log: true
-            when:
-              - not (dci_disconnected | default(false) | bool)
-
-          # Removing secret for cloud.openshift.com in order to disable the insights operator
-          - name: "Set pullsecret from job_info - Disconnected"
-            vars:
-              dci_pullsecret: "{{ job_info.job.topic.data.pull_secret | default({}) | combine(openshift_secret | default({}), recursive=True) }}"
-            set_fact:
-              pull_secret: |
-                {
-                  "auths": {
-                  {% for repo in dci_pullsecret.auths | list %}
-                    {% if repo != "cloud.openshift.com" %}
-                      "{{ repo }}": {{ dci_pullsecret.auths[repo] | to_json }}{% if loop.last %}{% else %},{% endif %}
-                    {% endif %}
-                  {% endfor %}
-                  }
-                }
-            no_log: true
-            when:
-              - dci_disconnected | default(false) | bool
-
-          - name: "Copy pull_secret to a file"
-            copy:
-              content: "{{ pull_secret | to_json }}"
-              dest: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
-              mode: "0400"
-              force: true
-        when:
-          - pullsecret_file is undefined
+      - name: "Process pullsecrets"
+        include_tasks: pullsecrets.yml
 
       - name: "Set dci_pullsecret_file fact"
         set_fact:
-          dci_pullsecret_file: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
-          local_pull_secret_path: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
+          dci_pullsecret_file: "{{ mrc_auth_file }}"
+          local_pull_secret_path: "{{ mrc_auth_file }}"
+          pull_secret: "{{ mrc_auth_data }}"
         no_log: true
 
       - name: "Configure auths for docker compatible tools"
