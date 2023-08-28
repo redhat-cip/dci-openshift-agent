@@ -42,6 +42,14 @@
       {{ job_logs.path }}
   ignore_errors: true
 
+- name: "Remove the must-gather directory"
+  vars:
+    dir_prefix: "{{ acm_cluster_type | default('', True) }}"
+    dir_name: "{{ (install_type == 'acm') | ternary(dir_prefix+'_must_gather', 'must_gather') }}"
+  file:
+    path: "{{ job_logs.path }}/{{ dir_name }}"
+    state: absent
+
 - name: "Get logs from ACM-Hub"
   environment:
     DCI_MUST_GATHER_IMAGES: >-
@@ -97,7 +105,6 @@
 - name: Find deployment logs (text)
   find:
     paths: "{{ job_logs.path }}"
-    recurse: yes
     patterns: "*.log,*.txt,*.html,*.yaml,*.trace,*.pcap,*.json"
   register: logs_matched
 
