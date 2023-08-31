@@ -104,21 +104,6 @@
           local_pull_secret_path: "{{ dci_cluster_configs_dir }}/pull-secret.txt"
         no_log: true
 
-      - name: "Configure auths for docker compatible tools"
-        block:
-          - name: "Create temp directory for docker auths"
-            tempfile:
-              state: directory
-            register: docker_conf
-
-          - name: "Copy dci_pull_secret as config.json"
-            copy:
-              src: "{{ dci_pullsecret_file }}"
-              dest: "{{ docker_conf.path }}/config.json"
-              mode: "0644"
-        when:
-          - dci_pullsecret_file is defined
-
       - name: "Create releases dir in home directory if needed"
         file:
           path: "{{ ai_releases_dir }}"
