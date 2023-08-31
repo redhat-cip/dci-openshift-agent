@@ -34,12 +34,15 @@
     index_found: true
 
 - name: "Render catalog index"
+  vars:
+    opm_auths: "/usr/share/dci-openshift-agent/utils/opm-auths"
   block:
     - name: "Render the catalog index"
       shell:
         chdir: "{{ tmp_prune.path }}"
         cmd: >
           set -x;
+          {{ opm_auths }}
           {{ dci_cluster_configs_dir }}/opm render {{ source_index }} >
           {{ tmp_prune.path }}/index-packages
       register: prune_result
