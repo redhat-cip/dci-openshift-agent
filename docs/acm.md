@@ -122,7 +122,6 @@ This pipeline includes NFS storage
     dci_cache_dir: /var/lib/dci-pipeline
     dci_base_ip: "{{ ansible_default_ipv4.address }}"
     dci_baseurl: "http://{{ dci_base_ip }}"
-    cnf_test_suites: []
     cnf_tests_mode: offline
     enable_acm: true
     enable_nfs_storage: true
