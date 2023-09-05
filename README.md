@@ -82,19 +82,21 @@ In any case, it must:
 - Be running the latest stable RHEL release (**8.4 or higher**) and registered
   via RHSM.
 - Have at least 160GB of free space available in `/var`
-- Have access to Internet
+- Having full access to Internet is highly recommended
 - Be able to connect the following Web urls:
     - DCI API: <https://api.distributed-ci.io>
     - DCI Packages: <https://packages.distributed-ci.io>
     - DCI Repository: <https://repo.distributed-ci.io>
     - EPEL: <https://dl.fedoraproject.org/pub/epel/>
     - QUAY: <https://quay.io>
+    - Nightly releases: <https://registry.ci.openshift.org>
     - RED HAT REGISTRY: <https://registry.redhat.io>
     - RED HAT SSO: <https://access.redhat.com>
     - RED HAT CATALOG: <https://catalog.redhat.com>
     - OpenShift Mirrors: <https://rhcos.mirror.openshift.com> and <https://mirror.openshift.com>
     - GitHub: <https://github.com>
     - Software Factory (gerrit): <https://softwarefactory-project.io>
+    - Access to cloudfront CDN
 - Have a static internal (network lab) IP
 - Be able to reach all systems under test (SUT) using (mandatory, but not
   limited to):
@@ -106,7 +108,9 @@ In any case, it must:
     - PXE
     - HTTP/HTTPS
 
-> NOTE: Make sure rhel-8-for-x86_64-appstream-rpms repo provides access to libvirt => 6.0.0 packages
+> NOTES:
+ - Make sure rhel-8-for-x86_64-appstream-rpms repo provides access to libvirt => 6.0.0 packages
+ - The installer may require access to other endpoint (CDNs). The list above is for well know URLs that be subject to change.
 
 ## Systems under test
 
@@ -408,20 +412,19 @@ DCI provide pull secrets used to deploy OCP on every job.
 - `registry.connect.redhat.com` - Red Hat images
 - `registry.redhat.io` - Red Hat images
 
-These pull secrets are used by default, but the agent allows using other pull secrets if
-needed through some variables.
+These pull secrets are used by default, but the agent allows using other pull secrets if needed through some variables.
 
-- `openshift_secret`: String with secrets that are appended to the job's provided
-pull secrets. Used to include additional credentials. This is an agent variable.
-- `pullsecret_file`: File with secrets that will be used instead of the ones
-provided by DCI job and the `openshift_secret`, if any. This is an
-[inventory variable](#inventory).
+- `openshift_secret`: String with secrets that are appended to the job's provided pull secrets. Used to include additional credentials. This is an agent variable.
+- `disconnected_registry_auths_file`: A file with a string that contains the auths for private registries.
+- `pullsecret_file`: File with secrets in JSON format that will be used along with the ones provided by DCI job and the `openshift_secret`.
 
-> NOTE: The use of `pullsecret_file` has two main implications:
->
-> - They should contain at the very least the
-> [OCP Bare Metal pull secrets for user-provisioned](https://cloud.redhat.com/openshift/install/metal/user-provisioned)
-> - The above does not contain access to Nightly builds, limiting its functionality
+The content all these variables is merged by DCI, those secrets are combined in a single podman authentication file used to interact with the required registries during the mirroring, image inspections, pruning tasks performed byt the DCI Openshift agent.
+
+Important:
+
+- Secrets are processed in the following order: Job secrets --> openshift_secret --> disconnected_auths --> pull_secret_file
+- If a registry entry exists in multiple sources, the last one processed takes priority
+- It is recommended that the additional secrets are set in the form of registryA/<namespace> to use an specific auth entry against a registry as recommended in the [podman documentation](https://github.com/containers/image/blob/main/docs/containers-auth.json.5.md)
 
 ### Disconnected environment
 
