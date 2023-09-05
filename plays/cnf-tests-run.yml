@@ -50,7 +50,6 @@
        --junit /tests/{{ date.stdout }}/sctp
     ignore_errors: yes
     when:
-      - cnf_test_suites is defined
       - '"sctp" in ( cnf_test_suites | lower )'
 
   - name: "Run PTP tests"
@@ -70,7 +69,6 @@
        --junit  /tests/{{ date.stdout }}/ptp
     ignore_errors: yes
     when:
-       - cnf_test_suites is defined
        - '"ptp" in ( cnf_test_suites | lower )'
 
   - name: "Remove CNF test image"
@@ -95,7 +93,6 @@
        --junit  /tests/{{ date.stdout }}/performance
     ignore_errors: yes
     when:
-      - cnf_test_suites is defined
       - '"performance" in ( cnf_test_suites | lower )'
 
   - name: "Run SRIOV tests"
@@ -116,7 +113,6 @@
          --junit  /tests/{{ date.stdout }}/sriov
     ignore_errors: yes
     when:
-      - cnf_test_suites is defined
       - '"sriov" in ( cnf_test_suites | lower )'
 
   - name: "Run DPDK tests"
@@ -137,7 +133,6 @@
         --junit  /tests/{{ date.stdout }}/dpdk
     ignore_errors: yes
     when:
-      - cnf_test_suites is defined
       - '"dpdk" in ( cnf_test_suites | lower )'
 
   - name: "Rename junit XML files with the feature name"

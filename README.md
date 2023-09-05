@@ -268,8 +268,7 @@ This is the dci-openshift-agent variables that can be set in the
 | dci_prepare_cnf                 | False    | Boolean | False                                                          | Deploys Performance Addon and SRIOV operators, Please use the `enable_sriov` or `enable_perf_addon` variables if only one of this operators is required. To complete the Performance Addon configuration it is recommended to also add a `performance_definition`.
 | enable_cnv                      | False    | Boolean | False                                                          | Deploys CNV and enables the HCO operator.
 | dci_cnv_test                    | False    | Boolean | False                                                          | Test the deploy of a VM using CNV and HCO operator.
-| cnv_api_version                 | False    | String  | v1beta1
-API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
+| cnv_api_version                 | False    | String  | v1beta1                                                        | API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | enable_logs_stack               | False    | Boolean | False                                                          | Enables the OCP cluster logging subsystem using the Loki and ClusterLogging Operators. Please see the [Logging Stack settings](#logging-stack) section for more details.
 | enable_elasticsearch            | False    | Boolean | False                                                          | Deploys the ElasticSearch Operator.
 | enable_clusterlogging           | False    | Boolean | False                                                          | Deploys the Cluster-Logging Operator.
@@ -278,6 +277,7 @@ API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
 | enable_odf                      | False    | Boolean | False                                                          | Deploys the ODF Operator and its dependencies(ocs, mcg, odf-csi-addons).
 | enable_ocs                      | False    | Boolean | False                                                          | Deploys the OCS Operator.
 | enable_lso                      | False    | Boolean | False                                                          | Deploys the Local Storage Operator.
+| cnf_test_suites                 | False    | List    |                                                                | List of CNF Tests to perform: ['sctp','ptp','performance','sriov','dpdk']
 | storage_cluster                 | False    | Boolean | False                                                          | Creates a storage cluster using OCS or ODF operators. Staring OCP 4.10, ODF replaces OCS. See: [Openshift Data Foundation](https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.9/html/deploying_openshift_data_foundation_using_bare_metal_infrastructure/preparing_to_deploy_openshift_data_foundation) documentation for details about the nodes requirements.
 | enable_acm                      | False    | Boolean | False                                                          | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator.
 | enable_nfd                      | False    | Boolean | False                                                          | Deploys the [NFD](https://docs.openshift.com/container-platform/4.10/hardware_enablement/psap-node-feature-discovery-operator.html) Operator.

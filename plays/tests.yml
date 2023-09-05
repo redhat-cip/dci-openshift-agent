@@ -44,5 +44,8 @@
 
 - name: Run cnf tests
   include_tasks: cnf-tests-run.yml
+  when:
+    - cnf_test_suites is defined
+    - cnf_test_suites | length
 
 ...
