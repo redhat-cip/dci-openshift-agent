@@ -24,16 +24,29 @@
   when:
     - acm_cluster_type == 'sno'
 
-- name: "Deploy a Hypershift cluster via ACM"
-  vars:
-    ah_ocp_version: "{{ hostvars.localhost.version }}"
-  include_role:
-    name: acm-hypershift
-    apply:
-      environment:
-        - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+
+- name: "Deploy a MetalLB and Hypershift cluster via ACM"
+  block:
+    - name: "Setup MetalLB in L2 mode"
+      include_role:
+        name: metallb-setup
+      vars:
+        mlb_ipaddr_pool:
+          - "{{ metallb_ipaddr_pool_l2 }}"
+      when:
+        - metallb_ipaddr_pool_l2 | default('') | length
+
+    - name: "Deploy a Hypershift cluster via ACM"
+      vars:
+        ah_pullsecret_file: "{{ dci_pullsecret_file }}"
+      include_role:
+        name: acm-hypershift
+        apply:
+          environment:
+            - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
   when:
     - acm_cluster_type == 'hypershift'
+    - not (dci_disconnected | default(false) | bool)
 
 - name: "Save the {{ acm_cluster_type }} kubeconfig"
   copy:
