@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.9
+Version:       0.5.10
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -99,6 +99,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Aug 31 2023 Tony Garcia <tonyg@redhat.com> 0.5.10-1
+- Bump for changes in utils
+
 * Thu Jul 31 2023 Beto Rdz <josearod@redhat.com> 0.5.9-1
 - Add jmespath dependency
 
