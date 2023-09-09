@@ -1,24 +1,17 @@
-- name: "Get cluster pull-secret for ACM"
+- name: "Get cluster pull-secret"
   include_tasks: get-cluster-pullsecret.yml
-  when:
-    - dci_disconnected | default(false) | bool
-    - install_type == 'acm'
 
-- name: "Configure auths for docker compatible tools"
-  block:
-    - name: "Create temp directory for docker auths"
-      tempfile:
-        state: directory
-        prefix: dci_auth.
-      register: docker_conf
+- name: "Create temp directory for docker auths"
+  tempfile:
+    state: directory
+    prefix: dci_auth.
+  register: docker_conf
 
-    - name: "Copy dci_pull_secret as config.json"
-      copy:
-        src: "{{ dci_pullsecret_file }}"
-        dest: "{{ docker_conf.path }}/config.json"
-        mode: "0640"
-  when:
-    - dci_pullsecret_file is defined
+- name: "Copy dci_pull_secret as config.json"
+  copy:
+    src: "{{ dci_pullsecret_file }}"
+    dest: "{{ docker_conf.path }}/config.json"
+    mode: "0640"
 
 - name: "Disable default catalog sources for disconnected deployment"
   block:
