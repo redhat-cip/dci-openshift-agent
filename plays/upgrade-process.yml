@@ -221,35 +221,6 @@
   when:
     - upgrade_operators | default(true) | bool
 
-- name: "Get number of nodes"
-  community.kubernetes.k8s_info:
-    kind: Node
-  register: nodes
-
-- name: "Validate that nodes are Ready and MCPs are up to date"
-  include_role:
-    name: check-resource
-  vars:
-    resource_to_check: "MachineConfigPool"
-    check_wait_retries: "{{ 10 * ( nodes.resources | default([]) | length + 1 ) }}"
-    check_wait_delay: 60
-    check_reason: "Upgrade - after having operators running"
-
-- name: "test_ upgrader: Fail if there are cluster operators Degraded"
-  community.kubernetes.k8s_info:
-    kind: ClusterOperator
-  register: clusteroperator_info
-  vars:
-    status_query: "resources[*].status.conditions[?type=='Degraded'].status"
-    cluster_operators_check: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
-  failed_when: cluster_operators_check == ['True']
-
-- name: "test_ upgrader: Fail if not all the operators are Available"
-  community.kubernetes.k8s_info:
-    kind: ClusterOperator
-  register: clusteroperator_info
-  vars:
-    status_query: "resources[*].status.conditions[?type=='Available'].status"
-    cluster_operators_check: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
-  failed_when: cluster_operators_check != ['True']
+- name: "Run cluster health checks"
+  include_tasks: plays/check-cluster-health.yml
 ...
