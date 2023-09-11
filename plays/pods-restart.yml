@@ -1,0 +1,42 @@
+- name: Get list of pods
+  community.kubernetes.k8s_info:
+    api_version: v1
+    kind: Pod
+    label_selectors:
+      - "{{ filter }}"
+    namespace: "{{ namespace }}"
+  register: pods_info
+  retries: 6
+  delay: 10
+
+- name: Get pod logs
+  community.kubernetes.k8s_log:
+    namespace: "{{ namespace }}"
+    name: "{{ pod.metadata.name }}"
+    container: "{{ container }}"
+  register: pods_messages
+  loop: "{{ pods_info.resources }}"
+  loop_control:
+    loop_var: pod
+    label: "{{ pod.metadata.name }}"
+  when:
+    - pods_info is defined
+    - pods_info.resources is defined
+    - pods_info.resources | length > 0
+
+- name: Recreate pod as workaround
+  community.kubernetes.k8s:
+    state: absent
+    definition:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: "{{ item.pod.metadata.name }}"
+        namespace: "{{ namespace }}"
+  loop: "{{ pods_messages.results }}"
+  loop_control:
+    label: "{{ item.pod.metadata.name }}"
+  when:
+    - pods_messages.results is defined
+    - pods_messages.results | length > 0
+    - log_pattern in item.log
