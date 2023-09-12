@@ -148,7 +148,7 @@ change. This will direct `dci-check-change` to test in a specific way:
 the installation.
 
 `Test-App-Hints:` can also be used to change the default app to be
-used (`basic_example`). If `none` is specified in `Test-App-Hints:`,
+used (`control_plane_example`). If `none` is specified in `Test-App-Hints:`,
 the configuration is taken from the system.
 
 In case you want to provide extra parameters to the jobs deployed by
