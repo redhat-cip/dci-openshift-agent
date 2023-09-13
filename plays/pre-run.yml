@@ -80,6 +80,7 @@
 - name: "Set dci_pullsecret_file"
   set_fact:
     dci_pullsecret_file: "{{ mrc_auth_file }}"
+    dci_pullsecret: "{{ mrc_auth_data }}"
   no_log: true
 
 - name: "Create releases dir in home directory if needed"

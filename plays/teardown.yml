@@ -13,6 +13,13 @@
     state: absent
   when: docker_conf is defined
 
+- name: "Delete tmp file"
+  file:
+    path: "{{ upi_creds_file.path }}"
+    state: absent
+  when:
+    - upi_creds_file is defined
+
 - name: "Remove artifact webserver for IPI installs"
   block:
     - name: "Remove artifact webserver"
