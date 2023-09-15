@@ -71,7 +71,6 @@ mtc_operator:
   - mtc_operator
 advanced_cluster_management:
   - advanced-cluster-management
-  - redhat-oadp-operator
   - multicluster-engine
 ocs_operator:
   - ocs-operator

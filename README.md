@@ -530,7 +530,6 @@ The resulting list of operators to mirror is:
   - servicemeshoperator
   - serverless-operator
   - advanced-cluster-management
-  - redhat-oadp-operator
   - multicluster-engine
 ```
 
