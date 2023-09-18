@@ -35,33 +35,43 @@
       when:
         - elapsed_time | int >= 9000
 
+    - name: Apply work-around for dns pods - OCPBUGS-18472
+      block:
+        - name: Verify upgrade has reached the DNS cluster operator
+          vars:
+            status_query: "resources[*].status.conditions[?type=='Progressing'].message"
+            upgrade_status: "{{ cluster_version_info | json_query(status_query) }}"
+          set_fact:
+            apply_wa: true
+          when: upgrade_status is search('waiting on dns')
+
+        - name: Work-around for pods not able to reach K8s default service in openshift-dns-operator NS
+          include_tasks: pods-restart.yml
+          vars:
+            namespace: openshift-dns-operator
+            filter: "name = dns-operator"
+            container: dns-operator
+            log_pattern: "dial tcp 172.30.0.1:443: i/o timeout"
+          when:
+            - apply_wa | default(false) | bool
+
+        - name: Work-around for pods not able to reach K8s default service in openshift-dns NS
+          include_tasks: pods-restart.yml
+          vars:
+            namespace: openshift-dns
+            filter: "dns.operator.openshift.io/daemonset-dns = default"
+            container: dns
+            log_pattern: "dial tcp 172.30.0.1:443: i/o timeout"
+          when:
+            - apply_wa | default(false) | bool
+      when:
+        - dci_workarounds is defined
+        - '"OCPBUGS-18472" in dci_workarounds'
+
     - name: "Upgrader: Monitor upgrade"
       include_tasks: monitor-upgrade.yml
       when:
         - elapsed_time | int < 9000
   when:
     - upgrade_state != "Completed"
-
-- name: Apply work-around for dns pods - OCPBUGS-18472
-  block:
-    - name: Verify upgrade has reached the DNS cluster operator
-      vars:
-        status_query: "resources[*].status.conditions[?type=='Progressing'].message"
-        upgrade_status: "{{ cluster_version_info | json_query(status_query) }}"
-      set_fact:
-        apply_wa: true
-      when: upgrade_status is search('waiting on dns')
-
-    - name: Work-around for pods not able to reach K8s default service
-      include_tasks: pods-restart.yml
-      vars:
-        namespace: openshift-dns
-        filter: "dns.operator.openshift.io/daemonset-dns = default"
-        container: dns
-        log_pattern: "dial tcp 172.30.0.1:443: i/o timeout"
-      when:
-        - apply_wa | default(false) | bool
-  when:
-    - dci_workarounds is defined
-    - '"OCPBUGS-18472" in dci_workarounds'
 ...
