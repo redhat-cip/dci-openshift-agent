@@ -5,7 +5,7 @@
     operator: "{{ dci_operator.name }}"
     source: "{{ dci_operator.catalog_source }}"
     namespace: "{{ dci_operator.namespace }}"
-    operator_group_spec: "{{ dci_operator.operator_group_spec | default(omit) }}"
+    operator_group_spec: "{{ dci_operator.operator_group_spec | default('') }}"
     ns_labels: "{{ dci_operator.ns_labels | default(omit) }}"
     channel: "{{ dci_operator.channel | default('') }}"
     starting_csv: "{{ dci_operator.starting_csv | default('') }}"

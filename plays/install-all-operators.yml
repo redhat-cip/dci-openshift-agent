@@ -24,20 +24,6 @@
     - operator_packagemanifest.resources[0].status is defined
     - operator_packagemanifest.resources[0].status.catalogSource == install_all_from_catalog
 
-- name: "Check if own namespace installation mode is supported by {{ package }}"
-  set_fact:
-    ownNameSpace: "{{ operator_packagemanifest |
-                   json_query('resources[*].status.channels[0].currentCSVDesc.installModes[0].supported') |
-                   first }}"
-
-- name: "Set operator group spec according install Mode"
-  set_fact:
-    group_spec:
-      targetNamespaces:
-        - "{{ package }}"
-  when:
-    - ownNameSpace | bool
-
 - name: "deploy-operators : Install the operator {{ package }}"
   include_role:
     name: olm-operator
@@ -47,10 +33,4 @@
     namespace: "{{ operator_ns_name | default(package, True) }}"
     source_ns: "{{ install_all_from_catalog_source | default('openshift-marketplace') }}"
     operator_group_name: "{{ package }}"
-    operator_group_spec: "{{ group_spec | default('') }}"
-
-- name: "Unset operator group spec and namespace name"
-  set_fact:
-    group_spec: ''
-    operator_ns_name: ''
 ...
