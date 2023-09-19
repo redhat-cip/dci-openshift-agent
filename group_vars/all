@@ -112,6 +112,9 @@ nfs_subdir_external_provisioner_tag: v4.0.2
 # Catalog from file vars
 operator_catalog_dir: ""
 operator_catalog_dir_name: "catalog-from-file"
+
+# Upgrade
+max_upgrade_time: 10200
 ...
 # Local Variables:
 # mode: yaml

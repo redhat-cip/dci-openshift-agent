@@ -18,6 +18,7 @@
     msg:
       - "Upgrade history: {{ upgrade_version }} {{ upgrade_state }} {{ current_status }}"
       - "Approximated elapsed time: {{ elapsed_time | int / 60  }} mins"
+      - "Maximum time defined: {{ max_upgrade_time | int / 60 }} mins"
 
 - name: Wait for upgrade
   block:
@@ -33,7 +34,7 @@
       fail:
         msg: "Failed due to timeout"
       when:
-        - elapsed_time | int >= 9000
+        - elapsed_time | int >= max_upgrade_time
 
     - name: Apply work-around for dns pods - OCPBUGS-18472
       block:
@@ -71,7 +72,7 @@
     - name: "Upgrader: Monitor upgrade"
       include_tasks: monitor-upgrade.yml
       when:
-        - elapsed_time | int < 9000
+        - elapsed_time | int < max_upgrade_time
   when:
     - upgrade_state != "Completed"
 ...
