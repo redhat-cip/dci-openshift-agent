@@ -47,7 +47,7 @@
         - setup
       uri:
         url: https://www.redhat.com
-        status_code: [-1,200]
+        status_code: [-1,200,301]
         timeout: 1
       register: internet_url
 
@@ -60,7 +60,7 @@
         password: "{{ rhn_pass }}"
         auto_attach: true
       when:
-        - (internet_url.status == 200)
+        - (internet_url.status in [200, 301])
         - ansible_distribution == "RedHat"
 
     - name: Install EPEL Release
@@ -71,7 +71,7 @@
         state: present
         disable_gpg_check: true
       when:
-        - (internet_url.status == 200)
+        - (internet_url.status in [200, 301])
 
     - name: Install DCI Release
       tags:
@@ -81,7 +81,7 @@
         state: present
         disable_gpg_check: true
       when:
-        - (internet_url.status == 200)
+        - (internet_url.status in [200, 301])
 
     - name: Install extra packages
       tags:
@@ -108,7 +108,7 @@
         state: present
         key: "https://github.com/{{ github_user }}.keys"
       when:
-        - (internet_url.status == 200)
+        - (internet_url.status in [200, 301])
 
     - name: Ensure there is a ~/tmp directory for d-o-a
       tags:
