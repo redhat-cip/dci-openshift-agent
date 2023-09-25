@@ -193,24 +193,6 @@
   when:
     - upgrade_eus | default(false) | bool
 
-- name: "Clone/update baremetal-deploy repo"
-  vars:
-    git_repo: "{{ baremetal_deploy_repo }}"
-    git_ref: "{{ baremetal_deploy_version }}"
-  git:
-    version: "{{ git_ref }}"
-    repo: "{{ git_repo }}"
-    dest: "{{ dci_cache_dir }}/baremetal_deploy_repo"
-    force: true
-  register: git_clone
-  retries: 3
-  delay: 10
-  until: not git_clone.failed
-  when:
-    - install_type == 'ipi'
-  tags:
-    - clone_upstream_repos
-
 - name: Include installed software as components
   vars:
     mandatory_rpms:

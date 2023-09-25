@@ -20,7 +20,23 @@ PID2=
 RET=1
 PIPELINE_ARG=
 
-PROJECTS="ansible-collection-ansible-posix|ansible-collection-community-general|ansible-collection-community-kubernetes|ansible-collection-community-libvirt|ansible-collection-containers-podman|ansible-role-dci-podman|ansible-role-dci-sync-registry|dci-ansible|dci-openshift-agent|dci-openshift-app-agent|python-dciclient|python-dciauth"
+PROJECTS=(
+    ansible-collection-ansible-posix
+    ansible-collection-community-general
+    ansible-collection-community-kubernetes
+    ansible-collection-community-libvirt
+    ansible-collection-containers-podman
+    ansible-collection-redhatci-ocp
+    ansible-role-dci-podman
+    ansible-role-dci-sync-registry
+    dci-ansible
+    dci-openshift-agent
+    dci-openshift-app-agent
+    python-dciauth
+    python-dciclient
+)
+PROJECTS_REGEX=$(printf '%s|' "${PROJECTS[@]}")
+PROJECTS_REGEX=${PROJECTS_REGEX%|}
 
 finish() {
     echo "finish $*"
@@ -313,11 +329,11 @@ fi
 if [ "$VIRT" = "no-check" ] ||
        { [ -d dci-openshift-agent -o \
            -d dci-openshift-app-agent ] &&
-         [ $(ls|grep -E "$PROJECTS"|wc -l) -eq 1 ];
+         [ $(ls|grep -E "${PROJECTS_REGEX}"|wc -l) -eq 1 ];
        } ||
        { [ -d dci-openshift-agent -a \
            -d dci-openshift-app-agent ] &&
-         [ $(ls|grep -E "$PROJECTS"|wc -l) -eq 2 ];
+         [ $(ls|grep -E "${PROJECTS_REGEX}"|wc -l) -eq 2 ];
        }; then
     if [ "$VIRT" = "no-check" ]; then
         NUMBER_CODE_FILES=0
@@ -417,10 +433,6 @@ for conf in $(ls -d *config 2> /dev/null); do
     sed -i -e "s@/var/lib/dci-openshift-agent/$conf/@$PWD/$conf/@g" ansible.cfg
 done
 
-if [ -d baremetal-deploy ]; then
-    sed -i -e "s@/var/lib/dci-openshift-agent/baremetal_deploy_repo/@$PWD/baremetal-deploy/@g" ansible.cfg
-fi
-
 if [ -d crucible ]; then
     sed -i -e "s@/var/lib/dci-openshift-agent/assisted_deploy_repo/@$PWD/crucible/@g" ansible.cfg
 fi
@@ -448,7 +460,7 @@ for d in $(ls -d ansible-role-dci-* 2> /dev/null); do
 done
 
 ANSIBLE_COLLECTIONS_PATHS=
-for d in $(ls -d ansible-collection-* 2> /dev/null); do
+for d in $(find . -maxdepth 1 -name 'ansible-collection-*' -type d -exec basename {} \; 2>/dev/null); do
     mkdir -p collections
     LOCAL_COLLECTIONS=$PWD/collections
     export ANSIBLE_COLLECTIONS_PATHS=$LOCAL_COLLECTIONS:/usr/share/ansible/collections
