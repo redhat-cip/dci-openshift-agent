@@ -1,25 +1,26 @@
 ---
-- name: "Wait 30 seconds for operators to stabilize"
-  pause:
-    seconds: 30
-
-- name: "Check cluster info"
-  community.kubernetes.k8s_info:
-    kind: ClusterOperator
-  register: operator_info
-
-- name: "Fail if any ClusterOperator last status is Degraded/True - {{ version }}"
+- name: "Check cluster operators status"
   vars:
-    last_timestamp: "resources[*].{name: metadata.name, last: sort_by(status.conditions, &lastTransitionTime)[-1]}"
-  set_fact:
-    # converting to/from JSON is a workaround for a Jinja2 bug
-    operator_status: "{{ operator_info | to_json | from_json | json_query(last_timestamp) }}"
-  failed_when: >-
-    operator_status |
-    selectattr('last.type', 'eq', 'Degraded') |
-    selectattr('last.status', 'eq', 'True') |
-    list |
-    length > 0
+    status_check: Degraded
+  block:
+    - name: "Fail if there are degraded cluster-operators"
+      community.kubernetes.k8s_info:
+        kind: ClusterOperator
+      register: clusteroperator_info
+      vars:
+        status_query: "resources[*].status.conditions[?type=='{{ status_check }}'].status"
+        cluster_operators_degraded: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
+      failed_when: "'True' in cluster_operators_degraded"
+      no_log: true
+      retries: 6
+      delay: 10
+  rescue:
+    - name: "Some Cluster operators are degraded"
+      vars:
+        operator_names: "{{ clusteroperator_info | json_query(query) }}"
+        query: "resources[?status.conditions[?type=='{{ status_check }}' && status=='True']].metadata.name"
+      fail:
+        msg: "The following Cluster Operators are degraded {{ operator_names }}"
 
 - name: "Check that control-plane nodes are ready"
   community.kubernetes.k8s_info:
