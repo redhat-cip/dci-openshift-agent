@@ -50,6 +50,27 @@
     path: "{{ job_logs.path }}/{{ dir_name }}"
     state: absent
 
+- name: Kernel parameters
+  vars:
+    kernel_params: "{{ job_logs.path }}/worker-kernel-params"
+  block:
+    - name: Read plain kernel params
+      slurp:
+        src: "{{ kernel_params }}.txt"
+      register: slurp_cmdline
+      ignore_errors: true
+
+    - name: Generate kernel params json
+      copy:
+        content: "{{ slurp_cmdline['content'] | b64decode | cmdline_to_json }}"
+        dest: "{{ kernel_params }}.json"
+      when: slurp_cmdline['content'] is defined
+
+    - name: Delete plan kernel params
+      file:
+        path: "{{ kernel_params }}.txt"
+        state: absent
+
 - name: "Get logs from ACM-Hub"
   environment:
     DCI_MUST_GATHER_IMAGES: >-
