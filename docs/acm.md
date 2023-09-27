@@ -92,7 +92,9 @@ Please read the role's documentation for more information.
 
 1. A Hub cluster is deployed with support for ACM. It can be achieved by setting `enable_acm=true` during an OCP deployment. Please see the example of an [ACM Hub pipeline](#acm-hub-pipeline).
 1. The kubeconfig file of the Cluster Hub is exported as HUB_KUBECONFIG: `export HUB_KUBECONFIG=/<kubeconfig_path>`
-1. Define the deployment settings for the new SNO instance. See the example of an [ACM Hypershift Pipeline](#acm-hypershift-pipeline).
+1. Define the deployment settings for the new Hosted Cluster instance. See the example of an [ACM Hypershift Pipeline](#acm-hypershift-pipeline).
+  1. As part of the installation, the agent will deploy a MetalLB instance in L2 mode. The variable `metallb_ipaddr_pool_l2` with the range of IPs for the LoadBalancer is required and can be defined at the pipeline or inventory.
+  1. The metallb setup can be skipped if there is one already running but it will validated during the hypershift installation.
 1. Use `dci_pipeline` or the DCI Agent to initiate the deployment using the values defined in the [`acm-hypershift-pipeline`](#acm-hypershift-pipeline).
 
 ## Pipeline Examples
@@ -128,6 +130,7 @@ This pipeline includes NFS storage
     nfs_server: nfs.example.com
     nfs_path: /path/to/exports
     dci_teardown_on_success: false
+    metallb_ipaddr_pool_l2: 192.168.12.32-192.168.12.36
   topic: OCP-4.13
   components:
     - ocp
