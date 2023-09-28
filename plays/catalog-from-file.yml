@@ -31,6 +31,10 @@
       docker://{{ dci_local_registry }}
       --skip-metadata-check
       --dest-skip-tls
+  retries: 3
+  delay: 10
+  register: result
+  until: result.rc == 0
 
 - name: "Check the ICSP manifest"
   find:
