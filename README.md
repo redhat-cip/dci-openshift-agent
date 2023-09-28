@@ -244,6 +244,8 @@ This is the dci-openshift-agent variables that can be set in the
 | dci_teardown_on_failure         | False    | Boolean | False                                                          | Whether or not execute the teardown hook on a failure.
 | dci_teardown_on_success         | False    | Boolean | True                                                           | Whether or not execute the teardown hook on success.
 | dci_openshift_agent_conformance | False    | String  |                                                                | If defined it will run that category of conformance test.
+| dci_custom_component            | False    | Boolean | False                                                          | Used to enable the use of custom OCP builds.
+| dci_custom_component_file       | False    | String  | Undefined                                                      | A file that contains the custom OCP information in json. See [custom builds](#custom-builds) for details.
 | dci_disconnected                | False    | Boolean | False                                                          | Signals that the OCP agent will run in disconnected.
 | dci_force_mirroring             | False    | Boolean | False                                                          | Force the copy of the OCP release images to the local_registry_host.
 | dci_openshift_csi_test_manifest | False    | String  | ""                                                             | Manifest file that contains the tests for CSI validation. Please review [test-parameters](https://redhat-connect.gitbook.io/openshift-badges/badges/container-storage-interface-csi-1/workflow/setup-test-parameters) and [csi-e2e](https://github.com/kubernetes/kubernetes/tree/v1.16.0/test/e2e/storage/external) for details about drivers capabilities.
@@ -1010,6 +1012,43 @@ Upgrade notes:
 * For disconnected environments, it's required to enable the same operators (`enable_<operator>`) installed  by dci-openshift-agent to upgrade them.
 
 * Please see the [ansible-variables](#ansible-variables) section for more settings related to the upgrade process.
+
+## Custom Builds
+
+This is a way to test with custom builds. The requirements are:
+
+- Pipeline
+  - Must NOT contain `ocp` component
+  - Must define:
+
+  ```yaml
+    dci_custom_component: true
+    dci_custom_component_file: /path/to/custom_component.json
+  ```
+- Inventory
+  - Must define a pullsecret with access to the custom build image
+
+  ```yaml
+    pullsecret_file: /path/to/custom_pullsecret.json
+  ```
+
+Example of a custom component file:
+
+```json
+{
+  "data": {
+    "pull_url": "registry.<sub-domain>.ci.openshift.org/<build-id>/release@sha256:abcdef...",
+    "version": "4.15.0-0.ci.test-<timestamp>-<id>"
+  },
+  "tags": [
+    "sha256:abcdef...",
+    "build:nightly"
+  ],
+  "id": "",
+  "type": "ocp",
+  "url": "https://registry.<sub-domain>.ci.openshift.org/<build-id>/release:latest"
+}
+```
 
 ## Keep the DCI OCP Agent Updated
 
