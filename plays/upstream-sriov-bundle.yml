@@ -23,6 +23,12 @@
   delay: 10
   until: not sriov_clone.failed
 
+- name: "Add expire label to SRIOV bundle image"
+  lineinfile:
+    path: "{{ bundle_tmp_dir }}/sriov-network-operator/bundleci.Dockerfile"
+    line: "LABEL maintainer='Telco DCI team' quay.expires-after=5h"
+    insertafter: EOF
+
 - name: "Pin CSV"
   script:
     cmd: >
