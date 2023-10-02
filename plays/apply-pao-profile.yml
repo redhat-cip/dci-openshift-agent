@@ -130,7 +130,7 @@
     name: check-resource
   vars:
     resource_to_check: "MachineConfigPool"
-    check_wait_retries: "{{ 12 * (groups['workers'] | default([]) | length + 1 ) }}"
+    check_wait_retries: "{{ 14 * (groups['workers'] | default([]) | length + 1 ) }}"
     check_wait_delay: 60
     check_reason: "PAO installation"
 ...
