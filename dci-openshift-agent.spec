@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.6.1
+Version:       0.7.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -84,14 +84,11 @@ exit 0
 
 %{_datadir}/dci-openshift-agent/plays/*.yml
 %{_datadir}/dci-openshift-agent/plays/scripts/*
-%{_datadir}/dci-openshift-agent/roles/*
 %{_datadir}/dci-openshift-agent/action_plugins/*
 %{_datadir}/dci-openshift-agent/utils/*
 %{_datadir}/dci-openshift-agent/plays/crucible/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
-
-%{_datadir}/dci/roles/*
 
 %{_unitdir}/*
 
@@ -100,7 +97,10 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
-* Mon Oct 10 2023 Tony Garcia <tonyg@redhat.com> - 0.6.1-1
+* Mon Oct 16 2023 Tony Garcia <tonyg@redhat.com> 0.7.0-1
+- Remove roles, use collections instead
+
+* Tue Oct 10 2023 Tony Garcia <tonyg@redhat.com> - 0.6.1-1
 - Moving baremetal-deploy to use collections
 
 * Mon Oct 09 2023 Jorge A Gallegos <jgallego@redhat.com> - 0.6.0-1

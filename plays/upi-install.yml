@@ -6,7 +6,7 @@
   block:
   - name: "installer : Run UPI installer"
     import_role:
-      name: upi_installer
+      name: redhatci.ocp.upi_installer
     vars:
       pull_url: "{{ hostvars.localhost.version_pull_url }}"
       upi_pullsecret: "{{ hostvars.localhost.pullsecret | to_json }}"

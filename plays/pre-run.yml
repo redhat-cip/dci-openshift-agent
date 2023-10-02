@@ -77,7 +77,7 @@
 
 - name: Mirror release
   include_role:
-    name: mirror_ocp_release
+    name: redhatci.ocp.mirror_ocp_release
   vars:
     mor_version: "{{ version }}"
     mor_pull_url: "{{ version_pull_url }}"
@@ -155,7 +155,7 @@
 
     - name: "Mirror intermediate OCP release"
       include_role:
-        name: mirror_ocp_release
+        name: redhatci.ocp.mirror_ocp_release
       vars:
         mor_version: "{{ version_inter }}"
         mor_pull_url: "{{ image_inter }}"
@@ -190,7 +190,7 @@
     ic_gits: "{{ dci_gits_to_components|flatten }}"
     ic_dev_gits: "{{ dev_gits_to_components|flatten }}"
   include_role:
-    name: include_components
+    name: redhatci.ocp.include_components
 
 - name: Append mirrors to trust bundle
   block:
@@ -225,7 +225,7 @@
 
 - name: "Mirror must gather images"
   include_role:
-    name: mirror_images
+    name: redhatci.ocp.mirror_images
   vars:
     images: "{{ dci_must_gather_images | default(['registry.redhat.io/openshift4/ose-must-gather']) }}"
     authfile: "{{ dci_pullsecret_file }}"
@@ -266,7 +266,7 @@
 
 - name: "Storage service test (during upgrade only)"
   include_role:
-    name: storage_tester
+    name: redhatci.ocp.storage_tester
     apply:
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"

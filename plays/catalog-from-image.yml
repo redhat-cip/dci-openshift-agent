@@ -25,7 +25,7 @@
 
     - name: "Mirror pruned catalog"
       include_role:
-        name: mirror_catalog
+        name: redhatci.ocp.mirror_catalog
       vars:
         mc_oc_tool_path: "{{ oc_tool_path }}"
         mc_catalog: "{{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
@@ -40,7 +40,7 @@
 
     - name: "Create Red Hat disconnected catalogSource"
       include_role:
-        name: catalog_source
+        name: redhatci.ocp.catalog_source
       vars:
         cs_name: "{{ opm_catalog_source_name }}"
         cs_namespace: "{{ opm_catalog_source_namespace }}"

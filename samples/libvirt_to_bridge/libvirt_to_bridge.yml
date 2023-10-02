@@ -72,7 +72,7 @@
       when: baremetal_conf.stat.exists
 
     - include_role:
-        name: ocp_on_libvirt
+        name: redhatci.ocp.ocp_on_libvirt
         tasks_from: libvirt_network_destroy.yml
       loop: "{{ networks }}"
       loop_control:

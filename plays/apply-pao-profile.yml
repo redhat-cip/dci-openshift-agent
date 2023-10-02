@@ -126,7 +126,7 @@
 
 - name: Wait for MCP status
   include_role:
-    name: check_resource
+    name: redhatci.ocp.check_resource
   vars:
     resource_to_check: "MachineConfigPool"
     check_wait_retries: "{{ 16 * (groups['workers'] | default([]) | length + 1 ) }}"

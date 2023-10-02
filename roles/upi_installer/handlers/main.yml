@@ -1,8 +1,0 @@
----
-- name: "Delete tmp file"
-  file:
-    path: "{{ upi_creds_file.path }}"
-    state: absent
-  when:
-    - upi_creds_file is defined
-...

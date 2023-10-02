@@ -25,7 +25,7 @@
           ic_gits: "{{ dci_gits_to_components }}"
           ic_dev_gits: "{{ dev_gits_to_components }}"
         include_role:
-          name: include_components
+          name: redhatci.ocp.include_components
 
       - name: "Process pullsecrets"
         include_tasks: pullsecrets.yml
@@ -48,7 +48,7 @@
 
       - name: Mirror release
         include_role:
-          name: mirror_ocp_release
+          name: redhatci.ocp.mirror_ocp_release
         vars:
           mor_version: "{{ version }}"
           mor_pull_url: "{{ version_pull_url }}"

@@ -44,7 +44,7 @@
 
 - name: "Teardown for storage service tester"
   include_role:
-    name: storage_tester
+    name: redhatci.ocp.storage_tester
     tasks_from: teardown.yml
     apply:
       environment:
@@ -60,7 +60,7 @@
   vars:
     sm_action: 'cleanup'
   include_role:
-    name: setup_minio
+    name: redhatci.ocp.setup_minio
   when:
     - enable_minio | bool
 
@@ -68,7 +68,7 @@
   vars:
     - ol_action: 'cleanup'
   include_role:
-    name: ocp_logging
+    name: redhatci.ocp.ocp_logging
     tasks_from: clean-resources
   when:
     - enable_logs_stack | bool

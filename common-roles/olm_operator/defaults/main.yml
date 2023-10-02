@@ -1,6 +1,0 @@
----
-channel: ""
-source: redhat-operators
-source_ns: openshift-marketplace
-operator_group_name: "{{ operator }}"
-...

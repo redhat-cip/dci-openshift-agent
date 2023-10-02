@@ -17,7 +17,7 @@
   block:
     - name: Create FBC upstream catalog with upstream bundles
       include_role:
-        name: fbc_catalog
+        name: redhatci.ocp.fbc_catalog
       vars:
         fbc_index_image: "{{ upstream_catalog }}"
         fbc_bundles: "{{ upstream_bundles }}"

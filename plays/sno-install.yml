@@ -4,13 +4,13 @@
 
 - name: "installer : SNO Node preparation"
   import_role:
-    name: sno_node_prep
+    name: redhatci.ocp.sno_node_prep
   vars:
     sno_pullsecret_file: "{{ hostvars['localhost']['dci_pullsecret_file'] }}"
 
 - name: "installer : SNO Run IPI installer"
   import_role:
-    name: sno_installer
+    name: redhatci.ocp.sno_installer
   vars:
     pull_url: "{{ hostvars.localhost.version_pull_url }}"
 

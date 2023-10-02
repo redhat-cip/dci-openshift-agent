@@ -6,6 +6,6 @@
         vbmc_host_provided: localhost
       when: vbmc_host_provided is not defined
     - include_role:
-        name: ocp_on_libvirt
+        name: redhatci.ocp.ocp_on_libvirt
       vars:
         hook_action: cleanup

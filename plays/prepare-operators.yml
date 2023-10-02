@@ -123,7 +123,7 @@
 
 - name: "Wait for updated MCP after applying ICSP"
   include_role:
-    name: check_resource
+    name: redhatci.ocp.check_resource
   vars:
     resource_to_check: "MachineConfigPool"
     check_wait_retries: 120
@@ -136,7 +136,7 @@
 
 - name: "Create custom catalog sources"
   include_role:
-    name: catalog_source
+    name: redhatci.ocp.catalog_source
   vars:
     cs_name: "{{ ((catalog | basename).split(':'))[0] }}"
     cs_namespace: "openshift-marketplace"

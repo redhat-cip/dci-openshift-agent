@@ -55,7 +55,7 @@
   block:
     - name: "Mirror OCP release artifacts - Disconnected"
       include_role:
-        name: mirror_ocp_release
+        name: redhatci.ocp.mirror_ocp_release
       vars:
         mor_version: "{{ version }}"
         mor_pull_url: "{{ version_pull_url }}"
@@ -131,7 +131,7 @@
 
     - name: "Mirror must gather images"
       include_role:
-        name: mirror_images
+        name: redhatci.ocp.mirror_images
       vars:
         images: "{{ dci_must_gather_images | default(['registry.redhat.io/openshift4/ose-must-gather']) }}"
         authfile: "{{ dci_pullsecret_file }}"
@@ -144,7 +144,7 @@
   block:
     - name: Mirror release
       include_role:
-        name: mirror_ocp_release
+        name: redhatci.ocp.mirror_ocp_release
       vars:
         mor_version: "{{ version }}"
         mor_pull_url: "{{ version_pull_url }}"

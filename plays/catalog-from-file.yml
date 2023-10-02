@@ -99,7 +99,7 @@
   block:
     - name: "Create CatalogSource for from-file operators"
       include_role:
-        name: catalog_source
+        name: redhatci.ocp.catalog_source
       vars:
         cs_name: "{{ operator_catalog_dir_name }}"
         cs_image: "{{ index_image }}"

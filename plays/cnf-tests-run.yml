@@ -12,7 +12,7 @@
 
       - name: "Mirror cnf-tests and dpdk images to local repo"
         include_role:
-          name: mirror_images
+          name: redhatci.ocp.mirror_images
         vars:
           images:
             - quay.io/openshift-kni/cnf-tests:{{ cnf_tests_image }}

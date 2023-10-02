@@ -8,9 +8,9 @@
 
   - name: "Prepare SNO Host"
     import_role:
-      name: sno_node_prep
+      name: redhatci.ocp.sno_node_prep
 
   - name: "Deploy SNO VM"
     import_role:
-      name: sno_installer
+      name: redhatci.ocp.sno_installer
 

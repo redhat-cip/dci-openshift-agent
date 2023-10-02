@@ -21,7 +21,7 @@
 
 - name: "Mirroring the NFS external storage provisioner image"
   include_role:
-    name: mirror_images
+    name: redhatci.ocp.mirror_images
   vars:
     images: ['registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2']
     authfile: "{{ dci_pullsecret_file }}"
@@ -31,7 +31,7 @@
 
 - name: "Deploy NFS external storage"
   include_role:
-    name: nfs_external_storage
+    name: redhatci.ocp.nfs_external_storage
   vars:
     nes_nfs_server: "{{ nfs_server }}"
     nes_nfs_path: "{{ nfs_path }}"
@@ -89,7 +89,7 @@
 
     - name: "deploy-operators : Override Red Hat catalog in connected"
       include_role:
-        name: catalog_source
+        name: redhatci.ocp.catalog_source
       vars:
         cs_name: "redhat-operators"
         cs_namespace: "openshift-marketplace"
@@ -103,7 +103,7 @@
       block:
         - name: "deploy-operators : Install Performance Addon Operator"
           include_role:
-            name: olm_operator
+            name: redhatci.ocp.olm_operator
           vars:
             operator: performance-addon-operator
             source: "{{ opm_catalog_source_name }}"
@@ -118,7 +118,7 @@
       block:
         - name: "deploy-operators : Install SRIOV operator"
           include_role:
-            name: olm_operator
+            name: redhatci.ocp.olm_operator
           vars:
             operator: sriov-network-operator
             source: "{{ upstream_source_catalog_name | default(opm_catalog_source_name) }}"
@@ -165,7 +165,7 @@
   block:
     - name: "deploy-operators : Install CNV operator"
       include_role:
-        name: olm_operator
+        name: redhatci.ocp.olm_operator
       vars:
         operator: kubevirt-hyperconverged
         source: "{{ opm_catalog_source_name }}"
@@ -176,7 +176,7 @@
 
     - name: "configure-operators : Deploy Hyperconverged Operator"
       include_role:
-        name: hco_setup
+        name: redhatci.ocp.hco_setup
       vars:
         hs_pullsecret_file: "{{ dci_pullsecret_file }}"
         hs_registry: "{{ dci_local_registry }}"
@@ -200,7 +200,7 @@
 
 - name: "deploy-operators : Install Elasticsearch operator"
   include_role:
-    name: olm_operator
+    name: redhatci.ocp.olm_operator
   vars:
     operator: elasticsearch-operator
     source: "{{ opm_catalog_source_name }}"
@@ -212,7 +212,7 @@
 
 - name: "deploy-operators : Install Cluster-logging operator"
   include_role:
-    name: olm_operator
+    name: redhatci.ocp.olm_operator
   vars:
     operator: cluster-logging
     source: "{{ opm_catalog_source_name }}"
@@ -226,7 +226,7 @@
 
 - name: "deploy-operators : Install the Loki Operator"
   include_role:
-    name: olm_operator
+    name: redhatci.ocp.olm_operator
   vars:
     operator: loki-operator
     source: "{{ opm_catalog_source_name }}"
@@ -240,7 +240,7 @@
   block:
     - name: "deploy-operators : Install ODF Operator"
       include_role:
-        name: olm_operator
+        name: redhatci.ocp.olm_operator
       vars:
         operator: odf-operator
         source: "{{ opm_catalog_source_name }}"
@@ -255,7 +255,7 @@
 
     - name: "deploy-operators : Install OCS Operator"
       include_role:
-        name: olm_operator
+        name: redhatci.ocp.olm_operator
       vars:
         operator: ocs-operator
         source: "{{ opm_catalog_source_name }}"
@@ -271,7 +271,7 @@
 
     - name: "deploy-operators : Install LocalStorage Operator"
       include_role:
-        name: olm_operator
+        name: redhatci.ocp.olm_operator
       vars:
         operator: local-storage-operator
         source: "{{ opm_catalog_source_name }}"
@@ -284,7 +284,7 @@
 
     - name: "configure-operators : Deploy an ODF Cluster"
       include_role:
-        name: odf_setup
+        name: redhatci.ocp.odf_setup
       when:
         - enable_ocs | bool
         - storage_cluster | bool
@@ -304,7 +304,7 @@
 
     - name: "Setup Minio instance"
       include_role:
-        name: setup_minio
+        name: redhatci.ocp.setup_minio
       vars:
         sm_storage_class: "{{ minio_storage_class | default('ocs-storagecluster-cephfs') }}"
         sm_claim_size: "{{ minio_claim_size | default('10Gi') }}"
@@ -325,7 +325,7 @@
   block:
     - name: "Mirroring the event router image"
       include_role:
-        name: mirror_images
+        name: redhatci.ocp.mirror_images
       vars:
         images: ["registry.redhat.io/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}"]
         authfile: "{{ dci_pullsecret_file }}"
@@ -334,7 +334,7 @@
 
     - name: "Setup OCP logging stack"
       include_role:
-        name: ocp_logging
+        name: redhatci.ocp.ocp_logging
       vars:
         ol_access_key_id: "{{ logs_access_key_id | default('minioadmin') }}"
         ol_access_key_secret: "{{ logs_access_key_secret | default('minioadmin') }}"
@@ -359,7 +359,7 @@
   block:
     - name: "deploy-operators : Install the ACM operator"
       include_role:
-        name: olm_operator
+        name: redhatci.ocp.olm_operator
       vars:
         operator: advanced-cluster-management
         source: "{{ opm_catalog_source_name }}"
@@ -378,7 +378,7 @@
   block:
     - name: "deploy-operators : Install the Node Discovery Operator"
       include_role:
-        name: olm_operator
+        name: redhatci.ocp.olm_operator
       vars:
         operator: nfd
         source: "{{ opm_catalog_source_name }}"
@@ -483,7 +483,7 @@
 
 - name: "deploy-operators : Install the MetalLB operator"
   include_role:
-    name: olm_operator
+    name: redhatci.ocp.olm_operator
   vars:
     operator: metallb-operator
     source: "{{ opm_catalog_source_name }}"
@@ -497,7 +497,7 @@
   block:
     - name: "deploy-operators : Install the k8s NMState Operator"
       include_role:
-        name: olm_operator
+        name: redhatci.ocp.olm_operator
       vars:
         operator: kubernetes-nmstate-operator
         source: "{{ opm_catalog_source_name }}"
@@ -520,7 +520,7 @@
 # both must be enabled.
 - name: "deploy-operators : Install the GitOps Operator"
   include_role:
-    name: olm_operator
+    name: redhatci.ocp.olm_operator
   vars:
     operator: openshift-gitops-operator
     source: "{{ opm_catalog_source_name }}"
@@ -546,7 +546,7 @@
 
 - name: "deploy-operators : Create defined Custom Resources"
   include_role:
-    name: deploy_cr
+    name: redhatci.ocp.deploy_cr
   vars:
     api_version: "{{ item.api_version }}"
     kind: "{{ item.kind }}"

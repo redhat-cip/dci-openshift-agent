@@ -392,9 +392,6 @@ if [ -d dci-openshift-agent ]; then
     rm -f ansible.cfg dci-openshift-agent.yml settings.yml
     cp dci-openshift-agent/ansible.cfg .
     sed -e "s@include_tasks:\s*plays/@include_tasks: $PWD/dci-openshift-agent/plays/@" < "$PWD"/dci-openshift-agent/dci-openshift-agent.yml > "$PWD"/dci-openshift-agent.yml
-    # force to use the roles from the change
-    sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/common-roles/:$PWD/dci-openshift-agent/roles/:@" ansible.cfg
-    sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/common-roles/:$PWD/dci-openshift-agent/roles/:@" "$PWD"/dci-openshift-agent/samples/ocp_on_libvirt/ansible.cfg
     CMD="$PWD/dci-openshift-agent/dci-openshift-agent-ctl"
     if [ "$VIRT" = virt ]; then
         VIRTDIR="$PWD"/dci-openshift-agent/samples/ocp_on_libvirt
@@ -698,10 +695,6 @@ if [ -s "$KUBECONFIG" ]; then
     fi
 
     if [ -d dci-openshift-app-agent ]; then
-        # inject the common roles from doa if needed
-        if [ -d dci-openshift-agent ]; then
-            sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/common-roles/:@" dci-openshift-app-agent/ansible.cfg
-        fi
         cd dci-openshift-app-agent
         ln -s /etc/dci-openshift-app-agent/dcirc.sh .
         if [ -z "$CONFIG_DIR" ]; then
@@ -718,14 +711,13 @@ if [ -s "$KUBECONFIG" ]; then
         setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -vv "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> ../output &
         cd ..
     else
-        # inject the common roles from doa if needed
+        # inject virtualenv if any
         if [ -d dci-openshift-agent ]; then
             mkdir -p dci-openshift-app-agent
             ln -s /usr/share/dci-openshift-app-agent/* dci-openshift-app-agent/
             rm -f dci-openshift-app-agent/ansible.cfg
             cp /usr/share/dci-openshift-app-agent/ansible.cfg dci-openshift-app-agent/
             export DCI_OPENSHIFT_APP_AGENT_DIR=$PWD/dci-openshift-app-agent
-            sed -i -e "s@\(^\s*roles_path\s*=\s*\)@\1$PWD/dci-openshift-agent/common-roles/:@" dci-openshift-app-agent/ansible.cfg
             if [ -x "$PWD/.venv/bin/python3" ]; then
                 sed -i -e '/interpreter_python/d' dci-openshift-app-agent/ansible.cfg
             fi

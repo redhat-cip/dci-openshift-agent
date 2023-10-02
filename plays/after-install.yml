@@ -145,7 +145,7 @@
 
 - name: "Apply node labels"
   include_role:
-    name: label_nodes
+    name: redhatci.ocp.label_nodes
   vars:
     label_loop: "{{ groups['masters'] + groups['workers'] | default([]) }}"
     label_item: "{{ hostvars }}"
@@ -180,7 +180,7 @@
   vars:
     os_config_dir: "{{ dci_cluster_configs_dir }}"
   include_role:
-    name: oc_setup
+    name: redhatci.ocp.oc_setup
 
 - name: "Upload additional credentials to DCI Control Server"
   environment:
