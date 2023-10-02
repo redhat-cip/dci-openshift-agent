@@ -13,4 +13,4 @@
         vbmc_host_provided: localhost
       when: vbmc_host_provided is not defined
     - include_role:
-        name: ocp-on-libvirt
+        name: ocp_on_libvirt

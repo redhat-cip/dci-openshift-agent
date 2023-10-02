@@ -36,11 +36,11 @@ We are constantly adding new ways to deploy OCP, currently, the agent supports
 
 ## Roles
 
-The ACM integration with DCI uses the [acm-setup](../roles/acm-setup/README.md) role to deploy a cluster hub.
+The ACM integration with DCI uses the [acm_setup](../roles/acm_setup/README.md) role to deploy a cluster hub.
 And the following roles are used to deploy different types of clusters through ACM
 
-* [acm-sno](../roles/acm-sno/README.md) to deploy SNO instances.
-* [acm-hypershift](../roles/acm-hypershift/README.md) to deploy Hypershift instances.
+* [acm_sno](../roles/acm_sno/README.md) to deploy SNO instances.
+* [acm_hypershift](../roles/acm_hypershift/README.md) to deploy Hypershift instances.
 
 Please read the role's documentation for more information.
 

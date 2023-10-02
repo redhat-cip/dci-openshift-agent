@@ -35,7 +35,7 @@
     ts_do_cni_tests: "{{ dci_do_cni_tests }}"
     ts_do_virt_tests: "{{ dci_do_virt_tests }}"
   include_role:
-    name: redhat-tests
+    name: redhat_tests
 
 - name: "Remove origin-tests image"
   containers.podman.podman_image:

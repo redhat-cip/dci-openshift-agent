@@ -48,7 +48,7 @@
 
       - name: Mirror release
         include_role:
-          name: mirror-ocp-release
+          name: mirror_ocp_release
         vars:
           mor_version: "{{ version }}"
           mor_pull_url: "{{ version_pull_url }}"
