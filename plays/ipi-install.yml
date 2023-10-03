@@ -70,7 +70,7 @@
   block:
   - name: "installer : Node preparation"
     import_role:
-      name: node-prep
+      name: node_prep
 
   - name: "installer : Run IPI installer"
     environment: "{{ disconnected_envs | default({}) }}"
@@ -150,7 +150,7 @@
 
   - name: "installer : Node preparation"
     import_role:
-      name: node-prep
+      name: node_prep
 
   - name: "installer : Run IPI installer"
     environment: "{{ disconnected_envs | default({}) }}"
