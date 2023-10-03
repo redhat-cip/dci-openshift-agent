@@ -10,9 +10,9 @@
       vars:
         status_query: "resources[*].status.conditions[?type=='{{ status_check }}'].status"
         cluster_operators_degraded: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
-      failed_when: "'True' in cluster_operators_degraded"
+      until: "'True' not in cluster_operators_degraded"
       no_log: true
-      retries: 6
+      retries: 12
       delay: 10
   rescue:
     - name: "Some Cluster operators are degraded"
