@@ -11,16 +11,16 @@
         status_query: "resources[*].status.conditions[?type=='{{ status_check }}'].status"
         cluster_operators_degraded: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
       until: "'True' not in cluster_operators_degraded"
-      no_log: true
       retries: 12
       delay: 10
   rescue:
     - name: "Some Cluster operators are degraded"
       vars:
-        operator_names: "{{ clusteroperator_info | json_query(query) }}"
-        query: "resources[?status.conditions[?type=='{{ status_check }}' && status=='True']].metadata.name"
+        degraded_operators: "{{ clusteroperator_info | json_query(query) }}"
+        query: "resources[?status.conditions[?type=='{{ status_check }}' && status=='True']].
+                {name: metadata.name, message: status.conditions[?type=='{{ status_check }}'].message}"
       fail:
-        msg: "The following Cluster Operators are degraded {{ operator_names }}"
+        msg: "The following Cluster Operators are degraded {{ degraded_operators }}"
 
 - name: "Check that control-plane nodes are ready"
   community.kubernetes.k8s_info:
