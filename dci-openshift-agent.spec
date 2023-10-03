@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.11
+Version:       0.5.12
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -99,6 +99,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Oct  5 2023 Tony Garcia <tonyg@redhat.com> 0.5.12-1
+- Renaming of common-roles
+
 * Tue Sep 12 2023 Tony Garcia <tonyg@redhat.com> 0.5.11-1
 - Bump version for dependencies used in dci-openshift-app-agent
 

@@ -47,7 +47,7 @@
 
 - name: "upgrader : Update disconnected catalogSources"
   import_role:
-    name: catalog-source
+    name: catalog_source
   vars:
     cs_name: "{{ opm_catalog_source_name }}"
     cs_namespace: "{{ opm_catalog_source_namespace }}"

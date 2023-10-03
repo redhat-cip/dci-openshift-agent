@@ -7,7 +7,7 @@
 
 - name: "Mirror Defined Catalogs"
   include_role:
-    name: mirror-catalog
+    name: mirror_catalog
   vars:
     mc_oc_tool_path: "{{ oc_tool_path }}"
     mc_catalog: "{{ catalog }}"

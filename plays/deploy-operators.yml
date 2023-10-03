@@ -31,7 +31,7 @@
 
 - name: "Deploy NFS external storage"
   include_role:
-    name: nfs-external-storage
+    name: nfs_external_storage
   vars:
     nes_nfs_server: "{{ nfs_server }}"
     nes_nfs_path: "{{ nfs_path }}"
@@ -89,7 +89,7 @@
 
     - name: "deploy-operators : Override Red Hat catalog in connected"
       include_role:
-        name: catalog-source
+        name: catalog_source
       vars:
         cs_name: "redhat-operators"
         cs_namespace: "openshift-marketplace"
@@ -103,7 +103,7 @@
       block:
         - name: "deploy-operators : Install Performance Addon Operator"
           include_role:
-            name: olm-operator
+            name: olm_operator
           vars:
             operator: performance-addon-operator
             source: "{{ opm_catalog_source_name }}"
@@ -118,7 +118,7 @@
       block:
         - name: "deploy-operators : Install SRIOV operator"
           include_role:
-            name: olm-operator
+            name: olm_operator
           vars:
             operator: sriov-network-operator
             source: "{{ upstream_source_catalog_name | default(opm_catalog_source_name) }}"
@@ -165,7 +165,7 @@
   block:
     - name: "deploy-operators : Install CNV operator"
       include_role:
-        name: olm-operator
+        name: olm_operator
       vars:
         operator: kubevirt-hyperconverged
         source: "{{ opm_catalog_source_name }}"
@@ -200,7 +200,7 @@
 
 - name: "deploy-operators : Install Elasticsearch operator"
   include_role:
-    name: olm-operator
+    name: olm_operator
   vars:
     operator: elasticsearch-operator
     source: "{{ opm_catalog_source_name }}"
@@ -212,7 +212,7 @@
 
 - name: "deploy-operators : Install Cluster-logging operator"
   include_role:
-    name: olm-operator
+    name: olm_operator
   vars:
     operator: cluster-logging
     source: "{{ opm_catalog_source_name }}"
@@ -226,7 +226,7 @@
 
 - name: "deploy-operators : Install the Loki Operator"
   include_role:
-    name: olm-operator
+    name: olm_operator
   vars:
     operator: loki-operator
     source: "{{ opm_catalog_source_name }}"
@@ -240,7 +240,7 @@
   block:
     - name: "deploy-operators : Install ODF Operator"
       include_role:
-        name: olm-operator
+        name: olm_operator
       vars:
         operator: odf-operator
         source: "{{ opm_catalog_source_name }}"
@@ -255,7 +255,7 @@
 
     - name: "deploy-operators : Install OCS Operator"
       include_role:
-        name: olm-operator
+        name: olm_operator
       vars:
         operator: ocs-operator
         source: "{{ opm_catalog_source_name }}"
@@ -271,7 +271,7 @@
 
     - name: "deploy-operators : Install LocalStorage Operator"
       include_role:
-        name: olm-operator
+        name: olm_operator
       vars:
         operator: local-storage-operator
         source: "{{ opm_catalog_source_name }}"
@@ -329,7 +329,7 @@
   block:
     - name: "deploy-operators : Install the ACM operator"
       include_role:
-        name: olm-operator
+        name: olm_operator
       vars:
         operator: advanced-cluster-management
         source: "{{ opm_catalog_source_name }}"
@@ -348,7 +348,7 @@
   block:
     - name: "deploy-operators : Install the Node Discovery Operator"
       include_role:
-        name: olm-operator
+        name: olm_operator
       vars:
         operator: nfd
         source: "{{ opm_catalog_source_name }}"
@@ -453,7 +453,7 @@
 
 - name: "deploy-operators : Install the MetalLB operator"
   include_role:
-    name: olm-operator
+    name: olm_operator
   vars:
     operator: metallb-operator
     source: "{{ opm_catalog_source_name }}"
@@ -467,7 +467,7 @@
   block:
     - name: "deploy-operators : Install the k8s NMState Operator"
       include_role:
-        name: olm-operator
+        name: olm_operator
       vars:
         operator: kubernetes-nmstate-operator
         source: "{{ opm_catalog_source_name }}"
@@ -490,7 +490,7 @@
 # both must be enabled.
 - name: "deploy-operators : Install the GitOps Operator"
   include_role:
-    name: olm-operator
+    name: olm_operator
   vars:
     operator: openshift-gitops-operator
     source: "{{ opm_catalog_source_name }}"

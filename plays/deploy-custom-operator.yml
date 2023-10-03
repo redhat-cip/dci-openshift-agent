@@ -1,6 +1,6 @@
 - name: "deploy-operators : Deploy {{ dci_operator.name }}"
   include_role:
-    name: olm-operator
+    name: olm_operator
   vars:
     operator: "{{ dci_operator.name }}"
     source: "{{ dci_operator.catalog_source }}"

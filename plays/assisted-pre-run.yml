@@ -25,7 +25,7 @@
           ic_gits: "{{ dci_gits_to_components }}"
           ic_dev_gits: "{{ dev_gits_to_components }}"
         include_role:
-          name: include-components
+          name: include_components
 
       - name: "Process pullsecrets"
         include_tasks: pullsecrets.yml

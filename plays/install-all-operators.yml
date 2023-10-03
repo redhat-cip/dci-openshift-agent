@@ -26,7 +26,7 @@
 
 - name: "deploy-operators : Install the operator {{ package }}"
   include_role:
-    name: olm-operator
+    name: olm_operator
   vars:
     operator: "{{ package }}"
     source: "{{ install_all_from_catalog }}"

@@ -225,7 +225,7 @@
     ic_gits: "{{ dci_gits_to_components|flatten }}"
     ic_dev_gits: "{{ dev_gits_to_components|flatten }}"
   include_role:
-    name: include-components
+    name: include_components
 
 - name: Append mirrors to trust bundle
   block:
