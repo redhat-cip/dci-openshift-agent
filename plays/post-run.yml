@@ -6,7 +6,7 @@
 
 - name: "Setup Advanced Cluster Management"
   include_role:
-    name: acm-setup
+    name: acm_setup
   vars:
     hub_disconnected: "{{ dci_disconnected | default(false) | bool }}"
   when:

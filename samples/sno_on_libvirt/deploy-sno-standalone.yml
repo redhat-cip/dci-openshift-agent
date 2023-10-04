@@ -8,9 +8,9 @@
 
   - name: "Prepare SNO Host"
     import_role:
-      name: sno-node-prep
+      name: sno_node_prep
 
   - name: "Deploy SNO VM"
     import_role:
-      name: sno-installer
+      name: sno_installer
 

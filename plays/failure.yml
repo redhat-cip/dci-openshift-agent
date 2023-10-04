@@ -8,7 +8,7 @@
 
 - name: "Gathering results for storage service tester"
   include_role:
-    name: storage-tester
+    name: storage_tester
     tasks_from: gathering-logs.yml
     apply:
       environment:

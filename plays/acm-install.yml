@@ -17,7 +17,7 @@
     acm_disconnected: "{{ dci_disconnected | default(False) | bool }}"
     acm_user_registry: "{{ acm_registries }}"
   include_role:
-    name: acm-sno
+    name: acm_sno
     apply:
       environment:
         - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
@@ -29,7 +29,7 @@
   block:
     - name: "Setup MetalLB in L2 mode"
       include_role:
-        name: metallb-setup
+        name: metallb_setup
       vars:
         mlb_ipaddr_pool:
           - "{{ metallb_ipaddr_pool_l2 }}"
@@ -40,7 +40,7 @@
       vars:
         ah_pullsecret_file: "{{ dci_pullsecret_file }}"
       include_role:
-        name: acm-hypershift
+        name: acm_hypershift
         apply:
           environment:
             - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"

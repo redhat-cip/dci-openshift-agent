@@ -44,7 +44,7 @@
 
 - name: "Teardown for storage service tester"
   include_role:
-    name: storage-tester
+    name: storage_tester
     tasks_from: teardown.yml
     apply:
       environment:
@@ -60,7 +60,7 @@
   vars:
     - ol_action: 'cleanup'
   include_role:
-    name: ocp-logging
+    name: ocp_logging
     tasks_from: clean-resources
   when:
     - enable_logs_stack | bool

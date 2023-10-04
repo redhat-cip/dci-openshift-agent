@@ -557,7 +557,7 @@ install_all_from_catalog_source: <my-ocp-catalog-ns>
 
 The `enable_logs_stack` variable allows configuring OCP to send log files and metrics produced by the infrastructure and workloads to a logging stack. This stack is integrated by the ClusterLogging, Loki and an Object storage system.
 
-The following variables allow customizing the logs stack deployment. Please see the [ocp-logging](roles/ocp-logging) role for additional details.
+The following variables allow customizing the logs stack deployment. Please see the [ocp_logging](roles/ocp_logging) role for additional details.
 
 | Variable                        | Required | Type    | Default                                                        | Description
 | ------------------------------- | -------- | ------- | -------------------------------------------------------------- | ------------

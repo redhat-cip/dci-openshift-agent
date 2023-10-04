@@ -177,7 +177,7 @@ oc adm policy add-cluster-role-to-group cluster-admin admin
 
 ## Destroy the SNO VM and perform some cleanup
 
-NOTE: The sno-node-prep and sno-installer roles by default clean up before a deployment
+NOTE: The sno_node_prep and sno_installer roles by default clean up before a deployment
 
 ```bash
 sudo su - dci-openshift-agent

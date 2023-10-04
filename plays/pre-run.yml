@@ -94,7 +94,7 @@
 
 - name: Mirror release
   include_role:
-    name: mirror-ocp-release
+    name: mirror_ocp_release
   vars:
     mor_version: "{{ version }}"
     mor_pull_url: "{{ version_pull_url }}"
@@ -172,7 +172,7 @@
 
     - name: "Mirror intermediate OCP release"
       include_role:
-        name: mirror-ocp-release
+        name: mirror_ocp_release
       vars:
         mor_version: "{{ version_inter }}"
         mor_pull_url: "{{ image_inter }}"
@@ -301,7 +301,7 @@
 
 - name: "Storage service test (during upgrade only)"
   include_role:
-    name: storage-tester
+    name: storage_tester
     apply:
       environment:
         KUBECONFIG: "{{ kubeconfig_path }}"
