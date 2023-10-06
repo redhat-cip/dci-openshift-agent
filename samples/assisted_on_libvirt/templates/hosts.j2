@@ -300,7 +300,7 @@ all:
                   - ip: "{{ '{{ ansible_host}}' }}"
                     prefix: "25"
           dns_server_ips:
-           - "{{ ansible_default_ipv4.address if (setup_dns_service | default('false') | bool) else provisioner_dns }}"
+           - "{{ vm_bridge_ip if (setup_dns_service | default('false') | bool) else provisioner_dns }}"
           routes: # optional
             - destination: 0.0.0.0/0
               address: "{{ machine_network_cidr | ipaddr('1') | ipaddr('address') }}"
