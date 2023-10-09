@@ -149,6 +149,17 @@
         - "'id' in operator_component.component"
       ignore_errors: yes
 
+- name: "Check if operators.txt exists"
+  ansible.builtin.stat:
+    path: "{{ operator_catalog_dir }}/operators.txt"
+  register: ops_stat
+
+- name: "Move the operators.txt to the logs dir"
+  ansible.builtin.copy:
+    src: "{{ operator_catalog_dir }}/operators.txt"
+    dest: "{{ job_logs.path }}/from-file-operators.txt"
+  when: ops_stat.stat.exists
+
 - name: "Delete workspaces directories"
   file:
     state: absent
