@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.5.12
+Version:       0.6.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -24,6 +24,7 @@ Requires: ansible-collection-community-general
 Requires: ansible-collection-community-libvirt
 Requires: ansible-collection-ansible-posix
 Requires: ansible-collection-ansible-utils
+Requires: ansible-collection-redhatci-ocp
 Requires: python3-pyyaml python3-openshift
 Requires: jq
 Requires: git
@@ -99,6 +100,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Oct 09 2023 Jorge A Gallegos <jgallego@redhat.com> - 0.6.0-1
+- Adding Red Hat CI OCP collection as a dependency
+
 * Thu Oct  5 2023 Tony Garcia <tonyg@redhat.com> 0.5.12-1
 - Renaming of common-roles
 
@@ -108,7 +112,7 @@ exit 0
 * Thu Aug 31 2023 Tony Garcia <tonyg@redhat.com> 0.5.10-1
 - Bump for changes in utils
 
-* Thu Jul 31 2023 Beto Rdz <josearod@redhat.com> 0.5.9-1
+* Mon Jul 31 2023 Beto Rdz <josearod@redhat.com> 0.5.9-1
 - Add jmespath dependency
 
 * Mon Jul 31 2023 Beto Rdz <josearod@redhat.com> 0.5.8-1
