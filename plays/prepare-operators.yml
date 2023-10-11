@@ -25,15 +25,21 @@
           spec:
             disableAllDefaultSources: true
 
-    - name: "Validate Red Hat catalogSources are disabled"
+    - name: "Validate default catalogs are disabled"
+      vars:
+        rh_catalogs: ['certified-operators',
+                      'community-operators',
+                      'redhat-marketplace',
+                      'redhat-operators']
+        catalog_names: "{{ catalogs_list.resources | map(attribute='metadata.name') | list }}"
+        catalog_inter: "{{ rh_catalogs | intersect(catalog_names) }}"
       community.kubernetes.k8s_info:
         api: operators.coreos.com/v1alpha1
         kind: CatalogSource
         namespace: openshift-marketplace
       register: catalogs_list
       until:
-        - catalogs_list.resources is defined
-        - catalogs_list.resources | length == 0
+        - catalog_inter | length == 0
       retries: 6
       delay: 10
 
