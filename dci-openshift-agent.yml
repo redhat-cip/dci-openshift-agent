@@ -84,7 +84,7 @@
       set_fact:
         tags: "{{ item['tags'] }}"
         url: "{{ item['url'] | regex_replace('\\/$', '') }}"
-        version: "{{ item['data']['version'] }}"
+        version: "{{ item.version }}"
         version_pull_url: "{{ item['data']['pull_url'] }}"
         ocp_product_id: "{{ item['id'] }}"
       with_items: "{{ job_info.job.components + [custom_component] if custom_component is defined else job_info.job.components }}"
