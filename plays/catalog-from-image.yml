@@ -5,7 +5,7 @@
   include_tasks: build-upstream-catalog.yml
   when:
     - dci_disconnected | default(false) | bool or (dci_local_registry | length )
-    - short_ver is version("4.14", ">=")
+    - short_ver is version("4.15", ">=")
 
 - name: "Get the operators mirror-list"
   include_tasks: get-mirror-list.yml
