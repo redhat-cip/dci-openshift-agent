@@ -31,7 +31,6 @@
     - kubelet.resources | length != 1
   when:
     - profile_state is defined
-    - profile_state.changed | bool
 
 - name: Set Performance Profile KubeletConfig creation time
   set_fact:
