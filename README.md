@@ -205,6 +205,10 @@ host are:
 % ssh-copy-id kni@provisionhost
 ```
 
+## Collections
+
+The `dci-openshift-agent` relies on [redhatci.ocp](https://github.com/redhatci/ansible-collection-redhatci-ocp) ansible collections that provide a set of roles and plugins that bring the functionality to the agent. The ansible collections are installed as a dependency of the agent and the project is hosted in https://github.com/redhatci/ansible-collection-redhatci-ocp
+
 ## Pipelines
 
 To configure your DCI job pipelines, you need to install `dci-pipeline`. Instructions at [dci-pipeline documentation](../dci-pipeline/).

@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.6.0
+Version:       0.6.1
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -100,6 +100,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Oct 10 2023 Tony Garcia <tonyg@redhat.com> - 0.6.1-1
+- Moving baremetal-deploy to use collections
+
 * Mon Oct 09 2023 Jorge A Gallegos <jgallego@redhat.com> - 0.6.0-1
 - Adding Red Hat CI OCP collection as a dependency
 

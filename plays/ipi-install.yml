@@ -70,12 +70,12 @@
   block:
   - name: "installer : Node preparation"
     import_role:
-      name: node_prep
+      name: redhatci.ocp.node_prep
 
   - name: "installer : Run IPI installer"
     environment: "{{ disconnected_envs | default({}) }}"
     import_role:
-      name: installer
+      name: redhatci.ocp.installer
 
 - name: "Nightly builds"
   when: hostvars.localhost.build == "nightly"
@@ -150,12 +150,12 @@
 
   - name: "installer : Node preparation"
     import_role:
-      name: node_prep
+      name: redhatci.ocp.node_prep
 
   - name: "installer : Run IPI installer"
     environment: "{{ disconnected_envs | default({}) }}"
     import_role:
-      name: installer
+      name: redhatci.ocp.installer
 
   - name: "Remove artifact webserver"
     containers.podman.podman_container:
