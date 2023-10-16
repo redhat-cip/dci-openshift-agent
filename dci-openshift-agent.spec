@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
 Version:       0.7.0
-Release:       1.VERS%{?dist}
+Release:       2.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -24,7 +24,7 @@ Requires: ansible-collection-community-general
 Requires: ansible-collection-community-libvirt
 Requires: ansible-collection-ansible-posix
 Requires: ansible-collection-ansible-utils
-Requires: ansible-collection-redhatci-ocp
+Requires: ansible-collection-redhatci-ocp >= 0.2.0
 Requires: python3-pyyaml python3-openshift
 Requires: jq
 Requires: git
@@ -97,6 +97,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Oct 16 2023 Jorge A Gallegos <jgallego@redhat.com> - 0.7.0-2
+- Depend on a version of collection with the right role names
+
 * Mon Oct 16 2023 Tony Garcia <tonyg@redhat.com> 0.7.0-1
 - Remove roles, use collections instead
 
