@@ -69,6 +69,9 @@ podman images --sort created --filter 'reference=*/cnf-certification-test:*' --f
 # Preflight images
 podman images --sort created --filter 'reference=*/preflight:*' --format "{{.Repository}}:{{.Tag}}" | grep -E '\w{8}(-\w{4}){3}-\w{12}' >> /tmp/clean-images
 
+# operator-sdk images
+podman images --sort created --filter 'reference=*/operator-sdk:*' --format "{{.Repository}}:{{.Tag}}" | grep -E '\w{8}(-\w{4}){3}-\w{12}' >> /tmp/clean-images
+
 # Loop over the images and check their job status
 # Remove the image if job is already in failure, error, or killed state
 while read -r name
