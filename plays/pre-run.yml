@@ -38,33 +38,16 @@
       stat:
         path: "{{ logs_settings }}"
       register: file_stat
-      when:
-        - logs_settings is defined
-        - logs_settings | default("") | length
 
     - name: "Load logs_settings from vars file"
       include_vars:
         file: "{{ logs_settings }}"
       when:
-        - logs_settings is defined
-        - logs_settings | default("") | length
         - file_stat is defined
         - file_stat.stat.exists
-
-    - name: "Validate Logging Subsystem variables"
-      assert:
-        that: "{{ item }} is defined"
-        fail_msg: "The parameter {{ item }} is required"
-      with_items:
-        - logs_access_key_id
-        - logs_access_key_secret
-        - logs_bucket
-        - logs_endpoint
-        - logs_region
-        - logs_loki_size
-        - logs_storage_class
   when:
-    - enable_logs_stack | bool
+    - logs_settings is defined
+    - logs_settings | default("") | length
 
 - name: "Read Disconnected auths"
   include_vars:

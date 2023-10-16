@@ -56,6 +56,14 @@
     - dci_main == 'upgrade'
     - storage_upgrade_tester | default(false) | bool
 
+- name: "Cleanup minio resources"
+  vars:
+    sm_action: 'cleanup'
+  include_role:
+    name: setup_minio
+  when:
+    - enable_minio | bool
+
 - name: "Cleanup ClusterLogging resources"
   vars:
     - ol_action: 'cleanup'

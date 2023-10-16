@@ -60,6 +60,7 @@ enable_nfs_storage: false
 enable_mlb: false
 enable_nmstate: false
 enable_gitops: false
+enable_minio: false
 # Lists of packages for each operator
 cnv_operator:
   - kubevirt-hyperconverged
@@ -105,7 +106,7 @@ dci_local_registry: |-
   :{{ local_registry_port }}
   {%- endif %}
 
-# Image tags
+# Images and tags
 eventrouter_rhel_tag: v5.2.1-1
 nfs_subdir_external_provisioner_tag: v4.0.2
 

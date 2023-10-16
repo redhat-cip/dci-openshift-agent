@@ -291,6 +291,36 @@
 
   when: (enable_lso | bool) or (enable_ocs | bool)
 
+- name: "Setup a Minio instance"
+  block:
+    - name: "Mirroring the Minio image"
+      include_role:
+        name: mirror_images
+      vars:
+        images: ['quay.io/minio/minio:latest']
+        authfile: "{{ dci_pullsecret_file }}"
+      when:
+        - dci_disconnected | default(false) | bool
+
+    - name: "Setup Minio instance"
+      include_role:
+        name: setup_minio
+      vars:
+        sm_storage_class: "{{ minio_storage_class | default('ocs-storagecluster-cephfs') }}"
+        sm_claim_size: "{{ minio_claim_size | default('10Gi') }}"
+        sm_namespace: "{{ minio_namespace | default('minio') }}"
+        sm_access_key_id: "{{ minio_access_key_id | default('minioadmin') }}"
+        sm_access_key_secret: "{{ minio_access_key_secret | default('minioadmin') }}"
+        sm_bucket_name: "{{ minio_bucket_name | default('loki') }}"
+        sm_minio_image: |-
+          {%- if dci_disconnected | default(false) %}
+          {{ dci_local_registry }}/minio/minio:latest
+          {%- else %}
+          quay.io/minio/minio:latest
+          {%- endif %}
+  when:
+    - enable_minio | bool
+
 - name: "Setup OCP logging stack"
   block:
     - name: "Mirroring the event router image"
@@ -306,13 +336,13 @@
       include_role:
         name: ocp_logging
       vars:
-        ol_access_key_id: "{{ logs_access_key_id }}"
-        ol_access_key_secret: "{{ logs_access_key_secret }}"
-        ol_bucket: "{{ logs_bucket }}"
-        ol_endpoint: "{{ logs_endpoint }}"
-        ol_region: "{{ logs_region }}"
-        ol_loki_size: "{{ logs_loki_size }}"
-        ol_storage_class: "{{ logs_storage_class }}"
+        ol_access_key_id: "{{ logs_access_key_id | default('minioadmin') }}"
+        ol_access_key_secret: "{{ logs_access_key_secret | default('minioadmin') }}"
+        ol_bucket: "{{ logs_bucket | default('loki') }}"
+        ol_endpoint: "{{ logs_endpoint |default('http://minio-service.minio:9000') }}"
+        ol_region: "{{ logs_region | default('us-east-1') }}"
+        ol_loki_size: "{{ logs_loki_size | default('1x.extra-small') }}"
+        ol_storage_class: "{{ logs_storage_class | default('ocs-storagecluster-ceph-rbd') }}"
         ol_event_router_image: |-
           {%- if dci_disconnected | default(false) %}
           {{ dci_local_registry }}/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}
