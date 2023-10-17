@@ -374,7 +374,7 @@
   vars:
     nfd_namespace: "openshift-nfd"
     nfd_instance_name: "nfd-instance"
-    nfd_image_tag: "v{{ version.split('.')[:2] | join('.') }}"
+    nfd_image: "registry.redhat.io/openshift4/ose-node-feature-discovery:latest"
   block:
     - name: "deploy-operators : Install the Node Discovery Operator"
       include_role:
@@ -389,23 +389,20 @@
           targetNamespaces:
             - "{{ nfd_namespace }}"
 
-    - name: "Get the release ose-node-feature-discovery image digest"
-      shell:
-        cmd: >
-          skopeo inspect
-          --no-tags
-          {% if dci_pullsecret_file is defined %}
-          --authfile {{ dci_pullsecret_file }}
-          {% endif %}
-          docker://registry.redhat.io/openshift4/ose-node-feature-discovery:{{ nfd_image_tag }} |
-          jq -r '.Digest'
-      register: nfd_digest
+    - name: "Mirroring ose-node-feature-discovery image"
+      include_role:
+        name: redhatci.ocp.mirror_images
+      vars:
+        images: [ "{{ nfd_image }}" ]
+        authfile: "{{ dci_pullsecret_file }}"
+      when:
+        - dci_disconnected | default(false) | bool
 
     - name: "deploy-operators : Configure the Node Discovery Operator"
       vars:
         image_ref: "{{  dci_disconnected | default(false) | bool |
-                    ternary('ose-node-feature-discovery@'+nfd_digest.stdout,
-                    'ose-node-feature-discovery:'+nfd_image_tag) }}"
+                    ternary (dci_local_registry+'/openshift4/ose-node-feature-discovery:latest',
+                    nfd_image) }}"
         ndf_def: |
           apiVersion: nfd.openshift.io/v1
           kind: NodeFeatureDiscovery
@@ -416,7 +413,7 @@
             instance: "" # instance is empty by default
             topologyupdater: false # False by default
             operand:
-              image: registry.redhat.io/openshift4/{{ image_ref }}
+              image: {{ image_ref }}
               imagePullPolicy: Always
             workerConfig:
               configData: |
