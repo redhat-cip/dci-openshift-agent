@@ -217,9 +217,6 @@
     operator: cluster-logging
     source: "{{ opm_catalog_source_name }}"
     namespace: openshift-logging
-    operator_group_spec:
-      targetNamespaces:
-        - openshift-logging
   when:
     - enable_logs_stack | bool or
       enable_clusterlogging | bool
