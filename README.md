@@ -296,6 +296,7 @@ This is the dci-openshift-agent variables that can be set in the
 | enable_mlb                      | False    | Boolean | False                                                          | Deploys MetalLB operator.
 | enable_nmstate                  | False    | Boolean | False                                                          | Deploys the k8s NMstate operator and creates initial instance.
 | enable_gitops                   | False    | Boolean | False                                                          | Deploys the [GitOps](https://www.redhat.com/en/technologies/cloud-computing/openshift/gitops) Operator.
+| enable_minio                    | False    | Boolean | False                                                          | Deploys [Minio](https://min.io/) object storage provider. Please see the [Minio](#minio-deployment) section for more details.
 | operator_catalog_dir            | False    | String  | ""                                                             | Absolute path to a directory that contains archive files created using the oc mirror plugin. See [Mirroring from directory](#mirroring-from-directory) section for more information.
 | operator_catalog_dir_name       | False    | String  | catalog-from-file                                              | Name for the operator's catalog created using the images from `operator_catalog_dir` path.
 | install_all_from_catalog        | False    | String  | ''                                                             | Name of a catalog from which all its operators need to be installed.
@@ -561,7 +562,7 @@ install_all_from_catalog_source: <my-ocp-catalog-ns>
 
 The `enable_logs_stack` variable allows configuring OCP to send log files and metrics produced by the infrastructure and workloads to a logging stack. This stack is integrated by the ClusterLogging, Loki and an Object storage system.
 
-The following variables allow customizing the logs stack deployment. Please see the [ocp-logging](https://github.com`/redhatci/ocp/tree/main/roles/ocp_logging) role for additional details.
+The following variables allow customizing the logs stack deployment. Please see the [ocp_logging](https://github.com/redhatci/ocp/tree/main/roles/ocp_logging) role for additional details.
 
 | Variable                        | Required | Type    | Default                                                        | Description
 | ------------------------------- | -------- | ------- | -------------------------------------------------------------- | ------------
@@ -574,6 +575,27 @@ The following variables allow customizing the logs stack deployment. Please see 
 | logs_storage_class              | False    | String  | undefined                                                      | Cluster Storage class for Loki components.
 | logs_event_router_image         | False    | String  | registry.redhat.io/openshift-logging/eventrouter-rhel8:v5.2.1-1| Event Router image.
 | logs_settings                   | False    | String  | ""                                                             | An optional yaml file with the variables listed above. The variables defined there take precedence over the ones defined at role level
+
+Enabling the openshift `cluster-logging` components requires high amounts of storage available for data persistency, please take this in consideration during the sizing of the Object Storage provider.
+
+## Minio deployment
+
+Some workloads like Migration Toolkit for Containers or Loki may require an object Object Storage provider. For such cases, a [Minio](https://min.io/) instance can be deployed on the OCP cluster by setting `true` to the `enable_minio` flag.
+
+In the DCI Openshift Agent integration, an initial bucket named `loki` is deployed and is used for the [logging](#logging-stack) if no information about an external Object provider are provided.
+
+The following variables allow customizing the Minio deployment. Please see the [minio_setup](https://github.com/redhatci/ansible-collection-redhatci-ocp/tree/main/roles/setup_minio) role for additional details.
+
+| Variable                               | Default                       | Required   | Description                                   |
+| -------------------------------------- | ----------------------------- | ---------- | ----------------------------------------------|
+| minio_claim_size                       | 10Gi                          | No         | Requested storage for Minio                   |
+| minio_storage_class                    | undefined                     | Yes        | A storage Class with Support for RWX volumes  |
+| minio_namespace                        | minio                         | No         | Deployment Namespace                          |
+| minio_access_key_id                    | minioadmin                    | No         | Minio's Initial Username                      |
+| minio_access_key_secret                | minioadmin                    | No         | Minio's Initial Password                      |
+| monio_bucket_name                      | minio                         | No         | Initial Bucket name                           |
+
+The workloads that require Object Storage, can use the `http://minio-service.minio:9000` endpoint and the default credentials set in the [minio_setup](https://github.com/redhatci/ansible-collection-redhatci-ocp/tree/main/roles/setup_minio) role to start shipping data to Minio.
 
 ## Interacting with your RHOCP Cluster
 
