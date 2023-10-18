@@ -295,7 +295,7 @@
   block:
     - name: "Mirroring the Minio image"
       include_role:
-        name: mirror_images
+        name: redhatci.ocp.mirror_images
       vars:
         images: ['quay.io/minio/minio:latest']
         authfile: "{{ dci_pullsecret_file }}"
