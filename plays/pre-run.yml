@@ -48,6 +48,7 @@
   when:
     - logs_settings is defined
     - logs_settings | default("") | length
+    - enable_logs_stack | bool
 
 - name: "Read Disconnected auths"
   include_vars:
