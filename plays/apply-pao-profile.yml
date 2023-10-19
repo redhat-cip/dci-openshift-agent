@@ -87,7 +87,22 @@
     - reg_mcpool_worker.resources[0].status.machineCount >= 1
   no_log: true
 
+- name: "Get cluster install-config"
+  community.kubernetes.k8s_info:
+    api: v1
+    kind: ConfigMap
+    name: cluster-config-v1
+    namespace: kube-system
+  register: ic
+  until: "'resources' in ic and ic.resources != []"
+  retries: 12
+  delay: 5
+  no_log: true
+
 - name: "Wait for SNO node to be available"
+  vars:
+    install_config: "{{ ic.resources[0].data['install-config'] | from_yaml }}"
+    control_plane_size: "{{ install_config | json_query('controlPlane.replicas') }}"
   block:
     - name: "Pause 60 seconds to wait for Performance Profile triggers SNO reboot"
       pause:
@@ -121,8 +136,7 @@
       retries: 90
       delay: 10
   when:
-    - install_type is defined
-    - install_type == "sno" or reg_mcpool_worker.resources[0].status.machineCount == 0
+      control_plane_size | int == 1
 
 - name: Wait for MCP status
   include_role:
