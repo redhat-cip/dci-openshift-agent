@@ -143,12 +143,17 @@
   when:
     - acm_cluster_type | default('') != 'hypershift'
 
-- name: "Apply node labels"
-  include_role:
-    name: redhatci.ocp.label_nodes
-  vars:
-    label_loop: "{{ groups['masters'] + groups['workers'] | default([]) }}"
-    label_item: "{{ hostvars }}"
+- block:
+    - name: "Merge all inventory hosts"
+      set_fact:
+        all_hosts: "{{ all_hosts | default([]) + groups[item] }}"
+      loop: "{{ groups.keys() | list }}"
+
+    - name: "Apply node labels"
+      include_role:
+        name: redhatci.ocp.label_nodes
+      vars:
+        hosts_list: "{{ all_hosts | list | unique }}"
   when:
     - install_type in ['ipi', 'upi', 'sno']
 
