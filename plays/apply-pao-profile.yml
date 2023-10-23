@@ -36,12 +36,19 @@
   set_fact:
     perf_kubelet_timestamp: "{{ kubelet.resources[0].metadata.creationTimestamp }}"
 
-- name: Verify if there are worker nodes available in the MCP
+- name: Get worker MCP status
   community.kubernetes.k8s_info:
     api_version: machineconfiguration.openshift.io/v1
     kind: MachineConfigPool
     name: worker
   register: reg_mcpool_worker
+
+- name: Get control-plane MCP status
+  community.kubernetes.k8s_info:
+    api_version: machineconfiguration.openshift.io/v1
+    kind: MachineConfigPool
+    name: master
+  register: reg_mcpool_controlplane
 
 - name: Wait (up to 10 mins) for rendered-worker MC triggered by Performance Profile
   community.kubernetes.k8s_info:
@@ -61,22 +68,22 @@
     - reg_mcpool_worker.resources[0].status.machineCount >= 1
     - profile_state.result.spec.nodeSelector is search('worker')
 
-- name: Wait (up to 10 mins) for rendered-master MC triggered by Performance Profile
+- name: Wait (up to 10 mins) for rendered-controlplane MC triggered by Performance Profile
   community.kubernetes.k8s_info:
     api_version: machineconfiguration.openshift.io/v1
     kind: MachineConfig
-  register: reg_master_mc
+  register: reg_controlplane_mc
   vars:
-    master_mc_query: "[?contains(metadata.name, 'rendered-master')].metadata.creationTimestamp"
-    master_mc_timestamp: "{{ reg_master_mc.resources | to_json | from_json | json_query(master_mc_query) | sort | last }}"
+    controlplane_mc_query: "[?contains(metadata.name, 'rendered-master')].metadata.creationTimestamp"
+    controlplane_mc_timestamp: "{{ reg_controlplane_mc.resources | to_json | from_json | json_query(master_mc_query) | sort | last }}"
   until:
-    - reg_master_mc.resources is defined
-    - master_mc_timestamp >= perf_kubelet_timestamp
+    - reg_controlplane_mc.resources is defined
+    - controlplane_mc_timestamp >= perf_kubelet_timestamp
   retries: 60
   delay: 10
   when:
     - install_type is undefined or install_type != 'sno'
-    - reg_mcpool_worker.resources[0].status.machineCount >= 1
+    - reg_mcpool_controlplane.resources[0].status.machineCount >= 1
     - profile_state.result.spec.nodeSelector is search('master')
 
 - name: "Pause 60 seconds to wait for MC triggered by Performance Profile starts the node changes"
@@ -84,7 +91,7 @@
     seconds: 60
   when:
     - install_type is undefined or install_type != 'sno'
-    - reg_mcpool_worker.resources[0].status.machineCount >= 1
+    - reg_mcpool_worker.resources[0].status.machineCount >= 1 or reg_mcpool_controlplane.resources[0].status.machineCount >= 1
   no_log: true
 
 - name: "Get cluster install-config"
@@ -143,7 +150,7 @@
     name: redhatci.ocp.check_resource
   vars:
     resource_to_check: "MachineConfigPool"
-    check_wait_retries: "{{ 16 * (groups['workers'] | default([]) | length + 1 ) }}"
+    check_wait_retries: "{{ 16 * (groups['workers'] | default(groups['masters']) | length + 1 ) }}"
     check_wait_delay: 60
     check_reason: "PAO installation"
 ...
