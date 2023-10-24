@@ -32,27 +32,44 @@
   when:
     - enable_lso | bool
 
-- name: "Install ODF Operators"
-  include_role:
-    name: redhatci.ocp.olm_operator
-  vars:
-    operator: odf-operator
-    source: "{{ opm_catalog_source_name }}"
-    namespace: openshift-storage
-    ns_labels:
-      openshift.io/cluster-monitoring: "true"
-    operator_group_spec:
-      targetNamespaces:
-        - openshift-storage
-  when:
-    - (enable_odf | bool)
+- name: "Deploy ODF"
+  block:
+    - name: "Install ODF Operators"
+      include_role:
+        name: redhatci.ocp.olm_operator
+      vars:
+        operator: odf-operator
+        source: "{{ opm_catalog_source_name }}"
+        namespace: openshift-storage
+        ns_labels:
+          openshift.io/cluster-monitoring: "true"
+        operator_group_spec:
+          targetNamespaces:
+            - openshift-storage
 
-- name: "configure-operators : Deploy an ODF Cluster"
-  include_role:
-    name: redhatci.ocp.odf_setup
+    - name: Mirroring UBI image for ODF validation
+      include_role:
+        name: redhatci.ocp.mirror_images
+      vars:
+        images: ['registry.access.redhat.com/ubi8/ubi']
+        authfile: "{{ dci_pullsecret_file }}"
+      when:
+        - dci_disconnected | default(false) | bool
+
+    - name: "configure-operators : Deploy an ODF Cluster"
+      vars:
+        gatherer_image: |-
+          {%- if dci_disconnected | default(false) %}
+          {{ dci_local_registry }}/ubi8/ubi
+          {%- else %}
+          registry.access.redhat.com/ubi8/ubi
+          {%- endif %}
+      include_role:
+        name: redhatci.ocp.odf_setup
+      when:
+        - storage_cluster | bool
   when:
     - enable_odf | bool
-    - storage_cluster | bool
 
 - name: "Mirroring the NFS external storage provisioner image"
   include_role:
