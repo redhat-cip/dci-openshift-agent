@@ -159,7 +159,7 @@ rely on different `Args-Hints` arguments, depending on your case:
 pass to `dci-check-change` when running an OCP installation.
 
 ```
-Test-Args-Hints: -e dci_topic=OCP-4.10 -e enable_lso=true -e enable_ocs=true -e enable_acm=true -e dci_teardown_on_success:false
+Test-Args-Hints: -e dci_topic=OCP-4.10 -e enable_odf=true -e enable_acm=true -e dci_teardown_on_success:false
 ```
 
 - `Test-Upgrade-Args-Hints:` can also be used to specify extra

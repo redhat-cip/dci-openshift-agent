@@ -19,6 +19,41 @@
 - name: "Prepare operators and catalogs"
   include_tasks: prepare-operators.yml
 
+- name: "deploy-operators : Install LocalStorage Operator"
+  include_role:
+    name: redhatci.ocp.olm_operator
+  vars:
+    operator: local-storage-operator
+    source: "{{ opm_catalog_source_name }}"
+    namespace: openshift-local-storage
+    operator_group_spec:
+      targetNamespaces:
+        - openshift-local-storage
+  when:
+    - enable_lso | bool
+
+- name: "Install ODF Operators"
+  include_role:
+    name: redhatci.ocp.olm_operator
+  vars:
+    operator: odf-operator
+    source: "{{ opm_catalog_source_name }}"
+    namespace: openshift-storage
+    ns_labels:
+      openshift.io/cluster-monitoring: "true"
+    operator_group_spec:
+      targetNamespaces:
+        - openshift-storage
+  when:
+    - (enable_odf | bool)
+
+- name: "configure-operators : Deploy an ODF Cluster"
+  include_role:
+    name: redhatci.ocp.odf_setup
+  when:
+    - enable_odf | bool
+    - storage_cluster | bool
+
 - name: "Mirroring the NFS external storage provisioner image"
   include_role:
     name: redhatci.ocp.mirror_images
@@ -232,61 +267,6 @@
       openshift.io/cluster-monitoring: "true"
   when:
     - enable_logs_stack | bool
-
-- name: ODF Installation and setup
-  block:
-    - name: "deploy-operators : Install ODF Operator"
-      include_role:
-        name: redhatci.ocp.olm_operator
-      vars:
-        operator: odf-operator
-        source: "{{ opm_catalog_source_name }}"
-        namespace: openshift-storage
-        ns_labels:
-          openshift.io/cluster-monitoring: "true"
-        operator_group_spec:
-          targetNamespaces:
-            - openshift-storage
-      when:
-        - enable_odf | bool
-
-    - name: "deploy-operators : Install OCS Operator"
-      include_role:
-        name: redhatci.ocp.olm_operator
-      vars:
-        operator: ocs-operator
-        source: "{{ opm_catalog_source_name }}"
-        namespace: openshift-storage
-        ns_labels:
-          openshift.io/cluster-monitoring: "true"
-        operator_group_spec:
-          targetNamespaces:
-            - openshift-storage
-      when:
-        - enable_ocs | bool
-        - not enable_odf | bool
-
-    - name: "deploy-operators : Install LocalStorage Operator"
-      include_role:
-        name: redhatci.ocp.olm_operator
-      vars:
-        operator: local-storage-operator
-        source: "{{ opm_catalog_source_name }}"
-        namespace: openshift-local-storage
-        operator_group_spec:
-          targetNamespaces:
-            - openshift-local-storage
-      when:
-        - enable_lso | bool
-
-    - name: "configure-operators : Deploy an ODF Cluster"
-      include_role:
-        name: redhatci.ocp.odf_setup
-      when:
-        - enable_ocs | bool
-        - storage_cluster | bool
-
-  when: (enable_lso | bool) or (enable_ocs | bool)
 
 - name: "Setup a Minio instance"
   block:

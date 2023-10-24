@@ -43,7 +43,6 @@ oc_tool_path: "{{ dci_cluster_configs_dir }}/oc"
 dci_prepare_cnf: false
 enable_cnv: false
 enable_odf: false
-enable_ocs: false
 enable_acm: false
 enable_nfd: false
 storage_cluster: false
@@ -71,8 +70,6 @@ mtc_operator:
 advanced_cluster_management:
   - advanced-cluster-management
   - multicluster-engine
-ocs_operator:
-  - ocs-operator
 odf_operator:
   - odf-operator
   - mcg-operator

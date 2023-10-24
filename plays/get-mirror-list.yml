@@ -52,12 +52,6 @@
   when:
     - enable_lso | bool
 
-- name: "Add operators if enable_ocs"
-  set_fact:
-    mirror_list: "{{ mirror_list + ocs_operator }}"
-  when:
-    - enable_ocs | bool
-
 - name: "Add operators if enable_odf"
   set_fact:
     mirror_list: "{{ mirror_list + odf_operator }}"
