@@ -75,7 +75,7 @@
   register: reg_controlplane_mc
   vars:
     controlplane_mc_query: "[?contains(metadata.name, 'rendered-master')].metadata.creationTimestamp"
-    controlplane_mc_timestamp: "{{ reg_controlplane_mc.resources | to_json | from_json | json_query(master_mc_query) | sort | last }}"
+    controlplane_mc_timestamp: "{{ reg_controlplane_mc.resources | to_json | from_json | json_query(controlplane_mc_query) | sort | last }}"
   until:
     - reg_controlplane_mc.resources is defined
     - controlplane_mc_timestamp >= perf_kubelet_timestamp
