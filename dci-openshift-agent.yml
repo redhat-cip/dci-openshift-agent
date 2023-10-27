@@ -76,6 +76,12 @@
           - cluster:{{ cluster }}
       when: cluster is defined
 
+    - name: Count workarounds
+      dci_job:
+        id: "{{ job_id }}"
+        key: "workarounds"
+        value: "{{ dci_workarounds | length }}"
+
     - name: debug components
       debug:
         msg: "{{ job_info.job.components + [custom_component] if custom_component is defined else job_info.job.components }}"
