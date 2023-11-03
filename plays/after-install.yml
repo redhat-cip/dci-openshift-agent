@@ -99,7 +99,7 @@
   retries: "{{ (requested_compute | int + 1) * 10 }}"
   delay: 20
   until:
-    - ( compute_nodes_count | int ) == ( requested_compute | int )
+    - ( compute_nodes_count | int ) >= ( requested_compute | int )
   when:
     - acm_cluster_type | default('') not in ['hypershift', 'sno']
 
