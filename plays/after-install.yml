@@ -101,7 +101,7 @@
   until:
     - ( compute_nodes_count | int ) == ( requested_compute | int )
   when:
-    - acm_cluster_type | default('') != 'hypershift'
+    - acm_cluster_type | default('') not in ['hypershift', 'sno']
 
 - name: "Create a DCI component for the rhcos_kernel"
   block:
