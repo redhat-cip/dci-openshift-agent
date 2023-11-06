@@ -39,6 +39,7 @@
   shell: >
     podman build .
     -f bundleci.Dockerfile
+    --no-cache
     -t {{ sriov_bundle }}:{{ base_version }}
   args:
     chdir: "{{ bundle_tmp_dir }}/sriov-network-operator"

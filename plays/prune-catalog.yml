@@ -75,6 +75,7 @@
         cmd: >
           set -x;
           podman build
+          --no-cache
           -t {{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
           -f {{ tmp_prune.path }}/configs.Dockerfile .
 
