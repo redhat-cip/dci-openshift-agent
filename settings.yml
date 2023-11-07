@@ -1,7 +1,7 @@
 ---
 
 dci_agent: openshift            # needed for dci-agent-ctl
-dci_topic: OCP-4.13
+dci_topic: OCP-4.14
 
 # -- Atttributes of the job --
 #dci_name: "ocp-install"
