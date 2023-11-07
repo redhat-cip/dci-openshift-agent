@@ -1027,7 +1027,7 @@ To perform this type of upgrade with DCI, the following conditions must be met:
 
 Transitioning between two OCP releases requires an intermediate version. It's possible to specify the intermediate version through `version_inter`, this ignores the upgrade path.
 
-For example, to upgrade to a version where there's no path to it. Specify the intermediate version. `version_inter=4.11.5` or to use candidate versions use `version_inter=4.11.5-*`. 
+For example, to upgrade to a version where there's no path to it. Specify the intermediate version. `version_inter:4.11.0` or to use candidate versions use `version_inter:4.11.0-*`. 
 
 Note the `-*`, this will help to include candidate versions in the search.
 

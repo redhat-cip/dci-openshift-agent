@@ -141,7 +141,7 @@
             state: search
             topic_id: "{{ inter_topic.topics[0].id }}"
             type: "ocp"
-            name: "{{ version_inter }}"
+            version: "{{ version_inter }}"
           register: inter_component
 
     - name: "Get image for intermediate version from DCI"
