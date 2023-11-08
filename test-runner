@@ -268,7 +268,7 @@ declare -a OPTS
 # Need to stay the first arg as we are modifying it later for upgrade
 if [ -n "$UPGRADE" ]; then
     # hardcoded, need to be reworked
-    OPTS+=(-e dci_topic=${FROM_TOPIC:-OCP-4.13})
+    OPTS+=(-e dci_topic=${FROM_TOPIC:-OCP-4.14})
 fi
 
 # Need to stay the second arg as we are modifying it later for upgrade
@@ -591,7 +591,7 @@ if [ -z "$KCFG" ]; then
 
     if [ -n "$UPGRADE" ]; then
         # hardcoded, need to be reworked
-        OPTS[1]="dci_topic=${TO_TOPIC:-OCP-4.14}"
+        OPTS[1]="dci_topic=${TO_TOPIC:-OCP-4.15}"
         OPTS[3]="${OPTS[3]}-upgrade"
         # remove (-e "dci_components_by_query=['type:ocp,tags:build:ga']")
         if [ -z "${UPGRADE_ARGS}${FROM_TOPIC}${TO_TOPIC}" ]; then
