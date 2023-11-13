@@ -132,6 +132,8 @@
       loop_var: zone
 
   - name: "Allow HTTP traffic"
+    when:
+      - aw_zone | default('') != ''
     firewalld:
       port: "{{ aw_dynamic_port }}/tcp"
       permanent: false
@@ -164,6 +166,8 @@
     delegate_to: localhost
 
   - name: "Disallow HTTP traffic"
+    when:
+      - aw_zone | default('') != ''
     firewalld:
       port: "{{ aw_dynamic_port }}/tcp"
       permanent: false
