@@ -1,95 +1,39 @@
 ---
-- name: "Loop control for prunning"
+- name: "Loop control for pruning"
+  vars:
+    index_tag: "v{{ ocp_major }}.{{ ocp_minor }}_{{ ansible_date_time.iso8601_basic }}"
   set_fact:
     fallback_counter: "{{ fallback_counter | int + 1 }}"
+    dci_prune_index: "{{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
 
-- name: "Define pruned index tag"
-  set_fact:
-    index_tag: "{{ ocp_major }}.{{ ocp_minor }}_{{ ansible_date_time.iso8601_basic }}"
+- name: "Prune a catalog"
+  include_role:
+    name: redhatci.ocp.prune_catalog
+  vars:
+    pc_source_catalog: "{{ operators_index | default('registry.redhat.io/redhat/redhat-operator-index:v' + ocp_major + '.' + ocp_minor) }}"
+    pc_destination_catalog: "{{ dci_prune_index }}"
+    pc_operators_list: "{{ mirror_list }}"
+    pc_expire: true
+    pc_expire_time: 24h
+    pc_ignore_pull_errors: true
+    pc_opm_args: "--skip-tls-verify=true"
 
-- name: "Set operator source index"
-  set_fact:
-    source_index: "{{ operators_index | default('registry.redhat.io/redhat/redhat-operator-index:v' + ocp_major + '.' + ocp_minor) }}"
-
-- name: "Create index working directory"
-  file:
-    path: "{{ tmp_prune.path }}/configs"
-    state: directory
-    mode: 0755
-
-- name: "Copy configs.Dockerfile to temp directory"
-  copy:
-    content: |
-      FROM quay.io/operator-framework/opm:latest
-      ENTRYPOINT ["/bin/opm"]
-      CMD ["serve", "/configs"]
-      ADD configs /configs
-      LABEL operators.operatorframework.io.index.configs.v1=/configs
-      LABEL maintainer="Telco DCI team"{% if opm_expire %} quay.expires-after={{ opm_expire_time }}{% endif %}
-    dest: "{{ tmp_prune.path }}/configs.Dockerfile"
-    mode: 0644
+- name: "Check if the pruned catalog was built"
+  podman_image_info:
+    name: "{{ dci_prune_index }}"
+  register: pruned_info
 
 - name: "Set index found flag"
   set_fact:
-    index_found: true
+    index_found: "{{ pruned_info.images | length == 1 }}"
+    operators_count: 0
 
-- name: "Render catalog index"
-  vars:
-    opm_auths: "/usr/share/dci-openshift-agent/utils/opm-auths"
-  block:
-    - name: "Render the catalog index"
-      shell:
-        chdir: "{{ tmp_prune.path }}"
-        cmd: >
-          set -x;
-          {{ opm_auths }}
-          {{ dci_cluster_configs_dir }}/opm render {{ source_index }} >
-          {{ tmp_prune.path }}/index-packages
-      register: prune_result
-      until: prune_result.rc == 0
-      retries: 3
-      delay: 10
-  rescue:
-    - name: "Fallback to previous index version if not found"
-      set_fact:
-        index_found: false
-        operators_count: 0
-
-- name: "Prune and build the new index"
-  block:
-    - name: "Extract required operator's channel, and packages"
-      shell:
-        chdir: "{{ tmp_prune.path }}"
-        cmd: >
-          set -x;
-          jq 'select( .package == "{{ operator_name }}" or .name == "{{ operator_name }}")'
-          {{ tmp_prune.path }}/index-packages
-          >> {{ tmp_prune.path }}/configs/index.json
-      with_items: "{{ mirror_list }}"
-      loop_control:
-        loop_var: operator_name
-
-    - name: "Build the index image"
-      shell:
-        chdir: "{{ tmp_prune.path }}"
-        cmd: >
-          set -x;
-          podman build
-          --no-cache
-          -t {{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
-          -f {{ tmp_prune.path }}/configs.Dockerfile .
-
-    - name: "Validate the pruned index"
-      shell: |
-        {{ dci_cluster_configs_dir }}/opm validate configs/
-      args:
-        chdir: "{{ tmp_prune.path }}"
-
+- block:
     - name: "Push the new index image to the local registry"
       shell:
         cmd: >
           podman push
-          {{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+          {{ dci_prune_index }}
           {% if dci_pullsecret_file is defined %}
           --authfile {{ dci_pullsecret_file }}
           {% endif %}
@@ -105,7 +49,7 @@
           --rm
           --detach
           --publish 50051
-          {{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+          {{ dci_prune_index }}
       register: grpc_container_id
 
     - name: "Get dynamic port assigned to grpc"
@@ -153,24 +97,16 @@
         cmd: >
           podman rmi
           --force
-          {{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}
+          {{ dci_prune_index }}
   when:
     - index_found
-
-- name: "Delete image config directory"
-  file:
-    state: absent
-    path: "{{ tmp_prune.path }}/configs"
 
 - name: "Set new minor version when operators are missing"
   set_fact:
     ocp_minor: "{{ ocp_minor | int -1 }}"
   when: operators_count | int != mirror_list | length
 
-- name: "Fallback to previous OCP version"
-  vars:
-    opm_expire: "{{ hostsvars.localhost.opm_expire | default(true) }}"
-    opm_expire_time: "{{ hostvars.localhost.opm_expire_time | default('24h') }}"
+- name: "Prune a catalog - Fallback"
   include_tasks: prune-catalog.yml
   when:
     - fallback_counter | int <= 3

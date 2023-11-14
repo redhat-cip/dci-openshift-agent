@@ -1,9 +1,4 @@
 ---
-- name: "Create a tmp directory for the pruned image"
-  tempfile:
-    state: directory
-  register: tmp_prune
-
 - name: "Set facts for index fallback - Try up to 3 previous versions"
   set_fact:
     fallback_counter: 0
@@ -11,9 +6,6 @@
     ocp_minor: "{{ version.split('.')[1] }}"
 
 - name: "Prune catalog - recursive"
-  vars:
-    opm_expire: "{{ hostsvars.localhost.opm_expire | default(true) }}"
-    opm_expire_time: "{{ hostvars.localhost.opm_expire_time | default('24h') }}"
   include_tasks: prune-catalog.yml
 
 - name: "Required operators not found"
@@ -23,13 +15,13 @@
 
 - name: "Create DCI component for pruned catalog"
   vars:
-    catalog_version: "{{ index_tag.split('_')[0] }}"
+    catalog_version: "{{ dci_prune_index.split(':') | last | regex_replace('_.*', '') }}"
   dci_component:
-    display_name: "{{ opm_local_registry_path | basename }}:v{{ catalog_version }}"
-    version: "v{{ catalog_version }}"
+    display_name: "{{ dci_prune_index | regex_replace('.*/(.*):([^_]+).*', '\\1:\\2') }}"
+    version: "{{ catalog_version }}"
     team_id: "{{ job_info['job']['team_id'] }}"
     topic_id: "{{ job_info['job']['topic_id'] }}"
-    type: "{{ opm_local_registry_path | basename }}"
+    type: "{{ dci_prune_index.split('/') | last | regex_replace(':.*', '') }}"
     state: present
   register: index_component
 
@@ -44,9 +36,4 @@
   when:
     - "'component' in index_component"
     - "'id' in index_component.component"
-
-- name: "Delete tmp directory for the pruned image"
-  file:
-    state: absent
-    path: "{{ tmp_prune.path }}"
 ...

@@ -28,7 +28,7 @@
         name: redhatci.ocp.mirror_catalog
       vars:
         mc_oc_tool_path: "{{ oc_tool_path }}"
-        mc_catalog: "{{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
+        mc_catalog: "{{ dci_prune_index }}"
         mc_registry: "{{ dci_local_registry }}"
         mc_pullsecret: "{{ dci_pullsecret_file }}"
         mc_is_type: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('idms', 'icsp') }}"
@@ -44,7 +44,7 @@
       vars:
         cs_name: "{{ opm_catalog_source_name }}"
         cs_namespace: "{{ opm_catalog_source_namespace }}"
-        cs_image: "{{ dci_local_registry }}{{ opm_local_registry_path }}:{{ index_tag }}"
+        cs_image: "{{ dci_prune_index }}"
         cs_publisher: "Red Hat Operators"
       when:
         - mirror_list is defined
