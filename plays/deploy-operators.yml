@@ -507,6 +507,14 @@
   when:
     - enable_nmstate | bool
 
+- name: "Setup Advanced Cluster Management"
+  include_role:
+    name: redhatci.ocp.acm_setup
+  vars:
+    hub_disconnected: "{{ dci_disconnected | default(false) | bool }}"
+  when:
+    - enable_acm | bool
+
 # GitOps Operator is used for ZTP, in combination with ACM, so
 # both must be enabled.
 - name: "deploy-operators : Install the GitOps Operator"
