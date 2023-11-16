@@ -123,7 +123,7 @@
         - install_type != 'sno'
         - install_type != 'acm'
 
-    - name: "deploy-operators : Increase maxUnavailable count to n-1"
+    - name: "deploy-operators : Increase maxUnavailable count to n-2 when workers >= 4"
       vars:
         worker_node_count: "{{ nodes.resources | length }}"
         mcp_def: |
@@ -132,12 +132,13 @@
           metadata:
             name: worker
           spec:
-            maxUnavailable: {{ worker_node_count | int - 1 }}
+            maxUnavailable: {{ worker_node_count | int - 2 }}
       community.kubernetes.k8s:
         state: present
         definition: "{{ mcp_def }}"
       when:
-        - worker_node_count | int > 1
+        - increase_unavailable_workers | default(True) | bool
+        - worker_node_count | int >= 4
 
     - name: "deploy-operators : Override Red Hat catalog in connected"
       include_role:
