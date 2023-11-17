@@ -306,6 +306,7 @@
         sm_access_key_id: "{{ minio_access_key_id | default('minioadmin') }}"
         sm_access_key_secret: "{{ minio_access_key_secret | default('minioadmin') }}"
         sm_bucket_name: "{{ minio_bucket_name | default('loki') }}"
+        sm_service_type: "{{ minio_service_type | default('NodePort') }}"
         sm_minio_image: |-
           {%- if dci_disconnected | default(false) %}
           {{ dci_local_registry }}/minio/minio:latest
