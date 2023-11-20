@@ -1,4 +1,30 @@
 ---
+- name: Get all worker nodes
+  community.kubernetes.k8s_info:
+    kind: Node
+    label_selectors:
+      - "node-role.kubernetes.io/worker"
+  register: nodes
+
+- name: "Modify the number of unavailable workers to n-2 when >= 4 are available"
+  vars:
+    worker_node_count: "{{ nodes.resources | length }}"
+    mcp_def: |
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: MachineConfigPool
+      metadata:
+        name: worker
+      spec:
+        maxUnavailable: {{ worker_node_count | int - 2 }}
+  community.kubernetes.k8s:
+    state: present
+    definition: "{{ mcp_def }}"
+  when:
+    - increase_unavailable_workers | default(True) | bool
+    - install_type is undefined or install_type != 'sno'
+    - acm_cluster_type | default('') not in ['hypershift', 'sno']
+    - worker_node_count | int  >= 4
+
 - name: Wait for Performance Addon Operator endpoint to become available
   pause:
     seconds: 60
@@ -153,4 +179,13 @@
     check_wait_retries: "{{ 16 * (groups['workers'] | default(groups['masters']) | length + 1 ) }}"
     check_wait_delay: 60
     check_reason: "PAO installation"
+
+- name: Reset maxUnavailable count to default value 1
+  community.kubernetes.k8s:
+    definition:
+      kind: MachineConfigPool
+      metadata:
+        name: worker
+      spec:
+        maxUnavailable: 1
 ...
