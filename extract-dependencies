@@ -15,7 +15,11 @@
 # under the License.
 
 set -e
-set -x
+
+if [ -z "$DCI_SILENT" ]; then
+    set -x
+fi
+
 GIT_CLONE_OPTIONS="--filter=tree:0"
 
 if [ -r /etc/dci-openshift-agent/config ]; then

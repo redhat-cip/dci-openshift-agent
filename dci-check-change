@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-set -ex
+set -e
 
 cleanup() {
     if [ -d "$DIR.bootstrap" ]; then
@@ -34,6 +34,8 @@ APP_NAME=
 APP_ARGS=
 FORCE_CHECK=
 TAG=
+BLOCK=
+SILENT=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -44,7 +46,7 @@ BASEDIR=$(cd $(dirname $0); pwd)
 if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno|--assisted|--assisted-abi|--sno-ai] [--force-check] [--tag <tag>] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    echo "Usage: $name [--virt|--sno|--assisted|--assisted-abi|--sno-ai] [--force-check] [--block] [--silent] [--tag <tag>] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
     Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
 
     arguments:
@@ -54,6 +56,8 @@ if [ $# = 0 ] || [ "$1" = -h ]; then
     --assisted-abi        Use Assisted Installer on Libvirt with Agent Based Installer.
     --sno-ai              Use SNO with Assisted Installer on Libvirt.
     --force-check         Force to run a check even if there is no code change.
+    --block               Pass --block -C to the dci-queue schedule command.
+    --silent              Do not trace commands.
     --tag <tag>           Specify the tag to set on the job (default: debug).
     --upgrade             Run an upgrade job.
     --from-topic          In upgrade, from topic.
@@ -114,6 +118,18 @@ fi
 if [ "$1" = --force-check ]; then
     FORCE_CHECK=--force-check
     shift
+fi
+
+if [ "$1" = --block ]; then
+    BLOCK="--block -C"
+    shift
+fi
+
+if [ "$1" = --silent ]; then
+    export DCI_SILENT=1
+    shift
+else
+    set -x
 fi
 
 if [ "$1" = --tag ]; then
@@ -346,9 +362,9 @@ fi
 
 if [ -z "$NO_DCI_QUEUE" ] && [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
     if [ -n "$USE_PREFIX" ]; then
-        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
+        dci-queue schedule $BLOCK $DCI_QUEUE -- env DCI_SILENT=$DCI_SILENT UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
     else
-        dci-queue schedule $DCI_QUEUE -- env UPGRADE_ARGS="$UPGRADE_ARGS"  RES=@RESOURCE APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
+        dci-queue schedule $BLOCK $DCI_QUEUE -- env DCI_SILENT=$DCI_SILENT UPGRADE_ARGS="$UPGRADE_ARGS"  RES=@RESOURCE APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
     fi
 else
     env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
