@@ -10,6 +10,17 @@
   when:
     - dci_disconnected | default(false) | bool
 
+- name: "Mirror operators from directory"
+  include_role:
+    name: redhatci.ocp.mirror_from_directory
+    tasks_from: validation
+  vars:
+    mfd_local_registry: "{{ dci_local_registry }}"
+    mfd_operators_dir: "{{ operator_catalog_dir }}"
+  when:
+    - operator_catalog_dir is defined
+    - operator_catalog_dir |length
+
 - name: "Assert that operator_catalog_dir exists and has tar files"
   find:
     path: "{{ operator_catalog_dir }}"
