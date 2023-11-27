@@ -156,7 +156,7 @@
       {{ upgrade_eus | default(false) |
          ternary(
            'eus-' + target_version,
-           'fast-' + target_version ) }}
+           dci_ocp_channel | default('fast') + '-' + target_version ) }}
   community.kubernetes.k8s:
     state: present
     name: version

@@ -134,7 +134,7 @@
         - "'id' in kernel_component.component"
   ignore_errors: yes
 
-- name: "Patch clusterversion pointing to fast channel"
+- name: "Patch clusterversion update channel"
   vars:
     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
   community.kubernetes.k8s:
@@ -143,7 +143,7 @@
     definition:
       kind: ClusterVersion
       spec:
-        channel: "fast-{{ base_version }}"
+        channel: "{{ dci_ocp_channel | default('fast') }}-{{ base_version }}"
   retries: 6
   delay: 10
   when:
