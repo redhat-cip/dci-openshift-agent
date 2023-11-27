@@ -358,7 +358,7 @@ if [ "$VIRT" = "no-check" ] ||
          done
         ) |
         grep -E "(${CODE_FILES_REGEX%|})" |
-        grep -v 'requirements.yml' |
+        grep -Ev 'requirements.yml|.github' |
         wc -l
         )
     fi
