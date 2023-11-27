@@ -1,111 +1,53 @@
 ---
-- name: "Create working directory"
-  tempfile:
-    state: directory
-  register: image_dir
-
-- name: "Set workdir fact"
-  set_fact:
-    image_dir: "{{ image_dir.path }}"
-
-- name: "Download stable oc-mirror plugin"
+- name: "Mirror operators from directory"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_from_directory
   vars:
-    ocp_mirror_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
-  unarchive:
-    src: "{{ ocp_mirror_url }}"
-    dest: "{{ image_dir }}"
-    remote_src: true
-    mode: 0755
-  register: result
-  retries: 3
-  delay: 10
-  until: result is not failed
+    mfd_local_registry: "{{ dci_local_registry }}"
+    mfd_operators_dir: "{{ operator_catalog_dir }}"
 
-- name: "Load Images to registry"
-  shell:
-    chdir: "{{ image_dir }}"
-    cmd: >
-      set -x;
-      {{ image_dir }}/oc-mirror
-      --from={{ operator_catalog_dir }}
-      docker://{{ dci_local_registry }}
-      --skip-metadata-check
-      --dest-skip-tls
-  retries: 3
-  delay: 10
-  register: result
-  until: result.rc == 0
-
-- name: "Check the ICSP manifest"
-  find:
-    paths: "{{ image_dir }}"
-    recurse: true
-    patterns: "imageContentSourcePolicy.yaml"
-  register: icsp_manifest
-  failed_when:
-    - icsp_manifest.matched == 0
-
-- name: Set image source file fact
-  set_fact:
-    image_source_file: "{{ icsp_manifest.files[0].path }}"
-
-- name: "Read Image Source file"
-  slurp:
-    src: "{{ image_source_file }}"
-  register: file_content
-
-# This task is required for a specific use case at this moment
-# Will need to revisit this for other customer cases
-- name: "Replace references to internal registries in the Image Source file"
-  replace:
-    path: "{{ image_source_file }}"
-    regexp: 'brew.registry.redhat.io'
-    replace: 'registry.redhat.io'
-    backup: yes
-  when: file_content.content | b64decode | regex_search('brew.registry.redhat.io')
-
-- name: ICSP to IDMS on 4.14+
-  when: ocp_version is version('4.14', '>=')
+# Variables used above prefixed with 'mdf_' are outputs
+# from mirror_from_directory role
+- name: "Apply IDMS on 4.14+"
   block:
     - name: Transform ICSP to IDMS on 4.14+
-      shell:
+      ansible.builtin.shell:
         cmd: >
           {{ oc_tool_path }} adm migrate icsp
-          {{ image_source_file }}
+          {{ mdf_image_source_file }}
           --dest-dir {{ image_dir }}
       register: migrate_result
 
     - name: Set image source file fact
-      set_fact:
+      ansible.builtin.set_fact:
         image_source_file: "{{ migrate_result.stdout_lines[0].split(' ')[-1] }}"
 
-- name: "Apply the Image Source manifest"
-  community.kubernetes.k8s:
-    definition: "{{ lookup('template', image_source_file) | from_yaml }}"
+    - name: "Apply the IDMS"
+      community.kubernetes.k8s:
+        definition: "{{ lookup('template', image_source_file) | from_yaml }}"
+  when: ocp_version is version('4.14', '>=')
 
-- name: "Check the Catalogsource manifests"
-  find:
-    paths: "{{ image_dir }}"
-    recurse: true
-    patterns: "catalogSource-*.yaml"
-  register: catalog_manifest
-  failed_when:
-    - catalog_manifest.matched == 0
+- name: "Apply the ICSP"
+  community.kubernetes.k8s:
+    definition: "{{ lookup('template', mdf_image_source_file) | from_yaml }}"
+  when:
+    - ocp_version is version('4.14', '<')
+    - mdf_image_source_file is defined
 
 - name: "Create the Catalogsource for from-file operators"
   vars:
-    catsrc_manifest: "{{ lookup('file', catalog_manifest.files[0].path) }}"
+    catsrc_manifest: "{{ lookup('file', mdf_catalog_source_file) }}"
     index_image: "{{ catsrc_manifest | from_yaml | json_query('spec.image') }}"
   block:
     - name: "Create CatalogSource for from-file operators"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.catalog_source
       vars:
         cs_name: "{{ operator_catalog_dir_name }}"
         cs_image: "{{ index_image }}"
 
     - name: "Get index image creation date"
-      shell:
+      ansible.builtin.shell:
         cmd: >
           skopeo inspect
           --tls-verify=false
@@ -147,7 +89,10 @@
       when:
         - "'component' in operator_component"
         - "'id' in operator_component.component"
-      ignore_errors: yes
+      ignore_errors: true
+  when:
+    - mdf_catalog_source_file is defined
+    - mdf_catalog_source_file | length
 
 - name: "Check if operators.txt exists"
   ansible.builtin.stat:
@@ -158,17 +103,18 @@
   ansible.builtin.copy:
     src: "{{ operator_catalog_dir }}/operators.txt"
     dest: "{{ job_logs.path }}/from-file-operators.txt"
+    mode: "644"
   when: ops_stat.stat.exists
 
 - name: "Delete workspaces directories"
-  file:
+  ansible.builtin.file:
     state: absent
-    path: "{{ item }}"
-  with_items:
-    - "{{ image_dir }}"
-    - "{{ operator_catalog_dir }}/oc-mirror-workspace"
+    path: "{{ mdf_manifests_dir }}"
+  when:
+    - mdf_manifests_dir is defined
+    - mdf_manifests_dir | length
 
 - name: "Update catalogSource name"
-  set_fact:
+  ansible.builtin.set_fact:
     opm_catalog_source_name: "{{ operator_catalog_dir_name }}"
 ...
