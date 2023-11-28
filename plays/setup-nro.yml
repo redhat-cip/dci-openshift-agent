@@ -1,0 +1,117 @@
+---
+- name: Check if the NRO CRDs are present
+  community.kubernetes.k8s_info:
+    kind: CustomResourceDefinition
+    name: "{{ item }}"
+  register: numa_crd
+  loop:
+    - numaresourcesoperators.nodetopology.openshift.io
+    - numaresourcesschedulers.nodetopology.openshift.io
+  no_log: true
+
+- name: Fail if NRO CRDs are not present
+  fail:
+    msg: "NUMA Resource Operator CRDs are not present, please install the operator in the OperatorHub"
+  when: numa_crd.results[0].resources | list | count == 0
+
+- name: Mirroring the NRO scheduler image
+  include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    nro_image_repo: "registry.redhat.io/openshift4"
+    nro_image_name: "{{ ocp_version is version('4.14.0', '>=') |
+                    ternary('noderesourcetopology-scheduler-rhel9', 'noderesourcetopology-scheduler-container-rhel8') }}"
+    nro_image_tag: "{{ nro_topo_img_tag | default('v'+ ocp_version_maj +'.'+ ocp_version_min) }}"
+    images: ["{{ nro_image_repo }}/{{ nro_image_name }}:{{ nro_image_tag }}"]
+    authfile: "{{ dci_pullsecret_file }}"
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: Count Nodes in the cluster
+  include_tasks: plays/count_nodes.yml
+
+- name: Increase maxUnavailable workers
+  include_tasks: plays/increase_maxunavailable.yml
+  when:
+    - increase_unavailable_workers | default(True) | bool
+    - install_type is undefined or install_type != 'sno'
+    - acm_cluster_type | default('') not in ['hypershift', 'sno']
+
+- name: Create NUMAResourcesOperator CRD
+  vars:
+    nro_def: |
+      apiVersion: nodetopology.openshift.io/v1
+      kind: NUMAResourcesOperator
+      metadata:
+        name: numaresourcesoperator
+      spec:
+        nodeGroups:
+        - machineConfigPoolSelector:
+            matchLabels:
+              pools.operator.machineconfiguration.openshift.io/worker: ""
+  community.kubernetes.k8s:
+    state: present
+    definition: "{{ nro_def }}"
+
+- name: Pause 60 seconds to wait for MC triggered by NRO CRD starts the node changes
+  pause:
+    seconds: 60
+  when:
+    - install_type is undefined or install_type != 'sno'
+    - reg_mcpool_worker.resources[0].status.machineCount >= 1 or reg_mcpool_controlplane.resources[0].status.machineCount >= 1
+  no_log: true
+
+- name: Wait for SNO node to be available
+  include_tasks: plays/wait_sno_reboot.yml
+  when:
+    - control_plane_size | int == 1
+
+- name: Wait for MCP status
+  include_role:
+    name: redhatci.ocp.check_resource
+  vars:
+    resource_to_check: "MachineConfigPool"
+    check_wait_retries: "{{ 16 * (groups['workers'] | default(groups['masters']) | length + 1 ) }}"
+    check_wait_delay: 60
+    check_reason: "NRO installation"
+
+- name: Deploying the NUMA-aware secondary pod scheduler
+  vars:
+    nro_image_repo: "registry.redhat.io/openshift4"
+    nro_image_name: "{{ ocp_version is version('4.14.0', '>=') |
+                    ternary('noderesourcetopology-scheduler-rhel9', 'noderesourcetopology-scheduler-container-rhel8') }}"
+    nro_image_tag: "{{ nro_topo_img_tag | default('v'+ ocp_version_maj +'.'+ ocp_version_min) }}"
+    nro_image: "{{ dci_disconnected | default(false) | bool |
+               ternary (dci_local_registry+'/openshift4/'+nro_image_name+':'+nro_image_tag, nro_image_repo+'/'+nro_image_name+':'+nro_image_tag) }}"
+    nro_sch_def: |
+      apiVersion: nodetopology.openshift.io/v1alpha1
+      kind: NUMAResourcesScheduler
+      metadata:
+        name: numaresourcesscheduler
+      spec:
+        imageSpec: "{{ nro_image }}"
+  community.kubernetes.k8s:
+    state: present
+    definition: "{{ nro_sch_def }}"
+
+- name: Confirm that NUMA schedule pods are Running
+  community.kubernetes.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: openshift-numaresources
+    label_selectors:
+      - app = secondary-scheduler
+  register: pod_list
+  until: pod_list|json_query('resources[*].status.phase')|unique == ["Running"]
+  retries: 9
+  delay: 10
+
+- name: Reset maxUnavailable count to default value 1
+  community.kubernetes.k8s:
+    definition:
+      kind: MachineConfigPool
+      metadata:
+        name: worker
+      spec:
+        maxUnavailable: 1
+...

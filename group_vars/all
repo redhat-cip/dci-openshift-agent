@@ -58,6 +58,7 @@ enable_mlb: false
 enable_nmstate: false
 enable_gitops: false
 enable_minio: false
+enable_nro: false
 # Lists of packages for each operator
 cnv_operator:
   - kubevirt-hyperconverged
