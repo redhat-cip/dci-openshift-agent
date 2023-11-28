@@ -12,7 +12,7 @@
   vars:
     pc_source_catalog: "{{ operators_index | default('registry.redhat.io/redhat/redhat-operator-index:v' + ocp_major + '.' + ocp_minor) }}"
     pc_destination_catalog: "{{ dci_prune_index }}"
-    pc_operators_list: "{{ mirror_list }}"
+    pc_operators: "{{ mirror_list }}"
     pc_expire: true
     pc_expire_time: 24h
     pc_ignore_pull_errors: true
