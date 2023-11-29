@@ -12,10 +12,10 @@
       when: dci_disconnected | default(False) | bool
 
 - import_playbook: crucible/deploy_cluster_agent_based_installer.yml
-  when: (use_agent_based_installer | default(false)) | bool
+  when: (use_agent_based_installer | default(true)) | bool
 
 - import_playbook: crucible/deploy_cluster_assisted_installer.yml
-  when: not ((use_agent_based_installer | default(false)) | bool)
+  when: not ((use_agent_based_installer | default(true)) | bool)
 
 - name: Reset vars for DCI
   hosts: bastion
@@ -49,13 +49,13 @@
           url: "{{ URL_ASSISTED_INSTALLER_CLUSTER }}/downloads/credentials?file_name=kubeconfig"
           dest: "{{ kubeconfig_path }}"
           mode: 0664
-        when: not (use_agent_based_installer | default(false)) | bool
+        when: not (use_agent_based_installer | default(true)) | bool
 
       - name: Copy generated kubeconfig (ABI)
         copy:
           src: "{{ repo_root_path }}/generated/{{ cluster_name }}/auth/kubeconfig"
           dest: "{{ kubeconfig_path }}"
-        when: (use_agent_based_installer | default(false)) | bool
+        when: (use_agent_based_installer | default(true)) | bool
 
       - name: Perform simple connectivity check with oc
         shell: |
@@ -86,7 +86,7 @@
                   {{ co_result.stdout }}
 
       - name: Store admin credentials (onprem)
-        when: not (use_agent_based_installer | default(false)) | bool
+        when: not (use_agent_based_installer | default(true)) | bool
         block:
           - name: Get credentials
             uri:
@@ -110,7 +110,7 @@
             when: (kubeadmin_vault_password_file_path is defined) and (kubeadmin_vault_password_file_path is file)
 
       - name: Store admin credentials (ABI)
-        when: (use_agent_based_installer | default(false)) | bool
+        when: (use_agent_based_installer | default(true)) | bool
         block:
           - name: Read credentials
             slurp:
