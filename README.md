@@ -276,26 +276,23 @@ This is the dci-openshift-agent variables that can be set in the
 | enable_cnv                      | False    | Boolean | False                                                          | Deploys CNV and enables the HCO operator.
 | dci_cnv_test                    | False    | Boolean | False                                                          | Test the deploy of a VM using CNV and HCO operator.
 | cnv_api_version                 | False    | String  | v1beta1                                                        | API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
-| enable_logs_stack               | False    | Boolean | False                                                          | Enables the OCP cluster logging subsystem using the Loki and ClusterLogging Operators. Please see the [Logging Stack settings](#logging-stack) section for more details.
-| enable_elasticsearch            | False    | Boolean | False                                                          | Deploys the ElasticSearch Operator.
 | enable_clusterlogging           | False    | Boolean | False                                                          | Deploys the Cluster-Logging Operator.
+| enable_logs_stack               | False    | Boolean | False                                                          | Enables the OCP cluster logging subsystem using the Loki and ClusterLogging Operators. Please see the [Logging Stack settings](#logging-stack) section for more details.
 | enable_perf_addon               | False    | Boolean | False                                                          | Deploys the Performance AddOn Operator. For its configuration is recommended to define a `performance_definition`.
 | enable_sriov                    | False    | Boolean | False                                                          | Deploys the SRIOV Operator.
+| enable_acm                      | False    | Boolean | False                                                          | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator.
+| enable_nfd                      | False    | Boolean | False                                                          | Deploys the [NFD](https://docs.openshift.com/container-platform/4.10/hardware_enablement/psap-node-feature-discovery-operator.html) Operator.
+| enable_mlb                      | False    | Boolean | False                                                          | Deploys MetalLB operator.
+| enable_nmstate                  | False    | Boolean | False                                                          | Deploys the k8s NMstate operator and creates initial instance.
 | enable_lso                      | False    | Boolean | False                                                          | Deploys the Local Storage Operator.
 | enable_odf                      | False    | Boolean | False                                                          | Deploys the ODF Operator and its dependencies(ocs, lso, mcg, odf-csi-addons). Staring OCP 4.10, ODF replaces OCS. See: [Openshift Data Foundation](https://access.redhat.com/documentation/
 | storage_cluster                 | False    | Boolean | False                                                          | Creates a storage cluster using Red Hat OpenShift Data Foundation operators.
-| cnf_test_suites                 | False    | List    |                                                                | List of CNF Tests to perform: ['sctp','ptp','performance','sriov','dpdk'].
-| enable_acm                      | False    | Boolean | False                                                          | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator.
-| enable_nfd                      | False    | Boolean | False                                                          | Deploys the [NFD](https://docs.openshift.com/container-platform/4.10/hardware_enablement/psap-node-feature-discovery-operator.html) Operator.
-| operator_skip_upgrade           | False    | List    | []                                                             | List of operators to skip during the upgrade.
-| custom_catalogs                 | False    | List    | []                                                             | List of custom catalogs to install alongside default catalog sources.
 | enable_nfs_storage              | False    | Boolean | False                                                          | Enable an NFS as external storage provisioner. Values for `nfs_server` and `nfs_path` are required if for this. See [nfs_external_storage](https://github/redhatci/ansible-collections-redhatci-ocp/roles/nfs_external_storage) for details.
 | nfs_server                      | False    | String  |                                                                | NFS server's FQDN or IP Address. eg. my-nfs.mylab.local
 | nfs_path                        | False    | String  |                                                                | NFS export path. e.g. /exports/nfs-provisioner
-| enable_mlb                      | False    | Boolean | False                                                          | Deploys MetalLB operator.
-| enable_nmstate                  | False    | Boolean | False                                                          | Deploys the k8s NMstate operator and creates initial instance.
-| enable_gitops                   | False    | Boolean | False                                                          | Deploys the [GitOps](https://www.redhat.com/en/technologies/cloud-computing/openshift/gitops) Operator.
-| enable_minio                    | False    | Boolean | False                                                          | Deploys [Minio](https://min.io/) object storage provider. Please see the [Minio](#minio-deployment) section for more details.
+| cnf_test_suites                 | False    | List    |                                                                | List of CNF Tests to perform: ['sctp','ptp','performance','sriov','dpdk'].
+| operator_skip_upgrade           | False    | List    | []                                                             | List of operators to skip during the upgrade.
+| custom_catalogs                 | False    | List    | []                                                             | List of custom catalogs to install alongside default catalog sources.
 | operator_catalog_dir            | False    | String  | ""                                                             | Absolute path to a directory that contains archive files created using the oc mirror plugin. See [Mirroring from directory](#mirroring-from-directory) section for more information.
 | operator_catalog_dir_name       | False    | String  | catalog-from-file                                              | Name for the operator's catalog created using the images from `operator_catalog_dir` path.
 | install_all_from_catalog        | False    | String  | ''                                                             | Name of a catalog from which all its operators need to be installed.
@@ -451,54 +448,74 @@ generate your encrypted secrets. Details in the [python-dciclient documentation]
 
 ## Deploying operators
 
-The Agent manages the deployment of certain operators. At this time there is support for the following operators:
+The Agent manages the mirroring and deployment of most of the day-2 operators. For others, it can configure them by setting up the corresponding operands.
 
-- Single Root I/O Virtualization (SR-IOV)
-- Performance AddOn (PAO)
-- HyperConverged Cluster (HCO)
-- ElasticSearch (ES)
-- Cluster Logging
-- OpenShift Container Storage (OCS)
-- Local Storage
-- Advanced Cluster Management (ACM)
+The workflow for the deployment is:
 
-In order to make additional operators available in disconnected environments is it important to configure
-the `opm_mirror_list` variable with the list of other operators to mirror. The Agent will take care of mirroring the
-required images and its dependencies.
+- Operator mirroring for disconnected environments
 
-The variable `operators_index` is used to specify the catalog image containing information for the operators that may be
-deployed in the cluster. By default the index is the one located at registry.redhat.io and according to the OCP version
-installed but it can be overridden with a custom image. In conjunction with `dci_operators` variable in allows the
-deployment of custom operators additionally to those directly managed by the agent.
+- Operator installation
 
-Additional catalogs can be configured for the cluster to provide another source to install operators. Set the `custom_catalogs` variable with the references to the catalog images. For example:
+- Operator configuration
+
+### Operators mirroring for disconnected environments
+
+The opm_mirror_list variable, controls the operators that are mirrored when dci_disconnected is true. The Agent takes care of mirroring the required operator's images and creates a pruned catalog source for the OCP cluster. Some examples are below:
+
+- Explicit definition (This is recommended)
+
+Example 1:
+
+Definition of three operators. Two operators specify the channels, while the last compliance-operator includes all the channels.
 
 ```yaml
-custom_catalogs:
-  - quay.io/telcoci/sriov-operator-catalog:latest
-  - quay.io/telcoci/simple-demo-operator:v0.0.3
-  - quay.io/telcoci/nfv-example-cnf-catalog:v0.2.9
-  - icr.io/cpopen/ibm-operator-catalog:latest
+opm_mirror_list:
+  file-integrity-operator:
+    channel: stable
+  cluster-logging:
+    channel: stable-5.8
+  compliance-operator:
 ```
 
-Please see the [settings table](#ansible-variables) for the variables names to control the Operators
-installation.
+Example 2:
 
-#### Mirroring from directory
+Same three operators, this time all the channels are included.
+```yaml
+opm_mirror_list:
+  file-integrity-operator:
+  cluster-logging:
+  compliance-operator:
+```
 
-In fully disconnected environments, mirroring can be performed by loading operators previously stored in a local file. The `oc mirror` plugin, allows creating operator catalogs that can be stored on a USB stick that will be used later to load operators on a local image registry.
+- Implicit definition, always includes all the channels (Prefer to use Example 2 above)
 
-The dci-openshift-agent is capable of consuming files generated by the oc mirror plugin. The agent uploads these files to the local registry, creates the catalog source, and applies the corresponding ICSPs. The catalog source is then used to deploy the operators enabled for testing.
+Example 3:
 
-The `operator_catalog_dir` variable should be set to a valid directory that contains one or multiple archive files generated using the [oc mirror plugin](https://docs.openshift.com/container-platform/4.13/installing/disconnected_install/installing-mirroring-disconnected.html). In the provided example, `operator_catalog_dir: /data/` is used as the path to the archive tar files.
+A pruned catalog with all operator's channels.
 
-### Customizing the Operators installation
+```yaml
+opm_mirror_list:
+  - compliance-operator
+  - file-integrity-operator
+  - cluster-logging
+```
 
-The `dci_operators` variable can be used to deploy additional operators or apply customized installations. An example of
-how to define `dci_operators` variable is shown below.
+> NOTE: By default the catalog source name that can be used to create operator subscription is named mirrored-redhat-operators.
+
+> NOTE: Some operators may have other operators dependencies, for such cases the dependencies must be added to the list.
+
+### Operators installation
+
+Operator subscriptions and installation monitoring are controlled by the `dci_operators` variable, which allows basic or custom installations. An example of how to define the `dci_operators` variable is shown below.
 
 ```yaml
 dci_operators:
+  - name: compliance-operator
+    catalog_source: mirrored-redhat-operators
+    namespace: openshift-compliance
+  - name: cluster-logging
+    catalog_source: mirrored-redhat-operators
+    namespace: openshift-logging
   - name: local-storage-operator
     catalog_source: mirrored-redhat-operators
     namespace: openshift-local-storage
@@ -518,45 +535,52 @@ dci_operators:
       openshift.io/cluster-monitoring: "true"
 ```
 
-- In disconnected environments, the catalog `mirrored-redhat-operators` will contain the package manifests for the
-  operators that were mirrored by combining the items defined via `opm_mirror_list` plus to the ones activated for the
-  deployment. For example, activating the `enable_acm` flag will automatically append to the list the following
-  operators required to deploy ACM to de ones added to the list.
+> Important: For a successful operator installation, ensure that the settings defined in dci_operators align with the packages available in the specified catalog_source. The following examples highlight potential misconfigurations that can cause the operator installation to fail:
 
-```yaml
-opm_mirror_list:
-  - skupper-operator
-  - servicemeshoperator
-  - serverless-operator
-```
+* Selecting an installation channel that is unavailable.
+* Configuring an operator group with settings not supported by the operator.
+* Specifying a starting CSV that is not available in the selected channel.
 
-The resulting list of operators to mirror is:
+### Operator configuration
 
-```yaml
-  - skupper-operator
-  - servicemeshoperator
-  - serverless-operator
-  - advanced-cluster-management
-  - multicluster-engine
-```
+For some operators, the agent support the operand creation by setting to `true` specific flags. See `enable_<operator>` variables above. Also, the operator configuration can be executed as part of a run during the `/hooks/install.yml` phase.
 
-### Install all operators from a catalog
+## Install all operators from a catalog
 
-All the operators available in a catalog can be installed on the cluster by setting `install_all_from_catalog` to an already created operator's catalog. This is mainly to test if the operators are deployable by OLM. There is no additional testing, or configuration executed after a running CSV is detected.
+All the operators available in a catalog can be installed on the cluster by setting `install_all_from_catalog`. This is mainly to test if the operators are deployable by OLM. There is no additional testing, or configuration executed after a running CSV is detected.
 
-Setting as value a valid catalog name for this variable will:
-  1. Create a namespace for the operator
-  1. If single mode install is supported it will create the proper Operator group to listen on the operator's namespace
-  1. If single mode install is not available, the operator group will be created for all namespaces
-  1. Create the subscription
-  1. Wait for the operator CSV to show up
-
-The catalog source namepace defaults to `openshift-marketplace` but that can be set using the `install_all_from_catalog` variable in case the catalog was created on a different namespace.
+The catalog source namespace defaults to `openshift-marketplace` but that can be set using the `install_all_from_catalog_source` variable in case the catalog was created on a different namespace.
 
 ```yaml
 install_all_from_catalog: <my-ocp-catalog>
-install_all_from_catalog_source: <my-ocp-catalog-ns>
+install_all_from_catalog_source: <my-ocp-catalog-namespace>
 ```
+
+## Additional Catalogs
+
+Additional catalogs can be configured for the cluster to provide another source to install operators. Set the `custom_catalogs` variable with the references to the catalog images. For example:
+
+```yaml
+custom_catalogs:
+  - quay.io/telcoci/sriov-operator-catalog:latest
+  - quay.io/telcoci/simple-demo-operator:v0.0.3
+  - quay.io/telcoci/nfv-example-cnf-catalog:v0.2.9
+  - icr.io/cpopen/ibm-operator-catalog:latest
+```
+
+All the images available in the defined catalogs will be mirrored when `dci_disconnected` is `true` and a `local_image_registry` is defined.
+
+Please see the [settings table](#ansible-variables) for the variables names to control the Operators deployment.
+
+#### Mirroring from directory
+
+In fully disconnected environments, mirroring can be performed by loading operators previously stored in a local file. The `oc mirror` plugin, allows the creation of catalogs that can be stored on a USB stick that will be used later to load operators on a local image registry.
+
+The dci-openshift-agent can consume files generated by the `oc mirror` plugin. The agent uploads these files to the local registry, creates the catalog source, and applies the corresponding  ImageContentSourcePolicies (ICSPs). The catalog source is then used to deploy the operators enabled for testing.
+
+The `operator_catalog_dir` variable should be set to a valid directory that contains one or multiple archive files generated using the [oc mirror plugin](https://docs.openshift.com/container-platform/4.13/installing/disconnected_install/installing-mirroring-disconnected.html). In the provided example, `operator_catalog_dir: /data/` is used as the path to the archive tar files.
+
+Subscriptions for the mirrored operators can be defined using the `dci_operators` variable as explained above.
 
 ## Logging stack
 
