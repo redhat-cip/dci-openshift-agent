@@ -387,7 +387,7 @@
       rescue: *teardown_error
 
 - import_playbook: crucible/deploy_assisted_installer_onprem.yml
-  when: not ((use_agent_based_installer | default(false)) | bool)
+  when: not ((use_agent_based_installer | default(true)) | bool)
 
 - name: Deploy sushy tools
   hosts: vm_hosts
