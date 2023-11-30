@@ -1,0 +1,17 @@
+---
+- name: "Modify the number of unavailable workers to n-2 when >= 4 are available"
+  vars:
+    worker_node_count: "{{ nodes.resources | length }}"
+    mcp_def: |
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: MachineConfigPool
+      metadata:
+        name: worker
+      spec:
+        maxUnavailable: {{ worker_node_count | int - 2 }}
+  community.kubernetes.k8s:
+    state: present
+    definition: "{{ mcp_def }}"
+  when:
+    - worker_node_count | int  >= 4
+...

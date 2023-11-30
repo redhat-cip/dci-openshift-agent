@@ -1,29 +1,13 @@
 ---
-- name: Get all worker nodes
-  community.kubernetes.k8s_info:
-    kind: Node
-    label_selectors:
-      - "node-role.kubernetes.io/worker"
-  register: nodes
+- name: Count Nodes in the cluster
+  include_tasks: plays/count_nodes.yml
 
-- name: "Modify the number of unavailable workers to n-2 when >= 4 are available"
-  vars:
-    worker_node_count: "{{ nodes.resources | length }}"
-    mcp_def: |
-      apiVersion: machineconfiguration.openshift.io/v1
-      kind: MachineConfigPool
-      metadata:
-        name: worker
-      spec:
-        maxUnavailable: {{ worker_node_count | int - 2 }}
-  community.kubernetes.k8s:
-    state: present
-    definition: "{{ mcp_def }}"
+- name: Increase maxUnavailable workers
+  include_tasks: plays/increase_maxunavailable.yml
   when:
     - increase_unavailable_workers | default(True) | bool
     - install_type is undefined or install_type != 'sno'
     - acm_cluster_type | default('') not in ['hypershift', 'sno']
-    - worker_node_count | int  >= 4
 
 - name: Force upgrade for nightly builds
   set_fact:
