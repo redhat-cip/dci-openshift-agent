@@ -11,14 +11,6 @@
   include_tasks: get-mirror-list.yml
   when:
     - dci_disconnected | default(false) | bool
-    - opm_mirror_list | type_debug == "list"
-
-- name: "Get the operators mirror-dict"
-  set_fact:
-    mirror_list: "{{ opm_mirror_list | default({}) }}"
-  when:
-    - dci_disconnected | default(false) | bool
-    - opm_mirror_list | type_debug == "dict"
 
 - name: "Prune catalog and mirror the Red Hat operators"
   block:
