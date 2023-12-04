@@ -1,29 +1,13 @@
 ---
-- name: Get all worker nodes
-  community.kubernetes.k8s_info:
-    kind: Node
-    label_selectors:
-      - "node-role.kubernetes.io/worker"
-  register: nodes
+- name: Count Nodes in the cluster
+  include_tasks: plays/count_nodes.yml
 
-- name: "Modify the number of unavailable workers to n-2 when >= 4 are available"
-  vars:
-    worker_node_count: "{{ nodes.resources | length }}"
-    mcp_def: |
-      apiVersion: machineconfiguration.openshift.io/v1
-      kind: MachineConfigPool
-      metadata:
-        name: worker
-      spec:
-        maxUnavailable: {{ worker_node_count | int - 2 }}
-  community.kubernetes.k8s:
-    state: present
-    definition: "{{ mcp_def }}"
+- name: Increase maxUnavailable workers
+  include_tasks: plays/increase_maxunavailable.yml
   when:
     - increase_unavailable_workers | default(True) | bool
     - install_type is undefined or install_type != 'sno'
     - acm_cluster_type | default('') not in ['hypershift', 'sno']
-    - worker_node_count | int  >= 4
 
 - name: Wait for Performance Addon Operator endpoint to become available
   pause:
@@ -62,20 +46,6 @@
   set_fact:
     perf_kubelet_timestamp: "{{ kubelet.resources[0].metadata.creationTimestamp }}"
 
-- name: Get worker MCP status
-  community.kubernetes.k8s_info:
-    api_version: machineconfiguration.openshift.io/v1
-    kind: MachineConfigPool
-    name: worker
-  register: reg_mcpool_worker
-
-- name: Get control-plane MCP status
-  community.kubernetes.k8s_info:
-    api_version: machineconfiguration.openshift.io/v1
-    kind: MachineConfigPool
-    name: master
-  register: reg_mcpool_controlplane
-
 - name: Wait (up to 10 mins) for rendered-worker MC triggered by Performance Profile
   community.kubernetes.k8s_info:
     api_version: machineconfiguration.openshift.io/v1
@@ -112,7 +82,7 @@
     - reg_mcpool_controlplane.resources[0].status.machineCount >= 1
     - profile_state.result.spec.nodeSelector is search('master')
 
-- name: "Pause 60 seconds to wait for MC triggered by Performance Profile starts the node changes"
+- name: Pause 60 seconds to wait for MC triggered by Performance Profile starts the node changes
   pause:
     seconds: 60
   when:
@@ -120,56 +90,10 @@
     - reg_mcpool_worker.resources[0].status.machineCount >= 1 or reg_mcpool_controlplane.resources[0].status.machineCount >= 1
   no_log: true
 
-- name: "Get cluster install-config"
-  community.kubernetes.k8s_info:
-    api: v1
-    kind: ConfigMap
-    name: cluster-config-v1
-    namespace: kube-system
-  register: ic
-  until: "'resources' in ic and ic.resources != []"
-  retries: 12
-  delay: 5
-  no_log: true
-
-- name: "Wait for SNO node to be available"
-  vars:
-    install_config: "{{ ic.resources[0].data['install-config'] | from_yaml }}"
-    control_plane_size: "{{ install_config | json_query('controlPlane.replicas') }}"
-  block:
-    - name: "Pause 60 seconds to wait for Performance Profile triggers SNO reboot"
-      pause:
-        seconds: 60
-      when:
-        - profile_state is defined
-        - profile_state.changed | bool
-
-    - name: "Wait for API to be available"
-      uri:
-        url: "https://api.{{ cluster }}.{{ domain is defined | ternary(domain, base_dns_domain) }}:6443/readyz"
-        validate_certs: no
-        return_content: yes
-      register: api_ready
-      until:
-        - "'ok' in api_ready.content"
-        - api_ready.status == 200
-      retries: 15
-      delay: 60
-
-    - name: "Wait for SNO node to be in Ready state"
-      community.kubernetes.k8s_info:
-        api: v1
-        kind: Node
-      register: cluster_nodes
-      until:
-        - cluster_nodes.resources is defined
-        - "'True' in cluster_nodes.resources[0].status.conditions | to_json | from_json | json_query(query)"
-      vars:
-        query: "[?contains(type, 'Ready')].status"
-      retries: 90
-      delay: 10
+- name: Wait for SNO node to be available
+  include_tasks: plays/wait_sno_reboot.yml
   when:
-      control_plane_size | int == 1
+    - control_plane_size | int == 1
 
 - name: Wait for MCP status
   include_role:
