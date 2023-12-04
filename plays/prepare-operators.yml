@@ -93,12 +93,22 @@
     - dci_local_registry | length
 
 - name: "Mirror custom catalogs"
-  include_tasks: mirror-catalog.yml
+  include_tasks:
+    file: mirror-catalog.yml
+    apply:
+      environment:
+        DOCKER_CONFIG: "{{ docker_conf.path }}"
   loop: "{{ custom_catalogs }}"
   loop_control:
     loop_var: catalog
   when:
     - custom_catalogs | default([]) | length
+
+- name: "Remove docker auths directory"
+  file:
+    path: "{{ docker_conf.path }}"
+    state: absent
+  when: docker_conf is defined
 
 - name: "Apply Image Sources for all catalogs"
   block:
