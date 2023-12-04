@@ -11,7 +11,7 @@
     - block:
       - name: "assisted installer: generate agent iso"
         include_role:
-          name: generate_agent_iso
+          name: redhatci.ocp.generate_agent_iso
       rescue:
         - include_tasks: teardown_failure.yml
 ...

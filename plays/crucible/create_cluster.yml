@@ -10,10 +10,10 @@
     - block:
       - name: "assisted installer: create cluster"
         include_role:
-          name: create_cluster
+          name: redhatci.ocp.create_cluster
 #      - name: "assisted installer: patch cluster"
 #        include_role:
-#          name: patch_cluster
+#          name: redhatci.ocp.patch_cluster
       rescue:
         - include_tasks: teardown_failure.yml
 ...

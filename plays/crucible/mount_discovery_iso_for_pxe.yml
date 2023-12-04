@@ -9,7 +9,7 @@
     - block:
       - name: "assisted installer: mount discovery iso for pxe"
         include_role:
-          name: mount_discovery_iso_for_pxe
+          name: redhatci.ocp.mount_discovery_iso_for_pxe
         when: MOUNT_DISCOVERY_ISO == True
       rescue:
         - include_tasks: teardown_failure.yml

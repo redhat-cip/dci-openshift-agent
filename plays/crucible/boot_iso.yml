@@ -10,7 +10,7 @@
     - block:
       - name: "assisted installer: boot iso"
         include_role:
-          name: boot_iso
+          name: redhatci.ocp.boot_iso
       rescue:
         - include_tasks: teardown_failure.yml
 ...

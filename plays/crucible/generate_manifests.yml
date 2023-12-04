@@ -14,11 +14,11 @@
           run_get_hash: "{{ assisted_installer_release_images | default({}) | length == 0 }}"
       - name: "assisted installer: get_image_hash"
         include_role:
-          name: get_image_hash
+          name: redhatci.ocp.get_image_hash
         when: run_get_hash
       - name: "assisted installer: generate_manifests"
         include_role:
-          name: generate_manifests
+          name: redhatci.ocp.generate_manifests
       rescue:
         - include_tasks: teardown_failure.yml
 ...
