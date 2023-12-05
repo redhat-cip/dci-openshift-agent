@@ -177,7 +177,6 @@
 
 - name: Provision VMS
   hosts: vm_hosts
-  gather_facts: "{{ (setup_vms | default((kvm_nodes | default([])) | length | int >= 1)) | bool }}"
   vars:
     SETUP_VMS: "{{ setup_vms | default((kvm_nodes | default([])) | length | int >= 1) }}"
   vars_files:
@@ -391,7 +390,6 @@
 
 - name: Deploy sushy tools
   hosts: vm_hosts
-  gather_facts: "{{ (setup_sushy_tools | default(setup_vms | default(True))) | bool }}"
   vars:
     SETUP_SUSHY_TOOLS: "{{ setup_sushy_tools | default(setup_vms | default(True)) }}"
   vars_files:
