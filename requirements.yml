@@ -13,3 +13,5 @@ collections:
   - name: community.general
   - name: community.libvirt
   - name: ansible.posix
+  - name: redhatci.ocp
+
