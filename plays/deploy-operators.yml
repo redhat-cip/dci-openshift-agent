@@ -1,54 +1,31 @@
 ---
-- name: "Get cluster version"
-  community.kubernetes.k8s_info:
-    api: config.openshift.io/v1
-    kind: ClusterVersion
-    name: version
-  register: cluster_version
-
-- name: "Get OCP version"
-  vars:
-    current_ver_query: "history[?state=='Completed'] | [0].version"
-    full_ver: "{{ cluster_version.resources[0].status | json_query(current_ver_query) }}"
-    current_ver: "{{ full_ver.split('-')[0] }}"
-  set_fact:
-    ocp_version: "{{  current_ver }}"
-    ocp_version_maj: "{{ current_ver.split('.')[0] }}"
-    ocp_version_min: "{{ current_ver.split('.')[1] }}"
-
 - name: "Prepare operators and catalogs"
-  include_tasks: prepare-operators.yml
+  ansible.builtin.include_tasks: prepare-operators.yml
 
-- name: "deploy-operators : Install LocalStorage Operator"
-  include_role:
-    name: redhatci.ocp.olm_operator
-  vars:
-    operator: local-storage-operator
-    source: "{{ opm_catalog_source_name }}"
-    namespace: openshift-local-storage
-    operator_group_spec:
-      targetNamespaces:
-        - openshift-local-storage
+- name: "Install operators"
+  ansible.builtin.include_tasks: deploy-custom-operator.yml
   when:
-    - enable_lso | bool
+    - dci_operators is defined
+    - dci_operators | length
+  loop: "{{ dci_operators }}"
+  loop_control:
+    loop_var: dci_operator
+    label: "{{ dci_operator.name }}"
 
-- name: "Deploy ODF"
+- name: "Install all operators from a catalog"
+  ansible.builtin.include_tasks: all-from-catalog.yml
+  when:
+    - install_all_from_catalog | default('') | length
+    - dci_operators is undefined
+
+# Configure operators for those enabled
+
+- name: "Enable Openshift Data Foundation"
+  when:
+    - enable_odf | bool
   block:
-    - name: "Install ODF Operators"
-      include_role:
-        name: redhatci.ocp.olm_operator
-      vars:
-        operator: odf-operator
-        source: "{{ opm_catalog_source_name }}"
-        namespace: openshift-storage
-        ns_labels:
-          openshift.io/cluster-monitoring: "true"
-        operator_group_spec:
-          targetNamespaces:
-            - openshift-storage
-
-    - name: Mirroring UBI image for ODF validation
-      include_role:
+    - name: "Mirroring UBI image for ODF validation"
+      ansible.builtin.include_role:
         name: redhatci.ocp.mirror_images
       vars:
         images: ['registry.access.redhat.com/ubi8/ubi']
@@ -56,7 +33,7 @@
       when:
         - dci_disconnected | default(false) | bool
 
-    - name: "configure-operators : Deploy an ODF Cluster"
+    - name: "Setup an ODF Cluster"
       vars:
         gatherer_image: |-
           {%- if dci_disconnected | default(false) %}
@@ -64,174 +41,50 @@
           {%- else %}
           registry.access.redhat.com/ubi8/ubi
           {%- endif %}
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.odf_setup
       when:
         - storage_cluster | bool
-  when:
-    - enable_odf | bool
 
-- name: "Mirroring the NFS external storage provisioner image"
-  include_role:
-    name: redhatci.ocp.mirror_images
-  vars:
-    images: ['registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2']
-    authfile: "{{ dci_pullsecret_file }}"
-  when:
-    - dci_disconnected | default(false) | bool
-    - enable_nfs_storage | bool
-
-- name: "Deploy NFS external storage"
-  include_role:
-    name: redhatci.ocp.nfs_external_storage
-  vars:
-    nes_nfs_server: "{{ nfs_server }}"
-    nes_nfs_path: "{{ nfs_path }}"
-    nes_path_pattern: "{{ job_id is defined |
-                        ternary( job_id+'_${.PVC.namespace}.${.PVC.name}', omit) }}"
-    nes_provisioner_image: |-
-      {%- if dci_disconnected | default(false) %}
-      {{ dci_local_registry }}/sig-storage/nfs-subdir-external-provisioner:{{ nfs_subdir_external_provisioner_tag }}
-      {%- else %}
-      registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:{{ nfs_subdir_external_provisioner_tag }}
-      {%- endif %}
+- name: "Enable NFS external storage provisioner"
   when:
     - enable_nfs_storage | bool
-
-- name: "Enable operators required for CNFs"
-  set_fact:
-    enable_sriov: true
-    enable_perf_addon: true
-  when: dci_prepare_cnf | bool
-
-- name: "Deploy operators required by CNFs"
   block:
-    - name: "deploy-operators : Get all worker nodes"
-      community.kubernetes.k8s_info:
-        kind: Node
-        label_selectors:
-          - "node-role.kubernetes.io/worker"
-      register: nodes
-
-    - name: "deploy-operators : test_ Check enough worker nodes availability"
+    - name: "Mirroring the NFS external storage provisioner image"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.mirror_images
       vars:
-        worker_node_count: "{{ nodes.resources | length }}"
-      fail:
-        msg: "Not enough worker nodes ({{ worker_node_count }}) to perform required tasks"
+        images: ['registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2']
+        authfile: "{{ dci_pullsecret_file }}"
       when:
-        - worker_node_count | int <= 1
-        - install_type != 'sno'
-        - install_type != 'acm'
+        - dci_disconnected | default(false) | bool
 
-    - name: "deploy-operators : Increase maxUnavailable count to n-2 when workers >= 4"
+    - name: "Deploy NFS external storage"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.nfs_external_storage
       vars:
-        worker_node_count: "{{ nodes.resources | length }}"
-        mcp_def: |
-          apiVersion: machineconfiguration.openshift.io/v1
-          kind: MachineConfigPool
-          metadata:
-            name: worker
-          spec:
-            maxUnavailable: {{ worker_node_count | int - 2 }}
-      community.kubernetes.k8s:
-        state: present
-        definition: "{{ mcp_def }}"
-      when:
-        - increase_unavailable_workers | default(True) | bool
-        - worker_node_count | int >= 4
+        nes_nfs_server: "{{ nfs_server }}"
+        nes_nfs_path: "{{ nfs_path }}"
+        nes_path_pattern: "{{ job_id is defined |
+                            ternary( job_id+'_${.PVC.namespace}.${.PVC.name}', omit) }}"
+        nes_provisioner_image: |-
+          {%- if dci_disconnected | default(false) %}
+          {{ dci_local_registry }}/sig-storage/nfs-subdir-external-provisioner:{{ nfs_subdir_external_provisioner_tag }}
+          {%- else %}
+          registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:{{ nfs_subdir_external_provisioner_tag }}
+          {%- endif %}
 
-    - name: "deploy-operators : Override Red Hat catalog in connected"
-      include_role:
-        name: redhatci.ocp.catalog_source
-      vars:
-        cs_name: "redhat-operators"
-        cs_namespace: "openshift-marketplace"
-        cs_image: "{{ operators_index }}"
-        cs_publisher: "Red Hat"
-      when:
-        - operators_index is defined
-        - not dci_disconnected | default(false) | bool
-
-    - name: "deploy-operators : Install Performance Addon Operator"
-      block:
-        - name: "deploy-operators : Install Performance Addon Operator"
-          include_role:
-            name: redhatci.ocp.olm_operator
-          vars:
-            operator: performance-addon-operator
-            source: "{{ opm_catalog_source_name }}"
-            namespace: openshift-performance-addon-operator
-            ns_labels:
-              openshift.io/cluster-monitoring: "true"
-      when:
-        - enable_perf_addon | bool
-        - ocp_version is version("4.11", "<")
-
-    - name: "deploy-operators : Install and configure SRIOV"
-      block:
-        - name: "deploy-operators : Install SRIOV operator"
-          include_role:
-            name: redhatci.ocp.olm_operator
-          vars:
-            operator: sriov-network-operator
-            source: "{{ upstream_source_catalog_name | default(opm_catalog_source_name) }}"
-            namespace: openshift-sriov-network-operator
-            operator_group_spec:
-              targetNamespaces:
-                - openshift-sriov-network-operator
-            ns_labels:
-              openshift.io/run-level: "1"
-
-        - name: "configure-operators : Configure SRIOV operator"
-          include_tasks: apply-sriov-config.yml
-
-      when:
-        - enable_sriov | bool
-
-    - name: "deploy-operators : Reset maxUnavailable count to default value 1"
-      community.kubernetes.k8s:
-        definition:
-          kind: MachineConfigPool
-          metadata:
-            name: worker
-          spec:
-            maxUnavailable: 1
-  when: >
-    (dci_prepare_cnf | bool) or
-    (enable_perf_addon | bool ) or
-    (enable_sriov | bool)
-
-- name: Validate if the Performance Profile CRD is present
-  community.kubernetes.k8s_info:
-    api_version: apiextensions.k8s.io/v1
-    kind: CustomResourceDefinition
-    name: performanceprofiles.performance.openshift.io
-  register: perf_profile_crd
-
-- name: "configure-operators : Apply Performance Profile"
-  include_tasks: "{{ item }}"
-  loop:
-    - apply-pao-profile.yml
-    - check-cluster-health.yml
+- name: "Setup SRIOV operator"
+  ansible.builtin.include_tasks: apply-sriov-config.yml
   when:
-    - performance_definition is defined
-    - perf_profile_crd.resources|length > 0
+    - enable_sriov | bool
 
-- name: "Deploy CNV and HCO Operators"
+- name: "Setup CNV and HCO Operators"
+  when:
+    - enable_cnv | bool
   block:
-    - name: "deploy-operators : Install CNV operator"
-      include_role:
-        name: redhatci.ocp.olm_operator
-      vars:
-        operator: kubevirt-hyperconverged
-        source: "{{ opm_catalog_source_name }}"
-        namespace: openshift-cnv
-        operator_group_spec:
-          targetNamespaces:
-            - openshift-cnv
-
-    - name: "configure-operators : Deploy Hyperconverged Operator"
-      include_role:
+    - name: "Setup the Hyperconverged Operator"
+      ansible.builtin.include_role:
         name: redhatci.ocp.hco_setup
       vars:
         hs_pullsecret_file: "{{ dci_pullsecret_file }}"
@@ -251,51 +104,16 @@
               - ReadWriteOnce
       when:
         - enable_nfs_storage | bool
-  when:
-    - enable_cnv | bool
 
-- name: "deploy-operators : Install Elasticsearch operator"
-  include_role:
-    name: redhatci.ocp.olm_operator
-  vars:
-    operator: elasticsearch-operator
-    source: "{{ opm_catalog_source_name }}"
-    namespace: openshift-operators-redhat
-    ns_labels:
-      openshift.io/cluster-monitoring: "true"
+- name: "Setup a Minio deployment"
   when:
-    - enable_elasticsearch | bool
-
-- name: "deploy-operators : Install Cluster-logging operator"
-  include_role:
-    name: redhatci.ocp.olm_operator
-  vars:
-    operator: cluster-logging
-    source: "{{ opm_catalog_source_name }}"
-    namespace: openshift-logging
-  when:
-    - enable_logs_stack | bool or
-      enable_clusterlogging | bool
-
-- name: "deploy-operators : Install the Loki Operator"
-  include_role:
-    name: redhatci.ocp.olm_operator
-  vars:
-    operator: loki-operator
-    source: "{{ opm_catalog_source_name }}"
-    namespace: openshift-operators-redhat
-    ns_labels:
-      openshift.io/cluster-monitoring: "true"
-  when:
-    - enable_logs_stack | bool
-
-- name: "Setup a Minio instance"
+    - enable_minio | bool
   block:
     - name: "Mirroring the Minio image"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.mirror_images
       vars:
-        images: 
+        images:
           - quay.io/minio/minio
           - quay.io/minio/mc
         authfile: "{{ dci_pullsecret_file }}"
@@ -303,7 +121,7 @@
         - dci_disconnected | default(false) | bool
 
     - name: "Setup Minio instance"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.setup_minio
       vars:
         sm_storage_class: "{{ minio_storage_class | default('ocs-storagecluster-cephfs') }}"
@@ -324,13 +142,13 @@
           {%- else %}
           quay.io/minio/minio
           {%- endif %}
-  when:
-    - enable_minio | bool
 
 - name: "Setup OCP logging stack"
+  when:
+    - enable_logs_stack | bool
   block:
     - name: "Mirroring the event router image"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.mirror_images
       vars:
         images: ["registry.redhat.io/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}"]
@@ -339,7 +157,7 @@
         - dci_disconnected | default(false) | bool
 
     - name: "Setup OCP logging stack"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.ocp_logging
       vars:
         ol_access_key_id: "{{ logs_access_key_id | default('minioadmin') }}"
@@ -355,51 +173,19 @@
           {%- else %}
           registry.redhat.io/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}
           {%- endif %}
-  when:
-    - enable_logs_stack | bool
 
-- name: "Deploy and configure the Advanced Cluster Manager"
-  vars:
-    acm_namespace: open-cluster-management
-    acm_instance: multiclusterhub
-  block:
-    - name: "deploy-operators : Install the ACM operator"
-      include_role:
-        name: redhatci.ocp.olm_operator
-      vars:
-        operator: advanced-cluster-management
-        source: "{{ opm_catalog_source_name }}"
-        namespace: "{{ acm_namespace }}"
-        operator_group_spec:
-          targetNamespaces:
-            - "{{ acm_namespace }}"
-  when:
-    - enable_acm | bool
-
-- name: "deploy-operators : Install and configure the Node Discovery Operator"
+- name: "Setup the Node Discovery Operator"
   vars:
     nfd_namespace: "openshift-nfd"
-    nfd_instance_name: "nfd-instance"
     nfd_image: "registry.redhat.io/openshift4/ose-node-feature-discovery:latest"
+  when:
+    - enable_nfd | bool
   block:
-    - name: "deploy-operators : Install the Node Discovery Operator"
-      include_role:
-        name: redhatci.ocp.olm_operator
-      vars:
-        operator: nfd
-        source: "{{ opm_catalog_source_name }}"
-        namespace: "{{ nfd_namespace }}"
-        ns_labels:
-          openshift.io/cluster-monitoring: "true"
-        operator_group_spec:
-          targetNamespaces:
-            - "{{ nfd_namespace }}"
-
     - name: "Mirroring ose-node-feature-discovery image"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.mirror_images
       vars:
-        images: [ "{{ nfd_image }}" ]
+        images: ["{{ nfd_image }}"]
         authfile: "{{ dci_pullsecret_file }}"
       when:
         - dci_disconnected | default(false) | bool
@@ -413,7 +199,7 @@
           apiVersion: nfd.openshift.io/v1
           kind: NodeFeatureDiscovery
           metadata:
-            name: "{{ nfd_instance_name }}"
+            name: "nfd-instance"
             namespace: "{{ nfd_namespace }}"
           spec:
             instance: "" # instance is empty by default
@@ -481,82 +267,27 @@
       until: pod_list|json_query('resources[*].status.phase')|unique == ["Running"]
       retries: 20
       delay: 15
-  when:
-    - enable_nfd | bool
 
-- name: "deploy-operators : Install the MetalLB operator"
-  include_role:
-    name: redhatci.ocp.olm_operator
-  vars:
-    operator: metallb-operator
-    source: "{{ opm_catalog_source_name }}"
-    namespace: metallb-system
-  when:
-    - enable_mlb | bool
-
-- name: Deploy k8s NMState operator
-  vars:
-    nmstate_namespace: openshift-nmstate
-  block:
-    - name: "deploy-operators : Install the k8s NMState Operator"
-      include_role:
-        name: redhatci.ocp.olm_operator
-      vars:
-        operator: kubernetes-nmstate-operator
-        source: "{{ opm_catalog_source_name }}"
-        namespace: "{{ nmstate_namespace }}"
-        operator_group_spec:
-          targetNamespaces:
-            - "{{ nmstate_namespace }}"
-
-    - name: Initialize instance
-      community.kubernetes.k8s:
-        definition:
-          apiVersion: nmstate.io/v1
-          kind: NMState
-          metadata:
-            name: nmstate
+- name: "Setup NMState instance"
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: nmstate.io/v1
+      kind: NMState
+      metadata:
+        name: nmstate
   when:
     - enable_nmstate | bool
 
 - name: "Setup Advanced Cluster Management"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.acm_setup
   vars:
     hub_disconnected: "{{ dci_disconnected | default(false) | bool }}"
   when:
     - enable_acm | bool
 
-# GitOps Operator is used for ZTP, in combination with ACM, so
-# both must be enabled.
-- name: "deploy-operators : Install the GitOps Operator"
-  include_role:
-    name: redhatci.ocp.olm_operator
-  vars:
-    operator: openshift-gitops-operator
-    source: "{{ opm_catalog_source_name }}"
-    namespace: openshift-gitops
-  when:
-    - enable_acm | bool
-    - enable_gitops | bool
-
-- name: "deploy-operators : All operators from a catalog"
-  include_tasks: all-from-catalog.yml
-  when:
-    - install_all_from_catalog | default('') | length
-
-- name: "deploy-operators : Deploy other operators playbook"
-  include_tasks: deploy-custom-operator.yml
-  when:
-    - dci_operators is defined
-    - dci_operators | length
-  loop: "{{ dci_operators }}"
-  loop_control:
-    loop_var: dci_operator
-    label: "{{ dci_operator.name }}"
-
 - name: "deploy-operators : Create defined Custom Resources"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.deploy_cr
   vars:
     api_version: "{{ item.api_version }}"
@@ -569,8 +300,27 @@
     - dci_ocp_custom_resources is defined
     - dci_ocp_custom_resources is list
 
+- name: "Validate if the Performance Profile CRD is present"
+  community.kubernetes.k8s_info:
+    api_version: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: performanceprofiles.performance.openshift.io
+  register: perf_profile_crd
+
+- name: "Apply the Performance Profile"
+  ansible.builtin.include_tasks: "{{ item }}"
+  loop:
+    - apply-pao-profile.yml
+    - check-cluster-health.yml
+  when:
+    - performance_definition is defined
+    - perf_profile_crd.resources|length > 0
+
 - name: "Setup NUMA Resource Operator"
-  include_tasks: setup-nro.yml
+  include_tasks: "{{ item }}"
+  loop:
+    - setup-nro.yml
+    - check-cluster-health.yml
   when:
     - enable_nro | bool
     - ocp_version is version("4.12", ">=")

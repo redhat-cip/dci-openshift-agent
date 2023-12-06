@@ -1,99 +1,55 @@
 ---
-- name: "Define mirror_list"
+- name: "Convert list to dictionary"
   set_fact:
-    mirror_list: "{{ opm_mirror_list | default([]) }}"
+    mirror_list: "{{ mirror_list | combine({ item: {} }) }}"
+  loop: "{{ opm_mirror_list | default([]) }}"
 
 - name: "Add operators if enable_sriov"
   set_fact:
-    mirror_list: "{{ mirror_list + sriov_operator }}"
+    mirror_list: "{{ mirror_list | combine(sriov_operator) }}"
   when:
     - enable_sriov | bool
     - not upstream_sriov | default(false) | bool
 
-- name: "Add operators if enable_perf_addon"
-  set_fact:
-    mirror_list: "{{ mirror_list + performance_addon_operator }}"
-  when:
-    - enable_perf_addon | bool
-
-- name: "Add operators if dci_prepare_cnf"
-  set_fact:
-    mirror_list: "{{ mirror_list + cnf_operators }}"
-  when:
-    - dci_prepare_cnf | bool
-
 - name: "Add operators if enable_cnv"
   set_fact:
-    mirror_list: "{{ mirror_list + cnv_operator }}"
+    mirror_list: "{{ mirror_list | combine(cnv_operator) }}"
   when:
     - enable_cnv | bool
 
-- name: "Add operators if enable_elasticsearch"
-  set_fact:
-    mirror_list: "{{ mirror_list + elastic_search_operator }}"
-  when:
-    - enable_elasticsearch | bool
-
-- name: "Add operators if enable_clusterlogging"
-  set_fact:
-    mirror_list: "{{ mirror_list + cluster_logging_operator }}"
-  when:
-    - enable_clusterlogging | bool
-
 - name: "Add operators if enable_acm"
   set_fact:
-    mirror_list: "{{ mirror_list + advanced_cluster_management }}"
+    mirror_list: "{{ mirror_list | combine(advanced_cluster_management) }}"
   when:
     - enable_acm | bool
 
-- name: "Add operators if enable_local_storage"
-  set_fact:
-    mirror_list: "{{ mirror_list + local_storage_operator }}"
-  when:
-    - enable_lso | bool
-
 - name: "Add operators if enable_odf"
   set_fact:
-    mirror_list: "{{ mirror_list + odf_operator }}"
+    mirror_list: "{{ mirror_list | combine(odf_operator) }}"
   when:
     - enable_odf | bool
 
 - name: "Add operators if enable_nfd"
   set_fact:
-    mirror_list: "{{ mirror_list + nfd_operator }}"
+    mirror_list: "{{ mirror_list | combine(nfd_operator) }}"
   when:
     - enable_nfd | bool
 
 - name: "Add operators if enable_logs_stack"
   set_fact:
-    mirror_list: "{{ mirror_list + logging_operators }}"
+    mirror_list: "{{ mirror_list | combine(logging_operators) }}"
   when:
     - enable_logs_stack | bool
 
 - name: "Add operators if enable_mlb"
   set_fact:
-    mirror_list: "{{ mirror_list + metallb_operators }}"
+    mirror_list: "{{ mirror_list | combine(metallb_operators) }}"
   when:
     - enable_mlb | bool
 
 - name: "Add operators if enable_nmstate"
   set_fact:
-    mirror_list: "{{ mirror_list + nmstate_operators }}"
+    mirror_list: "{{ mirror_list | combine(nmstate_operators) }}"
   when:
     - enable_nmstate | bool
-
-- name: "Add operators if enable_gitops and enable_acm"
-  set_fact:
-    mirror_list: "{{ mirror_list + gitops_operator }}"
-  when:
-    - enable_acm | bool
-    - enable_gitops | bool
-
-- name: "Cleanup operators list"
-  set_fact:
-    mirror_list: "{{ mirror_list | unique | select | list }}"
-
-- name: "Operators to be mirrored"
-  debug:
-    msg: "{{ mirror_list }}"
 ...

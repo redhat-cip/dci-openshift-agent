@@ -273,23 +273,18 @@ This is the dci-openshift-agent variables that can be set in the
 | opm_mirror_list                 | False    | List    | []                                                             | List additional operators to be mirrored in disconnected environments. The package names of operators deployed using `dci_operators` must be included in this list.
 | dci_operators                   | False    | List    | []                                                             | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details.
 | apply_sriov_upgrade_settings    | False    | Boolean | True                                                           | Whether to apply SR-IOV recommended settings before operator upgrade.
-| dci_prepare_cnf                 | False    | Boolean | False                                                          | Deploys Performance Addon and SRIOV operators, Please use the `enable_sriov` or `enable_perf_addon` variables if only one of this operators is required. To complete the Performance Addon configuration it is recommended to also add a `performance_definition`.
-| enable_cnv                      | False    | Boolean | False                                                          | Deploys CNV and enables the HCO operator.
+| enable_cnv                      | False    | Boolean | False                                                          | Configures the CNV and the HCO operator.
 | dci_cnv_test                    | False    | Boolean | False                                                          | Test the deploy of a VM using CNV and HCO operator.
 | cnv_api_version                 | False    | String  | v1beta1                                                        | API version to use when deploying HCO operator: hco.kubevirt.io/cnv_api_version
-| enable_clusterlogging           | False    | Boolean | False                                                          | Deploys the Cluster-Logging Operator.
-| enable_logs_stack               | False    | Boolean | False                                                          | Enables the OCP cluster logging subsystem using the Loki and ClusterLogging Operators. Please see the [Logging Stack settings](#logging-stack) section for more details.
-| enable_perf_addon               | False    | Boolean | False                                                          | Deploys the Performance AddOn Operator. For its configuration is recommended to define a `performance_definition`.
-| enable_sriov                    | False    | Boolean | False                                                          | Deploys the SRIOV Operator.
-| enable_acm                      | False    | Boolean | False                                                          | Deploys the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator.
-| enable_nfd                      | False    | Boolean | False                                                          | Deploys the [NFD](https://docs.openshift.com/container-platform/4.10/hardware_enablement/psap-node-feature-discovery-operator.html) Operator.
-| enable_mlb                      | False    | Boolean | False                                                          | Deploys MetalLB operator.
-| enable_nmstate                  | False    | Boolean | False                                                          | Deploys the k8s NMstate operator and creates initial instance.
-| enable_lso                      | False    | Boolean | False                                                          | Deploys the Local Storage Operator.
-| enable_odf                      | False    | Boolean | False                                                          | Deploys the ODF Operator and its dependencies(ocs, lso, mcg, odf-csi-addons). Staring OCP 4.10, ODF replaces OCS. See: [Openshift Data Foundation](https://access.redhat.com/documentation/
-| enable_nro                      | False    | Boolean | False                                                          | Configures NUMA Resources Operator CRDs (NUMA-Aware). GA from 4.12.24, TP Before that.
-| nro_topo_img_tag                | False    | String  |                                                                | Tag of the NUMA Topology scheduler image, by default it matches the OCP release name, but non-GA releases will require this variable to specify a Tag from a previous OCP release.
-| storage_cluster                 | False    | Boolean | False                                                          | Creates a storage cluster using Red Hat OpenShift Data Foundation operators.
+| enable_logs_stack               | False    | Boolean | False                                                          | Configures the OCP cluster logging subsystem using the Loki and ClusterLogging Operators. Please see the [Logging Stack settings](#logging-stack) section for more details.
+| enable_sriov                    | False    | Boolean | False                                                          | Configures the SRIOV Operator.
+| enable_acm                      | False    | Boolean | False                                                          | Configures the [ACM](https://www.redhat.com/en/technologies/management/advanced-cluster-management) Operator. It converts the cluster into an ACM Hub.
+| enable_nfd                      | False    | Boolean | False                                                          | Configures the [NFD](https://docs.openshift.com/container-platform/4.10/hardware_enablement/psap-node-feature-discovery-operator.html) Operator.
+| enable_mlb                      | False    | Boolean | False                                                          | Configures MetalLB operator.
+| enable_nmstate                  | False    | Boolean | False                                                          | Configures the k8s NMstate operator and creates initial instance.
+| enable_odf                      | False    | Boolean | False                                                          | Configures the ODF Operator and its dependencies(ocs, lso, mcg, odf-csi-addons). Staring OCP 4.10, ODF replaces OCS. See: [Openshift Data Foundation](https://access.redhat.com/documentation/. Creates a storage cluster using Red Hat OpenShift Data Foundation operators.
+| enable_nro                      | False    | Boolean | False                                                          | Configures NUMA Resources Operator CRDs (NUMA-Aware). GA from 4.12.24, it is Technology preview before.
+| nro_topo_img_tag                | False    | String  |                                                                | Tag of the NUMA Topology scheduler image, by default it matches the OCP release name, but non-GA releases will require this variable to specify a tag from a previous OCP release.
 | enable_nfs_storage              | False    | Boolean | False                                                          | Enable an NFS as external storage provisioner. Values for `nfs_server` and `nfs_path` are required if for this. See [nfs_external_storage](https://github/redhatci/ansible-collections-redhatci-ocp/roles/nfs_external_storage) for details.
 | nfs_server                      | False    | String  |                                                                | NFS server's FQDN or IP Address. eg. my-nfs.mylab.local
 | nfs_path                        | False    | String  |                                                                | NFS export path. e.g. /exports/nfs-provisioner
@@ -996,8 +991,11 @@ See below and an example of a pipeline job definition:
     dci_baseurl: "http://{{ dci_base_ip }}"
     dci_main: upgrade
     cnf_test_suites: []
-    enable_perf_addon: true
-    enable_sriov: true
+    performance_definition: /<path>/performance-profile.yml
+    # Operators to mirror
+    opm_mirror_list:
+      loki-operator:
+      cluster-logging:
   topic: OCP-4.10
   components:
     - ocp
@@ -1010,7 +1008,7 @@ Please note the following settings:
 
 1. `prev_stages`: Indicates that this pipeline can only be executed after an OCP install or another OCP upgrade, as those will provide the `kubeconfig` used to interact with the cluster during the upgrade.
 1. `dci_main`: Instructs the agent to execute only the tasks related to a cluster upgrade. Accepted values are `install` and `upgrade`.
-1. `enable_perf_addon`: Enables the mirroring of the Performance Add-On operator for the target OCP version.
+1. `opm_mirror_list`: During the upgrade the operators already installed will be upgraded, those operators must be listed in this variable to perform the operators mirroring according to the target OCP version.
 
 See: [dci-pipeline](https://docs.distributed-ci.io/dci-pipeline/) documentation for more details about the configuration settings.
 
@@ -1030,7 +1028,7 @@ Some of the relevant tasks executed during a cluster upgrade are listed below:
 1. The Image Content Source Policies and OCP signature for the new version are applied <sup>1</sup>.
 1. The "cluster version" is patched for the new target version based on the calculated target version.
 1. The upgrade is executed and monitored for completion.
-1. The Red Hat operators catalog for the new OCP version is pruned and mirrored according to the `enable_<operators>` variables defined in the pipeline file <sup>1</sup>.
+1. The Red Hat operators catalog for the new OCP version is pruned and mirrored according to the `opm_mirror_list` or `dci_operators` variables defined in the pipeline file <sup>1</sup>.
 1. The current Red Hat operators catalog is replaced with the new one for the target OCP version.
 1. Information about installed operators is collected based on the current subscriptions.
 1. The operator upgrade is executed for operators not listed in the `operator_skip_upgrade` list.
@@ -1063,7 +1061,7 @@ Upgrade notes:
 
 * The upgrade process is only supported when the installation was performed with the dci-openshift-agent.
 
-* For disconnected environments, it's required to enable the same operators (`enable_<operator>`) installed  by dci-openshift-agent to upgrade them.
+* For disconnected environments, it's required to mirror the same operators originally installed in the cluster in order to allow the upgrade to the version used for the upgrade.
 
 * Please see the [ansible-variables](#ansible-variables) section for more settings related to the upgrade process.
 

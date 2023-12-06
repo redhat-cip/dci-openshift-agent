@@ -1,3 +1,29 @@
+---
+- name: "Set catalog facts for disconnected"
+  set_fact:
+    opm_local_registry_path: "/pruned/redhat-operator-index"
+    opm_catalog_source_name: "mirrored-redhat-operators"
+    opm_catalog_source_namespace: "openshift-marketplace"
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: "Get cluster version"
+  community.kubernetes.k8s_info:
+    api: config.openshift.io/v1
+    kind: ClusterVersion
+    name: version
+  register: cluster_version
+
+- name: "Get OCP version"
+  vars:
+    current_ver_query: "history[?state=='Completed'] | [0].version"
+    full_ver: "{{ cluster_version.resources[0].status | json_query(current_ver_query) }}"
+    current_ver: "{{ full_ver.split('-')[0] }}"
+  ansible.builtin.set_fact:
+    ocp_version: "{{ current_ver }}"
+    ocp_version_maj: "{{ current_ver.split('.')[0] }}"
+    ocp_version_min: "{{ current_ver.split('.')[1] }}"
+
 - name: "Get cluster pull-secret"
   include_tasks: get-cluster-pullsecret.yml
 
@@ -156,4 +182,16 @@
     loop_var: catalog
   when:
     - custom_catalogs | default([]) | length
+
+- name: "Override the Red Hat catalog in connected"
+  include_role:
+    name: redhatci.ocp.catalog_source
+  vars:
+    cs_name: "redhat-operators"
+    cs_namespace: "openshift-marketplace"
+    cs_image: "{{ operators_index }}"
+    cs_publisher: "Red Hat"
+  when:
+    - operators_index is defined
+    - not dci_disconnected | default(false) | bool
 ...

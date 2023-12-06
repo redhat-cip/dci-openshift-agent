@@ -111,20 +111,6 @@
         build: "ga"
       when: build == "candidate"
 
-    - name: "Set facts for connected"
-      set_fact:
-        opm_catalog_source_name: "redhat-operators"
-      when:
-        - not dci_disconnected | default(false) | bool
-
-    - name: "Set facts for disconnected"
-      set_fact:
-        opm_local_registry_path: "/pruned/redhat-operator-index"
-        opm_catalog_source_name: "mirrored-redhat-operators"
-        opm_catalog_source_namespace: "openshift-marketplace"
-      when:
-        - dci_disconnected | default(false) | bool
-
     - name: pre-run
       dci_job:
         id: "{{ job_id }}"
@@ -408,6 +394,9 @@
     - block:
         - name: "Run cluster health checks"
           include_tasks: plays/check-cluster-health.yml
+        - name: "Setup job_logs directory"
+          include_tasks: plays/log-dir.yml
+          when: job_logs is undefined
         - name: "Deploy operators"
           include_tasks: plays/deploy-operators.yml
       when:

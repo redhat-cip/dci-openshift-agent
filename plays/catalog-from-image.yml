@@ -1,16 +1,45 @@
 ---
 - name: "Build catalog from upstream only for non-GA OCP versions"
   vars:
-    short_ver: "{{ '.'.join(version.split('-')[0].split('.')[:2]) }}"
+    short_ver: "{{ '.'.join(ocp_version.split('-')[0].split('.')[:2]) }}"
   include_tasks: build-upstream-catalog.yml
   when:
     - dci_disconnected | default(false) | bool or (dci_local_registry | length )
     - short_ver is version("4.15", ">=")
 
-- name: "Get the operators mirror-list"
-  include_tasks: get-mirror-list.yml
+- name: "Set mirror variable"
+  set_fact:
+    mirror_list: {}
+
+- name: "Get operators defined in dci_operators"
+  set_fact:
+    mirror_list: "{{ mirror_list | combine({ item: {} }) }}"
+  loop: "{{ dci_operators | map(attribute='name') | list }}"
   when:
     - dci_disconnected | default(false) | bool
+    - dci_operators | default([]) | length
+
+- name: "Get the operators to mirror from list"
+  include_tasks: plays/get-mirror-list.yml
+  when:
+    - dci_disconnected | default(false) | bool
+    - opm_mirror_list | type_debug == "list" or
+      opm_mirror_list is undefined
+
+- name: "Get the operators to mirror from dict"
+  set_fact:
+    mirror_list: "{{ mirror_list | combine(opm_mirror_list) | default({}) }}"
+  when:
+    - dci_disconnected | default(false) | bool
+    - opm_mirror_list | type_debug == "dict"
+
+- name: "Cleanup operators list"
+  set_fact:
+    mirror_list: "{{ mirror_list | dict2items | unique | items2dict }}"
+
+- name: "Operators to be mirrored"
+  debug:
+    var: mirror_list
 
 - name: "Prune catalog and mirror the Red Hat operators"
   block:

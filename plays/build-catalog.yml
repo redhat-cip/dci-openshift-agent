@@ -2,8 +2,8 @@
 - name: "Set facts for index fallback - Try up to 3 previous versions"
   set_fact:
     fallback_counter: 0
-    ocp_major: "{{ version.split('.')[0] }}"
-    ocp_minor: "{{ version.split('.')[1] }}"
+    ocp_major: "{{ ocp_version.split('.')[0] }}"
+    ocp_minor: "{{ ocp_version.split('.')[1] }}"
 
 - name: "Prune catalog - recursive"
   include_tasks: prune-catalog.yml
