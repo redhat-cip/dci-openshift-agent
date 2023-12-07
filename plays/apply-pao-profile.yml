@@ -25,20 +25,22 @@
   delay: 60
   until: profile_state is not failed
 
-- name: Wait (up to 5 mins) for Performance Profile KubeletConfig creation
+- name: Wait for Performance Profile KubeletConfig creation
+  vars:
+    check_wait_retries: "{{ 16 * (groups['workers'] | default(groups['masters']) | length + 1 ) }}"
   community.kubernetes.k8s_info:
     api: machineconfiguration.openshift.io/v1
     kind: KubeletConfig
     name: "performance-{{ profile_state.result.metadata.name }}"
     namespace: default
   register: kubelet
-  retries: 30
-  delay: 10
+  retries: "{{ check_wait_retries }}"
+  delay: 60
   until:
     - kubelet.resources is defined
     - kubelet.resources | length == 1
   failed_when:
-    - kubelet.resources | length != 1
+    - kubelet.resources | default([]) | length != 1
   when:
     - profile_state is defined
 
