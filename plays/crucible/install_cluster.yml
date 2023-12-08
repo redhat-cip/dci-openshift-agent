@@ -8,7 +8,7 @@
     - block:
       - name: "assisted installer: install cluster"
         include_role:
-          name: install_cluster
+          name: redhatci.ocp.install_cluster
       rescue:
         - include_tasks: teardown_failure.yml
 ...

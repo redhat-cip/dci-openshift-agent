@@ -90,45 +90,25 @@
           - bastion
           - localhost
 
-      - name: "Clone/update assisted-deploy repo"
-        vars:
-          git_repo: "{{ assisted_deploy_repo }}"
-          git_ref: "{{ assisted_deploy_version }}"
-        git:
-          version: "{{ git_ref }}"
-          repo: "{{ git_repo }}"
-          dest: "{{ dci_cache_dir }}/assisted_deploy_repo"
-          force: true
-        # On RHEL8 git clone can sporadically fail with OpenSSL SSL_read:
-        # SSL_ERROR_SYSCALL, errno 104.
-        register: git_clone
-        retries: 3
-        delay: 10
-        until: not git_clone.failed
-        when:
-          - "dci_cache_dir + '/assisted_deploy_repo/roles' in roles_path"
-        tags:
-          - clone_upstream_repos
-
       - name: "Prereq facts check"
         vars:
           ssh_public_check: "{{ not (generate_ssh_keys | default(True)) }}"
           mirror_certificate_check: "{{ ((use_local_mirror_registry | default(False)) == True) and ((setup_registry_service | default(True)) == False) }}"
         include_role:
-          name: prereq_facts_check
+          name: redhatci.ocp.prereq_facts_check
 
       - name: "Populate image_hashes for relevant images"
         include_role:
-          name: get_image_hash
+          name: redhatci.ocp.get_image_hash
 
       - name: "Parse openshift version"
         include_role:
-          name: populate_mirror_registry
+          name: redhatci.ocp.populate_mirror_registry
           tasks_from: var_check.yml
 
       - name: "Pull openshift binaries"
         include_role:
-          name: populate_mirror_registry
+          name: redhatci.ocp.populate_mirror_registry
           tasks_from: prerequisites.yml
         vars:
           downloads_path: "{{ hostvars.localhost.provision_cache_store | default(ai_releases_dir) }}"
@@ -171,7 +151,7 @@
     - block:
       - name: Process kvm nodes
         include_role:
-          name: process_kvm_nodes
+          name: redhatci.ocp.process_kvm_nodes
         when: (setup_vms | default(true))
       rescue: *teardown_error
 
@@ -185,14 +165,14 @@
     - block:
       - name: Destroy vms
         include_role:
-          name: destroy_vms
+          name: redhatci.ocp.destroy_vms
         when: SETUP_VMS | bool
         tags:
           - destroy_vms
 
       - name: Setup vm host network
         include_role:
-          name: setup_vm_host_network
+          name: redhatci.ocp.setup_vm_host_network
         when: (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
 
       - name: Configure firewall for vm_bridge_zone
@@ -226,7 +206,7 @@
 
       - name: Create vms
         include_role:
-          name: create_vms
+          name: redhatci.ocp.create_vms
         when: SETUP_VMS | bool
         tags:
           - setup_vms
@@ -244,7 +224,7 @@
     - block:
         - name: Insert dns records
           include_role:
-            name: insert_dns_records
+            name: redhatci.ocp.insert_dns_records
           when: SETUP_DNS_SERVICE == True
 
         - name: Use /etc/hosts
@@ -277,7 +257,7 @@
 
         - name: Validate dns records
           include_role:
-            name: validate_dns_records
+            name: redhatci.ocp.validate_dns_records
       rescue: *teardown_error
 
 - name: Setup NTP
@@ -291,7 +271,7 @@
     - block:
       - name: Setup NTP
         include_role:
-          name: setup_ntp
+          name: redhatci.ocp.setup_ntp
         when: SETUP_NTP_SERVICE == True
       rescue: *teardown_error
 
@@ -306,12 +286,12 @@
     - block:
       - name: Setup http store
         include_role:
-          name: setup_http_store
+          name: redhatci.ocp.setup_http_store
         when: SETUP_HTTP_STORE_SERVICE == True
 
       - name: Validate http store
         include_role:
-          name: validate_http_store
+          name: redhatci.ocp.validate_http_store
       rescue: *teardown_error
 
 - name: Play to populate image_hashes for relevant images
@@ -330,7 +310,7 @@
 
       - name: Get Image Hash
         include_role:
-          name: get_image_hash
+          name: redhatci.ocp.get_image_hash
         when: run_get_hash
       rescue: *teardown_error
 
@@ -352,7 +332,7 @@
     - block:
       - name: Setup selfsigned cert
         include_role:
-          name: setup_selfsigned_cert
+          name: redhatci.ocp.setup_selfsigned_cert
         when: SETUP_REGISTRY_SERVICE == True
 
       - name: Set pull secret facts on the registry host
@@ -362,12 +342,12 @@
 
       - name: Setup mirror registry
         include_role:
-          name: setup_mirror_registry
+          name: redhatci.ocp.setup_mirror_registry
         when: SETUP_REGISTRY_SERVICE == True
 
       - name: Populate mirror registry
         include_role:
-          name: populate_mirror_registry
+          name: redhatci.ocp.populate_mirror_registry
         when: SETUP_REGISTRY_SERVICE == True
       rescue: *teardown_error
 
@@ -381,7 +361,7 @@
     - block:
         - name: Setup TFTP
           include_role:
-            name: setup_tftp
+            name: redhatci.ocp.setup_tftp
           when: SETUP_TFTP_SERVICE == True
       rescue: *teardown_error
 
@@ -398,7 +378,7 @@
     - block:
       - name: Setup sushy tools
         include_role:
-          name: setup_sushy_tools
+          name: redhatci.ocp.setup_sushy_tools
         when: SETUP_SUSHY_TOOLS == True
       rescue: *teardown_error
 

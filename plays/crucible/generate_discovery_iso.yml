@@ -10,7 +10,7 @@
     - block:
       - name: "assisted installer: generate discovery iso"
         include_role:
-          name: generate_discovery_iso
+          name: redhatci.ocp.generate_discovery_iso
       rescue:
         - include_tasks: teardown_failure.yml
 ...

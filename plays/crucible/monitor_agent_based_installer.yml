@@ -8,7 +8,7 @@
     - block:
       - name: "assisted installer: monitor agent based installer"
         include_role:
-          name: monitor_agent_based_installer
+          name: redhatci.ocp.monitor_agent_based_installer
       rescue:
         - include_tasks: teardown_failure.yml
 ...

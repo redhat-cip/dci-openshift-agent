@@ -8,7 +8,7 @@
     - block:
       - name: "assisted installer: monitor cluster"
         include_role:
-          name: monitor_cluster
+          name: redhatci.ocp.monitor_cluster
       rescue:
         - include_tasks: teardown_failure.yml
 ...

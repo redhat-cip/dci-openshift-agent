@@ -18,11 +18,11 @@
           run_get_hash: "{{ assisted_installer_release_images | default({}) | length == 0  }}"
       - name: "assisted installer: get image hash"
         include_role:
-          name: get_image_hash
+          name: redhatci.ocp.get_image_hash
         when: run_get_hash | bool
       - name: "assisted installer: extract openshift installer"
         include_role:
-          name: extract_openshift_installer
+          name: redhatci.ocp.extract_openshift_installer
       rescue:
         - include_tasks: teardown_failure.yml
 ...

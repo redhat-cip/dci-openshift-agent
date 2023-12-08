@@ -9,7 +9,7 @@
     - block:
       - name: "assisted installer: monitor host"
         include_role:
-          name: monitor_host
+          name: redhatci.ocp.monitor_host
       rescue:
         - include_tasks: teardown_failure.yml
 ...

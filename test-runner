@@ -427,10 +427,6 @@ for conf in $(ls -d *config 2> /dev/null); do
     sed -i -e "s@/var/lib/dci-openshift-agent/$conf/@$PWD/$conf/@g" ansible.cfg
 done
 
-if [ -d crucible ]; then
-    sed -i -e "s@/var/lib/dci-openshift-agent/assisted_deploy_repo/@$PWD/crucible/@g" ansible.cfg
-fi
-
 if [ -d dci-ansible ]; then
     sed -i \
     -e "s@/usr/share/dci/\(callback\|modules\|module_utils\|action_plugins\|filter_plugins\)@$PWD/dci-ansible/\1@g" \
@@ -542,7 +538,7 @@ if [ -z "$KCFG" ]; then
             if [ -d "${CONFIG_DIR}/ocp_on_libvirt/${PREFIX_NAME%-}" ]; then
                 IPI_VIRT_INV="-i ${CONFIG_DIR}/ocp_on_libvirt/${PREFIX_NAME%-}"
             fi
-            
+
             setsid ansible-playbook -vv libvirt_destroy.yml ${IPI_VIRT_INV:-} &
             do_wait
         fi

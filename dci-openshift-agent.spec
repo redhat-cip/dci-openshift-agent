@@ -1,6 +1,6 @@
 Name:          dci-openshift-agent
-Version:       0.7.0
-Release:       2.VERS%{?dist}
+Version:       0.8.0
+Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
 URL:           https://github.com/redhat-cip/dci-openshift-agent
@@ -97,6 +97,10 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Dec 04 2023 Jorge A Gallegos <jgallego@redhat.com> - 0.8.0-1
+- FQCN crucible roles to be pulled from redhatci.ocp collection
+- Don't clone the crucible repo anymore
+
 * Mon Oct 16 2023 Jorge A Gallegos <jgallego@redhat.com> - 0.7.0-2
 - Depend on a version of collection with the right role names
 

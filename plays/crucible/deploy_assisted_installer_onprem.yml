@@ -14,7 +14,7 @@
 
       - name: Get image hash
         include_role:
-          name: get_image_hash
+          name: redhatci.ocp.get_image_hash
         when: run_get_hash
       rescue:
         - include_tasks: teardown_error.yml
@@ -30,7 +30,7 @@
     - block:
       - name: Setup assisted installer
         include_role:
-          name: setup_assisted_installer
+          name: redhatci.ocp.setup_assisted_installer
       - name: Wait for up to 60 minutes for the assisted installer to come online
         uri:
           url: "http://{{ ansible_host }}:8090/ready"
