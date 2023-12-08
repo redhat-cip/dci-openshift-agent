@@ -1,4 +1,11 @@
 ---
+- name: Check if the SRIOV CRDs are present
+  community.kubernetes.k8s_info:
+    kind: CustomResourceDefinition
+    name: "sriovnetworks.sriovnetwork.openshift.io"
+  register: sriov_crd
+  no_log: true
+
 - name: "upgrader : Apply SRIOV recommended settings before operator upgrade"
   block:
     - name: Make sure SRIOV operator webhook is disabled
@@ -37,6 +44,6 @@
         loop_var: policy
         label: "{{ policy.metadata.name }}"
   when:
-    - (enable_sriov | default(false) | bool) or
-      (dci_prepare_cnf | bool)
-    - apply_sriov_upgrade_settings | default(true) | bool
+    - sriov_crd.resources is defined
+    - sriov_crd.resources | length > 0
+...

@@ -1,6 +1,6 @@
 ---
 - name: Build SR-IOV operator bundle
-  include_tasks: plays/upstream-sriov-bundle.yml
+  include_tasks: upstream-sriov-bundle.yml
   vars:
     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
     sriov_bundle: "{{ dci_local_registry }}/telcoci/upstream/sriov-operator-bundle"
