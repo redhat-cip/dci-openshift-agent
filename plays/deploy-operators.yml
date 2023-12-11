@@ -209,7 +209,10 @@
   register: perf_profile_crd
 
 - name: "configure-operators : Apply Performance Profile"
-  include_tasks: apply-pao-profile.yml
+  include_tasks: "{{ item }}"
+  loop:
+    - apply-pao-profile.yml
+    - check-cluster-health.yml
   when:
     - performance_definition is defined
     - perf_profile_crd.resources|length > 0
