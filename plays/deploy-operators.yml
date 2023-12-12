@@ -570,7 +570,7 @@
     - dci_ocp_custom_resources is list
 
 - name: "Setup NUMA Resource Operator"
-  include_tasks: plays/setup-nro.yml
+  include_tasks: setup-nro.yml
   when:
     - enable_nro | bool
     - ocp_version is version("4.12", ">=")

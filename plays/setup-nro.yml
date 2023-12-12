@@ -28,10 +28,10 @@
     - dci_disconnected | default(false) | bool
 
 - name: Count Nodes in the cluster
-  include_tasks: plays/count_nodes.yml
+  include_tasks: count_nodes.yml
 
 - name: Increase maxUnavailable workers
-  include_tasks: plays/increase_maxunavailable.yml
+  include_tasks: increase_maxunavailable.yml
   when:
     - increase_unavailable_workers | default(True) | bool
     - install_type is undefined or install_type != 'sno'
@@ -62,7 +62,7 @@
   no_log: true
 
 - name: Wait for SNO node to be available
-  include_tasks: plays/wait_sno_reboot.yml
+  include_tasks: wait_sno_reboot.yml
   when:
     - control_plane_size | int == 1
 
