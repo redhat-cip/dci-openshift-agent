@@ -105,8 +105,6 @@
     apply:
       environment:
         DOCKER_CONFIG: "{{ docker_conf.path }}"
-  when:
-    - operator_catalog_dir | length == 0
 
 - name: "Catalog from File"
   include_tasks:
