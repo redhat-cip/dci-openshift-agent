@@ -167,20 +167,20 @@
 
     - name: "upgrader : Get openshift-cluster-version pod name"
       community.kubernetes.k8s_info:
-        kind: pod
+        kind: Pod
         namespace: openshift-cluster-version
       register: ocvpod
 
     - name: "upgrader : Delete the openshift-cluster-version pod"
       community.kubernetes.k8s:
         state: absent
-        kind: pod
+        kind: Pod
         namespace: openshift-cluster-version
         name: "{{ ocvpod.resources[0].metadata.name }}"
 
     - name: "upgrader : Wait the openshift-cluster-version pod creation"
       community.kubernetes.k8s_info:
-        kind: pod
+        kind: Pod
         namespace: openshift-cluster-version
       register: ocvpod
       vars:
