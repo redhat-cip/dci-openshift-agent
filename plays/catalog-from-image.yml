@@ -14,7 +14,7 @@
 - name: "Get operators defined in dci_operators"
   set_fact:
     mirror_list: "{{ mirror_list | combine({ item: {} }) }}"
-  loop: "{{ dci_operators | map(attribute='name') | list }}"
+  loop: "{{ dci_operators | selectattr('catalog_source', 'equalto', 'mirrored-redhat-operators')  | map(attribute='name') | list }}"
   when:
     - dci_disconnected | default(false) | bool
     - dci_operators | default([]) | length
