@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.8.0
+Version:       0.9.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -16,6 +16,7 @@ Requires: python2-dciclient >= 3.1.0
 %else
 Requires: python3-dciclient >= 3.1.0
 %endif
+Requires: dci-pipeline >= 0.6.1
 Requires: ansible-role-dci-sync-registry
 Requires: ansible-role-dci-podman
 Requires: ansible-collection-community-kubernetes
@@ -75,8 +76,6 @@ exit 0
 %{_bindir}/dci-openshift-agent-ctl
 
 %{_bindir}/dci-check-change
-%{_datadir}/dci-openshift-agent/extract-dependencies
-%{_datadir}/dci-openshift-agent/send-feedback
 %{_datadir}/dci-openshift-agent/test-runner
 
 %{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
@@ -97,6 +96,10 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Tue Jan  2 2024 Frederic Lepied <flepied@redhat.com> 0.9.0-1
+- remove extract-dependencies and send-feedback to use the versions
+  from dci-pipeline
+
 * Mon Dec 04 2023 Jorge A Gallegos <jgallego@redhat.com> - 0.8.0-1
 - FQCN crucible roles to be pulled from redhatci.ocp collection
 - Don't clone the crucible repo anymore
