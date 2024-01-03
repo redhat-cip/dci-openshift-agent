@@ -6,15 +6,39 @@
     name: version
   register: cluster_version
 
-- name: "Get OCP version"
+- name: "Cluster upgrade"
   vars:
     current_ver_query: "history[?state=='Completed'] | [0].version"
     full_ver: "{{ cluster_version.resources[0].status | json_query(current_ver_query) }}"
-  ansible.builtin.set_fact:
-    current_version: "{{ full_ver }}"
-
-- name: "Cluster upgrade"
+  when:
+    - full_ver is version(target_version, "<")
   block:
+    - name: "Debug upgrade information"
+      debug:
+        msg: "Upgrade from {{ full_ver }} to {{ target_version }} - EUS upgrade: {{ upgrade_eus | default(false) }}"
+
+    - name: "Acknowledge deprecated API removals for {{ target_version }}"
+      vars:
+        ver_shift: 14
+        current_full_ver: "{{ full_ver.split('-')[0] }}"
+        current_ver: "{{ current_full_ver.split('.')[:2] | join('.') }}"
+        current_ver_minor: "{{ current_ver.split('.')[1] }}"
+        target_ver_minor: "{{ target_version.split('.')[1] }}"
+        k8s_ver: "{{ current_ver_minor | int + ver_shift }}"
+        cm_def: |
+          kind: ConfigMap
+          apiVersion: v1
+          metadata:
+            name: admin-acks
+            namespace: openshift-config
+          data:
+            ack-{{ current_ver }}-kube-1.{{ k8s_ver }}-api-removals-in-{{ target_version.split('.')[:2] | join('.') }}: "true"
+      community.kubernetes.k8s:
+        state: present
+        definition: "{{ cm_def }}"
+      when:
+        target_ver_minor | int - current_ver_minor | int > 0
+
     - name: Count Nodes in the cluster
       include_tasks: count_nodes.yml
 
@@ -23,191 +47,195 @@
       when:
         - increase_unavailable_workers | default(True) | bool
         - install_type is undefined or install_type != 'sno'
-        - acm_cluster_type | default('') not in ['hypershift', 'sno']
+        - acm_cluster_type |
+          default('') not in ['hypershift', 'sno']
 
     - name: Force upgrade for nightly builds
       set_fact:
         force_upgrade: true
       when: build == "nightly"
 
-    - block:
-      - name: "Get cluster config"
-        community.kubernetes.k8s_info:
-          kind: ConfigMap
-          namespace: kube-system
-          name: cluster-config-v1
-        register: cluster_conf
-
-      - name: "Set webserver URL"
-        vars:
-          cluster_install_info: |-
-            {{ ( cluster_conf.resources[0].data |
-            from_yaml )['install-config'] |
-            from_yaml }}
-        set_fact:
-          webserver_url: "{{ cluster_install_info.platform.baremetal.bootstrapOSImage | urlsplit('scheme') }}://{{ cluster_install_info.platform.baremetal.bootstrapOSImage | urlsplit('netloc') }}"
-        when:
-          - cluster_conf.resources | length
-
-      - name: Find ImageDigestMirrorSet in the cluster
-        community.kubernetes.k8s_info:
-          api_version: config.openshift.io/v1
-          kind: ImageDigestMirrorSet
-        register: idms_res
-
-      - name: "Get Cluster Image Sources"
-        community.kubernetes.k8s_info:
-          kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
-        register: cluster_is
-
-      - name: "Set dci_local_registry"
-        vars:
-          cluster_query: "spec.*[*].mirrors[0]"
-          loc_reg: "docker://{{ cluster_is.resources[0] | json_query(cluster_query) | flatten | first }}"
-        set_fact:
-          dci_local_registry: "{{ loc_reg | urlsplit('netloc') }}"
-        when:
-          - cluster_is.resources | length
-
-      - name: "Get and apply release signature"
-        block:
-          - name: "Fetch release.txt"
-            uri:
-              url: "{{ webserver_url }}/{{ version }}/release.txt"
-              return_content: true
-              timeout: 10
-            register: release_file
-            no_log: true
-
-          - name: "release digest"
-            set_fact:
-              release_digest: "{{ release_file.content | regex_search('^Digest:\\s+sha256:(.*)$', '\\1', multiline=True) | first }}"
-
-          - name: "Download the release signature"
-            uri:
-              url: "https://mirror.openshift.com/pub/openshift-v4/signatures/openshift/release/sha256={{ release_digest }}/signature-1"
-              return_content: true
-              timeout: 900
-            register: release_signature
-
-          - name: "Apply signature config map"
-            vars:
-              encoded_sig: "{{ release_signature.content | b64encode }}"
-              signature_cm: |
-                apiVersion: v1
-                kind: ConfigMap
-                metadata:
-                  name: signature-{{ version }}
-                  namespace: openshift-config-managed
-                  labels:
-                    release.openshift.io/verification-signatures: ""
-                binaryData:
-                  sha256-{{ release_digest }}-1 : {{ encoded_sig }}
-            community.kubernetes.k8s:
-              state: present
-              definition: "{{ signature_cm }}"
-        when: build != "nightly"
-
-      - name: "Apply new OCP release Image Source"
-        community.kubernetes.k8s:
-          definition: '{{ lookup("url", "{{ webserver_url }}/{{ version }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
-
-      - name: "upgrader : Wait for nodes to become Ready"
-        community.kubernetes.k8s_info:
-          kind: Node
-        register: nodes_info
-        vars:
-          status_query: "resources[*].status.conditions[?type=='Ready'].status"
-          nodes_status: "{{ nodes_info | json_query(status_query) | flatten | unique }}"
-        until:
-          - nodes_status == ['True']
-        retries: 10
-        delay: 30
-
-      - name: "upgrader : Patch clusterversion to point to custom upstream graph"
-        community.kubernetes.k8s:
-          state: present
-          name: version
-          definition:
-            kind: ClusterVersion
-            spec:
-              upstream: "{{ webserver_url }}/graph-{{ version.split('.')[0:2]|join('.') }}"
-
-      - name: "upgrader : Wait custom upstream graph update"
-        community.kubernetes.k8s_info:
-          kind: ClusterVersion
-          name: version
-        register: cluster_version
-        vars:
-          status_query: "conditions[?type=='RetrievedUpdates'].status"
-          upgrade_status: "{{ cluster_version.resources[0].status | json_query(status_query) }}"
-        until:
-          - upgrade_status == ['True']
-        when:
-          - not force_upgrade | default(false) | bool
-        retries: 10
-        delay: 120
+    - name: "Apply manifests for disconnected environments"
       when:
         - dci_disconnected | default(false) | bool
+      block:
+        - name: "Get cluster config"
+          community.kubernetes.k8s_info:
+            kind: ConfigMap
+            namespace: kube-system
+            name: cluster-config-v1
+          register: cluster_conf
 
-    - name: "upgrader : Patch clusterversion pointing to selected channel"
-      vars:
-        channel: >-
-          {{ upgrade_eus | default(false) |
-            ternary(
-              'eus-' + target_version,
-              dci_ocp_channel | default('fast') + '-' + target_version ) }}
-      community.kubernetes.k8s:
-        state: present
-        name: version
-        definition:
-          kind: ClusterVersion
-          spec:
-            channel: "{{ channel }}"
+        - name: "Set webserver URL"
+          vars:
+            cluster_install_info: |-
+              {{ ( cluster_conf.resources[0].data |
+              from_yaml )['install-config'] |
+              from_yaml }}
+          set_fact:
+            webserver_url: "{{ cluster_install_info.platform.baremetal.bootstrapOSImage |
+                            urlsplit('scheme') }}://{{ cluster_install_info.platform.baremetal.bootstrapOSImage |
+                            urlsplit('netloc') }}"
+          when:
+            - cluster_conf.resources | length
 
-    - name: "upgrader : Get openshift-cluster-version pod name"
-      community.kubernetes.k8s_info:
-        kind: Pod
-        namespace: openshift-cluster-version
-      register: ocvpod
+        - name: Find ImageDigestMirrorSet in the cluster
+          community.kubernetes.k8s_info:
+            api_version: config.openshift.io/v1
+            kind: ImageDigestMirrorSet
+          register: idms_res
 
-    - name: "upgrader : Delete the openshift-cluster-version pod"
-      community.kubernetes.k8s:
-        state: absent
-        kind: Pod
-        namespace: openshift-cluster-version
-        name: "{{ ocvpod.resources[0].metadata.name }}"
+        - name: "Get Cluster Image Sources"
+          community.kubernetes.k8s_info:
+            kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
+          register: cluster_is
 
-    - name: "upgrader : Wait the openshift-cluster-version pod creation"
-      community.kubernetes.k8s_info:
-        kind: Pod
-        namespace: openshift-cluster-version
-      register: ocvpod
-      vars:
-        status_query: "conditions[?type=='Ready'].status"
-        pod_status: "{{ ocvpod.resources[0].status | json_query(status_query) }}"
-      until:
-        - pod_status == ['True']
-      retries: 10
-      delay: 60
+        - name: "Set dci_local_registry"
+          vars:
+            cluster_query: "spec.*[*].mirrors[0]"
+            loc_reg: "docker://{{ cluster_is.resources[0] | json_query(cluster_query) | flatten | first }}"
+          set_fact:
+            dci_local_registry: "{{ loc_reg | urlsplit('netloc') }}"
+          when:
+            - cluster_is.resources | length
 
-    - name: "upgrader : Wait for an updated clusterversion"
-      community.kubernetes.k8s_info:
-        kind: ClusterVersion
-        name: version
-      register: cluster_version
-      vars:
-        status_query: "conditions[?type=='RetrievedUpdates'].status"
-        upgrade_status: "{{ cluster_version.resources[0].status | json_query(status_query) }}"
-      until:
-        - upgrade_status == ['True']
-      when:
-        - not force_upgrade | default(false) | bool
-      retries: 10
-      delay: 60
+        - name: "Get and apply release signature"
+          when: build != "nightly"
+          block:
+            - name: "Fetch release.txt"
+              uri:
+                url: "{{ webserver_url }}/{{ target_version }}/release.txt"
+                return_content: true
+                timeout: 10
+              register: release_file
+              no_log: true
 
-    - name: "Cluster Upgrade"
-      block: 
+            - name: "release digest"
+              set_fact:
+                release_digest: "{{ release_file.content | regex_search('^Digest:\\s+sha256:(.*)$', '\\1', multiline=True) | first }}"
+
+            - name: "Download the release signature"
+              uri:
+                url: "https://mirror.openshift.com/pub/openshift-v4/signatures/openshift/release/sha256={{ release_digest }}/signature-1"
+                return_content: true
+                timeout: 900
+              register: release_signature
+
+            - name: "Apply signature config map"
+              vars:
+                encoded_sig: "{{ release_signature.content | b64encode }}"
+                signature_cm: |
+                  apiVersion: v1
+                  kind: ConfigMap
+                  metadata:
+                    name: signature-{{ target_version }}
+                    namespace: openshift-config-managed
+                    labels:
+                      release.openshift.io/verification-signatures: ""
+                  binaryData:
+                    sha256-{{ release_digest }}-1 : {{ encoded_sig }}
+              community.kubernetes.k8s:
+                state: present
+                definition: "{{ signature_cm }}"
+
+        - name: "Apply new OCP release Image Source"
+          community.kubernetes.k8s:
+            definition: '{{ lookup("url", "{{ webserver_url }}/{{ target_version }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
+
+        - name: "upgrader : Wait for nodes to become Ready"
+          community.kubernetes.k8s_info:
+            kind: Node
+          register: nodes_info
+          vars:
+            status_query: "resources[*].status.conditions[?type=='Ready'].status"
+            nodes_status: "{{ nodes_info | json_query(status_query) | flatten | unique }}"
+          until:
+            - nodes_status == ['True']
+          retries: 10
+          delay: 30
+
+        - name: "upgrader : Patch clusterversion to point to custom upstream graph"
+          community.kubernetes.k8s:
+            state: present
+            name: version
+            definition:
+              kind: ClusterVersion
+              spec:
+                upstream: "{{ webserver_url }}/graph-{{ version.split('.')[0:2]|join('.') }}"
+
+        - name: "upgrader : Wait custom upstream graph update"
+          community.kubernetes.k8s_info:
+            kind: ClusterVersion
+            name: version
+          register: cv_info
+          vars:
+            status_query: "conditions[?type=='RetrievedUpdates'].status"
+            upgrade_status: "{{ cv_info.resources[0].status | json_query(status_query) }}"
+          until:
+            - upgrade_status == ['True']
+          when:
+            - not force_upgrade | default(false) | bool
+          retries: 10
+          delay: 120
+
+        - name: "upgrader : Patch clusterversion pointing to selected channel"
+          vars:
+            channel: >-
+              {{ upgrade_eus | default(false) |
+                ternary(
+                  'eus-' + target_version,
+                  dci_ocp_channel | default('fast') + '-' + target_version ) }}
+          community.kubernetes.k8s:
+            state: present
+            name: version
+            definition:
+              kind: ClusterVersion
+              spec:
+                channel: "{{ channel }}"
+
+        - name: "upgrader : Get openshift-cluster-version pod name"
+          community.kubernetes.k8s_info:
+            kind: Pod
+            namespace: openshift-cluster-version
+          register: ocvpod
+
+        - name: "upgrader : Delete the openshift-cluster-version pod"
+          community.kubernetes.k8s:
+            state: absent
+            kind: Pod
+            namespace: openshift-cluster-version
+            name: "{{ ocvpod.resources[0].metadata.name }}"
+
+        - name: "upgrader : Wait the openshift-cluster-version pod creation"
+          community.kubernetes.k8s_info:
+            kind: Pod
+            namespace: openshift-cluster-version
+          register: ocvpod
+          vars:
+            status_query: "conditions[?type=='Ready'].status"
+            pod_status: "{{ ocvpod.resources[0].status | json_query(status_query) }}"
+          until:
+            - pod_status == ['True']
+          retries: 10
+          delay: 60
+
+        - name: "upgrader : Wait for an updated clusterversion"
+          community.kubernetes.k8s_info:
+            kind: ClusterVersion
+            name: version
+          register: cv_info
+          vars:
+            status_query: "conditions[?type=='RetrievedUpdates'].status"
+            upgrade_status: "{{ cv_info.resources[0].status | json_query(status_query) }}"
+          until:
+            - upgrade_status == ['True']
+          when:
+            - not force_upgrade | default(false) | bool
+          retries: 10
+          delay: 60
+
+    - name: "Execute cluster upgrade command"
+      block:
         - name: "upgrader : Execute the upgrade to {{ target_version }}"
           vars:
             upgrade_options: >-
@@ -243,8 +271,6 @@
 
         - name: "Upgrader: Monitor upgrade"
           include_tasks: monitor-upgrade.yml
-  when:
-    - current_version is version(target_version, "<")
 
 - name: "Upgrader : Pre-upgrade operators tasks"
   include_tasks: pre-upgrade.yml
