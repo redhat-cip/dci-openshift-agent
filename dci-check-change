@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2021-2023 Red Hat, Inc.
+# Copyright (C) 2021-2024 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -77,9 +77,11 @@ EOF
     exit 1
 fi
 
-if [ ! -x $BASEDIR/extract-dependencies ]; then
+if [ ! -x $BASEDIR/test-runner ]; then
     BASEDIR=/usr/share/dci-openshift-agent
 fi
+
+TOOLDIR=/usr/share/dci-pipeline
 
 ARGS="$@"
 ARGVIRT=
@@ -247,7 +249,7 @@ trap cleanup 0
 mkdir -p $DIR
 cd $DIR
 
-echo "Depends-On: $CHANGEID" | $BASEDIR/extract-dependencies $DIR
+echo "Depends-On: $CHANGEID" | $TOOLDIR/extract-dependencies $DIR
 
 # rerun check from the local repo
 if [ -d dci-openshift-agent ]; then
@@ -270,7 +272,7 @@ else
 fi
 
 # extract Depends-On
-echo "$DESC" | tr -d '\r' | sort -u | $BASEDIR/extract-dependencies $DIR
+echo "$DESC" | tr -d '\r' | sort -u | $TOOLDIR/extract-dependencies $DIR
 
 # process Test-Hints if not specified on the command line
 if [ -n "$ARGVIRT" ]; then
