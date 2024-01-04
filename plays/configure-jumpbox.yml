@@ -69,6 +69,7 @@
     ocp_clients_url:
       "https://mirror.openshift.com/pub/openshift-v4/\
       x86_64/clients/ocp/stable"
+    opm_suffix: "{{ ansible_distribution_major_version is version('9', '==') | ternary('-rhel9', '') }}"
   unarchive:
     src: "{{ item }}"
     dest: "{{ dci_cluster_configs_dir }}"
@@ -80,7 +81,7 @@
   loop:
     - "{{ ocp_clients_url }}/openshift-client-linux-amd64-rhel\
       {{ ansible_distribution_major_version }}.tar.gz"
-    - "{{ ocp_clients_url }}/opm-linux.tar.gz"
+    - "{{ ocp_clients_url }}/opm-linux{{ opm_suffix }}.tar.gz"
 
 - name: "Setup podman on the jumphost"
   include_role:

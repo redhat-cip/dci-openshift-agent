@@ -39,9 +39,11 @@ if [ "$#" -ne 2 ] || [ -z "${DOCKER_CONFIG}" ]; then
     exit 1
 fi
 
+source /etc/os-release
+
 # Render index1 and index2
-index1_render=$(opm render "${1}")
-index2_render=$(opm render "${2}")
+index1_render=$(opm-rhel${VERSION_ID/.*} render "${1}")
+index2_render=$(opm-rhel${VERSION_ID/.*} render "${2}")
 
 # Initialize arrays for indexes
 declare -A package_default_channels_index1
