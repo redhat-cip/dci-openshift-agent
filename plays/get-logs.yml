@@ -88,6 +88,18 @@
   when:
     - install_type in ['acm']
 
+- name: Generate SOS reports
+  ansible.builtin.include_role:
+    name: redhatci.ocp.sos_report
+  vars:
+    sos_report_nodes: "{{ dci_sos_report_nodes }}"
+    sos_report_dir: "{{ job_logs.path }}"
+    sos_report_image: "{{ dci_local_registry | default('registry.redhat.io', true) }}/rhel9/support-tools"
+    sos_report_oc_path: "{{ oc_tool_path }}"
+  when:
+    - dci_sos_report_nodes is defined
+    - dci_sos_report_nodes | length
+
 - name: "Find test Junit files"
   find:
     paths: "{{ job_logs.path }}"
@@ -146,6 +158,19 @@
 - name: "Upload compressed logs"
   vars:
     mime_type: "application/x-gzip"
+  include_tasks: upload-log.yml
+  with_items: "{{ logs_matched.files }}"
+
+- name: Find SOS reports (compressed)
+  find:
+    paths: "{{ job_logs.path }}"
+    recurse: yes
+    patterns: "*.tar.xz"
+  register: logs_matched
+
+- name: Upload more compressed logs
+  vars:
+    mime_type: "application/x-xz"
   include_tasks: upload-log.yml
   with_items: "{{ logs_matched.files }}"
 
