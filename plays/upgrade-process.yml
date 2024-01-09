@@ -11,7 +11,7 @@
     current_ver_query: "history[?state=='Completed'] | [0].version"
     full_ver: "{{ cluster_version.resources[0].status | json_query(current_ver_query) }}"
   when:
-    - full_ver is version(target_version, "<")
+    - full_ver is version(target_version, "<>")
   block:
     - name: "Debug upgrade information"
       debug:
@@ -271,20 +271,6 @@
 
         - name: "Upgrader: Monitor upgrade"
           include_tasks: monitor-upgrade.yml
-
-- name: "Upgrader : Pre-upgrade operators tasks"
-  include_tasks: pre-upgrade.yml
-
-- name: "Prepare operators and catalogs"
-  include_tasks: prepare-operators.yml
-
-- name: "Upgrader : Start the upgrade on installed operators"
-  include_tasks: upgrade-operators.yml
-  when:
-    - upgrade_operators | default(true) | bool
-
-- name: "Run cluster health checks"
-  include_tasks: check-cluster-health.yml
 
 - name: Reset maxUnavailable count to default value 1
   community.kubernetes.k8s:
