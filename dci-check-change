@@ -349,7 +349,7 @@ fi
 
 # process Test-App-Hints
 if [[ app =~ $SUPPORTED_HINTS ]]; then
-    APP_NAME=$(sed -n -e "s/^\s*Test-App-Hints:\s*//pi" <<< $DESC)
+    APP_NAME=$(sed -n -e "s/^\s*Test-App-Hints:\s*//pi" <<< $DESC | tr -d '\r')
 fi
 
 # process Test-App-Args-Hints
