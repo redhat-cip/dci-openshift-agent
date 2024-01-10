@@ -170,11 +170,13 @@ line. You can also specify the topics by using
 - `Test-App-Args-Hints:` can also be used to provide extra arguments to
 pass to `dci-check-change` for CNFs deployed on top of the OCP cluster.
 
+- `Test-PipelineName: <name>` allows to specify the pipeline name. Else the pipeline name is created from the URL of the change.
+
 Hints need to be activated in the `SUPPORTED_HINTS` variable in
 `/etc/dci-openshift-agent/config` like this:
 
 ```console
-SUPPORTED_HINTS="sno|assisted|sno-ai|libvirt|no-check|args|app|app-args|upgrade|upgrade-args|upgrade-from-topic|upgrade-to-topic"
+SUPPORTED_HINTS="sno|assisted|sno-ai|libvirt|no-check|args|app|app-args|upgrade|upgrade-args|upgrade-from-topic|upgrade-to-topic|pipelinename"
 ```
 
 #### Testing changes in an already up-and-running cluster

@@ -36,6 +36,7 @@ FORCE_CHECK=
 TAG=
 BLOCK=
 SILENT=
+PIPELINENAME=
 
 if [ -r /etc/dci-openshift-agent/config ]; then
     . /etc/dci-openshift-agent/config
@@ -46,7 +47,7 @@ BASEDIR=$(cd $(dirname $0); pwd)
 if [ $# = 0 ] || [ "$1" = -h ]; then
   name=$(basename -- "$0")
     cat << EOF
-    echo "Usage: $name [--virt|--sno|--assisted|--assisted-abi|--sno-ai] [--force-check] [--block] [--silent] [--tag <tag>] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
+    echo "Usage: $name [--virt|--sno|--assisted|--assisted-abi|--sno-ai] [--force-check] [--block] [--silent] [--tag <tag>] [--pipeline-name <name>] [--upgrade [--from-topic <topic>] [--to-topic <topic>] [--upgrade-args <args>]] [--app-args <args>] [-n] [-f] [-s] (<GitHub PR URL>|<Gerrit review id>) [<kubeconfig path>] [<ctl args>]" 1>&2
     Extract changes from Gerrit or GitHub and test them without impacting what is on the system.
 
     arguments:
@@ -59,6 +60,7 @@ if [ $# = 0 ] || [ "$1" = -h ]; then
     --block               Pass --block -C to the dci-queue schedule command.
     --silent              Do not trace commands.
     --tag <tag>           Specify the tag to set on the job (default: debug).
+    --pipeline-name <name> Specify the pipeline name else it is created based on the change url.
     --upgrade             Run an upgrade job.
     --from-topic          In upgrade, from topic.
     --to-topic            In upgrade, destination topic.
@@ -137,6 +139,12 @@ fi
 if [ "$1" = --tag ]; then
     shift
     TAG="--tag $1"
+    shift
+fi
+
+if [ "$1" = --pipeline-name ]; then
+    shift
+    PIPELINENAME="$1"
     shift
 fi
 
@@ -320,6 +328,10 @@ if [[ force-check =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Hints:\s*force-ch
     FORCE_CHECK=--force-check
 fi
 
+if [[ pipelinename =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-PipelineName:" <<< $DESC; then
+    PIPELINENAME="$(sed -n -e 's/^\s*Test-PipelineName:\s*//pi' <<< $DESC)"
+fi
+
 # process Test-Upgrade if not specified on the command line
 if [ -z "$UPGRADE" ] && [[ upgrade =~ $SUPPORTED_HINTS ]] && grep -qi "^\s*Test-Upgrade-Hints:\s*yes\s*" <<< $DESC; then
     UPGRADE=--upgrade
@@ -364,12 +376,12 @@ fi
 
 if [ -z "$NO_DCI_QUEUE" ] && [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
     if [ -n "$USE_PREFIX" ]; then
-        dci-queue schedule $BLOCK $DCI_QUEUE -- env DCI_SILENT=$DCI_SILENT UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
+        dci-queue schedule $BLOCK $DCI_QUEUE -- env PIPELINENAME=$PIPELINENAME DCI_SILENT=$DCI_SILENT UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
     else
-        dci-queue schedule $BLOCK $DCI_QUEUE -- env DCI_SILENT=$DCI_SILENT UPGRADE_ARGS="$UPGRADE_ARGS"  RES=@RESOURCE APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
+        dci-queue schedule $BLOCK $DCI_QUEUE -- env PIPELINENAME=$PIPELINENAME DCI_SILENT=$DCI_SILENT UPGRADE_ARGS="$UPGRADE_ARGS"  RES=@RESOURCE APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
     fi
 else
-    env UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
+    env PIPELINENAME=$PIPELINENAME UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR "$@" $OPTS
 fi
 
 # dci-check-change ends here
