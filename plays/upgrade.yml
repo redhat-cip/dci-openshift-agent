@@ -20,7 +20,7 @@
       metadata:
         name: worker
       spec:
-        pause: true
+        paused: true
   when:
     - upgrade_eus | default(false) | bool
 
@@ -44,7 +44,45 @@
       metadata:
         name: worker
       spec:
-        pause: false
+        paused: false
   when:
-   - upgrade_eus | default(false) | bool
+    - upgrade_eus | default(false) | bool
+
+- name: "Get worker nodes count - EUS"
+  community.kubernetes.k8s_info:
+    kind: Node
+    label_selectors:
+      - "node-role.kubernetes.io/worker"
+  register: compute_nodes
+  when:
+    - upgrade_eus | default(false) | bool
+
+- name: "Wait for Worker's MCPs reconciliation - EUS "
+  vars:
+    compute_nodes_count: "{{ compute_nodes.resources | default([]) | length  }}"
+  when:
+    - upgrade_eus | default(false) | bool
+  block:
+    - name: "Wait for Worker's MCPs reconciliation"
+      include_role:
+        name: redhatci.ocp.check_resource
+      vars:
+        resource_to_check: "MachineConfigPool"
+        check_wait_retries: "{{ 16 * compute_nodes_count | int + 1  }}"
+        check_wait_delay: 90
+        check_reason: "EUS workers upgrade"
+
+- name: "Upgrader : Pre-upgrade operators tasks"
+  include_tasks: pre-upgrade.yml
+
+- name: "Prepare operators and catalogs"
+  include_tasks: prepare-operators.yml
+
+- name: "Upgrader : Start the upgrade on installed operators"
+  include_tasks: upgrade-operators.yml
+  when:
+    - upgrade_operators | default(true) | bool
+
+- name: "Run cluster health checks"
+  include_tasks: check-cluster-health.yml
 ...
