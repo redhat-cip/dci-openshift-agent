@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.9.0
+Version:       0.10.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -16,7 +16,7 @@ Requires: python2-dciclient >= 3.1.0
 %else
 Requires: python3-dciclient >= 3.1.0
 %endif
-Requires: dci-pipeline >= 0.6.1
+Requires: dci-pipeline >= 0.7.0
 Requires: ansible-role-dci-sync-registry
 Requires: ansible-role-dci-podman
 Requires: ansible-collection-community-kubernetes
@@ -96,6 +96,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Jan 17 2024 Frederic Lepied <flepied@redhat.com> 0.10.0-1
+- requires dci-pipeline >= 0.7.0 for send_status and send_comment
+
 * Tue Jan  2 2024 Frederic Lepied <flepied@redhat.com> 0.9.0-1
 - remove extract-dependencies and send-feedback to use the versions
   from dci-pipeline

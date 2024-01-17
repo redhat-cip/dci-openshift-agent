@@ -71,6 +71,8 @@ finish() {
                 JOBSTATUS=$(jq -r .job.status <<< "${JOBJSON}")
                 MSG+="-  ${JOBNAME} -> ${JOBSTATUS}: ${JOBURL}\n"
             done
+            # get last job url
+            DCI_URL=${JOBURLS[-1]}
         fi
 
         # It could have failed before the information step
@@ -82,20 +84,18 @@ finish() {
         # Script failed before launching the agent
         [ $RET -ne 0 ] || RET=1
         LOCATION="preparation"
-    fi
-
-    if [ $RET = 0 ]; then
-        VOTE="+1"
-    else
-        VOTE="-1"
+        DCI_URL=
     fi
 
     if [ $RET = 0 ]; then
         VOTE_RESULT="SUCCESS"
+        STATUS="success"
     elif [ $RET -gt 128 ]; then
         VOTE_RESULT="KILLED"
+        STATUS="pending"
     else
         VOTE_RESULT="FAILURE"
+        STATUS="failure"
     fi
 
     if [ -n "$VIRT" ]; then
@@ -110,7 +110,11 @@ finish() {
         VOTE_RESULT="- dci-check-change $LOCATION : $VOTE_RESULT tested on $HWTYPE\n${MSG}"
     fi
 
-    $TOOLDIR/send-feedback $DIR "$VOTE_RESULT" "" $VOTE
+    $TOOLDIR/send_status $DIR "$STATUS" "$JOBSTATUS" $DCI_URL
+
+    if [ "$STATUS" != "cancelled" ]; then
+         $TOOLDIR/send_comment $DIR "$VOTE_RESULT"
+    fi
 
     if [ -n "$PID2" ]; then
         kill $PID2
@@ -341,8 +345,6 @@ if [ "$VIRT" = "no-check" ] ||
             'plays/scripts'
             'dci-check-change'
             'test-runner'
-            'send-feedback'
-            'extract-dependencies'
             'dci-openshift-(app-)?agent-ctl'
             '\.(yml|j2|py)'
         )
@@ -511,9 +513,8 @@ if [ -n "$GIT_REPOS" ]; then
     OPTS+=(-e "{\"dev_gits_to_components\":[$GIT_REPOS]}")
 fi
 
-FEEDBACK="Starting dci-check-change job."
-
-$TOOLDIR/send-feedback $DIR "$FEEDBACK" "" 0
+$TOOLDIR/send_status "$DIR" pending "Starting dci-check-change job"
+$TOOLDIR/send_comment "$DIR" "Starting dci-check-change job."
 
 if [ -z "$KCFG" ]; then
     . /etc/dci-openshift-agent/dcirc.sh
@@ -578,6 +579,7 @@ if [ -z "$KCFG" ]; then
     export DCI_OPENSHIFT_AGENT_DIR="$PWD"
     export ANSIBLE_CONFIG="$PWD/ansible.cfg"
 
+    $TOOLDIR/send_status "$DIR" pending "Started install job"
     setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $INSTALL_OPT "$@" >& output &
 
     do_wait 1
@@ -600,6 +602,7 @@ if [ -z "$KCFG" ]; then
             OPTS+=(-e "dci_previous_job_id=$(cat /var/tmp/$CLUSTER.dci.job_id)")
         fi
 
+        $TOOLDIR/send_status "$DIR" pending "Started upgrade job"
         setsid $CMD $PREFIX -s -v -- -v "${OPTS[@]}" $UPGRADE_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" &>> output &
 
         do_wait 1
@@ -700,6 +703,7 @@ if [ -s "$KUBECONFIG" ]; then
         if [ -x "$PWD/.venv/bin/python3" ]; then
             sed -i -e '/interpreter_python/d' ansible.cfg
         fi
+        $TOOLDIR/send_status "$DIR" pending "Started app job"
         # running this case in dev mode (-d) to use the dci-openshift-app-agent code from the change
         setsid $PWD/dci-openshift-app-agent-ctl $PREFIX2 -s -d -v -- -vv "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> ../output &
         cd ..
@@ -724,6 +728,7 @@ if [ -s "$KUBECONFIG" ]; then
         if  [ -n "$APP_NAME" ] && [ -d "/var/lib/dci-openshift-app-agent/samples/$APP_NAME" ]; then
             APP_OPT="-e dci_config_dir=/var/lib/dci-openshift-app-agent/samples/$APP_NAME"
         fi
+        $TOOLDIR/send_status "$DIR" pending "Started app job"
         setsid dci-openshift-app-agent-ctl $PREFIX2 -s -v -- -vv "${OPTS[@]}" $APP_ARGS -e "{${PIPELINE_ARG}\"dci_url\": \"$URL\", \"dci_tags\": [\"$JOBTAG\", \"$TAG\", \"$QUEUEID\"]}" $APP_OPT -e dci_name="$APP_NAME" &>> output &
     fi
 

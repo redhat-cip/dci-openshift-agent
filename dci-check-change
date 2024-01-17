@@ -282,6 +282,10 @@ fi
 # extract Depends-On
 echo "$DESC" | tr -d '\r' | sort -u | $TOOLDIR/extract-dependencies $DIR
 
+if [ -d dci-pipeline ]; then
+    TOOLDIR=$PWD/dci-pipeline/tools
+fi
+
 # process Test-Hints if not specified on the command line
 if [ -n "$ARGVIRT" ]; then
     VIRT="$ARGVIRT"
@@ -375,6 +379,7 @@ if [ -d dci-openshift-agent ]; then
 fi
 
 if [ -z "$NO_DCI_QUEUE" ] && [ -n "$DCI_QUEUE" ] && type -p dci-queue >& /dev/null; then
+    $TOOLDIR/send_status $DIR pending "QUEUED"
     if [ -n "$USE_PREFIX" ]; then
         dci-queue schedule $BLOCK $DCI_QUEUE -- env PIPELINENAME=$PIPELINENAME DCI_SILENT=$DCI_SILENT UPGRADE_ARGS="$UPGRADE_ARGS" APP_NAME=$APP_NAME APP_ARGS="$APP_ARGS" $BASEDIR/test-runner $VIRT $FORCE_CHECK $TAG $UPGRADE $NO_COMMENT $DIR -p @RESOURCE "$@" $OPTS
     else
