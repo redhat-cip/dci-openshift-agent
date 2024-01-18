@@ -180,6 +180,7 @@ For Both
 ```console
 dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 dnf -y install https://packages.distributed-ci.io/dci-release.el8.noarch.rpm
+dnf config-manager --add-repo=https://releases.ansible.com/ansible-runner/ansible-runner.el8.repo
 dnf -y install dci-openshift-agent
 ```
 
