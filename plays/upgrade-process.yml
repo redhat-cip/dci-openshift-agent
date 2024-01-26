@@ -59,46 +59,6 @@
       when:
         - dci_disconnected | default(false) | bool
       block:
-        - name: "Get cluster config"
-          community.kubernetes.k8s_info:
-            kind: ConfigMap
-            namespace: kube-system
-            name: cluster-config-v1
-          register: cluster_conf
-
-        - name: "Set webserver URL"
-          vars:
-            cluster_install_info: |-
-              {{ ( cluster_conf.resources[0].data |
-              from_yaml )['install-config'] |
-              from_yaml }}
-          set_fact:
-            webserver_url: "{{ cluster_install_info.platform.baremetal.bootstrapOSImage |
-                            urlsplit('scheme') }}://{{ cluster_install_info.platform.baremetal.bootstrapOSImage |
-                            urlsplit('netloc') }}"
-          when:
-            - cluster_conf.resources | length
-
-        - name: Find ImageDigestMirrorSet in the cluster
-          community.kubernetes.k8s_info:
-            api_version: config.openshift.io/v1
-            kind: ImageDigestMirrorSet
-          register: idms_res
-
-        - name: "Get Cluster Image Sources"
-          community.kubernetes.k8s_info:
-            kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
-          register: cluster_is
-
-        - name: "Set dci_local_registry"
-          vars:
-            cluster_query: "spec.*[*].mirrors[0]"
-            loc_reg: "docker://{{ cluster_is.resources[0] | json_query(cluster_query) | flatten | first }}"
-          set_fact:
-            dci_local_registry: "{{ loc_reg | urlsplit('netloc') }}"
-          when:
-            - cluster_is.resources | length
-
         - name: "Get and apply release signature"
           when: build != "nightly"
           block:
@@ -137,22 +97,6 @@
               community.kubernetes.k8s:
                 state: present
                 definition: "{{ signature_cm }}"
-
-        - name: "Apply new OCP release Image Source"
-          community.kubernetes.k8s:
-            definition: '{{ lookup("url", "{{ webserver_url }}/{{ target_version }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
-
-        - name: "upgrader : Wait for nodes to become Ready"
-          community.kubernetes.k8s_info:
-            kind: Node
-          register: nodes_info
-          vars:
-            status_query: "resources[*].status.conditions[?type=='Ready'].status"
-            nodes_status: "{{ nodes_info | json_query(status_query) | flatten | unique }}"
-          until:
-            - nodes_status == ['True']
-          retries: 10
-          delay: 30
 
         - name: "upgrader : Patch clusterversion to point to custom upstream graph"
           community.kubernetes.k8s:
@@ -248,6 +192,9 @@
               {%- endif %}
               {% if force_upgrade | default(false) or allow_upgrade_warnings | default(false) %}
               --allow-upgrade-with-warnings
+              {%- endif %}
+              {% if force_upgrade | default(false) or allow_not_recommended | default(false) %}
+              --allow-not-recommended
               {%- endif %}
           command:
             cmd: "{{ oc_tool_path }} adm upgrade {{ upgrade_options }}"

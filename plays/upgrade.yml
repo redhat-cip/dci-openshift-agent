@@ -1,17 +1,71 @@
 ---
-- name: "Enable gateway mode for 4.7 -> 4.8 upgrade"
-  community.kubernetes.k8s:
-    definition:
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: gateway-mode-config
-        namespace: openshift-network-operator
-      data:
-        mode: "local"
-      immutable: true
+- name: "Set common configurations for disconnected environments"
   when:
-    - enable_gateway_mode | default(false) | bool
+    - dci_disconnected | default(false) | bool
+  block:
+    - name: "Get cluster config"
+      community.kubernetes.k8s_info:
+        kind: ConfigMap
+        namespace: kube-system
+        name: cluster-config-v1
+      register: cluster_conf
+
+    - name: "Set webserver URL"
+      vars:
+        cluster_install_info: |-
+          {{ ( cluster_conf.resources[0].data |
+          from_yaml )['install-config'] |
+          from_yaml }}
+      set_fact:
+        webserver_url: "{{ cluster_install_info.platform.baremetal.bootstrapOSImage |
+                        urlsplit('scheme') }}://{{ cluster_install_info.platform.baremetal.bootstrapOSImage |
+                        urlsplit('netloc') }}"
+      when:
+        - cluster_conf.resources | length
+
+    - name: Find ImageDigestMirrorSet in the cluster
+      community.kubernetes.k8s_info:
+        api_version: config.openshift.io/v1
+        kind: ImageDigestMirrorSet
+      register: idms_res
+
+    - name: "Get Cluster Image Sources"
+      community.kubernetes.k8s_info:
+        kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
+      register: cluster_is
+
+    - name: "Set dci_local_registry"
+      vars:
+        cluster_query: "spec.*[*].mirrors[0]"
+        loc_reg: "docker://{{ cluster_is.resources[0] | json_query(cluster_query) | flatten | first }}"
+      set_fact:
+        dci_local_registry: "{{ loc_reg | urlsplit('netloc') }}"
+      when:
+        - cluster_is.resources | length
+
+    - name: "Apply new OCP release Image Sources - EUS"
+      community.kubernetes.k8s:
+        definition: '{{ lookup("url", "{{ webserver_url }}/{{ version_inter }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
+      when:
+        - upgrade_eus | default(false) | bool
+
+    - name: "Apply new OCP release Image Sources"
+      community.kubernetes.k8s:
+        definition: '{{ lookup("url", "{{ webserver_url }}/{{ version }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
+
+    - name: "Get cluster nodes"
+      community.kubernetes.k8s_info:
+        kind: Node
+      register: cluster_nodes
+
+    - name: "Wait for new ImageSources to be applied"
+      include_role:
+        name: redhatci.ocp.check_resource
+      vars:
+        resource_to_check: "MachineConfigPool"
+        check_wait_retries: "{{ 16 * cluster_nodes.resources | default([]) | length | int + 1  }}"
+        check_wait_delay: 30
+        check_reason: "ImageSources during upgrade"
 
 - name: "Deactivate the upgrade of worker nodes - EUS"
   community.kubernetes.k8s:

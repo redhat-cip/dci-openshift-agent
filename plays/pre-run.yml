@@ -174,7 +174,7 @@
         mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
         mor_webserver_url: "{{ webserver_url | default(None) }}"
         mor_registry_url: "{{ dci_local_registry }}"
-        mor_registry_path: "{{ hostvars[groups['registry_host'][0]].local_repo | default( 'ocp-'+ version.split('.')[:2] | join('.') +'/'+ version, true) }}"
+        mor_registry_path: "{{ hostvars[groups['registry_host'][0]].local_repo | default( 'ocp-'+ version_inter.split('.')[:2] | join('.') +'/'+ version_inter, true) }}"
         mor_auths_file: "{{ dci_pullsecret_file }}"
         mor_force: "{{ (dci_force_mirroring | default(false)) or (build == 'candidate') | bool }}"
         mor_install_type: "{{ install_type }}"
