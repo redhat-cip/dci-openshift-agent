@@ -52,33 +52,6 @@ for h in ${cluster_nodes}; do
   (echo "${h}"; ${oc_path} get nodes "${h}" -o yaml|grep -E 'desiredConfig|currentConfig') >> "${log_dir}/${prefix}machine-configs.txt";
 done
 
-# Collect must-gather
-for image in ${DCI_MUST_GATHER_IMAGES:-"registry.redhat.io/openshift4/ose-must-gather"}
-do
-    if [ -n "${REGISTRY}" ] && [ "${REGISTRY}" != ":" ]
-    then
-        image="${REGISTRY}/${image#*/}"
-    fi
-    must_gather_opts="${must_gather_opts} --image=${image}"
-done
-
-must_gather_dir="${log_dir}/${prefix}must_gather"
-mkdir -p "${must_gather_dir}"
-${oc_path} adm must-gather \
-  --dest-dir="${must_gather_dir}" \
-  ${must_gather_opts} \
-  --timeout=15m \
-  >/dev/null
-
-# Compress must-gather
-tar \
-  --use-compress-program='pigz --best --recursive' \
-  --directory "${log_dir}" \
-  --create \
-  --file "${must_gather_dir}.tar.gz" ${prefix}must_gather/
-
-rm -Rf "${must_gather_dir}"
-
 # Get some misc outputs
 ${oc_path} version > "${log_dir}/${prefix}version.txt"
 ${oc_path} get clusterversion/version > "${log_dir}/${prefix}clusterversion.txt"
@@ -105,3 +78,30 @@ if [[ $(jq '.items | length // 0' <<< "${idms}") -eq 0 ]]; then
 else
   ${oc_path} get imagedigestmirrorset -o yaml 2>/dev/null > "${log_dir}/${prefix}image-sources.yaml"
 fi
+
+# Collect must-gather
+for image in ${DCI_MUST_GATHER_IMAGES:-"registry.redhat.io/openshift4/ose-must-gather"}
+do
+    if [ -n "${REGISTRY}" ] && [ "${REGISTRY}" != ":" ]
+    then
+        image="${REGISTRY}/${image#*/}"
+    fi
+    must_gather_opts="${must_gather_opts} --image=${image}"
+done
+
+must_gather_dir="${log_dir}/${prefix}must_gather"
+mkdir -p "${must_gather_dir}"
+${oc_path} adm must-gather \
+  --dest-dir="${must_gather_dir}" \
+  ${must_gather_opts} \
+  --timeout=15m \
+  >/dev/null
+
+# Compress must-gather
+tar \
+  --use-compress-program='pigz --best --recursive' \
+  --directory "${log_dir}" \
+  --create \
+  --file "${must_gather_dir}.tar.gz" ${prefix}must_gather/
+
+rm -Rf "${must_gather_dir}"
