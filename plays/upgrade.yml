@@ -122,7 +122,7 @@
         name: redhatci.ocp.check_resource
       vars:
         resource_to_check: "MachineConfigPool"
-        check_wait_retries: "{{ 16 * compute_nodes_count | int + 1  }}"
+        check_wait_retries: "{{ 32 * compute_nodes_count | int + 1  }}"
         check_wait_delay: 90
         check_reason: "EUS workers upgrade"
 
