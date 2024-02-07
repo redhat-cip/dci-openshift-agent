@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.20.0
+Version:       0.21.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -72,6 +72,7 @@ exit 0
 %{_datadir}/dci-openshift-agent/action_plugins/*
 %{_datadir}/dci-openshift-agent/utils/*
 %{_datadir}/dci-openshift-agent/plays/crucible/*
+%{_datadir}/dci-openshift-agent/plays/microshift/*
 %{_datadir}/dci-openshift-agent/plays/templates/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
@@ -83,6 +84,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Aug 14 2024 Guillaume Vincent <gvincent@redhat.com> 0.21.0-1
+- Add Microshift support
+
 * Wed Aug  7 2024 Tony Garcia <tonyg@redhat.com> 0.20.0-1
 - Remove opm-auth util script
 

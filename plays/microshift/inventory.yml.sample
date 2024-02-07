@@ -1,0 +1,12 @@
+---
+# PoC Microshift can work in a single node, but you can configure it a little
+# bit more by defining an inventory like this and passing it to your pipeline
+# configuration
+all:
+  children:
+    rhde_builder:  # in case you have an existing RHDE builder
+      vars:
+        ansible_user: redhat
+      hosts:
+        rhde.example.lan
+...

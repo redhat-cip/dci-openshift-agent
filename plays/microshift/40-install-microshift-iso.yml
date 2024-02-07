@@ -1,0 +1,16 @@
+---
+- name: Check the variables needed to install ISO on SUTs
+  assert:
+    that:
+      - _suts is defined
+    quiet: true
+
+- name: Install ISO on SUTs
+  include_role:
+    name: redhatci.ocp.vendors.kvm
+    tasks_from: iso.yml
+  vars:
+    boot_iso_url: http://localhost:80/microshift.iso
+    target_host: "{{ item.name }}"
+    vm_name: "{{ item.name }}"
+  with_items: "{{ _suts }}"

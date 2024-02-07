@@ -1,0 +1,48 @@
+---
+- name: Check the variables needed to download kubeconfig
+  assert:
+    that:
+      - _inventory_hostname is defined
+      - _dci_cluster_configs_dir is defined
+      - _ansible_host is defined
+    quiet: true
+
+- name: Punch a hole in the firewall for OCP API
+  become: yes
+  ansible.posix.firewalld:
+    zone: public
+    port: 6443/tcp
+    state: enabled
+    permanent: true
+    immediate: true
+
+- name: Set remote_kubeconfig variable
+  ansible.builtin.set_fact:
+    remote_kubeconfig: "/var/lib/microshift/resources/kubeadmin/kubeconfig-{{ _inventory_hostname }}"
+
+- name: Wait until kubeconfig file is created
+  become: true
+  ansible.builtin.wait_for:
+    path: /var/lib/microshift/resources/kubeadmin/kubeconfig
+
+- name: Copy kubeconfig to a second location to correct hostname
+  become: true
+  ansible.builtin.copy:
+    src: /var/lib/microshift/resources/kubeadmin/kubeconfig
+    dest: "{{ remote_kubeconfig }}"
+    mode: "0644"
+    remote_src: true
+
+- name: Sanitize API endpoint
+  become: true
+  ansible.builtin.replace:
+    path: "{{ remote_kubeconfig }}"
+    regexp: "localhost"
+    replace: "{{ _ansible_host }}"
+
+- name: Download kubeconfig to clusterconfigs directory
+  become: true
+  ansible.builtin.fetch:
+    src: "{{ remote_kubeconfig }}"
+    dest: "{{ _dci_cluster_configs_dir }}/kubeconfig-{{ _inventory_hostname }}"
+    flat: true

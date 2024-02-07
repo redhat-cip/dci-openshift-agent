@@ -1,0 +1,299 @@
+---
+- name: Start the DCI job
+  hosts: localhost
+  tags:
+    - job
+    - dci
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - name: Read credentials from env vars
+      ansible.builtin.set_fact:
+        dci_client_id: "{{ lookup('env','DCI_CLIENT_ID') }}"
+        dci_api_secret: "{{ lookup('env','DCI_API_SECRET') }}"
+        dci_cs_url: "{{ lookup('env','DCI_CS_URL') }}"
+        dci_ui_url: "{{ lookup('env','DCI_UI_URL') | default('https://www.distributed-ci.io', True) }}"
+      no_log: "{{ dci_hide_secrets | bool }}"
+
+    - name: Set the job variable
+      ansible.builtin.set_fact:
+        job: "{{ job_info.job }}"
+
+    - name: Set the microshift component variable
+      ansible.builtin.set_fact:
+        microshift: "{{ job.components[0] }}"
+
+    - name: Set hook facts
+      ansible.builtin.set_fact:
+        pre_run_hook: "{{ hooks_dir }}/pre-run.yml"
+        install_hook: "{{ hooks_dir }}/install.yml"
+        post_run_hook: "{{ hooks_dir }}/post-run.yml"
+        test_hook_jumpbox: "{{ hooks_dir }}/test-jumpbox.yml"
+        test_hook_sut: "{{ hooks_dir }}/test-sut.yml"
+        success_hook: "{{ hooks_dir }}/success.yml"
+        failure_hook: "{{ hooks_dir }}/failure.yml"
+        error_hook: "{{ hooks_dir }}/error.yml"
+
+    - name: Set job tags
+      dci_job:
+        id: "{{ hostvars.localhost.job.id }}"
+        tags: "{{ ['agent:microshift'] + hostvars.localhost.dci_tags }}"
+
+- name: Run pre-run tasks
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - pre-run
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - name: Set job status pre-run
+          dci_job:
+            id: "{{ hostvars.localhost.job.id }}"
+            status: "pre-run"
+          tags: [dci]
+
+        - name: Configure the jumpbox
+          include_tasks: ./10-configure-the-jumpbox.yml
+          vars:
+            _suts: "{{ hostvars.localhost.suts }}"
+            _libvirt_pool_dir: "{{ hostvars.localhost.libvirt_pool_dir }}"
+            _http_store: "{{ hostvars.localhost.http_store }}"
+            _dci_cluster_configs_dir: "{{ hostvars.localhost.dci_cluster_configs_dir }}"
+          tags: [pre-run, configure-jumpbox]
+
+        - name: Bootstrap RHDE builder
+          include_tasks: ./20-bootstrap-rhde-builder.yml
+          vars:
+            - _rhsm_offline_token: "{{ rhsm_offline_token }}"
+            - _rhsm_org_id: "{{ rhsm_org_id }}"
+            - _rhsm_activation_key: "{{ rhsm_activation_key }}"
+          tags: [pre-run, setup-rhde-builder]
+
+        - name: Run the pre-run hook
+          include_tasks: "{{ hostvars.localhost.pre_run_hook }}"
+          tags: [pre-run, partner-pre-run-hook]
+          when: hostvars.localhost.pre_run_hook is file
+
+        - name: Set job status running
+          dci_job:
+            id: "{{ hostvars.localhost.job.id }}"
+            status: "running"
+          tags: [dci]
+
+      rescue: &teardown_error
+        - name: Set job status error
+          dci_job:
+            id: "{{ hostvars.localhost.job.id }}"
+            status: "error"
+          tags: [dci]
+          ignore_unreachable: true
+          delegate_to: localhost
+
+        - block:
+            - name: Run the error hook
+              include_tasks: "{{ hostvars.localhost.error_hook }}"
+              tags: [partner-error-hook]
+          when: hostvars.localhost.error_hook is file
+          delegate_to: localhost
+          ignore_unreachable: true
+
+        - name: Error
+          fail:
+            msg: "Something went wrong. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.localhost.job.id }}/jobStates"
+
+- name: Build the OStree ISO
+  hosts: rhde_builder
+  tags:
+    - running
+    - build-image
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - name: Build the Microshift ISO image
+          include_tasks: ./30-build-microshift-iso.yml
+          vars:
+            - _microshift: "{{ hostvars.localhost.microshift }}"
+            - _job: "{{ hostvars.localhost.job }}"
+            - _http_store: "{{ hostvars.localhost.http_store | default('/opt/http_store') }}"
+            - _ssh_public_key_content: "{{ lookup('ansible.builtin.file', hostvars.localhost.ssh_public_key) }}"
+          tags: [running, build-image]
+
+      rescue: &teardown_failure
+        - name: Set job status failure
+          dci_job:
+            id: "{{ hostvars.localhost.job.id }}"
+            status: "failure"
+          tags: [dci]
+          ignore_unreachable: true
+          delegate_to: localhost
+
+        - block:
+            - name: Run the failure hook
+              include_tasks: "{{ hostvars.localhost.failure_hook }}"
+              tags: [partner-failure-hook]
+          when: hostvars.localhost.failure_hook is file
+          delegate_to: localhost
+          ignore_unreachable: true
+
+        - name: Failure
+          fail:
+            msg: "Something went wrong. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.localhost.job.id }}/jobStates"
+
+- name: Run install tasks
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - install
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - name: Install Microshift ISO
+          include_tasks: ./40-install-microshift-iso.yml
+          vars:
+            _suts: "{{ hostvars.localhost.suts }}"
+          tags: [install, install-image]
+
+        - name: Run the install hook
+          include_tasks: "{{ hostvars.localhost.install_hook }}"
+          tags: [install, partner-install-hook]
+          when: hostvars.localhost.install_hook is file
+
+      rescue: *teardown_failure
+
+- name: Run post-run tasks on jumpbox
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - post-run
+    - post-run-jumpbox
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - name: Set job status post-run
+          dci_job:
+            id: "{{ hostvars.localhost.job.id }}"
+            status: "post-run"
+          tags: [dci]
+
+        - name: Post-run tasks
+          include_tasks: ./41-post-run-jumpbox.yml
+          vars:
+            _ssh_private_key: "{{ hostvars.localhost.ssh_private_key }}"
+          with_items: "{{ hostvars.localhost.suts }}"
+          loop_control:
+            loop_var: _sut
+          tags: [post-run, post-run-jumpbox]
+
+        - name: Run the post-run hook
+          include_tasks: "{{ hostvars.localhost.post_run_hook }}"
+          tags: [post-run, partner-post-run-hook]
+          when: hostvars.localhost.post_run_hook is file
+
+      rescue: *teardown_failure
+
+- name: Run post-run tasks on SUTs
+  hosts: microshift_suts
+  gather_facts: true
+  tags:
+    - post-run
+    - post-run-sut
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - name: Post-run tasks
+          include_tasks: ./41-post-run-sut.yml
+          vars:
+            _inventory_hostname: "{{ inventory_hostname }}"
+            _dci_cluster_configs_dir: "{{ hostvars.localhost.dci_cluster_configs_dir }}"
+            _ansible_host: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+          tags: [post-run, post-run-sut]
+
+      rescue: *teardown_failure
+
+- name: Launch tests on jumpbox
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - test
+    - test-jumpbox
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - name: Run tests
+          include_tasks: ./50-test-jumpbox.yml
+          tags: [test, test-jumpbox, redhat-test-jumpbox]
+          with_fileglob: "{{ hostvars.localhost.dci_cluster_configs_dir }}/kubeconfig-*"
+          loop_control:
+            loop_var: _kubeconfig
+
+        - name: Run the test hook jumpbox
+          include_tasks: "{{ hostvars.localhost.test_hook_jumpbox }}"
+          tags: [test, test-jumpbox, partner-test-hook-jumpbox]
+          when: hostvars.localhost.test_hook_jumpbox is file
+
+      rescue: *teardown_failure
+
+- name: Launch tests on SUTs
+  hosts: microshift_suts
+  gather_facts: false
+  tags:
+    - test
+    - test-sut
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - name: Run tests
+          include_tasks: ./50-test-sut.yml
+          tags: [test, test-sut, redhat-test-sut]
+
+        - name: Run the test hook on each suts
+          include_tasks: "{{ hostvars.localhost.test_hook_sut }}"
+          tags: [test, test-sut, partner-test-hook-sut]
+          when: hostvars.localhost.test_hook_sut is file
+
+      rescue: *teardown_failure
+
+- name: Finish the DCI job
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - success
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - name: Set job status success
+      dci_job:
+        id: "{{ hostvars.localhost.job.id }}"
+        status: "success"
+      tags: [dci]
+
+    - name: Run the success hook
+      include_tasks: "{{ hostvars.localhost.success_hook }}"
+      tags: [success, partner-success-hook]
+      when: hostvars.localhost.success_hook is file

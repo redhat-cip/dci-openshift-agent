@@ -1,0 +1,118 @@
+---
+- name: Check the variables needed when configuring the jumpbox
+  assert:
+    that:
+      - _libvirt_pool_dir is defined
+      - _suts is defined
+      - _http_store is defined
+      - _dci_cluster_configs_dir is defined
+    quiet: true
+
+- name: Install Packages needed
+  ansible.builtin.package:
+    state: latest
+    name:
+      - rsync
+      - libvirt
+      - virt-install
+      - python3-lxml
+      - qemu-kvm
+  become: true
+
+- name: Start libvirtd service
+  ansible.builtin.service:
+    name: libvirtd
+    state: started
+    enabled: true
+
+- name: Ensure default pool storage is present
+  include_role:
+    name: redhatci.ocp.node_prep
+    tasks_from: 80_libvirt_pool.yml
+  ignore_errors: true
+
+- name: Ensure SSH key exists and has correct permissions
+  block:
+    - name: Check if id_rsa.pub exists
+      stat:
+        path: "~/.ssh/id_rsa.pub"
+      register: ssh_key_check
+
+    - name: Generate SSH key if not present
+      command: ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""
+      when: not ssh_key_check.stat.exists
+
+    - name: Ensure SSH public key file has correct permissions
+      file:
+        path: "~/.ssh/id_rsa.pub"
+        mode: "0644"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+
+- name: Install and set up sushy tools
+  import_role:
+    name: redhatci.ocp.setup_sushy_tools
+
+- name: Manage SUT VMs
+  block:
+    - name: Get list of VMs
+      become: true
+      community.libvirt.virt:
+        command: info
+      register: vms_list
+
+    - name: Destroy SUTs if they are running
+      become: true
+      community.libvirt.virt:
+        name: "{{ item.name }}"
+        command: destroy
+      when: "item.name in vms_list.keys() and vms_list[item.name]['state'] == 'running'"
+      with_items: "{{ _suts }}"
+
+    - name: Undefine the SUTs
+      become: true
+      community.libvirt.virt:
+        name: "{{ item.name }}"
+        command: undefine
+        force: true
+      when: "item.name in vms_list.keys()"
+      with_items: "{{ _suts }}"
+
+    - name: Delete the SUTs disk
+      become: true
+      file:
+        path: "{{ _libvirt_pool_dir }}/{{ item.name}}.qcow2"
+        state: absent
+      with_items: "{{ _suts }}"
+
+    - name: Create VMs that will receive Microshift
+      become: true
+      command: >-
+        virt-install
+        --name={{ item.name }}
+        --virt-type=kvm
+        --memory={{ item.memory }}
+        --vcpus={{ item.vcpu }}
+        --network network=default
+        --boot=hd,cdrom
+        --os-variant=rhel9-unknown
+        --disk {{ _libvirt_pool_dir }}/{{ item.name}}.qcow2,size={{ item.disk_size }}
+        --wait=0
+      with_items: "{{ _suts }}"
+
+    - debug: # noqa unnamed-task
+        var: _dci_cluster_configs_dir # from group_vars/all
+
+- name: Create clusterconfigs directory
+  ansible.builtin.file:
+    path: "{{ _dci_cluster_configs_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Setup a http server
+  vars:
+    http_dir: "{{ _http_store }}"
+    http_data_dir: "{{ _http_store }}/data"
+    inventory_validated: true
+  include_role:
+    name: redhatci.ocp.setup_http_store

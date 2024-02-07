@@ -1,0 +1,12 @@
+---
+- name: test_ Run oc get nodes
+  become: true
+  shell: |
+    KUBECONFIG=/var/lib/microshift/resources/kubeadmin/kubeconfig oc get nodes
+  register: cluster_nodes
+  ignore_errors: true
+
+- name: Nodes in cluster
+  debug:
+    var: cluster_nodes
+  ignore_errors: true

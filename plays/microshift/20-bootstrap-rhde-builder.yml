@@ -1,0 +1,16 @@
+---
+- name: Check the variables needed to bootstrap RHDE builder
+  assert:
+    that:
+      - _rhsm_offline_token is defined
+      - _rhsm_org_id is defined
+      - _rhsm_activation_key is defined
+    quiet: true
+
+- name: Bootstrap RHDE builder
+  vars:
+    rhde_builder_rhsm_api_offline_token: "{{ _rhsm_offline_token }}"
+    rhde_builder_rhsm_org_id: "{{ _rhsm_org_id }}"
+    rhde_builder_rhsm_activation_key: "{{ _rhsm_activation_key }}"
+  include_role:
+    name: redhatci.ocp.create_rhde_builder

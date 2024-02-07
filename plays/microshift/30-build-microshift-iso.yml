@@ -1,0 +1,27 @@
+---
+- name: Check the variables needed to build the Microshift ISO
+  assert:
+    that:
+      - _microshift is defined
+      - _job is defined
+      - _http_store is defined
+      - _ssh_public_key_content is defined
+    quiet: true
+
+- name: Get the GA minor version of RHOCP (todo replace hardcoded value)
+  # see https://github.com/openshift/microshift/blob/main/scripts/get-latest-rhocp-repo.sh
+  set_fact:
+    rhocp_ga_minor_version: "4.15"
+
+- name: Build the Microshift ISO image
+  vars:
+    microshift_generate_iso_microshift_repo_url: "{{ _microshift.url }}el{{ ansible_distribution_major_version }}/os/"
+    microshift_generate_iso_rhocp_repo_url: "https://cdn.redhat.com/content/dist/layered/rhel9/x86_64/rhocp/{{ rhocp_ga_minor_version }}/os"
+    microshift_generate_iso_fast_datapath_repo_url: "https://cdn.redhat.com/content/dist/layered/rhel{{ ansible_distribution_major_version }}/{{ ansible_architecture }}/fast-datapath/os"
+    microshift_generate_iso_microshift_version: "{{ _microshift.version.split('-', 2)[:2] | join('~') }}" # e.g 4.14.0-rc.7-202310241737.p0 -> 4.14.0~rc.7
+    microshift_generate_iso_pull_secret: "{{ _job.topic.data.pull_secret }}"
+    microshift_generate_iso_localhost_folder: "{{ _http_store }}/data/"
+    microshift_generate_iso_microshift_iso_name: "microshift.iso"
+    microshift_generate_iso_ssh_key: "{{ _ssh_public_key_content }}"
+  include_role:
+    name: redhatci.ocp.microshift_generate_iso

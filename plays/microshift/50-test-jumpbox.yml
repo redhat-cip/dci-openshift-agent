@@ -1,0 +1,23 @@
+---
+- name: Check the variables needed to test Microshift
+  assert:
+    that:
+      - _kubeconfig is defined
+    quiet: true
+
+- name: Test MicroShift
+  block:
+    - name: test_ Testing OCP API
+      community.kubernetes.k8s_info:
+        kind: Node
+        kubeconfig: "{{ _kubeconfig }}"
+        validate_certs: false
+      register: ocp_nodes
+      until: "'resources' in ocp_nodes and ocp_nodes.resources != []"
+      retries: 60
+      delay: 1
+
+    - name: Nodes in cluster
+      debug:
+        var: ocp_nodes
+      ignore_errors: true
