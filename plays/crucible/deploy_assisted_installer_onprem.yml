@@ -13,6 +13,8 @@
           run_get_hash: "{{ image_hashes | default({}) | length == 0  }}"
 
       - name: Get image hash
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.get_image_hash
         when: run_get_hash

@@ -7,6 +7,8 @@
   tasks:
     - block:
       - name: "assisted installer: install cluster"
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.install_cluster
       rescue:

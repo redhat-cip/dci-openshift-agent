@@ -10,6 +10,8 @@
   tasks:
     - block:
       - name: "assisted installer: generate agent iso"
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.generate_agent_iso
       rescue:

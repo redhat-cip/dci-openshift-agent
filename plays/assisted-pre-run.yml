@@ -98,10 +98,14 @@
           name: redhatci.ocp.prereq_facts_check
 
       - name: "Populate image_hashes for relevant images"
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.get_image_hash
 
       - name: "Parse openshift version"
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.populate_mirror_registry
           tasks_from: var_check.yml
@@ -114,6 +118,7 @@
           downloads_path: "{{ hostvars.localhost.provision_cache_store | default(ai_releases_dir) }}"
           release_image_remote: "{{ ocp_release_data['container_image'].split('@')[0] }}"
           config_file_path: "{{ dci_cluster_configs_dir }}"
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
       rescue: &teardown_error
         - name: Run the teardown error handler
           block:
@@ -309,6 +314,8 @@
           run_get_hash: "{{ image_hashes | default({}) | length == 0  }}"
 
       - name: Get Image Hash
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.get_image_hash
         when: run_get_hash
@@ -331,6 +338,8 @@
   tasks:
     - block:
       - name: Setup selfsigned cert
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.setup_selfsigned_cert
         when: SETUP_REGISTRY_SERVICE == True
@@ -341,11 +350,15 @@
           pull_secret: "{{ hostvars.localhost.pull_secret }}"
 
       - name: Setup mirror registry
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.setup_mirror_registry
         when: SETUP_REGISTRY_SERVICE == True
 
       - name: Populate mirror registry
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.populate_mirror_registry
         when: SETUP_REGISTRY_SERVICE == True

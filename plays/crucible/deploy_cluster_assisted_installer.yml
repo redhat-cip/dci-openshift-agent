@@ -1,8 +1,7 @@
 ---
-#- import_playbook: generate_ssh_key_pair.yml
-#  when: generate_ssh_keys | default(True) == True
-
 - import_playbook: create_cluster.yml
+  vars:
+    repo_root_path: "{{ dci_cluster_configs_dir }}"
 
 - import_playbook: generate_discovery_iso.yml
 
@@ -13,6 +12,8 @@
     boot_iso_hosts: masters,workers
 
 - import_playbook: install_cluster.yml
+  vars:
+    repo_root_path: "{{ dci_cluster_configs_dir }}"
 
 - import_playbook: monitor_hosts.yml
 

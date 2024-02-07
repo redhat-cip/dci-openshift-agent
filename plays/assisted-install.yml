@@ -207,6 +207,8 @@
     - ../group_vars/all
   tasks:
     - name: Run Assisted installer cleanup
+      vars:
+        repo_root_path: "{{ dci_cluster_configs_dir }}"
       include_role:
         name: redhatci.ocp.populate_mirror_registry
         tasks_from: cleanup.yml

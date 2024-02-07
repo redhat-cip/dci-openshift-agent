@@ -17,6 +17,8 @@
         set_fact:
           run_get_hash: "{{ assisted_installer_release_images | default({}) | length == 0  }}"
       - name: "assisted installer: get image hash"
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.get_image_hash
         when: run_get_hash | bool

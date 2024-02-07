@@ -9,11 +9,10 @@
   tasks:
     - block:
       - name: "assisted installer: create cluster"
+        vars:
+          repo_root_path: "{{ dci_cluster_configs_dir }}"
         include_role:
           name: redhatci.ocp.create_cluster
-#      - name: "assisted installer: patch cluster"
-#        include_role:
-#          name: redhatci.ocp.patch_cluster
       rescue:
         - include_tasks: teardown_failure.yml
 ...
