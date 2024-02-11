@@ -94,13 +94,25 @@
     state: present
     definition: "{{ nro_sch_def }}"
 
-- name: Confirm that NUMA schedule pods are Running
+- name: Confirm that NUMA scheduler pods are Running
   community.kubernetes.k8s_info:
     api_version: v1
     kind: Pod
     namespace: openshift-numaresources
     label_selectors:
       - app = secondary-scheduler
+  register: pod_list
+  until: pod_list|json_query('resources[*].status.phase')|unique == ["Running"]
+  retries: 9
+  delay: 10
+
+- name: Confirm that NUMA resource-topology pods are Running
+  community.kubernetes.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: openshift-numaresources
+    label_selectors:
+      - name = resource-topology
   register: pod_list
   until: pod_list|json_query('resources[*].status.phase')|unique == ["Running"]
   retries: 9
