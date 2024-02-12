@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.10.0
+Version:       0.11.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -19,20 +19,7 @@ Requires: python3-dciclient >= 3.1.0
 Requires: dci-pipeline >= 0.7.0
 Requires: ansible-role-dci-sync-registry
 Requires: ansible-role-dci-podman
-Requires: ansible-collection-community-kubernetes
-Requires: ansible-collection-containers-podman
-Requires: ansible-collection-community-general
-Requires: ansible-collection-community-libvirt
-Requires: ansible-collection-ansible-posix
-Requires: ansible-collection-ansible-utils
-Requires: ansible-collection-redhatci-ocp >= 0.2.0
-Requires: python3-pyyaml python3-openshift
-Requires: jq
-Requires: git
-Requires: python3-netaddr
-Requires: python3-jmespath
-Requires: skopeo
-Requires: podman
+Requires: ansible-collection-redhatci-ocp >= 0.4.0
 
 %{?systemd_requires}
 Requires(pre): shadow-utils
@@ -96,6 +83,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Feb 12 2024 Tony Garcia <tonyg@redhat.com> 0.11.0-1
+- Move out dependencies to the redhatci.ocp collection
+
 * Wed Jan 17 2024 Frederic Lepied <flepied@redhat.com> 0.10.0-1
 - requires dci-pipeline >= 0.7.0 for send_status and send_comment
 
