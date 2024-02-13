@@ -582,26 +582,6 @@ The `operator_catalog_dir` variable should be set to a valid directory that cont
 
 Subscriptions for the mirrored operators can be defined using the `dci_operators` variable as explained above.
 
-## Logging stack
-
-The `enable_logs_stack` variable allows configuring OCP to send log files and metrics produced by the infrastructure and workloads to a logging stack. This stack is integrated by the ClusterLogging, Loki and an Object storage system.
-
-The following variables allow customizing the logs stack deployment. Please see the [ocp_logging](https://github.com/redhatci/ocp/tree/main/roles/ocp_logging) role for additional details.
-
-| Variable                        | Required | Type    | Default                                                        | Description
-| ------------------------------- | -------- | ------- | -------------------------------------------------------------- | ------------
-| logs_access_key_id              | False    | String  | undefined                                                      | Key ID for the Object storage system.
-| logs_access_key_secret          | False    | String  | undefined                                                      | Key Secret for the Object Storage system.
-| logs_bucket                     | False    | String  | undefined                                                      | Object Storage bucket name.
-| logs_endpoint                   | False    | String  | undefined                                                      | Object Storage endpoint.
-| logs_region                     | False    | String  | undefined                                                      | Object Storage region.
-| logs_loki_size                  | False    | String  | undefined                                                      | Loki Deployment Size. See [Sizing](https://docs.openshift.com/container-platform/4.13/logging/cluster-logging-loki.html#deployment-sizing_cluster-logging-loki) for more details.
-| logs_storage_class              | False    | String  | undefined                                                      | Cluster Storage class for Loki components.
-| logs_event_router_image         | False    | String  | registry.redhat.io/openshift-logging/eventrouter-rhel8:v5.2.1-1| Event Router image.
-| logs_settings                   | False    | String  | ""                                                             | An optional yaml file with the variables listed above. The variables defined there take precedence over the ones defined at role level
-
-Enabling the openshift `cluster-logging` components requires high amounts of storage available for data persistency, please take this in consideration during the sizing of the Object Storage provider.
-
 ## Minio deployment
 
 Some workloads like Migration Toolkit for Containers or Loki may require an object Object Storage provider. For such cases, a [Minio](https://min.io/) instance can be deployed on the OCP cluster by setting `true` to the `enable_minio` flag.
@@ -620,6 +600,58 @@ The following variables allow customizing the Minio deployment. Please see the [
 | monio_bucket_name                      | minio                         | No         | Initial Bucket name                           |
 
 The workloads that require Object Storage, can use the `http://minio-service.minio:9000` endpoint and the default credentials set in the [minio_setup](https://github.com/redhatci/ansible-collection-redhatci-ocp/tree/main/roles/setup_minio) role to start shipping data to Minio.
+
+## Logging stack
+
+The `enable_logs_stack` variable allows configuring OCP to send log files and metrics produced by the infrastructure and workloads to a logging stack. This stack is integrated by the ClusterLogging, Loki and an Object storage system.
+
+The following variables allow customizing the logs stack deployment. Please see the [ocp_logging](https://github.com/redhatci/ansible-collection-redhatci-ocp/tree/main/roles/ocp_logging) role for additional details.
+
+| Variable                        | Required | Type    | Default                                                        | Description
+| ------------------------------- | -------- | ------- | -------------------------------------------------------------- | ------------
+| logs_access_key_id              | False    | String  | undefined                                                      | Key ID for the Object storage system.
+| logs_access_key_secret          | False    | String  | undefined                                                      | Key Secret for the Object Storage system.
+| logs_bucket                     | False    | String  | undefined                                                      | Object Storage bucket name.
+| logs_endpoint                   | False    | String  | undefined                                                      | Object Storage endpoint.
+| logs_region                     | False    | String  | undefined                                                      | Object Storage region.
+| logs_loki_size                  | False    | String  | undefined                                                      | Loki Deployment Size. See [Sizing](https://docs.openshift.com/container-platform/4.13/logging/cluster-logging-loki.html#deployment-sizing_cluster-logging-loki) for more details.
+| logs_storage_class              | False    | String  | undefined                                                      | Cluster Storage class for Loki components.
+| logs_event_router_image         | False    | String  | registry.redhat.io/openshift-logging/eventrouter-rhel8:v5.2.1-1| Event Router image.
+| logs_settings                   | False    | String  | ""                                                             | An optional yaml file with the variables listed above. The variables defined there take precedence over the ones defined at role level
+
+Enabling the openshift `cluster-logging` components requires high amounts of storage available for data persistency, please take this in consideration during the sizing of the Object Storage provider.
+
+## Network Observability stack
+
+The `enable_netobserv` variable allows configuring the Network Observability operator to collect information about OCP network flows and traffic. This stack is integrated by the Network Observability Operator, Loki, an Object storage system and the Flow Collector.
+
+The following variables allow customizing the Network Observability stack deployment. Please see the [ocp_netobserv](https://github.com/redhatci/ansible-collection-redhatci-ocp/tree/main/roles/ocp_netobserv) role for additional details.
+
+ Variable                                         | Default                         | Required    | Description
+------------------------------------------------- | ------------------------------- | ----------- | ----------------------------------------------
+setup_netobserv_stackaction                       | 'install'                       | No          | Role's default action
+setup_netobserv_stacksampling                     | 50                              | No          | Data sampling
+setup_netobserv_stackagent_privileged             | true                            | No          | Privileged mode allows collecting data from SRIOV functions
+setup_netobserv_stackagent_memory                 | 50Mi                            | No          | Memory assigned to the agent
+setup_netobserv_stackagent_cpu                    | 100m                            | No          | CPU assigned to the agent
+setup_netobserv_stackagent_limits_memory          | 800Mi                           | No          | Memory limit for the agent
+setup_netobserv_stackprocessor_memory             | 100Mi                           | No          | Memory assigned to the processor
+setup_netobserv_stackprocessor_cpu                | 100m                            | No          | CPU assigned to the processor
+setup_netobserv_stackprocessor_limits_memory      | 800Mi                           | No          | CPU limit for the processor
+setup_netobserv_stackconsole_avg_utilization      | 50                              | No          | Average utilization for the console
+setup_netobserv_stackconsole_max_replicas         | 3                               | No          | Console replicas
+setup_netobserv_stackloki_tls_insecure_skip_verify| true                            | No          | Skip TLS verification
+setup_netobserv_stackaccess_key_id                | minioadmin                      | No          | Access Key ID for the object storage backend
+setup_netobserv_stackaccess_key_secret            | minioadmin                      | No          | Secret Key for the object storage backend
+setup_netobserv_stackbucket                       | network                         | No          | Bucket for the Network Observability
+setup_netobserv_stackendpoint                     | http://minio-service.minio:9000 | No          | Object Storage Endpoint. It must exist and be reachable
+setup_netobserv_stackregion                       | us-east-1                       | No          | Object Storage region
+setup_netobserv_stackloki_size                    | 1x.extra-small                  | No          | Loki Stack size. See: [Sizing](https://docs.openshift.com/container-platform/4.13/logging/cluster-logging-loki.html#deployment-sizing_cluster-logging-loki) for details
+setup_netobserv_stackstorage_class                | managed-nfs-storage             | No          | Storage class for the Loki Stack
+
+The configuration setting can be passed using the `dci_netobserv_conf_file` containing the variables listed above.
+
+Enabling the Openshift `Network observability Operator` requires high amounts of storage available for data persistency, please take this in consideration during the sizing of the Object Storage provider. By default, the stack is configured to use the internal [Minio deployment](#minio-deployment) as backend.
 
 ## Interacting with your RHOCP Cluster
 

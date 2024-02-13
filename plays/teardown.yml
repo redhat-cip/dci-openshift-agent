@@ -71,4 +71,12 @@
     name: redhatci.ocp.ocp_logging
   when:
     - enable_logs_stack | bool
+
+- name: "Cleanup NetObserv resources"
+  vars:
+    setup_netobserv_stack_action: 'cleanup'
+  include_role:
+    name: redhatci.ocp.setup_netobserv_stack
+  when:
+    - enable_netobserv | bool
 ...
