@@ -1,0 +1,23 @@
+---
+- name: "Setup the Hyperconverged Operator"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.hco_setup
+  vars:
+    hs_pullsecret_file: "{{ dci_pullsecret_file }}"
+    hs_registry: "{{ dci_local_registry }}"
+    hs_test_vm: "{{ dci_cnv_test | default(false) | bool }}"
+
+- name: "Configuring a StorageProfile for NFS provider"
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: cdi.kubevirt.io/v1beta1
+      kind: StorageProfile
+      metadata:
+        name: managed-nfs-storage
+      spec:
+        claimPropertySets:
+        - accessModes:
+          - ReadWriteOnce
+  when:
+    - enable_nfs_storage | bool
+...

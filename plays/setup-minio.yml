@@ -1,0 +1,35 @@
+---
+- name: "Mirroring the Minio image"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    images:
+      - quay.io/minio/minio
+      - quay.io/minio/mc
+    authfile: "{{ dci_pullsecret_file }}"
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: "Setup Minio instance"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.setup_minio
+  vars:
+    sm_storage_class: "{{ minio_storage_class | default('ocs-storagecluster-cephfs') }}"
+    sm_claim_size: "{{ minio_claim_size | default('10Gi') }}"
+    sm_namespace: "{{ minio_namespace | default('minio') }}"
+    sm_access_key_id: "{{ minio_access_key_id | default('minioadmin') }}"
+    sm_access_key_secret: "{{ minio_access_key_secret | default('minioadmin') }}"
+    sm_bucket_name: "{{ minio_bucket_name | default('loki') }}"
+    sm_minio_client: |-
+      {%- if dci_disconnected | default(false) %}
+      {{ dci_local_registry }}/minio/mc
+      {%- else %}
+      quay.io/minio/mc
+      {%- endif %}
+    sm_minio_image: |-
+      {%- if dci_disconnected | default(false) %}
+      {{ dci_local_registry }}/minio/minio
+      {%- else %}
+      quay.io/minio/minio
+      {%- endif %}
+...

@@ -18,265 +18,44 @@
     - install_all_from_catalog | default('') | length
     - dci_operators is undefined
 
-# Configure operators for those enabled
-
-- name: "Enable Openshift Data Foundation"
-  when:
-    - enable_odf | bool
-  block:
-    - name: "Mirroring UBI image for ODF validation"
-      ansible.builtin.include_role:
-        name: redhatci.ocp.mirror_images
-      vars:
-        images: ['registry.access.redhat.com/ubi8/ubi']
-        authfile: "{{ dci_pullsecret_file }}"
-      when:
-        - dci_disconnected | default(false) | bool
-
-    - name: "Setup an ODF Cluster"
-      vars:
-        gatherer_image: |-
-          {%- if dci_disconnected | default(false) %}
-          {{ dci_local_registry }}/ubi8/ubi
-          {%- else %}
-          registry.access.redhat.com/ubi8/ubi
-          {%- endif %}
-      ansible.builtin.include_role:
-        name: redhatci.ocp.odf_setup
-      when:
-        - storage_cluster | bool
-
-- name: "Enable NFS external storage provisioner"
-  when:
-    - enable_nfs_storage | bool
-  block:
-    - name: "Mirroring the NFS external storage provisioner image"
-      ansible.builtin.include_role:
-        name: redhatci.ocp.mirror_images
-      vars:
-        images: ['registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2']
-        authfile: "{{ dci_pullsecret_file }}"
-      when:
-        - dci_disconnected | default(false) | bool
-
-    - name: "Deploy NFS external storage"
-      ansible.builtin.include_role:
-        name: redhatci.ocp.nfs_external_storage
-      vars:
-        nes_nfs_server: "{{ nfs_server }}"
-        nes_nfs_path: "{{ nfs_path }}"
-        nes_path_pattern: "{{ job_id is defined |
-                            ternary( job_id+'_${.PVC.namespace}.${.PVC.name}', omit) }}"
-        nes_provisioner_image: |-
-          {%- if dci_disconnected | default(false) %}
-          {{ dci_local_registry }}/sig-storage/nfs-subdir-external-provisioner:{{ nfs_subdir_external_provisioner_tag }}
-          {%- else %}
-          registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:{{ nfs_subdir_external_provisioner_tag }}
-          {%- endif %}
-
+# Setup enabled operators
 - name: "Setup SRIOV operator"
   ansible.builtin.include_tasks: apply-sriov-config.yml
   when:
     - enable_sriov | bool
 
+- name: "Enable Openshift Data Foundation"
+  ansible.builtin.include_tasks: setup-odf.yml
+  when:
+    - enable_odf | bool
+
+- name: "Enable NFS external storage provisioner"
+  ansible.builtin.include_tasks: setup-nfs-storage.yml
+  when:
+    - enable_nfs_storage | bool
+
 - name: "Setup CNV and HCO Operators"
+  ansible.builtin.include_tasks: setup-cnv.yml
   when:
     - enable_cnv | bool
-  block:
-    - name: "Setup the Hyperconverged Operator"
-      ansible.builtin.include_role:
-        name: redhatci.ocp.hco_setup
-      vars:
-        hs_pullsecret_file: "{{ dci_pullsecret_file }}"
-        hs_registry: "{{ dci_local_registry }}"
-        hs_test_vm: "{{ dci_cnv_test | default(false) | bool }}"
-
-    - name: "Configuring a StorageProfile for NFS provider"
-      community.kubernetes.k8s:
-        definition:
-          apiVersion: cdi.kubevirt.io/v1beta1
-          kind: StorageProfile
-          metadata:
-            name: managed-nfs-storage
-          spec:
-            claimPropertySets:
-            - accessModes:
-              - ReadWriteOnce
-      when:
-        - enable_nfs_storage | bool
 
 - name: "Setup a Minio deployment"
+  ansible.builtin.include_tasks: setup-minio.yml
   when:
     - enable_minio | bool
-  block:
-    - name: "Mirroring the Minio image"
-      ansible.builtin.include_role:
-        name: redhatci.ocp.mirror_images
-      vars:
-        images:
-          - quay.io/minio/minio
-          - quay.io/minio/mc
-        authfile: "{{ dci_pullsecret_file }}"
-      when:
-        - dci_disconnected | default(false) | bool
-
-    - name: "Setup Minio instance"
-      ansible.builtin.include_role:
-        name: redhatci.ocp.setup_minio
-      vars:
-        sm_storage_class: "{{ minio_storage_class | default('ocs-storagecluster-cephfs') }}"
-        sm_claim_size: "{{ minio_claim_size | default('10Gi') }}"
-        sm_namespace: "{{ minio_namespace | default('minio') }}"
-        sm_access_key_id: "{{ minio_access_key_id | default('minioadmin') }}"
-        sm_access_key_secret: "{{ minio_access_key_secret | default('minioadmin') }}"
-        sm_bucket_name: "{{ minio_bucket_name | default('loki') }}"
-        sm_minio_client: |-
-          {%- if dci_disconnected | default(false) %}
-          {{ dci_local_registry }}/minio/mc
-          {%- else %}
-          quay.io/minio/mc
-          {%- endif %}
-        sm_minio_image: |-
-          {%- if dci_disconnected | default(false) %}
-          {{ dci_local_registry }}/minio/minio
-          {%- else %}
-          quay.io/minio/minio
-          {%- endif %}
 
 - name: "Setup OCP logging stack"
+  ansible.builtin.include_tasks: setup-logs-stack.yml
   when:
     - enable_logs_stack | bool
-  block:
-    - name: "Mirroring the event router image"
-      ansible.builtin.include_role:
-        name: redhatci.ocp.mirror_images
-      vars:
-        images: ["registry.redhat.io/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}"]
-        authfile: "{{ dci_pullsecret_file }}"
-      when:
-        - dci_disconnected | default(false) | bool
-
-    - name: "Setup OCP logging stack"
-      ansible.builtin.include_role:
-        name: redhatci.ocp.ocp_logging
-      vars:
-        ol_access_key_id: "{{ logs_access_key_id | default('minioadmin') }}"
-        ol_access_key_secret: "{{ logs_access_key_secret | default('minioadmin') }}"
-        ol_bucket: "{{ logs_bucket | default('loki') }}"
-        ol_endpoint: "{{ logs_endpoint |default('http://minio-service.minio:9000') }}"
-        ol_region: "{{ logs_region | default('us-east-1') }}"
-        ol_loki_size: "{{ logs_loki_size | default('1x.extra-small') }}"
-        ol_storage_class: "{{ logs_storage_class | default('ocs-storagecluster-ceph-rbd') }}"
-        ol_event_router_image: |-
-          {%- if dci_disconnected | default(false) %}
-          {{ dci_local_registry }}/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}
-          {%- else %}
-          registry.redhat.io/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}
-          {%- endif %}
 
 - name: "Setup the Node Discovery Operator"
   vars:
     nfd_namespace: "openshift-nfd"
     nfd_image: "registry.redhat.io/openshift4/ose-node-feature-discovery:latest"
+  ansible.builtin.include_tasks: setup-nfd.yml
   when:
     - enable_nfd | bool
-  block:
-    - name: "Mirroring ose-node-feature-discovery image"
-      ansible.builtin.include_role:
-        name: redhatci.ocp.mirror_images
-      vars:
-        images: ["{{ nfd_image }}"]
-        authfile: "{{ dci_pullsecret_file }}"
-      when:
-        - dci_disconnected | default(false) | bool
-
-    - name: "deploy-operators : Configure the Node Discovery Operator"
-      vars:
-        image_ref: "{{  dci_disconnected | default(false) | bool |
-                    ternary (dci_local_registry+'/openshift4/ose-node-feature-discovery:latest',
-                    nfd_image) }}"
-        ndf_def: |
-          apiVersion: nfd.openshift.io/v1
-          kind: NodeFeatureDiscovery
-          metadata:
-            name: "nfd-instance"
-            namespace: "{{ nfd_namespace }}"
-          spec:
-            instance: "" # instance is empty by default
-            topologyupdater: false # False by default
-            operand:
-              image: {{ image_ref }}
-              imagePullPolicy: Always
-            workerConfig:
-              configData: |
-                sources:
-                  cpu:
-                    cpuid:
-                      attributeBlacklist:
-                        - "BMI1"
-                        - "BMI2"
-                        - "CLMUL"
-                        - "CMOV"
-                        - "CX16"
-                        - "ERMS"
-                        - "F16C"
-                        - "HTT"
-                        - "LZCNT"
-                        - "MMX"
-                        - "MMXEXT"
-                        - "NX"
-                        - "POPCNT"
-                        - "RDRAND"
-                        - "RDSEED"
-                        - "RDTSCP"
-                        - "SGX"
-                        - "SSE"
-                        - "SSE2"
-                        - "SSE3"
-                        - "SSE4.1"
-                        - "SSE4.2"
-                        - "SSSE3"
-                      attributeWhitelist:
-                  kernel:
-                    configOpts:
-                      - "NO_HZ"
-                      - "X86"
-                      - "DMI"
-                  pci:
-                    deviceClassWhitelist:
-                      - "0200"
-                      - "03"
-                      - "12"
-                    deviceLabelFields:
-                      - "class"
-            customConfig:
-              configData: |
-                    - name: "more.kernel.features"
-                      matchOn:
-                      - loadedKMod: ["example_kmod3"]
-      community.kubernetes.k8s:
-        state: present
-        definition: "{{ ndf_def }}"
-
-    - name: "Wait for NFD pods to be Running"
-      community.kubernetes.k8s_info:
-        api_version: v1
-        kind: Pod
-        namespace: "{{ nfd_namespace }}"
-      register: pod_list
-      until: pod_list|json_query('resources[*].status.phase')|unique == ["Running"]
-      retries: 20
-      delay: 15
-
-- name: "Setup NMState instance"
-  community.kubernetes.k8s:
-    definition:
-      apiVersion: nmstate.io/v1
-      kind: NMState
-      metadata:
-        name: nmstate
-  when:
-    - enable_nmstate | bool
 
 - name: "Setup Advanced Cluster Management"
   ansible.builtin.include_role:
@@ -290,6 +69,16 @@
   ansible.builtin.include_tasks: setup-netobserv.yml
   when:
     - enable_netobserv | bool
+
+- name: "Setup NMState instance"
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: nmstate.io/v1
+      kind: NMState
+      metadata:
+        name: nmstate
+  when:
+    - enable_nmstate | bool
 
 - name: "deploy-operators : Create defined Custom Resources"
   ansible.builtin.include_role:

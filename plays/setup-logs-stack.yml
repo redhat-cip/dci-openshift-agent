@@ -1,0 +1,28 @@
+---
+- name: "Mirroring the event router image"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    images: ["registry.redhat.io/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}"]
+    authfile: "{{ dci_pullsecret_file }}"
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: "Setup OCP logging stack"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.ocp_logging
+  vars:
+    ol_access_key_id: "{{ logs_access_key_id | default('minioadmin') }}"
+    ol_access_key_secret: "{{ logs_access_key_secret | default('minioadmin') }}"
+    ol_bucket: "{{ logs_bucket | default('loki') }}"
+    ol_endpoint: "{{ logs_endpoint |default('http://minio-service.minio:9000') }}"
+    ol_region: "{{ logs_region | default('us-east-1') }}"
+    ol_loki_size: "{{ logs_loki_size | default('1x.extra-small') }}"
+    ol_storage_class: "{{ logs_storage_class | default('ocs-storagecluster-ceph-rbd') }}"
+    ol_event_router_image: |-
+      {%- if dci_disconnected | default(false) %}
+      {{ dci_local_registry }}/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}
+      {%- else %}
+      registry.redhat.io/openshift-logging/eventrouter-rhel8:{{ eventrouter_rhel_tag }}
+      {%- endif %}
+...
