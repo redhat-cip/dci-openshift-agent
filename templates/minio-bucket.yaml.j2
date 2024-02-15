@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-{{ minio_bucket_name }}-{{ lookup(
+        'password', '/dev/null length=7 chars=ascii_lowercase') }}
+  namespace: "{{ minio_namespace }}"
+spec:
+  template:
+    metadata:
+      name: minio-bucket-{{ minio_bucket_name }}
+    spec:
+      containers:
+        - name: minio-client
+          image: "{{ minio_client }}"
+          command:
+            - "/bin/sh"
+            - "-c"
+            - >
+              mc --config-dir /tmp/
+              alias set
+              local {{ minio_endpoint }}
+              {{ minio_access_key_id }} {{ minio_access_key_secret }}
+              --api S3v4;
+              mc --config-dir /tmp/
+              mb --ignore-existing
+              local/{{ minio_bucket_name }}
+      restartPolicy: Never

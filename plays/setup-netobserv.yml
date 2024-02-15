@@ -1,0 +1,29 @@
+---
+- name: Create Minio bucket
+  vars:
+    minio_access_key_id: minioadmin
+    minio_access_key_secret: minioadmin
+    minio_bucket_name: network
+    minio_namespace: minio
+    minio_endpoint: http://minio-service.minio:9000
+    minio_client: |-
+      {%- if dci_disconnected | default(false) %}
+      {{ dci_local_registry }}/minio/mc
+      {%- else %}
+      quay.io/minio/mc
+      {%- endif %}
+  community.kubernetes.k8s:
+    definition: "{{ lookup('template', 'templates/minio-bucket.yaml.j2') }}"
+    wait: true
+    wait_sleep: 10
+    wait_timeout: 420
+    wait_condition:
+      type: Complete
+      status: "True"
+
+- name: Setup NetObserv stack
+  vars:
+    setup_netobserv_stack_conf_file: "{{ dci_netobserv_conf_file | default('') }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.setup_netobserv_stack
+...
