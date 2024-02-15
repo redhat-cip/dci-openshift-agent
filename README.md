@@ -244,7 +244,7 @@ This is the dci-openshift-agent variables that can be set in the
 `ansible_extravars` section of your pipeline job definition:
 
 | Variable                        | Required | Type    | Default                                                        | Description
-| ------------------------------- | -------- | ------- | -------------------------------------------------------------- | ------------
+|---------------------------------| -------- | ------- | -------------------------------------------------------------- | ------------
 | dci_must_gather_images          | False    | List    |["registry.redhat.io/openshift4/ose-must-gather"]               | List of the must-gather images to use when retrieving "logs.\*".
 | dci_teardown_on_failure         | False    | Boolean | False                                                          | Whether or not execute the teardown hook on a failure.
 | dci_teardown_on_success         | False    | Boolean | True                                                           | Whether or not execute the teardown hook on success.
@@ -290,6 +290,8 @@ This is the dci-openshift-agent variables that can be set in the
 | enable_nfs_storage              | False    | Boolean | False                                                          | Enable an NFS as external storage provisioner. Values for `nfs_server` and `nfs_path` are required if for this. See [nfs_external_storage](https://github/redhatci/ansible-collections-redhatci-ocp/roles/nfs_external_storage) for details.
 | nfs_server                      | False    | String  |                                                                | NFS server's FQDN or IP Address. eg. my-nfs.mylab.local
 | nfs_path                        | False    | String  |                                                                | NFS export path. e.g. /exports/nfs-provisioner
+| performance_definition          | False    | String  |                                                                | Path of a Performance Profile YAML to apply after the OCP install.
+| tuned_definition                | False    | String  |                                                                | Path of Tuned YAML to apply after the application of the Performance Profile.
 | cnf_test_suites                 | False    | List    |                                                                | List of CNF Tests to perform: ['sctp','ptp','performance','sriov','dpdk'].
 | operator_skip_upgrade           | False    | List    | []                                                             | List of operators to skip during the upgrade.
 | custom_catalogs                 | False    | List    | []                                                             | List of custom catalogs to install alongside default catalog sources.
@@ -1026,6 +1028,7 @@ See below and an example of a pipeline job definition:
     dci_main: upgrade
     cnf_test_suites: []
     performance_definition: /<path>/performance-profile.yml
+    tuned_definition: /<path>/tuned-definition.yml
     # Operators to mirror
     opm_mirror_list:
       loki-operator:
