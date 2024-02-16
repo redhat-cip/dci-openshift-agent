@@ -256,6 +256,19 @@
     (dci_disconnected | default(false) | bool) or
     (dci_local_mirror | default(false) | bool)
 
+- name: Mirror ubi9 image
+  include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    images:
+      - registry.access.redhat.com/ubi9
+    authfile: "{{ dci_pullsecret_file }}"
+  when:
+    - dci_sno_sideload_kernel_url is defined
+    - dci_sno_sideload_kernel_url | length
+    - (dci_disconnected | default(false) | bool) or
+      (dci_local_mirror | default(false) | bool)
+
 - name: Get provisioner SSH identity
   delegate_to: "{{ groups['provisioner'][0] }}"
   fetch:
