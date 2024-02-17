@@ -1,0 +1,21 @@
+---
+- name: "Mirroring UBI image for ODF validation"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    images: ['registry.access.redhat.com/ubi8/ubi']
+    authfile: "{{ dci_pullsecret_file }}"
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: "Setup an ODF Cluster"
+  vars:
+    gatherer_image: |-
+      {%- if dci_disconnected | default(false) %}
+      {{ dci_local_registry }}/ubi8/ubi
+      {%- else %}
+      registry.access.redhat.com/ubi8/ubi
+      {%- endif %}
+  ansible.builtin.include_role:
+    name: redhatci.ocp.odf_setup
+...

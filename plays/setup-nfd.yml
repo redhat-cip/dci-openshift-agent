@@ -1,0 +1,30 @@
+---
+- name: "Mirroring ose-node-feature-discovery image"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    images: ["{{ nfd_image }}"]
+    authfile: "{{ dci_pullsecret_file }}"
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: "deploy-operators : Configure the Node Discovery Operator"
+  vars:
+    image_ref: "{{  dci_disconnected | default(false) | bool |
+                ternary (dci_local_registry+'/openshift4/ose-node-feature-discovery:latest',
+                nfd_image) }}"
+    ndf_def: |
+  community.kubernetes.k8s:
+    state: present
+    definition: "{{ lookup('template', 'node-feature-discovery.yaml.j2') }}"
+
+- name: "Wait for NFD pods to be Running"
+  community.kubernetes.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ nfd_namespace }}"
+  register: pod_list
+  until: pod_list|json_query('resources[*].status.phase')|unique == ["Running"]
+  retries: 20
+  delay: 15
+...
