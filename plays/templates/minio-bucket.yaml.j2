@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: minio-{{ minio_bucket_name }}-{{ lookup(
-        'password', '/dev/null length=7 chars=ascii_lowercase') }}
+        'password', '/dev/null length=8 chars=ascii_lowercase') }}
   namespace: "{{ minio_namespace }}"
 spec:
   template:
