@@ -166,7 +166,7 @@ For RHEL-8
 ```console
 subscription-manager repos --enable=rhel-8-for-x86_64-baseos-rpms
 subscription-manager repos --enable=rhel-8-for-x86_64-appstream-rpms
-subscription-manager repos --enable ansible-2.9-for-rhel-8-x86_64-rpms
+subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
 ```
 
 For CentOS Stream 8
