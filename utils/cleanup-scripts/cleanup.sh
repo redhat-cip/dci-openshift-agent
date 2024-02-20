@@ -37,5 +37,3 @@ podman system prune -f
 echo ">>> Removing temporary ansible directories ====================================="
 
 find "$HOME"/.ansible/tmp/*/ -type f -mtime +"$DAYS" -print0|xargs -0 rm -vf
-
-/sbin/logrotate --state ~/.logrotate-state "$TOPDIR"/etc/logrotate.conf
