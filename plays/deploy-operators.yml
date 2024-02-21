@@ -1,4 +1,7 @@
 ---
+- name: "Get cluster facts"
+  include_tasks: get-cluster-facts.yml
+
 - name: "Prepare operators and catalogs"
   ansible.builtin.include_tasks: prepare-operators.yml
 

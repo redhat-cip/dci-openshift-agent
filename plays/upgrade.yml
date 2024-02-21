@@ -1,19 +1,16 @@
 ---
+- name: "Get cluster facts"
+  include_tasks: get-cluster-facts.yml
+
 - name: "Set common configurations for disconnected environments"
   when:
     - dci_disconnected | default(false) | bool
   block:
-    - name: "Get cluster config"
-      community.kubernetes.k8s_info:
-        kind: ConfigMap
-        namespace: kube-system
-        name: cluster-config-v1
-      register: cluster_conf
 
     - name: "Set webserver URL"
       vars:
         cluster_install_info: |-
-          {{ ( cluster_conf.resources[0].data |
+          {{ ( install_config.resources[0].data |
           from_yaml )['install-config'] |
           from_yaml }}
       set_fact:
@@ -31,6 +28,7 @@
 
     - name: "Get Cluster Image Sources"
       community.kubernetes.k8s_info:
+        api_version: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('config.openshift.io/v1', 'operator.openshift.io/v1alpha1') }}"
         kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
       register: cluster_is
 
@@ -53,17 +51,12 @@
       community.kubernetes.k8s:
         definition: '{{ lookup("url", "{{ webserver_url }}/{{ version }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
 
-    - name: "Get cluster nodes"
-      community.kubernetes.k8s_info:
-        kind: Node
-      register: cluster_nodes
-
     - name: "Wait for new ImageSources to be applied"
       include_role:
         name: redhatci.ocp.check_resource
       vars:
         resource_to_check: "MachineConfigPool"
-        check_wait_retries: "{{ 16 * cluster_nodes.resources | default([]) | length | int + 1  }}"
+        check_wait_retries: "{{ 16 * (dci_control_plane_size + dci_compute_size) | int + 1  }}"
         check_wait_delay: 30
         check_reason: "ImageSources during upgrade"
 
@@ -102,29 +95,16 @@
   when:
     - upgrade_eus | default(false) | bool
 
-- name: "Get worker nodes count - EUS"
-  community.kubernetes.k8s_info:
-    kind: Node
-    label_selectors:
-      - "node-role.kubernetes.io/worker"
-  register: compute_nodes
-  when:
-    - upgrade_eus | default(false) | bool
-
-- name: "Wait for Worker's MCPs reconciliation - EUS "
+- name: "Wait for Worker's MCPs reconciliation"
+  include_role:
+    name: redhatci.ocp.check_resource
   vars:
-    compute_nodes_count: "{{ compute_nodes.resources | default([]) | length  }}"
+    resource_to_check: "MachineConfigPool"
+    check_wait_retries: "{{ 32 * dci_compute_size | int + 1  }}"
+    check_wait_delay: 90
+    check_reason: "EUS workers upgrade"
   when:
     - upgrade_eus | default(false) | bool
-  block:
-    - name: "Wait for Worker's MCPs reconciliation"
-      include_role:
-        name: redhatci.ocp.check_resource
-      vars:
-        resource_to_check: "MachineConfigPool"
-        check_wait_retries: "{{ 32 * compute_nodes_count | int + 1  }}"
-        check_wait_delay: 90
-        check_reason: "EUS workers upgrade"
 
 - name: "Upgrader : Pre-upgrade operators tasks"
   include_tasks: pre-upgrade.yml

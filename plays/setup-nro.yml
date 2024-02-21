@@ -14,6 +14,9 @@
     msg: "NUMA Resource Operator CRDs are not present, please install the operator in the OperatorHub"
   when: numa_crd.results[0].resources | list | count == 0
 
+- name: "Get cluster facts"
+  include_tasks: get-cluster-facts.yml
+
 - name: Mirroring the NRO scheduler image
   include_role:
     name: redhatci.ocp.mirror_images
@@ -26,9 +29,6 @@
     authfile: "{{ dci_pullsecret_file }}"
   when:
     - dci_disconnected | default(false) | bool
-
-- name: Count Nodes in the cluster
-  include_tasks: count_nodes.yml
 
 - name: Increase maxUnavailable workers
   include_tasks: increase_maxunavailable.yml
@@ -64,14 +64,14 @@
 - name: Wait for SNO node to be available
   include_tasks: wait_sno_reboot.yml
   when:
-    - control_plane_size | int == 1
+    - dci_control_plane_size | int == 1
 
 - name: Wait for MCP status
   include_role:
     name: redhatci.ocp.check_resource
   vars:
     resource_to_check: "MachineConfigPool"
-    check_wait_retries: "{{ 16 * (groups['workers'] | default(groups['masters']) | length + 1 ) }}"
+    check_wait_retries: "{{ 16 * (dci_compute_size | default(dci_control_plane_size) | length + 1 ) }}"
     check_wait_delay: 60
     check_reason: "NRO installation"
 

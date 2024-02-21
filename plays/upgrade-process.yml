@@ -39,9 +39,6 @@
       when:
         target_ver_minor | int - current_ver_minor | int > 0
 
-    - name: Count Nodes in the cluster
-      include_tasks: count_nodes.yml
-
     - name: Increase maxUnavailable workers
       include_tasks: increase_maxunavailable.yml
       when:
