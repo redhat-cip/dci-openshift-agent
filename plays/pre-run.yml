@@ -299,4 +299,11 @@
     - dci_main is defined
     - dci_main == 'upgrade'
     - storage_upgrade_tester | default(false) | bool
+
+- name: "Set password for core user"
+  ansible.builtin.include_tasks: set-console-pass.yml
+  when:
+   - dci_console_pass | default("") | length > 0
+   - customize_extramanifests_path is defined
+   - install_type in ['ipi']
 ...
