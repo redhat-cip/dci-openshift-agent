@@ -14,4 +14,13 @@
   vars:
     pull_url: "{{ hostvars.localhost.version_pull_url }}"
 
+- name: "installer : SNO sideload-kernel"
+  when:
+    - dci_sno_sideload_kernel_uri is defined
+    - dci_sno_sideload_kernel_uri | length
+  ansible.builtin.import_role:
+    name: redhatci.ocp.sideload_kernel
+  vars:
+    sideload_kernel_uri: "{{ dci_sno_sideload_kernel_uri }}"
+    sideload_kernel_base_image: "{{ dci_local_registry | default('registry.access.redhat.com', true) }}/ubi9"
 ...
