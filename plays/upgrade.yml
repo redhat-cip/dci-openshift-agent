@@ -18,7 +18,7 @@
                         urlsplit('scheme') }}://{{ cluster_install_info.platform.baremetal.bootstrapOSImage |
                         urlsplit('netloc') }}"
       when:
-        - cluster_conf.resources | length
+        - install_config.resources | length
 
     - name: Find ImageDigestMirrorSet in the cluster
       community.kubernetes.k8s_info:
