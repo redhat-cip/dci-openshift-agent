@@ -4,9 +4,6 @@
   include_tasks: log-dir.yml
   when: job_logs is undefined
 
-- name: "Get cluster facts"
-  include_tasks: get-cluster-facts.yml
-
 - name: "Get logs from IPI/UPI deployment"
   vars:
     provisioner_user: "{{ hostvars[groups['provisioner'][0]]['ansible_user'] }}"
@@ -18,7 +15,7 @@
       plays/scripts/get-ipi-logs
       {{ provisioner_user }}@{{ provisioner_host }}
       {{ job_logs.path }}
-      {{ (dci_control_plane_hosts + dci_compute_hosts) | join(' ') }}
+      {{ groups['masters'] | union(groups['workers']) | join(' ') }}
   ignore_errors: true
   when:
     - install_type in ['ipi', 'upi']
