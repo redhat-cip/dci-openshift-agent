@@ -65,7 +65,7 @@
 
 - name: "Download stable openshift clients"
   vars:
-    ocp_clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable"
+    ocp_clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable-4.14"
   unarchive:
     src: "{{ item }}"
     dest: "{{ dci_cluster_configs_dir }}"
