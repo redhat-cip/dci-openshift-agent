@@ -1,0 +1,49 @@
+---
+- name: Create the Additional CA Configmap
+  vars:
+    registry_id: "{{ dci_local_registry | regex_replace(':', '..') }}"
+    trust_bundle: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: registry-config
+        namespace: openshift-config
+      data:
+        {{ registry_id }}: |
+          {{ additional_ca | indent(4) }}
+  community.kubernetes.k8s:
+    state: present
+    definition: "{{ trust_bundle }}"
+
+- name: Patch the Cluster Image config
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: config.openshift.io/v1
+      kind: Image
+      metadata:
+        name: cluster
+      spec:
+        additionalTrustedCA:
+          name: registry-config
+
+- name: Pause for API server pods to rollout
+  ansible.builtin.pause:
+    seconds: 5
+
+- name: Wait for API pods to be recreated
+  community.kubernetes.k8s_info:
+    api_version: v1
+    namespace: "openshift-apiserver"
+    kind: Pod
+    label_selectors:
+      - app=openshift-apiserver-a
+  register: apiserver_pods
+  until:
+    - apiserver_pods is defined
+    - apiserver_pods.resources is defined
+    - apiserver_pods.resources | length > 0
+    - apiserver_pods|json_query('resources[*].status.phase')|unique == ["Running"]
+  retries: 30
+  delay: 10
+  no_log: true
+...

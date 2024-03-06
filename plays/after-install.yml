@@ -9,6 +9,26 @@
   until: "'resources' in ic and ic.resources != []"
   retries: 12
   delay: 5
+  no_log: true
+
+- name: "Add additional Registry CAs for Image Service"
+  vars:
+    install_conf: "{{ ic.resources[0].data['install-config'] | from_yaml }}"
+    additional_ca: "{{ install_conf | json_query('additionalTrustBundle') }}"
+  ansible.builtin.include_tasks: add-additional-ca.yml
+  when:
+    - install_type not in ['assisted']
+    - dci_local_registry is defined
+    - additional_ca | default("")| length > 0
+
+- name: "Add additional Registry CAs for Image Service - ABI"
+  vars:
+    additional_ca: "{{ mirror_certificate }}"
+  ansible.builtin.include_tasks: add-additional-ca.yml
+  when:
+    - install_type in ['assisted']
+    - dci_local_registry is defined
+    - mirror_certificate | default("")| length > 0
 
 - name: "Save the install-config"
   vars:
