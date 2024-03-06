@@ -88,6 +88,7 @@ In any case, it must:
     - DCI Packages: <https://packages.distributed-ci.io>
     - DCI Repository: <https://repo.distributed-ci.io>
     - EPEL: <https://dl.fedoraproject.org/pub/epel/>
+    - Ansible Runner Repository: <https://releases.ansible.com/ansible-runner/>
     - QUAY: <https://quay.io>
     - Nightly releases: <https://registry.ci.openshift.org>
     - RED HAT REGISTRY: <https://registry.redhat.io>
