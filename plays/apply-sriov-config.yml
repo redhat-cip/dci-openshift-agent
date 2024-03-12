@@ -1,4 +1,17 @@
 ---
+- name: "Create SriovOperatorConfig"
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: sriovnetwork.openshift.io/v1
+      kind: SriovOperatorConfig
+      metadata:
+        name: default
+        namespace: openshift-sriov-network-operator
+      spec:
+        enableInjector: true
+        enableOperatorWebhook: true
+        logLevel: 2
+
 - name: "Disable SR-IOV Draining in SNO"
   community.kubernetes.k8s:
     definition:
