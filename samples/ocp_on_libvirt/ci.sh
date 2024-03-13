@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2021-2022 Red Hat, Inc.
+# Copyright (C) 2021-2024 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -72,13 +72,19 @@ if [ -n "$GERRIT_USER" ]; then
             echo "==========================="
             if [ "$type" = "patchset-created" ]; then
                 subject="$(jq -r .change.subject <<< $data)"
+                commitMessage="$(jq -r .change.commitMessage <<< $data)"
                 echo "$type $project $number \"$subject\" $url =============================="
-                dci-check-change $number
+                if ! dci-auto-launch $number <<< "$commitMessage"; then
+                    dci-check-change $number
+                fi
             elif [ "$type" = "comment-added" ]; then
                 comment="$(jq -r .comment <<< $data)"
                 echo "$type $project $number \"$comment\" $url =============================="
                 if grep -Eqi '^\s*recheck\s*$' <<< "$comment"; then
-                    dci-check-change $number
+                    commitMessage="$(jq -r .change.commitMessage <<< $data)"
+                    if ! dci-auto-launch $number <<< "$commitMessage"; then
+                        dci-check-change $number
+                    fi
                 elif [ -n "$DCI_CHECK_NAME" ] && egrep -qi "^\s*check\s+$DCI_CHECK_NAME" <<< "$comment"; then
                     ARGS=$(grep -Ei "check\s+$DCI_CHECK_NAME" <<< "$comment"|head -1|sed -e "s/^\s*check\s*$DCI_CHECK_NAME\s*//i")
                     if grep -q -- "--sno" <<< "$ARGS"; then
