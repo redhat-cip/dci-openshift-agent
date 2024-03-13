@@ -17,6 +17,7 @@
     additional_ca: "{{ install_conf | json_query('additionalTrustBundle') }}"
   ansible.builtin.include_tasks: add-additional-ca.yml
   when:
+    - dci_disconnected | default(false) | bool
     - install_type not in ['assisted']
     - dci_local_registry is defined
     - additional_ca | default("")| length > 0
@@ -26,6 +27,7 @@
     additional_ca: "{{ mirror_certificate }}"
   ansible.builtin.include_tasks: add-additional-ca.yml
   when:
+    - dci_disconnected | default(false) | bool
     - install_type in ['assisted']
     - dci_local_registry is defined
     - mirror_certificate | default("")| length > 0
