@@ -1,23 +1,24 @@
 ---
-- name: "Get cluster install-config"
+- name: "Get list of compute and control plane nodes"
   community.kubernetes.k8s_info:
     api: v1
-    kind: ConfigMap
-    name: cluster-config-v1
-    namespace: kube-system
-  register: install_config
-  until: "'resources' in install_config and install_config.resources != []"
-  retries: 12
-  delay: 5
+    kind: Node
+    label_selectors:
+      - "{{ item }}"
+  loop:
+    - node-role.kubernetes.io/worker
+    - node-role.kubernetes.io/master
+  register: nodes
 
 - name: "Set Cluster facts"
   vars:
-    install_conf: "{{ install_config.resources[0].data['install-config'] | from_yaml }}"
-  set_fact:
-    dci_control_plane_size: "{{ install_conf | json_query('controlPlane.replicas') }}"
-    dci_compute_size: "{{ install_conf | json_query('compute[? name==`worker` ].replicas') | first }}"
-    dci_control_plane_hosts: "{{ install_conf | json_query('platform.baremetal.hosts[? role==`master` ].name') }}"
-    dci_compute_hosts: "{{ install_conf | json_query('platform.baremetal.hosts[? role==`worker` ].name') }}"
+    dci_compute_query: "{{ nodes.results[0] | json_query('resources[*].metadata.name') }}"
+    dci_control_plane_query: "{{ nodes.results[1] | json_query('resources[*].metadata.name') }}"
+  ansible.builtin.set_fact:
+    dci_compute_hosts: "{{ dci_compute_query }}"
+    dci_compute_size: "{{ dci_compute_query | length }}"
+    dci_control_plane_hosts: "{{ dci_control_plane_query }}"
+    dci_control_plane_size: "{{ dci_control_plane_query | length }}"
 
 - name: Get worker MCP status
   community.kubernetes.k8s_info:
