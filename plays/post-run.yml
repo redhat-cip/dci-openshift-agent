@@ -16,4 +16,14 @@
   shell: "dci-diff-jobs --job_id_1 {{ job_id }} > {{ job_logs.path }}/diff-jobs.txt"
   ignore_errors: true
 
+- name: Apply Work-around OCPBUGS-30899 for ovn issues
+  include_tasks: pods-restart.yml
+  vars:
+    namespace: openshift-ovn-kubernetes
+    filter: "app = ovnkube-node"
+    container: ovnkube-controller
+    log_pattern: "err failed to get pod annotation: timed out waiting for annotations: context deadline exceeded"
+  when:
+    - dci_workarounds is defined
+    - '"OCPBUGS-30899" in dci_workarounds'
 ...
