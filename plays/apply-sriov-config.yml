@@ -38,6 +38,8 @@
   loop: "{{ dci_compute_hosts }}"
   loop_control:
     loop_var: node_fqdn
+  when:
+    - dci_compute_hosts | length > 0
 
 - name: "Check SriovNetworkNodeState application for all workers"
   include_role:
