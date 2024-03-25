@@ -7,6 +7,17 @@
     - dci_disconnected | default(false) | bool
   block:
 
+    - name: "Get cluster install-config"
+      community.kubernetes.k8s_info:
+        api: v1
+        kind: ConfigMap
+        name: cluster-config-v1
+        namespace: kube-system
+      register: install_config
+      until: "'resources' in install_config and install_config.resources != []"
+      retries: 12
+      delay: 5
+
     - name: "Set webserver URL"
       vars:
         cluster_install_info: |-
