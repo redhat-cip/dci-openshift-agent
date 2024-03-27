@@ -81,6 +81,10 @@ For the DCI Jumpbox you will need:
 
 ## Configuration
 
+Before anything else you will need to set `install_method: assisted` in your
+inventory or pipeline ansible extra variables. We do this because AI is not the
+default install method in the DCI OCP Agent.
+
 The first change you will notice right away is that the inventory file has a
 completely different format: instead of the INI-style format default
 configuration shows, it is a YAML file. The YAML file offers more capabilities
@@ -164,9 +168,9 @@ requirements. Here's a quick step by step list of what you need to do:
     and execute the following as the dci-openshift-agent user:
 
     ```bash
-    INSTALL_TYPE=sno  # or 'controlplane' or 'split'
+    CONFIG=sno  # or 'controlplane' or 'split'
     cd ~/samples/assisted_on_libvirt
-    ansible-playbook -i $PWD/dev/$INSTALL_TYPE parse-template.yml
+    ansible-playbook -i $PWD/dev/$CONFIG parse-template.yml
     ```
 
 1.  Inspect the generated `~dci-openshift-agent/hosts` file and adjust as needed
