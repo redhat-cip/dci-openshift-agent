@@ -58,7 +58,7 @@
     worker_mc_timestamp: "{{ reg_worker_mc.resources | to_json | from_json | json_query(worker_mc_query) | sort | last }}"
   until:
     - reg_worker_mc.resources is defined
-    - worker_mc_timestamp > perf_kubelet_timestamp
+    - worker_mc_timestamp >= perf_kubelet_timestamp
   retries: 60
   delay: 10
   when:
