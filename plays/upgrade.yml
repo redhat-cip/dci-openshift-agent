@@ -70,6 +70,7 @@
         check_wait_retries: "{{ 16 * (dci_control_plane_size + dci_compute_size) | int + 1  }}"
         check_wait_delay: 30
         check_reason: "ImageSources during upgrade"
+        cr_oc: "{{ oc_tool_path }}"
 
 - name: "Deactivate the upgrade of worker nodes - EUS"
   community.kubernetes.k8s:
@@ -114,6 +115,7 @@
     check_wait_retries: "{{ 32 * dci_compute_size | int + 1  }}"
     check_wait_delay: 90
     check_reason: "EUS workers upgrade"
+    cr_oc: "{{ oc_tool_path }}"
   when:
     - upgrade_eus | default(false) | bool
 
