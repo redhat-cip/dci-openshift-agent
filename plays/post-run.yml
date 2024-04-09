@@ -17,13 +17,44 @@
   ignore_errors: true
 
 - name: Apply Work-around OCPBUGS-30899 for ovn issues
-  include_tasks: pods-restart.yml
-  vars:
-    namespace: openshift-ovn-kubernetes
-    filter: "app = ovnkube-node"
-    container: ovnkube-controller
-    log_pattern: "err failed to get pod annotation: timed out waiting for annotations: context deadline exceeded"
   when:
     - dci_workarounds is defined
     - '"OCPBUGS-30899" in dci_workarounds'
+  block:
+    - name: Get OVN pods
+      community.kubernetes.k8s_info:
+        kind: Pod
+        namespace: "openshift-ovn-kubernetes"
+      register: pods_info
+
+    - name:  Restart OVN pods
+      community.kubernetes.k8s:
+        wait: true
+        state: absent
+        definition:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: "{{ item.metadata.name }}"
+            namespace: "openshift-ovn-kubernetes"
+      loop: "{{ pods_info.resources }}"
+      loop_control:
+        label: "{{ item.metadata.name }}"
+
+    - name: Wait for OVN pods to be running
+      vars:
+        containers_query: "resources[*].status.containerStatuses[*].ready"
+        pods_query: "resources[*].status.phase"
+      community.kubernetes.k8s_info:
+        kind: Pod
+        namespace: "openshift-ovn-kubernetes"
+      register: ovn_pods
+      until:
+        - ovn_pods is defined
+        - ovn_pods.resources is defined
+        - ovn_pods.resources | length > 0
+        - ovn_pods | json_query(containers_query) | flatten | unique == [true]
+        - ovn_pods | json_query(pods_query) | flatten | unique == ['Running']
+      retries: 5
+      delay: 5
 ...
