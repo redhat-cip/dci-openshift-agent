@@ -37,14 +37,14 @@
       include_role:
         name: redhatci.ocp.metallb_setup
       vars:
-        mlb_ipaddr_pool:
-          - "{{ metallb_ipaddr_pool_l2 }}"
+        mlb_ipaddr_pool: "{{ metallb_ipaddr_pool_l2 }}"
       when:
         - metallb_ipaddr_pool_l2 | default('') | length
 
     - name: "Deploy a Hypershift cluster via ACM"
       vars:
         ah_pullsecret_file: "{{ dci_pullsecret_file }}"
+        ah_disconnected: "{{ dci_disconnected | default(False) | bool }}"
       include_role:
         name: redhatci.ocp.acm_hypershift
         apply:
@@ -52,7 +52,6 @@
             - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
   when:
     - acm_cluster_type == 'hypershift'
-    - not (dci_disconnected | default(false) | bool)
 
 - name: "Save the {{ acm_cluster_type }} kubeconfig"
   copy:
