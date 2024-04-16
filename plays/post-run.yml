@@ -25,6 +25,8 @@
       community.kubernetes.k8s_info:
         kind: Pod
         namespace: "openshift-ovn-kubernetes"
+        label_selectors:
+          - app = ovnkube-node
       register: pods_info
 
     - name:  Restart OVN pods
@@ -48,6 +50,8 @@
       community.kubernetes.k8s_info:
         kind: Pod
         namespace: "openshift-ovn-kubernetes"
+        label_selectors:
+          - app = ovnkube-node
       register: ovn_pods
       until:
         - ovn_pods is defined
