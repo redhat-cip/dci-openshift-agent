@@ -243,7 +243,7 @@ all:
         vm_spec:
           cpu_cores: 8
           ram_mib: 16384
-          disk_size_gb: 150
+          disk_size_gb: 250
       children:
         masters:
           vars:
