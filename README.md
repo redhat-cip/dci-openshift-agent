@@ -981,7 +981,7 @@ Finally from the pod you started, you can run ironic baremetal commands
     - *runs on: localhost*
    > NOTE: All results files (logs, tests, ...) must be stored within the `{{ dci_cluster_configs_dir }}/` directory in
    order to be properly uploaded to the DCI server. Test result files must follow the Junit format, must be stored within 
-   the `{{ job_logs.path }}` directory and the file name must follow the pattern `*junit*.xml`.
+   the `{{ job_logs.path }}` directory and the file name must follow the pattern `*.xml`.
 
 7. "Success"
     - Launch additional tasks when the job is successful: `/hooks/success.yml`
