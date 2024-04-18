@@ -22,6 +22,15 @@ all:
     setup_vm_bridge: true
     vm_bridge_ip: "{{ machine_network_cidr | ipaddr('1') | ipaddr('address') }}"
     vm_bridge_name: "{{ cluster_name }}-br"
+    # Variables to customize the sizing of the VMs
+    masters_vm_spec:
+      cpu_cores: 8
+      ram_mib: 32768
+      disk_size_gb: 250
+    workers_vm_spec:
+      cpu_cores: 24
+      ram_mib: 98304
+      disk_size_gb: 250
     nodes:
       masters:
         - name: master-0

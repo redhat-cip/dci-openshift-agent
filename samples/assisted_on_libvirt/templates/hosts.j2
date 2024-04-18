@@ -309,11 +309,22 @@ all:
         masters:
           vars:
             role: master
+{% if masters_vm_spec is defined and
+masters_vm_spec['cpu_cores'] is defined and
+masters_vm_spec['ram_mib'] is defined and
+masters_vm_spec['disk_size_gb'] is defined %}
+            vm_spec:
+              cpu_cores: "{{ masters_vm_spec['cpu_cores'] }}"
+              ram_mib: "{{ masters_vm_spec['ram_mib'] }}"
+              disk_size_gb: "{{ masters_vm_spec['disk_size_gb'] }}"
+{% endif %}
 {% if nodes['sno'] | default({}) | length > 0 %}
+{% if masters_vm_spec is not defined %}
             vm_spec:
               cpu_cores: 16  # Use a bigger instance for SNO
               ram_mib: 32718  # Use a bigger instance for SNO
               disk_size_gb: 200  # Use a bigger instance for SNO
+{% endif %}
           hosts:
             sno:
               ansible_host: "{{ nodes['sno']['ip'] }}"
@@ -329,6 +340,15 @@ all:
         workers:
           vars:
             role: worker
+{% if workers_vm_spec is defined and
+workers_vm_spec['cpu_cores'] is defined and
+workers_vm_spec['ram_mib'] is defined and
+workers_vm_spec['disk_size_gb'] is defined %}
+            vm_spec:
+              cpu_cores: "{{ workers_vm_spec['cpu_cores'] }}"
+              ram_mib: "{{ workers_vm_spec['ram_mib'] }}"
+              disk_size_gb: "{{ workers_vm_spec['disk_size_gb'] }}"
+{% endif %}
           hosts:
 {% for w in nodes['workers'] %}
             dciokd-{{ w['name'] }}:
