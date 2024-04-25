@@ -1,2 +1,18 @@
-[vm_host]
-localhost ansible_connection=local prov_nic=eth0 pub_nic=eth1
+all:
+  children:
+    vm_host:
+      hosts:
+        localhost:
+          ansible_connection: local
+          prov_nic: eth0
+          pub_nic: eth1
+
+# ENABLE FOR REDFISH
+#          do_dns_config: false
+#          vbmc_host_provided: localhost
+#          vbmc_user: USER
+#          vbmc_pass: PASSWORD
+#          redfish_port: 8082
+#    nodes:
+#      hosts:
+#        localhost
