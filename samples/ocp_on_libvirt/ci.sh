@@ -74,31 +74,13 @@ if [ -n "$GERRIT_USER" ]; then
                 subject="$(jq -r .change.subject <<< $data)"
                 commitMessage="$(jq -r .change.commitMessage <<< $data)"
                 echo "$type $project $number \"$subject\" $url =============================="
-                if ! dci-auto-launch $number <<< "$commitMessage"; then
-                    dci-check-change $number
-                fi
+                dci-auto-launch $number <<< "$commitMessage"
             elif [ "$type" = "comment-added" ]; then
                 comment="$(jq -r .comment <<< $data)"
                 echo "$type $project $number \"$comment\" $url =============================="
-                if grep -Eqi '^\s*recheck\s*$' <<< "$comment"; then
+                if grep -Eqi '^\s*re(check|test)\s*$' <<< "$comment"; then
                     commitMessage="$(jq -r .change.commitMessage <<< $data)"
-                    if ! dci-auto-launch $number <<< "$commitMessage"; then
-                        dci-check-change $number
-                    fi
-                elif [ -n "$DCI_CHECK_NAME" ] && egrep -qi "^\s*check\s+$DCI_CHECK_NAME" <<< "$comment"; then
-                    ARGS=$(grep -Ei "check\s+$DCI_CHECK_NAME" <<< "$comment"|head -1|sed -e "s/^\s*check\s*$DCI_CHECK_NAME\s*//i")
-                    if grep -q -- "--sno" <<< "$ARGS"; then
-                        ARGS=${ARGS/--sno/}
-                        dci-check-change --sno $number $ARGS
-		    elif grep -q -- "--assisted-abi" <<< "$ARGS"; then
-                        ARGS=${ARGS/--assisted-abi/}
-                        dci-check-change --assisted-abi $number $ARGS
-		    elif grep -q -- "--assisted" <<< "$ARGS"; then
-                        ARGS=${ARGS/--assisted/}
-                        dci-check-change --assisted $number $ARGS
-                    else
-                        dci-check-change $number $ARGS
-                    fi
+                    dci-auto-launch $number <<< "$commitMessage"
                 fi
             elif [ "$type" = "change-abandoned" ]; then
                 reason="$(jq -r .reason <<< ${data})"
