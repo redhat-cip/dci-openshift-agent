@@ -540,14 +540,14 @@ if [ -z "$KCFG" ]; then
                 IPI_VIRT_INV="-i ${CONFIG_DIR}/ocp_on_libvirt/${PREFIX_NAME%-}"
             fi
 
-            setsid ansible-playbook -vv libvirt_destroy.yml ${IPI_VIRT_INV:-} &
+            setsid ansible-playbook --vault-id ${DCI_VAULT_CLIENT:=/usr/bin/dci-vault-client} -vv libvirt_destroy.yml ${IPI_VIRT_INV:-} &
             do_wait
         fi
 
         cd "$VIRTDIR"
 
         if [ "$VIRT" = virt ]; then
-            setsid ansible-playbook -vv libvirt_up.yml ${VIRT_INV:-} "$@" &
+            setsid ansible-playbook --vault-id ${DCI_VAULT_CLIENT:=/usr/bin/dci-vault-client} -vv libvirt_up.yml ${VIRT_INV:-} "$@" &
             do_wait
         elif [ "$VIRT" = sno ]; then
             setsid ansible-playbook -vv generate-hosts-file.yml ${VIRT_INV:-} &

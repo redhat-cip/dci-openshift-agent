@@ -3,7 +3,9 @@
   become: true
   package:
     name: epel-release
-  when: not (dci_disconnected | default(false) | bool)
+  when:
+    - ansible_facts.distribution != "RedHat"
+    - not (dci_disconnected | default(false) | bool)
 
 - name: Configure extra repositories
   become: true
