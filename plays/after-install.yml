@@ -227,4 +227,15 @@
     mime: "text/plain"
   loop:
   - "{{ dci_cluster_configs_dir }}/ocp_creds.txt"
+
+- name: Set override fact for ACM hubs
+  set_fact:
+    hub_os_images:
+      - openshiftVersion: "{{ version }}"
+        version: "{{ version.split('.')[:2] | join('.') }}"
+        url: "{{ metalosimage }}" # From mirror_ocp_release
+        cpuArchitecture: x86_64
+  when:
+    - enable_acm | bool
+    - dci_disconnected | default(false) | bool
 ...
