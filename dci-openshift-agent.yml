@@ -249,6 +249,7 @@
         # Prepare provisioner host
         - name: Configure provisioner
           include_tasks: plays/configure-provisioner.yml
+          when: ansible_distribution_major_version == '8'
 
         - name: Launch configure
           include_tasks: '{{ hookdir }}/hooks/configure.yml'
