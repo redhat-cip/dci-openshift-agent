@@ -36,7 +36,7 @@ def get_directories(directory, pattern):
     return directories
 
 
-def garbage_collect(directories, number, run, quiet):
+def garbage_collect(directories, number, run, quiet, exclude_dirs):
     # Entries to skip from the end of the list
     if number > 0:
         number = number.__neg__()
@@ -44,8 +44,12 @@ def garbage_collect(directories, number, run, quiet):
         dir_version = sorted(directories[version], key=LooseVersion)
         if len(dir_version) > 1:
             for to_remove in dir_version[:number]:
+                if to_remove in exclude_dirs:
+                    if not quiet:
+                        print(f"Skipped: {to_remove}")
+                    continue
                 if not quiet:
-                    print(to_remove)
+                    print(f"Removing: {to_remove}")
                 if run:
                     shutil.rmtree(to_remove)
 
@@ -70,12 +74,14 @@ def main():
     parser.add_argument('-q', '--quiet',
             action='store_true', dest='quiet', default=False,
             help='Be Quiet')
+    parser.add_argument('-e', '--exclude', dest='exclude', nargs='*',
+            default=[], help='Directories to exclude from deletion')
 
     args = parser.parse_args()
 
 
     directories = get_directories(args.directory, args.pattern)
-    garbage_collect(directories, args.number, args.run, args.quiet)
+    garbage_collect(directories, args.number, args.run, args.quiet, args.exclude)
 
 if __name__ == '__main__':
     sys.exit(main())
