@@ -6,6 +6,7 @@
     mfd_local_registry: "{{ dci_local_registry }}"
     mfd_operators_dir: "{{ operator_catalog_dir }}"
     mfd_local_registry_path: "{{ operator_catalog_registry_path | default('prega') }}"
+    mfd_max_nested_paths: 3
 
 # Variables used above prefixed with 'mdf_' are outputs
 # from mirror_from_directory role
