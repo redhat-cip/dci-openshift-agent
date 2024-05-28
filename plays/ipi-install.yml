@@ -88,7 +88,7 @@
            join('/')) }}
     containers.podman.podman_container:
       name: "{{ hostvars.localhost.job_id }}"
-      image: quay.io/centos7/httpd-24-centos7:latest
+      image: quay.io/fedora/httpd-24:latest
       state: started
       publish_all: true
       volumes:
