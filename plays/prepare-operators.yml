@@ -128,6 +128,11 @@
   when:
     - custom_catalogs | default([]) | length
 
+- name: Pre-GA catalog
+  ansible.builtin.include_tasks: pre-ga-catalog.yml
+  when:
+    - dci_pre_ga_catalog | default('') | length
+
 - name: "Remove docker auths directory"
   file:
     path: "{{ docker_conf.path }}"
@@ -173,7 +178,7 @@
   include_role:
     name: redhatci.ocp.catalog_source
   vars:
-    cs_name: "{{ ((catalog | basename).split(':'))[0] }}"
+    cs_name: "{{ (((catalog | basename).split(':'))[0]).split('@')[0] }}"
     cs_namespace: "openshift-marketplace"
     cs_image: "{{ catalog }}"
   loop: "{{ custom_catalogs }}"

@@ -1,0 +1,35 @@
+---
+- name: Find ImageDigestMirrorSet in the cluster
+  community.kubernetes.k8s_info:
+    api_version: config.openshift.io/v1
+    kind: ImageDigestMirrorSet
+  register: idms_res
+
+- name: Copy images or create manifests only for Pre-GA
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_catalog
+  vars:
+    mc_oc_tool_path: "{{ oc_tool_path }}"
+    mc_catalog: "{{ dci_pre_ga_catalog }}"
+    mc_registry: "{{ dci_local_registry | default('quay.io', true) }}"
+    mc_pullsecret: "{{ dci_pullsecret_file }}"
+    mc_is_type: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('idms', 'icsp') }}"
+    mc_manifest_only: "{{ not (dci_disconnected | default(false) | bool) }}"
+    mc_max_components: 4
+
+- name: Modify Pre-GA Image Source files
+  ansible.builtin.command: |
+    sed -i
+    -e '/source:.*bundle/!s,quay.io/prega/test/,registry.redhat.io/,'
+    "{{ mc_is_file.path }}"
+  changed_when: false
+  when: mc_is_file is defined
+
+- name: Append to list of Image Source files
+  ansible.builtin.set_fact:
+    is_files: "{{ is_files | default([]) + [mc_is_file.path] }}"
+  when: mc_is_file is defined
+
+- name: Append the Pre-GA catalog to the list of custom catalogs
+  ansible.builtin.set_fact:
+    custom_catalogs: "{{ custom_catalogs | default([]) + [mc_catalog_digest] }}"
