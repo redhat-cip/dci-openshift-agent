@@ -9,7 +9,7 @@ There are some benefits of running the DCI OCP Agent:
 2. CI runs on your own hardware
 3. Red Hat doesn't have access to your hardware, the agent reports metrics/logs
    back to distributed-ci.io
-4. The agent leverages the OpenShift IPI/UPI/AI/ACM installers
+4. The agent leverages the OpenShift IPI/UPI/AI/ACM/ZTP installers
 5. You have access to all your jobs logs and metrics through distributed-ci.io
    where you can also set notifications for errors/exceptions
 

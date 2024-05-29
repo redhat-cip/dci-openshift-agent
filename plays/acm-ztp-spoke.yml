@@ -1,0 +1,76 @@
+- name: Verifying the mandatory variables
+  assert:
+    that:
+      - cluster is defined
+      - hub_kubeconfig_path is defined
+      - hub_pull_secret is defined
+      - dci_gitops_sites_repo is defined
+      - dci_gitops_sites_repo.url is defined
+      - dci_gitops_sites_repo.path is defined
+      - dci_gitops_sites_repo.branch is defined
+      - dci_gitops_sites_repo.key_path is defined
+      - dci_gitops_policies_repo is defined
+      - dci_gitops_policies_repo.url is defined
+      - dci_gitops_policies_repo.path is defined
+      - dci_gitops_policies_repo.branch is defined
+      - groups.spoke_nodes is defined
+      - hostvars[groups.spoke_nodes.0].bmc_user is defined
+      - hostvars[groups.spoke_nodes.0].bmc_password is defined
+
+- name: Load the SSH key to access the repository
+  ansible.builtin.include_role:
+    name: redhatci.ocp.gitops_configure_repo
+  vars:
+    gcr_ssh_known_hosts: "{{ dci_gitops_sites_repo.known_hosts | default('') }}"
+    gcr_ssh_key_path: "{{ dci_gitops_sites_repo.key_path }}"
+    gcr_ztp_gitops_repo: "{{ dci_gitops_sites_repo.url }}"
+
+- name: Create the openshit-gitops-operator apps
+  ansible.builtin.include_role:
+    name: redhatci.ocp.configure_ztp_gitops_apps
+  vars:
+    czga_kubeconfig_path: "{{ hub_kubeconfig_path }}"
+    czga_podman_runner_host: jumpbox
+    czga_clusters_namespace: "{{ cluster }}"
+    czga_policies_namespace: "{{ cluster }}-policies"
+    czga_ocp_pull_secret: "{{ hub_pull_secret.resources[0].data['.dockerconfigjson'] | b64decode }}"
+    ztp_site_generator_image: "{{ hub_registry | default('registry.redhat.io/openshift4') }}/ztp-site-generate-rhel8"
+    ztp_site_generator_version: "v{{ job_info.job.topic.name | ansible.builtin.regex_replace('OCP-', '') }}"
+    ztp_sites_path: "{{ dci_gitops_sites_repo.path}}"
+    ztp_sites_gitops_repo: "{{ dci_gitops_sites_repo.url }}"
+    ztp_sites_branch: "{{ dci_gitops_sites_repo.branch }}"
+    ztp_policies_path: "{{ dci_gitops_policies_repo.path}}"
+    ztp_policies_gitops_repo: "{{ dci_gitops_policies_repo.url }}"
+    ztp_policies_branch: "{{ dci_gitops_policies_repo.branch }}"
+
+- name: Wait for the deployment to start
+  community.kubernetes.k8s_info:
+    api: extensions.hive.openshift.io/v1beta1
+    kind: AgentClusterInstall
+    name: "{{ cluster }}"
+    namespace: "{{ cluster }}"
+  register: install_started
+  delay: 10
+  retries: 30
+  until:
+    - install_started.resources is defined
+    - install_started.resources | length > 0
+
+- name: "Monitor: Set monitoring facts"
+  ansible.builtin.set_fact:
+    elapsed_time: 0
+    node_rebooted: false
+
+- name: Monitor installation
+  ansible.builtin.include_role:
+    name: redhatci.ocp.acm_sno
+    tasks_from: monitor-install
+  vars:
+    acm_cluster_name: "{{ cluster }}"
+
+- name: Get Spoke cluster credentials
+  ansible.builtin.include_role:
+    name: redhatci.ocp.acm_sno
+    tasks_from: get-credentials
+  vars:
+    acm_cluster_name: "{{ cluster }}"
