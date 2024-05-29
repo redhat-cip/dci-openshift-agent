@@ -16,5 +16,5 @@
 - name: "installer : Get pullsecret from localhost vars"
   set_fact:
     pullsecret: "{{ hostvars.localhost.dci_pullsecret | to_json }}"
-    no_log: true
+  no_log: true
 ...
