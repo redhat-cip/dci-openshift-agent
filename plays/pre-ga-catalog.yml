@@ -18,9 +18,9 @@
     mc_max_components: 4
 
 - name: Modify Pre-GA Image Source files
-  ansible.builtin.command: |
+  ansible.builtin.shell: >
     sed -i
-    -e '/source:.*bundle/!s,quay.io/prega/test/,registry.redhat.io/,'
+    -e '/source:/!b;/bundle/b;/cincinnati/b;s,quay.io/prega/test/,registry.redhat.io/,'
     "{{ mc_is_file.path }}"
   changed_when: false
   when: mc_is_file is defined
