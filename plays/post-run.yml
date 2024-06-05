@@ -29,7 +29,7 @@
           - app = ovnkube-node
       register: pods_info
 
-    - name:  Restart OVN pods
+    - name: Restart OVN pods
       community.kubernetes.k8s:
         wait: true
         state: absent

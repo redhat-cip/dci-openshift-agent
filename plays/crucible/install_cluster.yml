@@ -1,16 +1,16 @@
 ---
 - name: Installing the cluster
   hosts: bastion
-  gather_facts: False
+  gather_facts: false
   vars_files:
     - ../../group_vars/all
   tasks:
     - block:
-      - name: "assisted installer: install cluster"
-        vars:
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
-        include_role:
-          name: redhatci.ocp.install_cluster
+        - name: "assisted installer: install cluster"
+          vars:
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
+          include_role:
+            name: redhatci.ocp.install_cluster
       rescue:
         - include_tasks: teardown_failure.yml
 ...

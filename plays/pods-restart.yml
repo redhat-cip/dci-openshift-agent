@@ -19,7 +19,7 @@
   loop_control:
     loop_var: pod
     label: "{{ pod.metadata.name }}"
-  ignore_errors: yes
+  ignore_errors: true
   when:
     - pods_info is defined
     - pods_info.resources is defined
@@ -37,7 +37,7 @@
   loop: "{{ pods_messages.results }}"
   loop_control:
     label: "{{ item.pod.metadata.name }}"
-  ignore_errors: yes
+  ignore_errors: true
   when:
     - pods_messages.results is defined
     - pods_messages.results | length > 0

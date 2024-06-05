@@ -8,16 +8,16 @@
     - ../../group_vars/all
   tasks:
     - block:
-      - name: pre-compute need to get hashes
-        set_fact:
-          run_get_hash: "{{ image_hashes | default({}) | length == 0  }}"
+        - name: pre-compute need to get hashes
+          set_fact:
+            run_get_hash: "{{ image_hashes | default({}) | length == 0  }}"
 
-      - name: Get image hash
-        vars:
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
-        include_role:
-          name: redhatci.ocp.get_image_hash
-        when: run_get_hash
+        - name: Get image hash
+          vars:
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
+          include_role:
+            name: redhatci.ocp.get_image_hash
+          when: run_get_hash
       rescue:
         - include_tasks: teardown_error.yml
 
@@ -30,29 +30,29 @@
     - ../../group_vars/all
   tasks:
     - block:
-      - name: Setup assisted installer
-        include_role:
-          name: redhatci.ocp.setup_assisted_installer
-      - name: Wait for up to 60 minutes for the assisted installer to come online
-        uri:
-          url: "http://{{ ansible_host }}:8090/ready"
-          method: GET
-          status_code: [200, 201]
-        register: result
-        until: result is succeeded
-        retries: 120
-        delay: 30
-        delegate_to: bastion
-      - name: Wait for up to 60 minutes for the assisted installer image service to come online
-        uri:
-          url: "http://{{ ansible_host }}:8888/health"
-          method: GET
-          status_code: [200, 201]
-        register: result
-        until: result is succeeded
-        retries: 120
-        delay: 30
-        delegate_to: bastion
+        - name: Setup assisted installer
+          include_role:
+            name: redhatci.ocp.setup_assisted_installer
+        - name: Wait for up to 60 minutes for the assisted installer to come online
+          uri:
+            url: "http://{{ ansible_host }}:8090/ready"
+            method: GET
+            status_code: [200, 201]
+          register: result
+          until: result is succeeded
+          retries: 120
+          delay: 30
+          delegate_to: bastion
+        - name: Wait for up to 60 minutes for the assisted installer image service to come online
+          uri:
+            url: "http://{{ ansible_host }}:8888/health"
+            method: GET
+            status_code: [200, 201]
+          register: result
+          until: result is succeeded
+          retries: 120
+          delay: 30
+          delegate_to: bastion
       when: SETUP_ASSISTED_INSTALLER == True
       rescue:
         - include_tasks: teardown_error.yml

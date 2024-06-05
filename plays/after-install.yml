@@ -51,9 +51,9 @@
     job_id: "{{ job_id }}"
     mime: "text/plain"
   loop:
-  - "{{ dci_cluster_configs_dir }}/kubeconfig"
-  - "{{ dci_cluster_configs_dir }}/kubeadmin-password"
-  - "{{ dci_cluster_configs_dir }}/cluster-install-config.yml"
+    - "{{ dci_cluster_configs_dir }}/kubeconfig"
+    - "{{ dci_cluster_configs_dir }}/kubeadmin-password"
+    - "{{ dci_cluster_configs_dir }}/cluster-install-config.yml"
 
 - name: "Check if all cluster-operators are running correctly"
   community.kubernetes.k8s_info:
@@ -154,7 +154,7 @@
       when:
         - "'component' in kernel_component"
         - "'id' in kernel_component.component"
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: "Patch clusterversion update channel"
   vars:
@@ -226,7 +226,7 @@
     job_id: "{{ job_id }}"
     mime: "text/plain"
   loop:
-  - "{{ dci_cluster_configs_dir }}/ocp_creds.txt"
+    - "{{ dci_cluster_configs_dir }}/ocp_creds.txt"
 
 - name: Set override fact for ACM hubs
   set_fact:

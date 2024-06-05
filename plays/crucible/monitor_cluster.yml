@@ -1,14 +1,14 @@
 ---
 - name: Monitoring cluster installation
   hosts: bastion
-  gather_facts: False
+  gather_facts: false
   vars_files:
     - ../../group_vars/all
   tasks:
     - block:
-      - name: "assisted installer: monitor cluster"
-        include_role:
-          name: redhatci.ocp.monitor_cluster
+        - name: "assisted installer: monitor cluster"
+          include_role:
+            name: redhatci.ocp.monitor_cluster
       rescue:
         - include_tasks: teardown_failure.yml
 ...

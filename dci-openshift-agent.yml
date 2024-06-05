@@ -67,7 +67,12 @@
     - name: Set DCI tags for the current job
       dci_job:
         id: '{{ job_id }}'
-        tags: '{{ ["agent:openshift"] + dci_tags + dci_workarounds + ((dci_main == "upgrade") | ternary(["upgrade"],["install", "install_type:" + install_type])) }}'
+        tags: >
+          {{ ["agent:openshift"] +
+          dci_tags +
+          dci_workarounds +
+          ((dci_main == "upgrade") |
+          ternary(["upgrade"],["install", "install_type:" + install_type])) }}
 
     - name: Add cluster tag to the current job
       dci_job:
@@ -401,8 +406,8 @@
         - name: "Deploy operators"
           include_tasks: plays/deploy-operators.yml
       when:
-      - dci_main == 'install'
-      - acm_cluster_type | default('') != 'hypershift'
+        - dci_main == 'install'
+        - acm_cluster_type | default('') != 'hypershift'
 
       rescue: *teardown_failure
 
@@ -593,17 +598,18 @@
         - name: Run the success
           include_tasks: plays/success.yml
 
-        - block:
-          - name: Run the teardown hooks
-            include_tasks: "{{ hookdir }}/hooks/teardown.yml"
-            loop: "{{ dci_config_dirs | reverse | list }}"
-            loop_control:
-              loop_var: hookdir
+        - name: Teardown on success
+          when: dci_teardown_on_success | bool
+          block:
+            - name: Run the teardown hooks
+              include_tasks: "{{ hookdir }}/hooks/teardown.yml"
+              loop: "{{ dci_config_dirs | reverse | list }}"
+              loop_control:
+                loop_var: hookdir
 
-          - name: Run the teardown play
-            include_tasks: plays/teardown.yml
+            - name: Run the teardown play
+              include_tasks: plays/teardown.yml
 
-          when: dci_teardown_on_success|bool
 
       ignore_unreachable: true
       ignore_errors: true

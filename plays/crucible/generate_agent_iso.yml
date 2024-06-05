@@ -1,5 +1,5 @@
 ---
-- name:  Generate agent iso using agent_based_installer
+- name: Generate agent iso using agent_based_installer
   hosts: bastion
   environment:
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
@@ -9,11 +9,11 @@
     - ../../group_vars/all
   tasks:
     - block:
-      - name: "assisted installer: generate agent iso"
-        vars:
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
-        include_role:
-          name: redhatci.ocp.generate_agent_iso
+        - name: "assisted installer: generate agent iso"
+          vars:
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
+          include_role:
+            name: redhatci.ocp.generate_agent_iso
       rescue:
         - include_tasks: teardown_failure.yml
 ...

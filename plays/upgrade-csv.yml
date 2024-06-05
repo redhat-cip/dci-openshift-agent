@@ -6,7 +6,7 @@
   community.kubernetes.k8s_info:
     api: packages.operators.coreos.com/v1
     kind: PackageManifest
-    namespace:  default
+    namespace: default
     label_selectors:
       - "catalog={{ sub.catalogSource }}"
     field_selectors:
@@ -61,7 +61,7 @@
           kind: Subscription
           metadata:
             name: "{{ sub.subscriptionName }}"
-            namespace:  "{{ sub.namespace }}"
+            namespace: "{{ sub.namespace }}"
           spec:
             name: "{{ sub.operatorName }}"
             installPlanApproval: "Automatic"
@@ -109,9 +109,9 @@
           kind: Subscription
           metadata:
             name: "{{ sub.subscriptionName }}"
-            namespace:  "{{ sub.namespace }}"
+            namespace: "{{ sub.namespace }}"
           spec:
             name: "{{ sub.operatorName }}"
             installPlanApproval: "{{ sub.installPlanApproval }}"
-  when : operator_csv != sub.installedCSV
+  when: operator_csv != sub.installedCSV
 ...

@@ -1,15 +1,15 @@
 ---
 - name: Monitoring hosts installation
   hosts: masters, workers
-  gather_facts: False
+  gather_facts: false
   strategy: free
   vars_files:
     - ../../group_vars/all
   tasks:
     - block:
-      - name: "assisted installer: monitor host"
-        include_role:
-          name: redhatci.ocp.monitor_host
+        - name: "assisted installer: monitor host"
+          include_role:
+            name: redhatci.ocp.monitor_host
       rescue:
         - include_tasks: teardown_failure.yml
 ...

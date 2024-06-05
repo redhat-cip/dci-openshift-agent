@@ -10,115 +10,118 @@
     ai_releases_dir: "{{ (ansible_env.HOME, 'releases') | join('/') }}"
   tasks:
     - block:
-      - name: "Add Bastion host to provisioner group"
-        add_host:
-          hostname: "{{ item }}"
-          groups:
-            - provisioner
-        loop: "{{ groups['bastions'] }}"
-        when:
-          - "'provisioner' not in groups"
+        - name: "Add Bastion host to provisioner group"
+          add_host:
+            hostname: "{{ item }}"
+            groups:
+              - provisioner
+          loop: "{{ groups['bastions'] }}"
+          when:
+            - "'provisioner' not in groups"
 
-      - name: Include installed software as components
-        vars:
-          ic_rpms: "{{ dci_rpms_to_components }}"
-          ic_gits: "{{ dci_gits_to_components }}"
-          ic_dev_gits: "{{ dev_gits_to_components }}"
-        include_role:
-          name: redhatci.ocp.include_components
+        - name: Include installed software as components
+          vars:
+            ic_rpms: "{{ dci_rpms_to_components }}"
+            ic_gits: "{{ dci_gits_to_components }}"
+            ic_dev_gits: "{{ dev_gits_to_components }}"
+          include_role:
+            name: redhatci.ocp.include_components
 
-      - name: "Process pullsecrets"
-        include_tasks: pullsecrets.yml
+        - name: "Process pullsecrets"
+          include_tasks: pullsecrets.yml
 
-      - name: "Set dci_pullsecret_file fact"
-        set_fact:
-          dci_pullsecret_file: "{{ mrc_auth_file }}"
-          local_pull_secret_path: "{{ mrc_auth_file }}"
-          pull_secret: "{{ mrc_auth_data }}"
-        no_log: true
+        - name: "Set dci_pullsecret_file fact"
+          set_fact:
+            dci_pullsecret_file: "{{ mrc_auth_file }}"
+            local_pull_secret_path: "{{ mrc_auth_file }}"
+            pull_secret: "{{ mrc_auth_data }}"
+          no_log: true
 
-      - name: "Create releases dir in home directory if needed"
-        file:
-          path: "{{ ai_releases_dir }}"
-          state: directory
-          setype: "container_file_t"
-          mode: "0775"
-        when:
-          - hostvars.localhost.provision_cache_store is undefined
+        - name: "Create releases dir in home directory if needed"
+          file:
+            path: "{{ ai_releases_dir }}"
+            state: directory
+            setype: "container_file_t"
+            mode: "0775"
+          when:
+            - hostvars.localhost.provision_cache_store is undefined
 
-      - name: Mirror release
-        include_role:
-          name: redhatci.ocp.mirror_ocp_release
-        vars:
-          mor_version: "{{ version }}"
-          mor_pull_url: "{{ version_pull_url }}"
-          mor_cache_dir: "{{ hostvars.localhost.provision_cache_store | default(ai_releases_dir) }}"
-          mor_registry_url: "{{ dci_local_registry }}"
-          mor_registry_path: "{{ hostvars[groups['registry_host'][0]].local_repo | default( 'ocp-'+ version.split('.')[:2] | join('.') +'/'+ version, true) }}"
-          mor_auths_file: "{{ dci_pullsecret_file }}"
-          mor_force: "{{ (dci_force_mirroring | default(false)) or (hostvars.localhost.build == 'candidate') | bool }}"
-          mor_install_type: "{{ install_type }}"
-          mor_mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
-          mor_mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
-          mor_write_custom_config: "{{ dci_disconnected | default(False) | bool }}"
-          mor_build: "{{ build }}"
-          mor_oc: "{{ oc_tool_path }}"
+        - name: Mirror release
+          include_role:
+            name: redhatci.ocp.mirror_ocp_release
+          vars:
+            mor_version: "{{ version }}"
+            mor_pull_url: "{{ version_pull_url }}"
+            mor_cache_dir: "{{ hostvars.localhost.provision_cache_store | default(ai_releases_dir) }}"
+            mor_registry_url: "{{ dci_local_registry }}"
+            mor_registry_path: >-
+              {{ hostvars[groups['registry_host'][0]].local_repo |
+              default('ocp-'+ version.split('.')[:2] |
+              join('.') +'/'+ version, true) }}
+            mor_auths_file: "{{ dci_pullsecret_file }}"
+            mor_force: "{{ (dci_force_mirroring | default(false)) or (hostvars.localhost.build == 'candidate') | bool }}"
+            mor_install_type: "{{ install_type }}"
+            mor_mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
+            mor_mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
+            mor_write_custom_config: "{{ dci_disconnected | default(False) | bool }}"
+            mor_build: "{{ build }}"
+            mor_oc: "{{ oc_tool_path }}"
 
-      - name: "Set override facts for AI"
-        delegate_to: "{{ item }}"
-        delegate_facts: true
-        set_fact:
-          openshift_full_version: "{{ hostvars.localhost.version }}"
-          openshift_version: "{{ hostvars.localhost.version.split('.')[:2] | join('.') }}"
-          supported_ocp_versions:
-            - "{{ hostvars.localhost.version }}"
-          os_images:
-            - openshift_version: "{{ hostvars.localhost.version.split('.')[:2] | join('.') }}"
-              cpu_architecture: x86_64
-              url: "{{ hostvars.localhost.ocp_release_data.rhcos_images.metal_iso_location }}"
-              rootfs_url: "{{ hostvars.localhost.ocp_release_data.rhcos_images.metal_pxe_rootfs_location }}"
-              version: "{{ hostvars.localhost.ocp_release_data.rhcos_version }}"
-          release_images:
-            - openshift_version: "{{ hostvars.localhost.version.split('.')[:2] | join('.') }}"
-              cpu_architecture: x86_64
-              url: "{{ hostvars.localhost.ocp_release_data.container_image }}"
-              version: "{{ hostvars.localhost.version }}"
-              hash: "{{ hostvars.localhost.ocp_release_data.container_image.split('@')[1] }}"
-        loop:
-          - assisted_installer
-          - registry_host
-          - bastion
-          - localhost
+        - name: "Set override facts for AI"
+          delegate_to: "{{ item }}"
+          delegate_facts: true
+          set_fact:
+            openshift_full_version: "{{ hostvars.localhost.version }}"
+            openshift_version: "{{ hostvars.localhost.version.split('.')[:2] | join('.') }}"
+            supported_ocp_versions:
+              - "{{ hostvars.localhost.version }}"
+            os_images:
+              - openshift_version: "{{ hostvars.localhost.version.split('.')[:2] | join('.') }}"
+                cpu_architecture: x86_64
+                url: "{{ hostvars.localhost.ocp_release_data.rhcos_images.metal_iso_location }}"
+                rootfs_url: "{{ hostvars.localhost.ocp_release_data.rhcos_images.metal_pxe_rootfs_location }}"
+                version: "{{ hostvars.localhost.ocp_release_data.rhcos_version }}"
+            release_images:
+              - openshift_version: "{{ hostvars.localhost.version.split('.')[:2] | join('.') }}"
+                cpu_architecture: x86_64
+                url: "{{ hostvars.localhost.ocp_release_data.container_image }}"
+                version: "{{ hostvars.localhost.version }}"
+                hash: "{{ hostvars.localhost.ocp_release_data.container_image.split('@')[1] }}"
+          loop:
+            - assisted_installer
+            - registry_host
+            - bastion
+            - localhost
 
-      - name: "Prereq facts check"
-        vars:
-          ssh_public_check: "{{ not (generate_ssh_keys | default(True)) }}"
-          mirror_certificate_check: "{{ ((use_local_mirror_registry | default(False)) == True) and ((setup_registry_service | default(True)) == False) }}"
-        include_role:
-          name: redhatci.ocp.prereq_facts_check
+        - name: "Prereq facts check"
+          vars:
+            ssh_public_check: "{{ not (generate_ssh_keys | default(True)) }}"
+            mirror_certificate_check: "{{ ((use_local_mirror_registry | default(False)) == True) and ((setup_registry_service | default(True)) == False) }}"
+          include_role:
+            name: redhatci.ocp.prereq_facts_check
 
-      - name: "Populate image_hashes for relevant images"
-        vars:
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
-        include_role:
-          name: redhatci.ocp.get_image_hash
+        - name: "Populate image_hashes for relevant images"
+          vars:
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
+          include_role:
+            name: redhatci.ocp.get_image_hash
 
-      - name: "Parse openshift version"
-        vars:
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
-        include_role:
-          name: redhatci.ocp.populate_mirror_registry
-          tasks_from: var_check.yml
+        - name: "Parse openshift version"
+          vars:
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
+          include_role:
+            name: redhatci.ocp.populate_mirror_registry
+            tasks_from: var_check.yml
 
-      - name: "Pull openshift binaries"
-        include_role:
-          name: redhatci.ocp.populate_mirror_registry
-          tasks_from: prerequisites.yml
-        vars:
-          downloads_path: "{{ hostvars.localhost.provision_cache_store | default(ai_releases_dir) }}"
-          release_image_remote: "{{ ocp_release_data['container_image'].split('@')[0] }}"
-          config_file_path: "{{ dci_cluster_configs_dir }}"
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
+        - name: "Pull openshift binaries"
+          include_role:
+            name: redhatci.ocp.populate_mirror_registry
+            tasks_from: prerequisites.yml
+          vars:
+            downloads_path: "{{ hostvars.localhost.provision_cache_store | default(ai_releases_dir) }}"
+            release_image_remote: "{{ ocp_release_data['container_image'].split('@')[0] }}"
+            config_file_path: "{{ dci_cluster_configs_dir }}"
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
       rescue: &teardown_error
         - name: Run the teardown error handler
           block:
@@ -154,10 +157,10 @@
     - ../group_vars/all
   tasks:
     - block:
-      - name: Process kvm nodes
-        include_role:
-          name: redhatci.ocp.process_kvm_nodes
-        when: (setup_vms | default(true))
+        - name: Process kvm nodes
+          include_role:
+            name: redhatci.ocp.process_kvm_nodes
+          when: (setup_vms | default(true))
       rescue: *teardown_error
 
 - name: Provision VMS
@@ -168,53 +171,53 @@
     - ../group_vars/all
   tasks:
     - block:
-      - name: Destroy vms
-        include_role:
-          name: redhatci.ocp.destroy_vms
-        when: SETUP_VMS | bool
-        tags:
-          - destroy_vms
+        - name: Destroy vms
+          include_role:
+            name: redhatci.ocp.destroy_vms
+          when: SETUP_VMS | bool
+          tags:
+            - destroy_vms
 
-      - name: Setup vm host network
-        include_role:
-          name: redhatci.ocp.setup_vm_host_network
-        when: (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
+        - name: Setup vm host network
+          include_role:
+            name: redhatci.ocp.setup_vm_host_network
+          when: (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
 
-      - name: Configure firewall for vm_bridge_zone
-        block:
-          - name: Move bridge to designated firewall zone
-            community.general.nmcli:
-              conn_name: "{{ vm_bridge_name }}"
-              state: present
-              zone: "{{ vm_bridge_zone }}"
+        - name: Configure firewall for vm_bridge_zone
+          block:
+            - name: Move bridge to designated firewall zone
+              community.general.nmcli:
+                conn_name: "{{ vm_bridge_name }}"
+                state: present
+                zone: "{{ vm_bridge_zone }}"
 
-          - name: Create Iptables NAT chain
-            iptables:
-              table: nat
-              chain: POSTROUTING
-              source: '{{ machine_network_cidr }}'
-              destination: '! {{ machine_network_cidr }}'
-              jump: MASQUERADE
-              protocol: all
-              comment: Ansible NAT Masquerade
+            - name: Create Iptables NAT chain
+              iptables:
+                table: nat
+                chain: POSTROUTING
+                source: '{{ machine_network_cidr }}'
+                destination: '! {{ machine_network_cidr }}'
+                jump: MASQUERADE
+                protocol: all
+                comment: Ansible NAT Masquerade
 
-          - name: Manage IPv4 forwarding
-            sysctl:
-              name: net.ipv4.ip_forward
-              value: '1'
-              state: present
-              reload: True
-        when:
-          - (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
-          - vm_bridge_zone is defined
-        become: true
+            - name: Manage IPv4 forwarding
+              sysctl:
+                name: net.ipv4.ip_forward
+                value: '1'
+                state: present
+                reload: true
+          when:
+            - (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
+            - vm_bridge_zone is defined
+          become: true
 
-      - name: Create vms
-        include_role:
-          name: redhatci.ocp.create_vms
-        when: SETUP_VMS | bool
-        tags:
-          - setup_vms
+        - name: Create vms
+          include_role:
+            name: redhatci.ocp.create_vms
+          when: SETUP_VMS | bool
+          tags:
+            - setup_vms
       rescue: *teardown_error
 
 - name: Setup DNS Records
@@ -274,10 +277,10 @@
     - ../group_vars/all
   tasks:
     - block:
-      - name: Setup NTP
-        include_role:
-          name: redhatci.ocp.setup_ntp
-        when: SETUP_NTP_SERVICE == True
+        - name: Setup NTP
+          include_role:
+            name: redhatci.ocp.setup_ntp
+          when: SETUP_NTP_SERVICE == True
       rescue: *teardown_error
 
 - name: Install and http_store service
@@ -289,14 +292,14 @@
     - ../group_vars/all
   tasks:
     - block:
-      - name: Setup http store
-        include_role:
-          name: redhatci.ocp.setup_http_store
-        when: SETUP_HTTP_STORE_SERVICE == True
+        - name: Setup http store
+          include_role:
+            name: redhatci.ocp.setup_http_store
+          when: SETUP_HTTP_STORE_SERVICE == True
 
-      - name: Validate http store
-        include_role:
-          name: redhatci.ocp.validate_http_store
+        - name: Validate http store
+          include_role:
+            name: redhatci.ocp.validate_http_store
       rescue: *teardown_error
 
 - name: Play to populate image_hashes for relevant images
@@ -309,16 +312,16 @@
     - ../group_vars/all
   tasks:
     - block:
-      - name: pre-compute need to get hashes
-        set_fact:
-          run_get_hash: "{{ image_hashes | default({}) | length == 0  }}"
+        - name: pre-compute need to get hashes
+          set_fact:
+            run_get_hash: "{{ image_hashes | default({}) | length == 0  }}"
 
-      - name: Get Image Hash
-        vars:
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
-        include_role:
-          name: redhatci.ocp.get_image_hash
-        when: run_get_hash
+        - name: Get Image Hash
+          vars:
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
+          include_role:
+            name: redhatci.ocp.get_image_hash
+          when: run_get_hash
       rescue: *teardown_error
 
 - name: Play to install and setup mirror registry
@@ -337,31 +340,31 @@
     - ../group_vars/all
   tasks:
     - block:
-      - name: Setup selfsigned cert
-        vars:
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
-        include_role:
-          name: redhatci.ocp.setup_selfsigned_cert
-        when: SETUP_REGISTRY_SERVICE == True
+        - name: Setup selfsigned cert
+          vars:
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
+          include_role:
+            name: redhatci.ocp.setup_selfsigned_cert
+          when: SETUP_REGISTRY_SERVICE == True
 
-      - name: Set pull secret facts on the registry host
-        set_fact:
-          local_pull_secret_path: "{{ hostvars.localhost.local_pull_secret_path }}"
-          pull_secret: "{{ hostvars.localhost.pull_secret }}"
+        - name: Set pull secret facts on the registry host
+          set_fact:
+            local_pull_secret_path: "{{ hostvars.localhost.local_pull_secret_path }}"
+            pull_secret: "{{ hostvars.localhost.pull_secret }}"
 
-      - name: Setup mirror registry
-        vars:
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
-        include_role:
-          name: redhatci.ocp.setup_mirror_registry
-        when: SETUP_REGISTRY_SERVICE == True
+        - name: Setup mirror registry
+          vars:
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
+          include_role:
+            name: redhatci.ocp.setup_mirror_registry
+          when: SETUP_REGISTRY_SERVICE == True
 
-      - name: Populate mirror registry
-        vars:
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
-        include_role:
-          name: redhatci.ocp.populate_mirror_registry
-        when: SETUP_REGISTRY_SERVICE == True
+        - name: Populate mirror registry
+          vars:
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
+          include_role:
+            name: redhatci.ocp.populate_mirror_registry
+          when: SETUP_REGISTRY_SERVICE == True
       rescue: *teardown_error
 
 - name: Setup TFTP
@@ -389,10 +392,10 @@
     - ../group_vars/all
   tasks:
     - block:
-      - name: Setup sushy tools
-        include_role:
-          name: redhatci.ocp.setup_sushy_tools
-        when: SETUP_SUSHY_TOOLS == True
+        - name: Setup sushy tools
+          include_role:
+            name: redhatci.ocp.setup_sushy_tools
+          when: SETUP_SUSHY_TOOLS == True
       rescue: *teardown_error
 
 - name: Clean-up nodes - Mainly Baremetal use cases
@@ -401,28 +404,28 @@
     - ../group_vars/all
   tasks:
     - block:
-      - name: Erase bootloader to prevent old OS to boot
-        delegate_to: "{{ item }}"
-        become: true
-        shell: |
-          if grep 'Red Hat Enterprise Linux CoreOS' /etc/os-release; then
-            for disk in /dev/sd?; do
-              dd if=/dev/zero of=$disk bs=512 count=1
-            done
-          fi
-        when:
-          - dci_erase_bootloader_on_disk|default(False)|bool
-          - dci_main is not defined or dci_main == 'install'
-        with_items: "{{ groups['masters'] + groups['workers'] | default([]) }}"
-        ignore_unreachable: true
-        ignore_errors: true
+        - name: Erase bootloader to prevent old OS to boot
+          delegate_to: "{{ item }}"
+          become: true
+          shell: |
+            if grep 'Red Hat Enterprise Linux CoreOS' /etc/os-release; then
+              for disk in /dev/sd?; do
+                dd if=/dev/zero of=$disk bs=512 count=1
+              done
+            fi
+          when:
+            - dci_erase_bootloader_on_disk|default(False)|bool
+            - dci_main is not defined or dci_main == 'install'
+          with_items: "{{ groups['masters'] + groups['workers'] | default([]) }}"
+          ignore_unreachable: true
+          ignore_errors: true
 
-      - name: Empty Console log files if present
-        command: dd if=/dev/null of="{{ item }}"
-        with_fileglob:
-          - "/var/consoles/{{ cluster }}/{{ cluster }}*"
-        when:
-          - cluster is defined
-        become: true
-        ignore_errors: true
+        - name: Empty Console log files if present
+          command: dd if=/dev/null of="{{ item }}"
+          with_fileglob:
+            - "/var/consoles/{{ cluster }}/{{ cluster }}*"
+          when:
+            - cluster is defined
+          become: true
+          ignore_errors: true
 ...

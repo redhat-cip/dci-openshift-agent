@@ -1,16 +1,16 @@
 ---
 - name: Generate Assisted Installer Discovery ISO
   hosts: bastion
-  gather_facts: False
+  gather_facts: false
   vars:
     pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
   vars_files:
     - ../../group_vars/all
   tasks:
     - block:
-      - name: "assisted installer: generate discovery iso"
-        include_role:
-          name: redhatci.ocp.generate_discovery_iso
+        - name: "assisted installer: generate discovery iso"
+          include_role:
+            name: redhatci.ocp.generate_discovery_iso
       rescue:
         - include_tasks: teardown_failure.yml
 ...

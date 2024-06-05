@@ -64,6 +64,7 @@
       copy:
         content: "{{ slurp_cmdline['content'] | b64decode | cmdline_to_json }}"
         dest: "{{ kernel_params }}.json"
+        mode: '0644'
       when: slurp_cmdline['content'] is defined
 
     - name: Delete plan kernel params
@@ -124,15 +125,15 @@
     paths: "/var/consoles/{{ cluster }}/"
     patterns: '{{ cluster }}*'
     size: 1k
-    recurse: no
+    recurse: false
   register: console_log_files
 
 - name: Copy console logs into tmp directory
   fetch:
     src: "{{ item }}"
     dest: "{{ job_logs.path }}/{{ item | basename }}-console.log"
-    flat: yes
-    validate_checksum: no
+    flat: true
+    validate_checksum: false
   loop: "{{ console_log_files.files | map(attribute='path') | list }}"
 
 - name: Find deployment logs (text)
@@ -151,7 +152,7 @@
 - name: Find deployment logs (compressed)
   find:
     paths: "{{ job_logs.path }}"
-    recurse: yes
+    recurse: true
     patterns: "*.gz"
   register: logs_matched
 
@@ -164,7 +165,7 @@
 - name: Find SOS reports (compressed)
   find:
     paths: "{{ job_logs.path }}"
-    recurse: yes
+    recurse: true
     patterns: "*.tar.xz"
   register: logs_matched
 

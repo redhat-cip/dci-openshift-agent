@@ -1,18 +1,18 @@
 ---
 - name: Create cluster
   hosts: bastion
-  gather_facts: False
+  gather_facts: false
   vars:
     pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
   vars_files:
     - ../../group_vars/all
   tasks:
     - block:
-      - name: "assisted installer: create cluster"
-        vars:
-          repo_root_path: "{{ dci_cluster_configs_dir }}"
-        include_role:
-          name: redhatci.ocp.create_cluster
+        - name: "assisted installer: create cluster"
+          vars:
+            repo_root_path: "{{ dci_cluster_configs_dir }}"
+          include_role:
+            name: redhatci.ocp.create_cluster
       rescue:
         - include_tasks: teardown_failure.yml
 ...
