@@ -21,7 +21,6 @@ PROJECTS=(
     ansible-collection-community-libvirt
     ansible-collection-containers-podman
     ansible-role-dci-podman
-    ansible-role-dci-sync-registry
     dci-ansible
     dci-openshift-agent
     dci-openshift-app-agent

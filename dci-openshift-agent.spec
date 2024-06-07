@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.13.0
+Version:       0.14.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -17,7 +17,6 @@ Requires: python2-dciclient >= 3.1.0
 Requires: python3-dciclient >= 3.1.0
 %endif
 Requires: dci-pipeline >= 0.7.0
-Requires: ansible-role-dci-sync-registry
 Requires: ansible-role-dci-podman
 Requires: ansible-collection-redhatci-ocp >= 0.9.0
 
@@ -84,6 +83,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Jun  5 2024 Tony Garcia <tonyg@redhat.com> 0.14.0-1
+- Remove unrequired/unused package ansible-role-dci-sync-registry
+
 * Wed May  1 2024 Beto Rdz <josearod@redhat.com> 0.13.0-1
 - Requires ansible-collection-redhatci-ocp >= 0.9.0 for ACM
 

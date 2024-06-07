@@ -28,7 +28,6 @@ PROJECTS=(
     ansible-collection-containers-podman
     ansible-collection-redhatci-ocp
     ansible-role-dci-podman
-    ansible-role-dci-sync-registry
     dci-ansible
     dci-openshift-agent
     dci-openshift-app-agent

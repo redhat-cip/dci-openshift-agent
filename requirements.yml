@@ -1,8 +1,6 @@
 ---
 
 roles:
-  - src: https://softwarefactory-project.io/r/ansible-role-dci-sync-registry
-    scm: git
   - src: https://softwarefactory-project.io/r/ansible-role-dci-podman
     scm: git
 
