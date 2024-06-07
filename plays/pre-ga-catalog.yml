@@ -1,8 +1,8 @@
 ---
-- name: Find ImageDigestMirrorSet in the cluster
+- name: Check if IDMS is supported
   community.kubernetes.k8s_info:
-    api_version: config.openshift.io/v1
-    kind: ImageDigestMirrorSet
+    kind: CustomResourceDefinition
+    name: imagedigestmirrorsets.config.openshift.io
   register: idms_res
 
 - name: Copy images or create manifests only for Pre-GA
