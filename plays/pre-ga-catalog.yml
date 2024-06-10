@@ -33,3 +33,31 @@
 - name: Append the Pre-GA catalog to the list of custom catalogs
   ansible.builtin.set_fact:
     custom_catalogs: "{{ custom_catalogs | default([]) + [mc_catalog_digest] }}"
+
+- name: Create component for Pre-GA index
+  dci_component:
+    display_name: "{{ dci_pre_ga_catalog | regex_replace('.*/(.*):([^_]+).*', '\\1:\\2') }}"
+    version: "{{ dci_pre_ga_catalog.split(':') | last }}"
+    type: "{{ dci_pre_ga_catalog.split('/') | last | regex_replace(':.*', '') }}"
+    data:
+      catalog_source_name: "{{ dci_pre_ga_catalog }}"
+    url: "{{ dci_pre_ga_catalog }}"
+    team_id: "{{ job_info['job']['team_id'] }}"
+    topic_id: "{{ job_info['job']['topic_id'] }}"
+    state: present
+  register: operator_component
+  ignore_errors: true
+
+- name: Attach Pre-ga catalog component to the job
+  dci_job_component:
+    component_id: "{{ operator_component.component.id }}"
+    job_id: "{{ job_id }}"
+  register: job_component_result
+  until: job_component_result is not failed
+  retries: 5
+  delay: 20
+  when:
+    - "'component' in operator_component"
+    - "'id' in operator_component.component"
+  ignore_errors: true
+...
