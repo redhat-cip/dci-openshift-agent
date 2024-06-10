@@ -5,7 +5,7 @@
   include_tasks: build-upstream-catalog.yml
   when:
     - dci_disconnected | default(false) | bool or (dci_local_registry | length )
-    - short_ver is version("4.17", ">=")
+    - short_ver is version("4.18", ">=")
 
 - name: "Set mirror variable"
   set_fact:

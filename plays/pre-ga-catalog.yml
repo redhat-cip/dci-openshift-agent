@@ -17,13 +17,19 @@
     mc_manifest_only: "{{ not (dci_disconnected | default(false) | bool) }}"
     mc_max_components: 4
 
-- name: Modify Pre-GA Image Source files
+- name: Modify Pre-GA Image Sources, except bundles
+  vars:
+    bundles_exceptions:
+      - "cincinnati-operator-metadata-container"
+      - "custom-metrics-autoscaler-operator-metadata"
+    search_for: "quay.io/prega/test/"
+    replacement: "registry.redhat.io/"
   ansible.builtin.shell: >
     sed -i
-    -e '/source:/!b;/bundle/b;/cincinnati/b;s,quay.io/prega/test/,registry.redhat.io/,'
+    -e '/source:/!b;/bundle/b{% for param in bundles_exceptions %};/{{ param }}/b{% endfor %};s,{{ search_for }},{{ replacement }},'
     "{{ mc_is_file.path }}"
-  changed_when: false
   when: mc_is_file is defined
+  changed_when: false
 
 - name: Append to list of Image Source files
   ansible.builtin.set_fact:
