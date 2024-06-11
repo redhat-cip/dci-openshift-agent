@@ -1,0 +1,42 @@
+---
+- name: Create migration directory
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: icsp_tmp
+  register: icsp_tmp_dir
+
+- name: Migrate ICSP to IDMS
+  ansible.builtin.shell:
+    chdir: "{{ icsp_tmp_dir.path }}"
+    cmd: >
+      set -x -o pipefail;
+      mkdir -p idms icsp;
+      for f in $({{ oc_tool_path }} get imageContentSourcePolicy -o name); do
+        {{ oc_tool_path }} get ${f} -o yaml > icsp/$(basename ${f}).yaml;
+      done;
+      for f in icsp/*.yaml; do
+        {{ oc_tool_path }} adm migrate icsp ${f} --dest-dir idms;
+      done;
+      for f in idms/*.yaml; do
+        sed -i '/creationTimestamp\|generation\|resourceVersion\|uid\|annotations\|last-applied-configuration/d' "${f}";
+      done;
+      {{ oc_tool_path }} apply --force --overwrite=true -f idms
+  register: migration_result
+  changed_when: migration_result.rc != 0
+
+- name: Delete ICSP migration directory
+  ansible.builtin.file:
+    path: "{{ icsp_tmp_dir.path }}"
+    state: absent
+  when: icsp_tmp_dir is defined
+
+- name: Wait for ICSP migration to complete
+  include_role:
+    name: redhatci.ocp.check_resource
+  vars:
+    resource_to_check: "MachineConfigPool"
+    check_wait_retries: 120
+    check_wait_delay: 10
+    check_reason: "Migrate ICSP to IDMS"
+    cr_oc: "{{ oc_tool_path }}"
+...

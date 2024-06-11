@@ -238,4 +238,17 @@
   when:
     - enable_acm | bool
     - dci_disconnected | default(false) | bool
+
+- name: Check for ICSPs that need to be migrated
+  community.kubernetes.k8s_info:
+    api_version: operator.openshift.io/v1alpha1
+    kind: ImageContentSourcePolicy
+  register: cluster_icsp
+
+- name: "Migrate ICSP to IDMS"
+  ansible.builtin.include_tasks: migrate-icsp.yml
+  when:
+    - cluster_icsp is defined
+    - cluster_icsp.resources | length > 0
+    - version is version("4.14", ">=")
 ...
