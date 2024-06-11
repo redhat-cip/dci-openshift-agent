@@ -82,9 +82,9 @@ No extra variables are needed in the ACM Hub Cluster inventory.
 
 * The private key to the SSH private key enabled in the Git repository.
 
-* Credentials to log into the spoke cluster node BMC consoles.
+* The Git repository must provide credentials to log into the spoke cluster node BMC consoles.
 
-* A pull secret file.
+* Also provide a pull secret file for the Spoke cluster. You can use the pull secret extracted from the Hub cluster for this purpose.
 
 ### Configuration for the ZTP Spoke Cluster
 
@@ -94,15 +94,13 @@ The following settings must be provided to the SNO Spoke Cluster deployment job.
 |----------|----------|-------|-------------|
 | install_type | yes | acm | Enables the dci-openshift-agent flow that installs a spoke cluster. |
 | acm_cluster_type | yes | ztp-spoke | Enables the gitops-ztp installation method from all the available ACM based methods. |
-| bmc_user | yes | | User name for the Spoke Cluster nodes BMC consoles. |
-| bmc_password | yes | | Password for the Spoke Cluster nodes BMC consoles. |
 | dci_gitops_sites_repo | yes | | Parameters to the site-config manifest repository.
 | dci_gitops_policies_repo | yes | | Parameters to the policy generator template manifest repository. |
 | dci_gitops_*_repo.url | yes | | URL to the repository. |
 | dci_gitops_*_repo.path | yes | | Path to the directory containing the manifests. |
 | dci_gitops_*_repo.branch | yes | | Branch containing your target version of the manifests. |
 | dci_gitops_*_repo.key_path | yes | | Local path to the SSH private key file authorized to access the repository. |
-| dci_gitops_*_repo.known_hosts | yes | | List of the repository SSH fingerprints. |
+| dci_gitops_*_repo.known_hosts | no | | (If required) List of the repository SSH fingerprints. |
 
 ### Pipeline example for the ZTP Spoke Cluster
 
@@ -139,12 +137,6 @@ all:
   hosts:
     localhost:
       ansible_connection: local
-  children:
-    spoke_nodes:
-      hosts:
-        sno1:
-          bmc_user: {{ VAULT_NODES_BMC_USER }}
-          bmc_password: {{ VAULT_NODES_BMC_PASSWORD }}
   vars:
     cluster: sno1
     domain: spoke.example.lab

@@ -13,9 +13,6 @@
       - dci_gitops_policies_repo.url is defined
       - dci_gitops_policies_repo.path is defined
       - dci_gitops_policies_repo.branch is defined
-      - groups.spoke_nodes is defined
-      - hostvars[groups.spoke_nodes.0].bmc_user is defined
-      - hostvars[groups.spoke_nodes.0].bmc_password is defined
 
 - name: Load the SSH key to access the repository
   ansible.builtin.include_role:
@@ -34,14 +31,14 @@
     czga_clusters_namespace: "{{ cluster }}"
     czga_policies_namespace: "{{ cluster }}-policies"
     czga_ocp_pull_secret: "{{ hub_pull_secret.resources[0].data['.dockerconfigjson'] | b64decode }}"
-    ztp_site_generator_image: "{{ hub_registry | default('registry.redhat.io/openshift4') }}/ztp-site-generate-rhel8"
-    ztp_site_generator_version: "v{{ job_info.job.topic.name | ansible.builtin.regex_replace('OCP-', '') }}"
-    ztp_sites_path: "{{ dci_gitops_sites_repo.path}}"
-    ztp_sites_gitops_repo: "{{ dci_gitops_sites_repo.url }}"
-    ztp_sites_branch: "{{ dci_gitops_sites_repo.branch }}"
-    ztp_policies_path: "{{ dci_gitops_policies_repo.path}}"
-    ztp_policies_gitops_repo: "{{ dci_gitops_policies_repo.url }}"
-    ztp_policies_branch: "{{ dci_gitops_policies_repo.branch }}"
+    czga_site_generator_image: "{{ hub_registry | default('registry.redhat.io/openshift4') }}/ztp-site-generate-rhel8"
+    czga_site_generator_version: "v{{ job_info.job.topic.name | ansible.builtin.regex_replace('OCP-', '') }}"
+    czga_sites_path: "{{ dci_gitops_sites_repo.path}}"
+    czga_sites_gitops_repo: "{{ dci_gitops_sites_repo.url }}"
+    czga_sites_branch: "{{ dci_gitops_sites_repo.branch }}"
+    czga_policies_path: "{{ dci_gitops_policies_repo.path}}"
+    czga_policies_gitops_repo: "{{ dci_gitops_policies_repo.url }}"
+    czga_policies_branch: "{{ dci_gitops_policies_repo.branch }}"
 
 - name: Wait for the deployment to start
   community.kubernetes.k8s_info:
