@@ -7,7 +7,7 @@
         name: imagedigestmirrorsets.config.openshift.io
       register: idms_res
 
-    - name: "Get Hub Image Source"
+    - name: "Get Hub Image Source Type"
       community.kubernetes.k8s_info:
         api_version: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('config.openshift.io/v1', 'operator.openshift.io/v1alpha1') }}"
         kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
@@ -19,29 +19,12 @@
       set_fact:
         hub_registry: "docker://{{ hub_is.resources[0] | json_query(hub_query) | flatten | first }}"
 
-    - name: "Get hub cluster config"
-      community.kubernetes.k8s_info:
-        kind: ConfigMap
-        namespace: kube-system
-        name: cluster-config-v1
-        kubeconfig: "{{ hub_kubeconfig_path }}"
-      register: hub_config
-
     - name: "Set hub mirrors"
       vars:
-        cluster_install_info: |-
-          {{ ( hub_config.resources[0].data |
-          from_yaml )['install-config'] |
-          from_yaml }}
-        hub_mirrors_type: |-
-          {{ idms_res.resources is defined and idms_res.resources |
-             length |
-            ternary('imageDigestSources', 'imageContentSources')
-          }}
+        hub_mirrors_type: "resources[*].spec.*[*].{mirrors: mirrors, source: source}"
       set_fact:
-        hub_mirrors: "{{ cluster_install_info | json_query(hub_mirrors_type) }}"
-      when:
-        - hub_config | length
+        hub_mirrors: "{{ hub_is | json_query(hub_mirrors_type) | flatten }}"
+      when: hub_is | length > 0
 
     - name: "Validate webserver_url variable is defined"
       assert:
