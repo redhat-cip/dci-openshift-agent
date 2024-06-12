@@ -19,13 +19,6 @@
     - dci_disconnected | default(false) | bool
     - dci_operators | default([]) | length
 
-- name: "Get the operators to mirror from list"
-  include_tasks: plays/get-mirror-list.yml
-  when:
-    - dci_disconnected | default(false) | bool
-    - opm_mirror_list | type_debug == "list" or
-      opm_mirror_list is undefined
-
 - name: "Get the operators to mirror from dict"
   set_fact:
     mirror_list: "{{ mirror_list | combine(opm_mirror_list) | default({}) }}"
