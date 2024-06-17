@@ -48,7 +48,7 @@
     namespace: "{{ cluster }}"
   register: install_started
   delay: 10
-  retries: 30
+  retries: 90
   until:
     - install_started.resources is defined
     - install_started.resources | length > 0
