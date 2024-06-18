@@ -102,10 +102,6 @@
                 return_content: true
               register: credentials
 
-            - name: Login to add token to kubeconfig
-              shell: |
-                {{ oc_tool_path }} login -u {{ credentials.json.username }} -p '{{ credentials.json.password }}'
-
             - name: Save credentials to file
               copy:
                 content: "{{ credentials.json | to_yaml }}"
