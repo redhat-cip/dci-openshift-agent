@@ -2,7 +2,6 @@
 - name: Up bootstrap VM
   hosts: vm_host
   vars:
-    ansible_python_interpreter: /usr/libexec/platform-python
     hook_action: install
   tasks:
     - set_fact:
@@ -14,3 +13,5 @@
       when: vbmc_host_provided is not defined
     - include_role:
         name: redhatci.ocp.ocp_on_libvirt
+      vars:
+        ansible_python_interpreter: "{{ (lookup('env', 'container') == 'oci') | ansible.builtin.ternary(hostvars['localhost'].ansible_python_interpreter, '/usr/libexec/platform-python') }}"
