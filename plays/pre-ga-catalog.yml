@@ -66,4 +66,18 @@
     - "'component' in operator_component"
     - "'id' in operator_component.component"
   ignore_errors: true
+
+- name: Get differences between GA and daily Pre-GA
+  vars:
+    ga_version: "{{ dci_pre_ga_catalog | regex_findall(':(v\\d+\\.\\d+)') | first }}"
+    ga_index: registry.redhat.io/redhat/redhat-operator-index:{{ ga_version }}
+    compare_script: plays/scripts/compare-indexes.sh
+  ansible.builtin.shell: >
+    set -x;
+    {{ compare_script }} {{ ga_index }} {{ dci_pre_ga_catalog }} >
+    {{ job_logs.path }}/ga-prega-versions.txt
+  register: compare_result
+  until: compare_result.rc == 0
+  retries: 3
+  delay: 10
 ...
