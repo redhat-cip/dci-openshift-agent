@@ -62,7 +62,7 @@
   vars:
     status_query: "resources[*].status.conditions[?type=='Available'].status"
     cluster_operators_available: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
-  retries: 6
+  retries: 15
   delay: 10
   until: cluster_operators_available == ['True']
   when:
