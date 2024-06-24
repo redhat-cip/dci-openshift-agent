@@ -68,6 +68,8 @@
   ignore_errors: true
 
 - name: Get differences between GA and daily Pre-GA
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ dci_cluster_configs_dir }}:/sbin:/usr/sbin:/usr/local/bin/"
   vars:
     ga_version: "{{ dci_pre_ga_catalog | regex_findall(':(v\\d+\\.\\d+)') | first }}"
     ga_index: registry.redhat.io/redhat/redhat-operator-index:{{ ga_version }}
