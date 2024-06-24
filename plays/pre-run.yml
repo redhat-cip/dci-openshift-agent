@@ -91,6 +91,16 @@
   include_role:
     name: redhatci.ocp.mirror_ocp_release
   vars:
+    is_type: >-
+      {%- if dci_main == 'upgrade' and version is version('4.15', '<') -%}
+        icsp
+      {%- elif dci_main == 'upgrade' and version is version('4.15', '>=') -%}
+        idms
+      {%- elif dci_main == 'install' and version is version('4.14', '>=') -%}
+        idms
+      {%- else -%}
+        icsp
+      {%- endif -%}
     mor_version: "{{ version }}"
     mor_pull_url: "{{ version_pull_url }}"
     mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
@@ -100,7 +110,7 @@
     mor_auths_file: "{{ dci_pullsecret_file }}"
     mor_force: "{{ (dci_force_mirroring | default(false)) or (build == 'candidate') | bool }}"
     mor_install_type: "{{ install_type }}"
-    mor_is_type: "{{ version is version('4.14', '>=') | ternary('idms', 'icsp') }}"
+    mor_is_type: "{{ is_type }}"
     mor_mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
     mor_mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
     mor_write_custom_config: "{{ dci_disconnected | default(False) | bool }}"
