@@ -207,6 +207,7 @@
   vars:
     mandatory_rpms:
       - ansible
+      - ansible-collection-redhatci-ocp
       - dci-ansible
       - dci-openshift-agent
       - dci-pipeline
