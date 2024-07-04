@@ -213,6 +213,8 @@
           become: true
 
         - name: Create vms
+          vars:
+            create_vms_disable_secure_boot: "{{ assisted_disable_secure_boot | default(false) | bool }}"
           include_role:
             name: redhatci.ocp.create_vms
           when: SETUP_VMS | bool
