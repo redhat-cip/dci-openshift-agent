@@ -1,4 +1,22 @@
 ---
+- name: Find all of the files inside this directory
+  ansible.builtin.find:
+    paths: "/etc/yum.repos.d/"
+    patterns: "*.repo"
+  register: repos
+
+- name: Comment mirrorlist and uncomment baseurl if Distro is CentOS
+  become: true
+  ansible.builtin.replace:
+    path: "{{ item[0].path }}"
+    regexp: "{{ item[1][0] }}"
+    replace: "{{ item[1][1] }}"
+  loop: >-
+    {{ repos.files | product([['mirror.centos.org', 'vault.centos.org'],
+    ['^#.*baseurl=http', 'baseurl=http'],
+    ['^mirrorlist=http', '#mirrorlist=http']]) | list }}
+  when: ansible_distribution == 'CentOS'
+
 - name: Check on the EPEL repository status on a connected provisioner
   become: true
   package:
