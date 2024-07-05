@@ -1,18 +1,30 @@
 ---
+# Only do this if `outputs` variable is not defined, to allow customizing
+# this variable in partner hooks.
+# By default, we provide the kubeconfig as standard output.
 - name: Set outputs to be copied
   set_fact:
     outputs:
       kubeconfig: "{{ dci_cluster_configs_dir }}/kubeconfig"
+  when: outputs is not defined
 
+# Only copy each entry from `outputs` pipeline folder if:
+# - `outputs` folder is defined in the pipeline
+# - `outputs` local variable contains the entry defined in `outputs` pipeline field
+# This is to avoid making a job to fail because of a wrong outputs configuration.
 - name: Copy outputs if defined
   copy:
     src: "{{ outputs[item.key] }}"
     dest: "{{ item.value }}"
     mode: "0644"
   with_dict: "{{ job_info.outputs }}"
-  when: job_info.outputs is defined and job_info.outputs != None
+  when:
+    - job_info.outputs is defined
+    - job_info.outputs != None
+    - outputs[item.key] is defined
 
 - name: Get the differences from the previous DCI job
   shell: "dci-diff-jobs --job_id_1 {{ job_id }} > {{ job_logs.path }}/diff-jobs.txt"
   ignore_errors: true
+
 ...
