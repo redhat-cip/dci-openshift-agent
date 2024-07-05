@@ -95,6 +95,8 @@ The following variables control where **in the jumpbox** the different pieces
 will store their data, make sure you have enough space (at least 200G) to hold
 your cached files, and routinely monitor for disk consumption:
 
+  * `ai_version` [Assisted installer](https://quay.io/repository/edge-infrastructure/assisted-installer-agent) agent version.
+    See group_vars/all for the version supported the the agent.
   * `downloads_path` where the OCP files (ISO files, RAW images, client tools,
     etc) will be downloaded
   * `assisted_installer_dir` (for on-prem method only) where the data needed by
