@@ -1,11 +1,15 @@
 ---
 - name: Install helper tools
+  vars:
+    python_version: >-
+      {{ (ansible_python.version.major == 3)
+      | ansible.builtin.ternary('python3', 'python') }}
   become: true
-  package:
+  ansible.builtin.package:
     name:
-      - "python{% if ansible_python.version.major == 3 %}3{% endif %}-firewall"
-      - "python{% if ansible_python.version.major == 3 %}3{% endif %}-dns"
-      - "python{% if ansible_python.version.major == 3 %}3{% endif %}-netaddr"
+      - "{{ python_version }}-firewall"
+      - "{{ python_version }}-dns"
+      - "{{ python_version }}-netaddr"
       - "jq"
       - "expect"
       - python3-passlib
