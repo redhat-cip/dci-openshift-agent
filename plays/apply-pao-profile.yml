@@ -44,52 +44,11 @@
   when:
     - profile_state is defined
 
-- name: Set Performance Profile KubeletConfig creation time
-  set_fact:
-    perf_kubelet_timestamp: "{{ kubelet.resources[0].metadata.creationTimestamp }}"
-
-- name: Wait (up to 10 mins) for rendered-worker MC triggered by Performance Profile
-  community.kubernetes.k8s_info:
-    api_version: machineconfiguration.openshift.io/v1
-    kind: MachineConfig
-  register: reg_worker_mc
-  vars:
-    worker_mc_query: "[?contains(metadata.name, 'rendered-worker')].metadata.creationTimestamp"
-    worker_mc_timestamp: "{{ reg_worker_mc.resources | to_json | from_json | json_query(worker_mc_query) | sort | last }}"
-  until:
-    - reg_worker_mc.resources is defined
-    - worker_mc_timestamp >= perf_kubelet_timestamp
-  retries: 60
-  delay: 10
-  when:
-    - install_type is undefined or install_type != 'sno'
-    - reg_mcpool_worker.resources[0].status.machineCount >= 1
-    - profile_state.result.spec.nodeSelector is search('worker')
-
-- name: Wait (up to 10 mins) for rendered-controlplane MC triggered by Performance Profile
-  community.kubernetes.k8s_info:
-    api_version: machineconfiguration.openshift.io/v1
-    kind: MachineConfig
-  register: reg_controlplane_mc
-  vars:
-    controlplane_mc_query: "[?contains(metadata.name, 'rendered-master')].metadata.creationTimestamp"
-    controlplane_mc_timestamp: "{{ reg_controlplane_mc.resources | to_json | from_json | json_query(controlplane_mc_query) | sort | last }}"
-  until:
-    - reg_controlplane_mc.resources is defined
-    - controlplane_mc_timestamp >= perf_kubelet_timestamp
-  retries: 60
-  delay: 10
-  when:
-    - install_type is undefined or install_type != 'sno'
-    - reg_mcpool_controlplane.resources[0].status.machineCount >= 1
-    - profile_state.result.spec.nodeSelector is search('master')
-
 - name: Pause 60 seconds to wait for MC triggered by Performance Profile starts the node changes
   pause:
     seconds: 60
   when:
     - install_type is undefined or install_type != 'sno'
-    - reg_mcpool_worker.resources[0].status.machineCount >= 1 or reg_mcpool_controlplane.resources[0].status.machineCount >= 1
   no_log: true
 
 - name: Wait for SNO node to be available
