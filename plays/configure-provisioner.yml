@@ -19,7 +19,7 @@
 
 - name: Check on the EPEL repository status on a connected provisioner
   become: true
-  package:
+  ansible.builtin.package:
     name: epel-release
   when:
     - ansible_facts.distribution != "RedHat"
@@ -27,21 +27,24 @@
 
 - name: Configure extra repositories
   become: true
-  yum_repository:
+  ansible.builtin.yum_repository:
     name: "{{ item.name }}"
     description: "{{ item.description | default(item.name + ' repository') }}"
     baseurl: "{{ item.baseurl }}"
     mirrorlist: "{{ item.mirrorlist | default(omit) }}"
     gpgcheck: "{{ item.gpgcheck | default('no') }}"
     state: "{{ item.state | default('present') }}"
-  with_items: "{{ provisioner_extra_repos | default([]) }}"
+  loop: "{{ provisioner_extra_repos | default([]) }}"
 
 - name: Install packages
   become: true
-  package:
+  vars:
+    pytehon_version: >-
+      {{ (ansible_python.version.major == 3) | ternary('python3', 'python') }}
+  ansible.builtin.package:
     name:
       - "{{ item }}"
     state: installed
-  with_items:
-    - "python{% if ansible_python.version.major == 3 %}3{% endif %}-openshift"
+  loop:
+    - "{{ pytehon_version }}-openshift"
 ...
