@@ -108,7 +108,9 @@ your cached files, and routinely monitor for disk consumption:
   * `http_dir` will store the files served over HTTP e.g. the discovery ISO
   * `vm_create_scripts_dir` (for a virtual environment only): holds the shell
     scripts that tell libvirt how to create the VMs. You can set up
-    secure boot (enabled by default) with `assisted_disable_secure_boot` flag
+    secure boot (enabled by default) with `dci_assisted_disable_secure_boot`
+    flag. With that variable, Sushy Tools config is also updated
+    accordingly, in terms of OVMF code path.
   * `images_dir` (for a virtual environment only): where the generated
     libvirt OS images will be stored
 
