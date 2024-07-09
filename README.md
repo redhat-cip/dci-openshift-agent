@@ -9,9 +9,11 @@ There are some benefits of running the DCI OCP Agent:
 2. CI runs on your own hardware
 3. Red Hat doesn't have access to your hardware, the agent reports metrics/logs
    back to distributed-ci.io
-4. The agent leverages the OpenShift IPI/UPI/AI/ACM/ZTP installers
+4. The agent leverages the OpenShift IPI/[UPI](docs/upi.md)/[AI](docs/a-i.md)/[ACM](docs/acm.md)/[ZTP](docs/gitops-ztp.md) installers
 5. You have access to all your jobs logs and metrics through distributed-ci.io
    where you can also set notifications for errors/exceptions
+
+See the installer's documentation for details about the supported/required variables for each deployment method.
 
 ## Requirements
 
@@ -262,6 +264,7 @@ This is the dci-openshift-agent variables that can be set in the
 
 | Variable                        | Required | Type    | Default                                                        | Description
 |---------------------------------| -------- | ------- | -------------------------------------------------------------- | ------------
+| install_type                    | False    | String  | ipi                                                            | Openshift Installer type.
 | dci_must_gather_images          | False    | List    |["registry.redhat.io/openshift4/ose-must-gather"]               | List of the must-gather images to use when retrieving "logs.\*".
 | dci_teardown_on_failure         | False    | Boolean | False                                                          | Whether or not execute the teardown hook on a failure.
 | dci_teardown_on_success         | False    | Boolean | True                                                           | Whether or not execute the teardown hook on success.
