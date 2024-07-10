@@ -1,6 +1,6 @@
 ---
 # Only do this if `outputs` variable is not defined, to allow customizing
-# this variable in partner hooks.
+# this variable.
 # By default, we provide the kubeconfig as standard output.
 - name: Set outputs to be copied
   set_fact:
@@ -9,7 +9,7 @@
   when: outputs is not defined
 
 # Only copy each entry from `outputs` pipeline folder if:
-# - `outputs` folder is defined in the pipeline
+# - `outputs` folder (represented by `job_info.outputs` variable) is defined in the pipeline
 # - `outputs` local variable contains the entry defined in `outputs` pipeline field
 # This is to avoid making a job to fail because of a wrong outputs configuration.
 - name: Copy outputs if defined
@@ -17,7 +17,7 @@
     src: "{{ outputs[item.key] }}"
     dest: "{{ item.value }}"
     mode: "0644"
-  with_dict: "{{ job_info.outputs }}"
+  loop: "{{ job_info.outputs | dict2items }}"
   when:
     - job_info.outputs is defined
     - job_info.outputs != None
