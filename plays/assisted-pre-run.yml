@@ -424,8 +424,6 @@
   tasks:
     - block:
         - name: Setup sushy tools
-          vars:
-            setup_sushy_tools_disable_secure_boot: "{{ dci_assisted_disable_secure_boot | default(false) | bool }}"
           include_role:
             name: redhatci.ocp.setup_sushy_tools
           when: SETUP_SUSHY_TOOLS == True
