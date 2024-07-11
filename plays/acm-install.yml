@@ -47,6 +47,8 @@
       vars:
         ah_pullsecret_file: "{{ dci_pullsecret_file }}"
         ah_disconnected: "{{ dci_disconnected | default(False) | bool }}"
+        ah_release_image: "{{ acm_release_image }}"
+        ah_force_deploy: true
       include_role:
         name: redhatci.ocp.acm_hypershift
         apply:

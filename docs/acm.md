@@ -59,7 +59,7 @@ Please read the role's documentation for more information.
 1. Define the deployment settings for the new SNO instance. See the example of an [ACM SNO Pipeline](#acm-sno-pipeline).
 1. Use `dci_pipeline` or the DCI Agent to initiate the deployment using the values defined in the [`acm-sno-pipeline`](#acm-sno-pipeline).
 
-> NOTE: Operators can be deployed on top of the SNO instance by defining the proper `enable_<operator>` flag, see the [acm-sno-pipeline](#acm-sno-pipeline) example.
+> NOTE: Operators can be deployed on top of the SNO instance as it is described in [Deploying operators](../README.md#deploying-operators).
 > DCI will perform the proper operator mirroring and complete its deployment.
 > Please take into consideration that not all operators may be suitable for SNO instances.
 
@@ -68,8 +68,8 @@ Please read the role's documentation for more information.
 1. The process starts, and the agent creates a new job in the [DCI Web UI](https://www.distributed-ci.io/login).
 1. Some checks are performed to make sure the installation can proceed.
 1. If this is a disconnected/restricted network environment:
-   1. The OCP release artifacts are downloaded
-   1. Container/operator images are mirrored to the local registry
+   1. The OCP release artifacts are downloaded.
+   1. Container/operator images are mirrored to the local registry. The `acm_local_repo` variable can be used to set a local registry repository. Defaults to ocp-<major-version>/<version>
    1. The cluster hub is inspected to extract settings used in the SNO instance, e.g. pull secrets, registry host, web server, among others.
 1. The ACM installation is set up and started. The required ACM resources are created.
    1. BMC secret.
@@ -88,9 +88,11 @@ Please read the role's documentation for more information.
 
 ## Hypershift configuration
 
-> ⚠️ Currently hypershift is experimental, only the hosted cluster of type "none" is supported
+> ⚠️ Currently, Hypershift only supports the "kvirt" hosted cluster type.
 
 1. A Hub cluster is deployed with support for ACM. It can be achieved by setting `enable_acm=true` during an OCP deployment. Please see the example of an [ACM Hub pipeline](#acm-hub-pipeline).
+1. The Hub cluster must have the CNV and metallb operators installed.
+1. The OCP release images for the HCP cluster will be mirrored to the same registry path as the Hub cluster images.
 1. The kubeconfig file of the Cluster Hub is exported as HUB_KUBECONFIG: `export HUB_KUBECONFIG=/<kubeconfig_path>`
 1. Define the deployment settings for the new Hosted Cluster instance. See the example of an [ACM Hypershift Pipeline](#acm-hypershift-pipeline).
   1. As part of the installation, the agent will deploy a MetalLB instance in L2 mode. The variable `metallb_ipaddr_pool_l2` with the range of IPs for the LoadBalancer is required and can be defined at the pipeline or inventory.
@@ -130,13 +132,12 @@ This pipeline includes NFS storage
     nfs_server: nfs.example.com
     nfs_path: /path/to/exports
     dci_teardown_on_success: false
-    metallb_ipaddr_pool_l2: 192.168.12.32-192.168.12.36
-  topic: OCP-4.13
+  topic: OCP-4.14
   components:
     - ocp
   outputs:
     kubeconfig: "kubeconfig"
-  success_tag: ocp-acm-hub-4.13-ok
+  success_tag: ocp-acm-hub-4.14-ok
 ```
 
 ### ACM SNO pipeline
@@ -164,10 +165,10 @@ This pipeline includes NFS storage
     dci_baseurl: "http://{{ dci_base_ip }}"
     dci_teardown_on_success: false
     enable_sriov: true
-  topic: OCP-4.13
+  topic: OCP-4.15
   components:
     - ocp
-  success_tag: ocp-acm-sno-4.13-ok
+  success_tag: ocp-acm-sno-4.15-ok
 ```
 
 ### ACM Hypershift pipeline
@@ -193,13 +194,35 @@ This pipeline includes NFS storage
     dci_base_ip: "{{ ansible_default_ipv4.address }}"
     dci_baseurl: "http://{{ dci_base_ip }}"
     dci_teardown_on_success: false
-  topic: OCP-4.13
+  topic: OCP-4.14
   components:
     - ocp
-  success_tag: ocp-acm-hypershift-4.13-ok
+  success_tag: ocp-acm-hypershift-4.14-ok
 ```
 
 ## Inventory Examples
+
+### ACM hypershift kvirt Inventory file
+
+```yaml
+all:
+  hosts:
+    jumphost:
+      ansible_connection: local
+    # All task for ACM run from localhost, so making provisioner equals to localhost
+    provisioner:
+      ansible_connection: local
+      ansible_python_interpreter: "{{ansible_playbook_python}}"
+      ansible_user: <ansible_user>
+  vars:
+    cluster: cluster<X>-hcp
+    webserver_url: "http://webcache.<domain>.lab:8080"
+    provision_cache_store: "/opt/cache"
+    # MetalLB in L2 mode
+    metallb_ipaddr_pool_l2:
+      - <ipv4-start>-<ipv4-end>
+      - <<ipv6-start>-<ipv6-end>
+```
 
 ### SNO Inventory file
 
@@ -211,7 +234,7 @@ all:
     # All task for ACM run from localhost, so making provisioner equal to localhost
     provisioner:
       ansible_connection: local
-      ansible_user: dciteam
+      ansible_user: <ansible_user>
   vars:
     cluster: clusterX-sno
     dci_disconnected: true
