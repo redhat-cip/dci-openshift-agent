@@ -15,4 +15,11 @@
 
 - name: Upload logs
   include_tasks: get-logs.yml
+
+- name: Delete UEFI boot entries in nodes
+  ansible.builtin.include_role:
+    name: redhatci.ocp.efi_boot_mgr
+  vars:
+    ebm_nodes: "{{ dci_compute_hosts + dci_control_plane_hosts }}"
+  when: dci_delete_uefi_boot_entries | default(false) | bool
 ...
