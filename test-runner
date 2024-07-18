@@ -661,7 +661,7 @@ fi
 
 if [ -d cnf-certification-test ]; then
     # export directory where cnf-certification-test code from PR is located as variable to be used in the dci-openshift-app-agent
-    OPTS+=(-e "test_network_function_src_dir=$PWD/cnf-certification-test")
+    OPTS+=(-e "kbpc_code_src_dir=$PWD/cnf-certification-test")
 fi
 
 if [ -d openshift-preflight ]; then
