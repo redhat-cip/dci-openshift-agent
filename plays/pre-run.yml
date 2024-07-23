@@ -44,6 +44,10 @@
     - enable_nfs_storage | bool
 
 - name: "Validate Logging Subsystem variables"
+  when:
+    - logs_settings is defined
+    - logs_settings | default("") | length
+    - enable_logs_stack | bool
   block:
     - name: "Check logs_settings file"
       stat:
@@ -56,10 +60,6 @@
       when:
         - file_stat is defined
         - file_stat.stat.exists
-  when:
-    - logs_settings is defined
-    - logs_settings | default("") | length
-    - enable_logs_stack | bool
 
 - name: "Read Disconnected auths"
   include_vars:
@@ -123,6 +123,8 @@
     ocp_minor: "{{ version.split('.')[1] }}"
     major_inter: "{{ ocp_major }}.{{ ocp_minor | int - 1 }}"
     version_core: "{{ version.split('.')[:2] | join('.') }}"
+  when:
+    - upgrade_eus | default(false) | bool
   block:
     - name: "Get intermediate release from Graph"
       uri:
@@ -200,8 +202,6 @@
         mor_oc: "{{ oc_tool_path }}"
       when:
         - dci_disconnected | default(false) |  bool
-  when:
-    - upgrade_eus | default(false) | bool
 
 - name: Include installed software as components
   vars:
@@ -221,6 +221,8 @@
     name: redhatci.ocp.include_components
 
 - name: Append mirrors to trust bundle
+  when:
+    - dci_disconnected | default(false) | bool
   block:
     - name: Copy initial trust bundle
       copy:
@@ -248,8 +250,6 @@
         content: |
           {{ lookup('file', dci_cluster_configs_dir + '/trust-bundle.yml') }}
           {{ img_src_content | json_query('spec.*') | first | to_yaml }}
-  when:
-    - dci_disconnected | default(false) | bool
 
 - name: "Mirror must gather images"
   include_role:

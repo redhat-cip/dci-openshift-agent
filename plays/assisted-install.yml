@@ -14,10 +14,12 @@
           join('.') +'/'+ hostvars['localhost']['version'], true) }}
       when: dci_disconnected | default(False) | bool
 
-- import_playbook: crucible/deploy_cluster_agent_based_installer.yml
+- name: Deploy cluster Agent Based Installer
+  import_playbook: crucible/deploy_cluster_agent_based_installer.yml
   when: (use_agent_based_installer | default(true)) | bool
 
-- import_playbook: crucible/deploy_cluster_assisted_installer.yml
+- name: Deploy cluster Assisted Installer
+  import_playbook: crucible/deploy_cluster_assisted_installer.yml
   when: not ((use_agent_based_installer | default(true)) | bool)
 
 - name: Reset vars for DCI
@@ -33,13 +35,13 @@
   hosts: localhost
   vars:
     secure: false
-    ASSISTED_INSTALLER_BASE_URL:
+    ASSISTED_INSTALLER_BASE_URL:  # noqa var-naming[pattern]
       "{{ secure | ternary('https', 'http') }}://\
       {{ hostvars['assisted_installer']['host'] }}:\
       {{ hostvars['assisted_installer']['port'] }}\
       /api/assisted-install/v2"
-    CLUSTER_ID: "{{ cluster_id | default(hostvars['bastion']['cluster_id']) }}"
-    URL_ASSISTED_INSTALLER_CLUSTER: "{{ ASSISTED_INSTALLER_BASE_URL }}/clusters/{{ CLUSTER_ID }}"
+    CLUSTER_ID: "{{ cluster_id | default(hostvars['bastion']['cluster_id']) }}" # noqa var-naming[pattern]
+    URL_ASSISTED_INSTALLER_CLUSTER: "{{ ASSISTED_INSTALLER_BASE_URL }}/clusters/{{ CLUSTER_ID }}" # noqa var-naming[pattern]
     kube_filename: "kubeconfig"
     dest_dir: "{{ kubeconfig_dest_dir | default(ansible_env.HOME) }}"
     kubeconfig_path: "{{ dest_dir }}/{{ kube_filename }}"
@@ -50,12 +52,13 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
-    - block:
+    - name: Get kubeconfig
+      block:
         - name: Download kubeconfig (onprem)
           get_url:
             url: "{{ URL_ASSISTED_INSTALLER_CLUSTER }}/downloads/credentials?file_name=kubeconfig"
             dest: "{{ kubeconfig_path }}"
-            mode: 0664
+            mode: "0664"
           when: not (use_agent_based_installer | default(true)) | bool
 
         - name: Copy generated kubeconfig (ABI)
@@ -106,7 +109,7 @@
               copy:
                 content: "{{ credentials.json | to_yaml }}"
                 dest: "{{ dest_dir }}/{{ kubeadmin_vault_name }}"
-                mode: 0600
+                mode: "0600"
 
             - name: Save credentials to vault
               shell:
@@ -132,7 +135,7 @@
               copy:
                 content: "{{ kubeadmin_credentials | to_yaml }}"
                 dest: "{{ dest_dir }}/{{ kubeadmin_vault_name }}"
-                mode: 0600
+                mode: "0600"
 
             - name: Save credentials to vault
               shell:
@@ -171,8 +174,10 @@
 
       rescue:
         - name: Run the teardown failure handler
+          delegate_to: localhost
+          ignore_unreachable: true
           block:
-            - name: failure
+            - name: Failure
               dci_job:
                 id: "{{ hostvars.localhost.job_id }}"
                 status: "failure"
@@ -186,7 +191,12 @@
                 loop_var: hookdir
               ignore_errors: true
 
-            - block:
+            - name: Teardown Hooks
+              when: dci_teardown_on_failure|bool
+              delegate_to: localhost
+              ignore_unreachable: true
+              ignore_errors: true
+              block:
                 - name: Run the teardown hooks
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs }}"
@@ -195,15 +205,9 @@
 
                 - name: Run the teardown play
                   include_tasks: teardown.yml
-              when: dci_teardown_on_failure|bool
-              delegate_to: localhost
-              ignore_unreachable: true
-              ignore_errors: true
           always:
             - name: Run the failure process
               include_tasks: failure.yml
-          delegate_to: localhost
-          ignore_unreachable: true
 
 - name: Assisted installer Cleanup
   hosts: localhost

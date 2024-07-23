@@ -7,8 +7,9 @@
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
-        - name: pre-compute need to get hashes
+    - name: Populate image hashes
+      block:
+        - name: Pre-compute need to get hashes
           set_fact:
             run_get_hash: "{{ image_hashes | default({}) | length == 0  }}"
 
@@ -19,17 +20,20 @@
             name: redhatci.ocp.get_image_hash
           when: run_get_hash
       rescue:
-        - include_tasks: teardown_error.yml
+        - name: Teardown error
+          include_tasks: teardown_error.yml
 
 - name: Deploy OpenShift Assisted Installer On Prem
   hosts: assisted_installer
   vars:
     pull_secret: "{{ hostvars['localhost']['pull_secret'] }}"
-    SETUP_ASSISTED_INSTALLER: "{{ setup_assisted_installer | default(True) }}"
+    _setup_assisted_installer: "{{ setup_assisted_installer | default(True) }}"
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
+    - name: Deploy Assisted Installer on-prem
+      when: _setup_assisted_installer == True
+      block:
         - name: Setup assisted installer
           include_role:
             name: redhatci.ocp.setup_assisted_installer
@@ -53,7 +57,7 @@
           retries: 120
           delay: 30
           delegate_to: bastion
-      when: SETUP_ASSISTED_INSTALLER == True
       rescue:
-        - include_tasks: teardown_error.yml
+        - name: Teardown error
+          include_tasks: teardown_error.yml
 ...

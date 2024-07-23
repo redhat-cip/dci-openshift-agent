@@ -45,7 +45,7 @@
     loop_var: sub
     label: "{{ sub.subscriptionName }}"
 
-- name: "upgrader : Update disconnected catalogSources"
+- name: "Update disconnected catalogSources"
   include_role:
     name: redhatci.ocp.catalog_source
   vars:

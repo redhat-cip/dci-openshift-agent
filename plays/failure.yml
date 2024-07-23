@@ -25,4 +25,4 @@
 
 - name: Fail properly
   fail:
-    msg: 'Something went wrong. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.localhost.job_info.job.id }}/jobStates' # noqa 204
+    msg: 'Something went wrong. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.localhost.job_info.job.id }}/jobStates'

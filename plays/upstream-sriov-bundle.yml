@@ -58,6 +58,7 @@
 - name: "Get bundle image SHA256"
   shell:
     cmd: >
+      set -o pipefail;
       skopeo inspect
       --authfile {{ dci_pullsecret_file }}
       docker://{{ sriov_bundle }}:{{ base_version }} |

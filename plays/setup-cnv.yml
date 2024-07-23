@@ -16,8 +16,8 @@
         name: managed-nfs-storage
       spec:
         claimPropertySets:
-        - accessModes:
-          - ReadWriteOnce
+          - accessModes:
+              - ReadWriteOnce
   when:
     - enable_nfs_storage | bool
 ...

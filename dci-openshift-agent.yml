@@ -52,7 +52,7 @@
       set_fact:
         job_id: '{{ job_info.job.id }}'
 
-    - name: copy the job_id to the JOB_ID_FILE if it exists
+    - name: Copy the job_id to the JOB_ID_FILE if it exists
       copy:
         content: "{{ job_id }}"
         dest: "{{ JOB_ID_FILE }}"
@@ -87,13 +87,13 @@
         key: "workarounds"
         value: "{{ dci_workarounds | length }}"
 
-    - name: debug components
+    - name: Debug components
       debug:
         msg: "{{ job_info.job.components + [custom_component] if custom_component is defined else job_info.job.components }}"
 
     - name: Get openshift_version from job.components
       set_fact:
-        tags: "{{ item['tags'] }}"
+        ocp_tags: "{{ item['tags'] }}"
         url: "{{ item['url'] | regex_replace('\\/$', '') }}"
         version: "{{ item.version }}"
         version_pull_url: "{{ item['data']['pull_url'] }}"
@@ -104,7 +104,7 @@
     - name: Get build from tag
       set_fact:
         build: "{{ item.split(':')[1] }}"
-      with_items: "{{ tags }}"
+      with_items: "{{ ocp_tags }}"
       when: item.split(":")[0] == "build"
 
     # Candidate builds are ga builds that haven't gone ga quite yet.
@@ -116,12 +116,14 @@
         build: "ga"
       when: build == "candidate"
 
-    - name: pre-run
+    - name: Pre-run
       dci_job:
         id: "{{ job_id }}"
         status: "pre-run"
 
     - name: "Requirements for ACM install_type"
+      when:
+        - install_type == 'acm'
       block:
         - name: "Read HUB_KUBECONFIG path from env vars"
           set_fact:
@@ -137,8 +139,6 @@
           fail:
             msg: "hub_kubeconfig not found at {{ hub_kubeconfig_path }}"
           when: not hub_kubeconfig.stat.exists
-      when:
-        - install_type == 'acm'
 
 # Step 1a : pre run
 - name: 'Launch pre-run'
@@ -150,7 +150,8 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
   tasks:
-    - block:
+    - name: Pre-run
+      block:
         - name: Configure jumpbox
           include_tasks: plays/configure-jumpbox.yml
 
@@ -176,15 +177,22 @@
 
       rescue: &teardown_error
         - name: Run the teardown error handler
+          delegate_to: localhost
+          ignore_unreachable: true
           block:
-            - name: error
+            - name: Error
               dci_job:
                 id: "{{ hostvars.localhost.job_id }}"
                 status: "error"
               tags: [dci]
               delegate_to: localhost
 
-            - block:
+            - name: Teardown hooks
+              when: dci_teardown_on_failure|bool
+              delegate_to: localhost
+              ignore_unreachable: true
+              ignore_errors: true
+              block:
                 - name: Run the teardown hooks
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs | reverse | list }}"
@@ -193,17 +201,13 @@
 
                 - name: Run the teardown play
                   include_tasks: plays/teardown.yml
-              when: dci_teardown_on_failure|bool
-              delegate_to: localhost
-              ignore_unreachable: true
-              ignore_errors: true
+
           always:
             - name: Run the error process
               include_tasks: plays/failure.yml
-          delegate_to: localhost
-          ignore_unreachable: true
 
-- import_playbook: plays/assisted-pre-run.yml
+- name: Assited pre-run
+  import_playbook: plays/assisted-pre-run.yml
   when:
     - install_type == 'assisted'
 
@@ -218,7 +222,8 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
   tasks:
-    - block:
+    - name: Pre-run hooks
+      block:
         - name: Run the pre-run hook
           include_tasks: '{{ hookdir }}/hooks/pre-run.yml'
           loop: "{{ dci_config_dirs }}"
@@ -232,7 +237,7 @@
   tags:
     - running
   tasks:
-    - name: running
+    - name: Running
       dci_job:
         id: "{{ hostvars.localhost.job_id }}"
         status: "running"
@@ -250,7 +255,10 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
   tasks:
-    - block:
+    - name: Configure
+      when:
+        - install_type != 'acm'
+      block:
         # Prepare provisioner host
         - name: Configure provisioner
           include_tasks: plays/configure-provisioner.yml
@@ -261,8 +269,6 @@
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
-      when:
-        - install_type != 'acm'
       rescue: *teardown_error
 
 # Step 3a-1 : installing
@@ -276,8 +282,9 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
   tasks:
-    - block:
-        - name: "Launch {{ install_type }} install"
+    - name: Install IPI/SNO/UPI
+      block:
+        - name: Launch install {{ install_type }}
           include_tasks: "plays/{{ install_type }}-install.yml"
           when:
             - dci_main == 'install'
@@ -297,8 +304,10 @@
 
       rescue: &teardown_failure
         - name: Run the teardown failure handler
+          delegate_to: localhost
+          ignore_unreachable: true
           block:
-            - name: failure
+            - name: Failure
               dci_job:
                 id: "{{ hostvars.localhost.job_id }}"
                 status: "failure"
@@ -312,7 +321,12 @@
                 loop_var: hookdir
               ignore_errors: true
 
-            - block:
+            - name: Teardown Hooks
+              when: dci_teardown_on_failure|bool
+              delegate_to: localhost
+              ignore_unreachable: true
+              ignore_errors: true
+              block:
                 - name: Run the teardown hooks
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs | reverse | list }}"
@@ -321,17 +335,10 @@
 
                 - name: Run the teardown play
                   include_tasks: plays/teardown.yml
-              when: dci_teardown_on_failure|bool
-              delegate_to: localhost
-              ignore_unreachable: true
-              ignore_errors: true
 
           always:
             - name: Run the failure process
               include_tasks: plays/failure.yml
-
-          delegate_to: localhost
-          ignore_unreachable: true
 
 # Step 3a-1 : installing
 - name: 'Launch ACM install'
@@ -345,7 +352,8 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
   tasks:
-    - block:
+    - name: Install ACM
+      block:
         - name: "ACM Installation"
           include_tasks:
             file: plays/acm-install.yml
@@ -378,7 +386,8 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - block:
+    - name: After Install
+      block:
         - name: "Launch after install"
           include_tasks: "plays/after-install.yml"
           when:
@@ -397,7 +406,11 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - block:
+    - name: Deploy operators
+      when:
+        - dci_main == 'install'
+        - acm_cluster_type | default('') != 'hypershift'
+      block:
         - name: "Run cluster health checks"
           include_tasks: plays/check-cluster-health.yml
         - name: "Setup job_logs directory"
@@ -405,10 +418,6 @@
           when: job_logs is undefined
         - name: "Deploy operators"
           include_tasks: plays/deploy-operators.yml
-      when:
-        - dci_main == 'install'
-        - acm_cluster_type | default('') != 'hypershift'
-
       rescue: *teardown_failure
 
 # Step 3a-3 : hook installing
@@ -423,18 +432,18 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - block:
+    - name: Install Hooks
+      when:
+        - dci_main == 'install'
+        - acm_cluster_type | default('') != 'hypershift'
+      block:
         - name: "Run cluster health checks"
           include_tasks: plays/check-cluster-health.yml
-        - name: "dci-openshift-agent : Launch partner install"
+        - name: "Launch partner install"
           include_tasks: '{{ hookdir }}/hooks/install.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
-      when:
-        - dci_main == 'install'
-        - acm_cluster_type | default('') != 'hypershift'
-
       rescue: *teardown_failure
 
 # Step 3b-1 : upgrading
@@ -449,14 +458,14 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - block:
-        - name: "Run cluster health checks"
-          include_tasks: plays/check-cluster-health.yml
-        - name: "dci-openshift-agent : Launch upgrade"
-          include_tasks: plays/upgrade.yml
+    - name: Upgrade
       when:
         - dci_main == 'upgrade'
-
+      block:
+        - name: "Run cluster health checks"
+          include_tasks: plays/check-cluster-health.yml
+        - name: "Launch upgrade"
+          include_tasks: plays/upgrade.yml
       rescue: *teardown_failure
 
 # Step 3b-2 : hook upgrading
@@ -471,17 +480,17 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - block:
+    - name: Upgrade Hooks
+      when:
+        - dci_main == 'upgrade'
+      block:
         - name: "Run cluster health checks"
           include_tasks: plays/check-cluster-health.yml
-        - name: "dci-openshift-agent : Launch partner upgrade"
+        - name: "Launch partner upgrade"
           include_tasks: '{{ hookdir }}/hooks/upgrade.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
-      when:
-        - dci_main == 'upgrade'
-
       rescue: *teardown_failure
 
 # Step 4 : Red Hat testing
@@ -497,7 +506,10 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - block:
+    - name: Red Hat tests
+      when:
+        - install_type != 'acm'
+      block:
         - name: "Run cluster health checks"
           include_tasks: plays/check-cluster-health.yml
         - name: "Setup job_logs directory"
@@ -505,9 +517,6 @@
           when: job_logs is undefined
         - name: "Launch Red Hat tests"
           include_tasks: plays/tests.yml
-      when:
-        - install_type != 'acm'
-
       rescue: *teardown_failure
 
 # Step 5 : partner testing
@@ -523,7 +532,10 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - block:
+    - name: Test Hooks
+      when:
+        - acm_cluster_type | default('') != 'hypershift'
+      block:
         - name: "Run cluster health checks"
           include_tasks: plays/check-cluster-health.yml
         - name: "Setup job_logs directory"
@@ -536,11 +548,9 @@
             loop_var: hookdir
         - name: "Run cluster health checks"
           include_tasks: plays/check-cluster-health.yml
-      when:
-        - acm_cluster_type | default('') != 'hypershift'
       rescue: *teardown_failure
 
-    - name: post-run
+    - name: Post-run
       dci_job:
         id: "{{ job_id }}"
         status: "post-run"
@@ -558,8 +568,8 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - block:
-
+    - name: Post-run
+      block:
         - name: Run the partner post-run
           include_tasks: '{{ hookdir }}/hooks/post-run.yml'
           loop: "{{ dci_config_dirs }}"
@@ -571,7 +581,7 @@
 
       rescue: *teardown_error
 
-    - name: success
+    - name: Success
       dci_job:
         id: "{{ job_id }}"
         status: "success"
@@ -588,7 +598,10 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - block:
+    - name: Success
+      ignore_unreachable: true
+      ignore_errors: true
+      block:
         - name: Run the success hook
           include_tasks: '{{ hookdir }}/hooks/success.yml'
           loop: "{{ dci_config_dirs }}"
@@ -610,7 +623,4 @@
             - name: Run the teardown play
               include_tasks: plays/teardown.yml
 
-
-      ignore_unreachable: true
-      ignore_errors: true
 ...

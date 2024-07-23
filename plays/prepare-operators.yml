@@ -40,6 +40,9 @@
     mode: "0640"
 
 - name: "Disable default catalog sources for disconnected deployment"
+  when:
+    - dci_main == 'install'
+    - dci_disconnected | default(false) | bool
   block:
     - name: "Disable default catalog sources for disconnected deployment"
       community.kubernetes.k8s:
@@ -95,9 +98,6 @@
       until: olm_pod | json_query('resources[*].status.phase') | unique == ["Running"]
       retries: 6
       delay: 10
-  when:
-    - dci_main == 'install'
-    - dci_disconnected | default(false) | bool
 
 - name: "Catalog from Image"
   include_tasks:
@@ -144,6 +144,9 @@
   when: docker_conf is defined
 
 - name: "Apply Image Sources for all catalogs"
+  when:
+    - is_files is defined
+    - is_files | length
   block:
     - name: "Apply Image Source manifests"
       community.kubernetes.k8s:
@@ -160,9 +163,6 @@
       loop: "{{ is_files | unique | select | list }}"
       loop_control:
         loop_var: is_file
-  when:
-    - is_files is defined
-    - is_files | length
 
 - name: "Wait for updated MCP after applying ICSP"
   include_role:

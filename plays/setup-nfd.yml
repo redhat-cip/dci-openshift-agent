@@ -8,7 +8,7 @@
   when:
     - dci_disconnected | default(false) | bool
 
-- name: "deploy-operators : Configure the Node Discovery Operator"
+- name: "Configure the Node Discovery Operator"
   vars:
     image_ref: "{{  dci_disconnected | default(false) | bool |
                 ternary (dci_local_registry+'/openshift4/ose-node-feature-discovery:latest',

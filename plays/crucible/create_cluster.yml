@@ -7,12 +7,14 @@
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
-        - name: "assisted installer: create cluster"
+    - name: Create cluster
+      block:
+        - name: "Create cluster"
           vars:
             repo_root_path: "{{ dci_cluster_configs_dir }}"
           include_role:
             name: redhatci.ocp.create_cluster
       rescue:
-        - include_tasks: teardown_failure.yml
+        - name: Teardown failure
+          include_tasks: teardown_failure.yml
 ...

@@ -5,6 +5,7 @@
 # install-config file is already retrieved from dci_cluster_configs_dir, not needing to retrieve
 # it here
 - name: "Get config files from Assisted deployment"
+  ignore_errors: true
   block:
     - name: Assisted - Copy openshift_install.log file in log folder
       copy:
@@ -29,7 +30,6 @@
         src: "{{ repo_root_path }}/fetched/install-config.yaml"
         dest: "{{ job_logs.path }}/install-config.yaml"
         mode: '0644'
-  ignore_errors: true
 
 # For the rest of log files, run get-ai-logs script
 # Rendezvouz node is the first master node of the cluster

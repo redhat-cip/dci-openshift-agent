@@ -5,12 +5,14 @@
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
-        - name: "assisted installer: monitor agent based installer"
+    - name: Monitor install process for Agent Based Installer
+      block:
+        - name: "Monitor agent based installer"
           vars:
             repo_root_path: "{{ dci_cluster_configs_dir }}"
           include_role:
             name: redhatci.ocp.monitor_agent_based_installer
       rescue:
-        - include_tasks: teardown_failure.yml
+        - name: Teardown failure
+          include_tasks: teardown_failure.yml
 ...

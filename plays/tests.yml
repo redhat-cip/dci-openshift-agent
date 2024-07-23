@@ -1,6 +1,6 @@
 ---
 
-- name: "dci-openshift-agent : Setup podman on the jumphost"
+- name: "Setup podman on the jumphost"
   include_role:
     name: ansible-role-dci-podman
 
@@ -20,7 +20,7 @@
   when: "'Server Version' in item"
   loop: "{{ oc_version_str.stdout_lines }}"
 
-- name: "dci-openshift-agent : Run the Red Hat Test Suites"
+- name: "Run the Red Hat Test Suites"
   vars:
     ts_e2e_image: "quay.io/openshift/origin-tests"
     ts_registry: "{{ dci_local_registry }}"

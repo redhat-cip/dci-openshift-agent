@@ -1,20 +1,25 @@
 ---
-- import_playbook: extract_agent_based_installer.yml
+- name: Extract Agent Based Installer
+  import_playbook: extract_agent_based_installer.yml
   when: agent_based_installer_path is not defined
 
-- import_playbook: generate_manifests.yml
+- name: Generate manifests
+  import_playbook: generate_manifests.yml
   vars:
     repo_root_path: "{{ dci_cluster_configs_dir }}"
 
-- import_playbook: generate_agent_iso.yml
+- name: Generate agent ISO
+  import_playbook: generate_agent_iso.yml
   vars:
     repo_root_path: "{{ dci_cluster_configs_dir }}"
 
-- import_playbook: boot_iso.yml
+- name: Boot ISO
+  import_playbook: boot_iso.yml
   vars:
     boot_iso_hosts: masters,workers
 
-- import_playbook: monitor_agent_based_installer.yml
+- name: Monitor Agent Based Installer
+  import_playbook: monitor_agent_based_installer.yml
   vars:
     repo_root_path: "{{ dci_cluster_configs_dir }}"
 ...

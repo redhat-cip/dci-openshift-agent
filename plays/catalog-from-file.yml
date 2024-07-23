@@ -11,6 +11,7 @@
 # Variables used above prefixed with 'mdf_' are outputs
 # from mirror_from_directory role
 - name: "Apply IDMS on 4.14+"
+  when: ocp_version is version('4.14', '>=')
   block:
     - name: Transform ICSP to IDMS on 4.14+
       ansible.builtin.shell:
@@ -27,7 +28,6 @@
     - name: "Apply the IDMS"
       community.kubernetes.k8s:
         definition: "{{ lookup('template', image_source_file) | from_yaml }}"
-  when: ocp_version is version('4.14', '>=')
 
 - name: "Apply the ICSP"
   community.kubernetes.k8s:
@@ -54,6 +54,7 @@
     - name: "Get index image creation date"
       ansible.builtin.shell:
         cmd: >
+          set -o pipefail;
           skopeo inspect
           --tls-verify=false
           {% if dci_pullsecret_file is defined %}

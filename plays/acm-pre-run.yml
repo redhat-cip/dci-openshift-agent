@@ -1,5 +1,8 @@
 ---
 - name: "Get registry mirror registry details"
+  when:
+    - dci_disconnected | default(false) | bool
+    - acm_cluster_type == 'sno'
   block:
     - name: Check if IDMS is supported
       community.kubernetes.k8s_info:
@@ -31,9 +34,6 @@
         that:
           - hostvars.localhost.webserver_url | string
           - (hostvars.localhost.webserver_url | urlsplit('scheme')) in ('http', 'https',)
-  when:
-    - dci_disconnected | default(false) | bool
-    - acm_cluster_type == 'sno'
 
 - name: "Get cluster pull-secret"
   include_tasks: get-cluster-pullsecret.yml
@@ -41,6 +41,9 @@
 - name: "Mirror OCP release artifacts"
   vars:
     version_core: "{{ version.split('.')[:2] | join('.') }}"
+  when:
+    - dci_disconnected | default(false) | bool
+    - acm_cluster_type == 'sno'
   block:
     - name: "Mirror OCP release artifacts - Disconnected"
       include_role:
@@ -125,11 +128,10 @@
         images: "{{ dci_must_gather_images | default(['registry.redhat.io/openshift4/ose-must-gather']) }}"
         authfile: "{{ dci_pullsecret_file }}"
 
-  when:
-    - dci_disconnected | default(false) | bool
-    - acm_cluster_type == 'sno'
-
 - name: "Get OCP release artifacts"
+  when:
+    - not (dci_disconnected | default(false) | bool)
+    - acm_cluster_type in ("sno")
   block:
     - name: Mirror release
       include_role:
@@ -153,7 +155,4 @@
         acm_metal_iso_location: "{{ ocp_release_data.rhcos_images.metal_iso_location }}"
         acm_rootfs_url: "{{ ocp_release_data.rhcos_images.metal_pxe_rootfs_location }}"
         acm_release_image: "{{ ocp_release_data['container_image'] | quote }}"
-  when:
-    - not (dci_disconnected | default(false) | bool)
-    - acm_cluster_type in ("sno")
 ...

@@ -1,4 +1,4 @@
-- name: "deploy-operators : Deploy {{ dci_operator.name }}"
+- name: "Deploy {{ dci_operator.name }}"
   include_role:
     name: redhatci.ocp.olm_operator
   vars:

@@ -83,14 +83,14 @@
   when:
     - enable_nmstate | bool
 
-- name: "deploy-operators : Create defined Custom Resources"
+- name: "Create defined Custom Resources"
   ansible.builtin.include_role:
     name: redhatci.ocp.deploy_cr
   vars:
     api_version: "{{ item.api_version }}"
     kind: "{{ item.kind }}"
     namespace: "{{ item.namespace }}"
-    name: "{{ item.name }}"
+    name: "{{ item.name }}"    # noqa var-naming[no-reserved] TODO: rename input var in deploy_cr
     spec: "{{ item.spec }}"
   with_list: "{{ dci_ocp_custom_resources }}"
   when:

@@ -5,10 +5,12 @@
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
-        - name: "assisted installer: monitor cluster"
+    - name: Monitor cluster installation
+      block:
+        - name: "Monitor cluster"
           include_role:
             name: redhatci.ocp.monitor_cluster
       rescue:
-        - include_tasks: teardown_failure.yml
+        - name: Teardown failure
+          include_tasks: teardown_failure.yml
 ...

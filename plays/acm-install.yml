@@ -32,6 +32,8 @@
 
 
 - name: "Deploy a MetalLB and Hypershift cluster via ACM"
+  when:
+    - acm_cluster_type == 'hypershift'
   block:
     - name: "Setup MetalLB in L2 mode"
       include_role:
@@ -50,16 +52,14 @@
         apply:
           environment:
             - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
-  when:
-    - acm_cluster_type == 'hypershift'
 
-- name: "Save the {{ acm_cluster_type }} kubeconfig"
+- name: Save the kubeconfig ({{ acm_cluster_type }})
   copy:
     content: "{{ acm_kubeconfig_text }}"
     dest: "{{ dci_cluster_configs_dir }}/kubeconfig"
     mode: '0600'
 
-- name: "Save {{ acm_cluster_type }} credentials"
+- name: Save credentials ({{ acm_cluster_type }})
   copy:
     content: "{{ acm_cluster_type }} credentials\n
               ---\n

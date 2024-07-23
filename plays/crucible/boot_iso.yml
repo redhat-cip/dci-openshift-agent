@@ -7,10 +7,12 @@
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
-        - name: "assisted installer: boot iso"
+    - name: Assisted Installer Boot ISO
+      block:
+        - name: "Boot iso"
           include_role:
             name: redhatci.ocp.boot_iso
       rescue:
-        - include_tasks: teardown_failure.yml
+        - name: Teardown failure
+          include_tasks: teardown_failure.yml
 ...

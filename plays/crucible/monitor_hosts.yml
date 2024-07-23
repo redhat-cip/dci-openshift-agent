@@ -6,10 +6,12 @@
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
-        - name: "assisted installer: monitor host"
+    - name: Monitor host installation
+      block:
+        - name: "Monitor host"
           include_role:
             name: redhatci.ocp.monitor_host
       rescue:
-        - include_tasks: teardown_failure.yml
+        - name: Teardown failure
+          include_tasks: teardown_failure.yml
 ...

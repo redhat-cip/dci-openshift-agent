@@ -8,8 +8,9 @@
     cnf_tests_image: "{{ ocp_version_major }}.{{ ocp_version_minor }}"
 
 - name: "Mirror cnf-test images for disconnected testing"
+  when:
+    - dci_disconnected | default(false) | bool
   block:
-
     - name: "Mirror cnf-tests and dpdk images to local repo"
       include_role:
         name: redhatci.ocp.mirror_images
@@ -22,9 +23,6 @@
     - name: "Set cnf_tests_image_registry for disconnected env"
       set_fact:
         cnf_tests_image_registry: "{{ dci_local_registry }}"
-
-  when:
-    - dci_disconnected | default(false) | bool
 
 - name: "Set cnf_tests_image_registry for connected env"
   set_fact:

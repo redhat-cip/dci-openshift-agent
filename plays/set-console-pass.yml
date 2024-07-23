@@ -1,82 +1,83 @@
 ---
-- name: Set DCI console password
+- name: Generate SHA-512 crypt hash of the password
+  command: "mkpasswd --method=sha-512 '{{ dci_console_pass }}'"
+  register: hashed_password
+  no_log: true
+
+- name: Create directory if it does not exist {{ customize_extramanifests_path }}
+  ansible.builtin.file:
+    path: "{{ customize_extramanifests_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Set console password for core user >= 4.13
+  ansible.builtin.copy:
+    content: |
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: MachineConfig
+      metadata:
+        labels:
+          machineconfiguration.openshift.io/role: {{ node_role }}
+        name: 05-{{ node_role }}-core-password
+      spec:
+        config:
+          ignition:
+            version: 3.4.0
+          passwd:
+            users:
+            - name: core
+              passwordHash: {{ hashed_password.stdout }}
+    dest: "{{ customize_extramanifests_path }}/05_{{ node_role }}-core-password.yaml"
+    mode: "0644"
+  loop:
+    - worker
+    - master
+  loop_control:
+    loop_var: node_role
+  when:
+    - version is version('4.13', '>=')
+
+- name: Set console password for core user < 4.13
   vars:
-    core_password: "{{ dci_console_pass }}"
-    hash_core_password: "{{ core_password | password_hash('sha512') }}"
-    enc_core_password: "{{ ('core:' + hash_core_password) | b64encode }}"
-  block:
-    - name: Create directory if it does not exist {{ customize_extramanifests_path }}
-      ansible.builtin.file:
-        path: "{{ customize_extramanifests_path }}"
-        state: directory
-        mode: '0755'
-
-    - name: Set console password for core user >= 4.13
-      ansible.builtin.copy:
-        content: |
-          apiVersion: machineconfiguration.openshift.io/v1
-          kind: MachineConfig
-          metadata:
-            labels:
-              machineconfiguration.openshift.io/role: {{ node_role }}
-            name: 05-{{ node_role }}-core-password
-          spec:
-            config:
-              ignition:
-                version: 3.4.0
-              passwd:
-                users:
-                - name: core
-                  passwordHash: {{ hash_core_password }}
-        dest: "{{ customize_extramanifests_path }}/05_{{ node_role }}-core-password.yaml"
-        mode: "0644"
-      loop:
-        - worker
-        - master
-      loop_control:
-        loop_var: node_role
-      when:
-        - version is version('4.13', '>=')
-
-    - name: Set console password for core user < 4.13
-      ansible.builtin.copy:
-        content: |
-          apiVersion: machineconfiguration.openshift.io/v1
-          kind: MachineConfig
-          metadata:
-            labels:
-              machineconfiguration.openshift.io/role: {{ node_role }}
-            name: 20-{{ node_role }}-core-password
-          spec:
-            config:
-              ignition:
-                version: 3.2.0
-              storage:
-                files:
-                - contents:
-                    source: data:text/plain;charset=utf-8;base64,{{ enc_core_password }}
-                  mode: 420
-                  overwrite: true
-                  path: /etc/core.passwd
-              systemd:
-                units:
-                - name: set-core-passwd.service
-                  enabled: true
-                  contents: |
-                    [Unit]
-                    Description=Set 'core' user password for out-of-band login
-                    [Service]
-                    Type=oneshot
-                    ExecStart=/bin/sh -c 'chpasswd -e < /etc/core.passwd'
-                    [Install]
-                    WantedBy=multi-user.target
-        dest: "{{ customize_extramanifests_path }}/20_{{ node_role }}-core-password.yaml"
-        mode: "0644"
-      loop:
-        - worker
-        - master
-      loop_control:
-        loop_var: node_role
-      when:
-        - version is version('4.13', '<')
+    enc_core_password: "{{ ('core:' + hashed_password.stdout) | b64encode }}"
+  ansible.builtin.copy:
+    content: |
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: MachineConfig
+      metadata:
+        labels:
+          machineconfiguration.openshift.io/role: {{ node_role }}
+        name: 20-{{ node_role }}-core-password
+      spec:
+        config:
+          ignition:
+            version: 3.2.0
+          storage:
+            files:
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,{{ enc_core_password }}
+              mode: 420
+              overwrite: true
+              path: /etc/core.passwd
+          systemd:
+            units:
+            - name: set-core-passwd.service
+              enabled: true
+              contents: |
+                [Unit]
+                Description=Set 'core' user password for out-of-band login
+                [Service]
+                Type=oneshot
+                ExecStart=/bin/sh -c 'chpasswd -e < /etc/core.passwd'
+                [Install]
+                WantedBy=multi-user.target
+    dest: "{{ customize_extramanifests_path }}/20_{{ node_role }}-core-password.yaml"
+    mode: "0644"
+  loop:
+    - worker
+    - master
+  loop_control:
+    loop_var: node_role
+  when:
+    - version is version('4.13', '<')
 ...

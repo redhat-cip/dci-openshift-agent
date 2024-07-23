@@ -1,12 +1,25 @@
-skip_list:
-  - '301'                       # we use a lot of shell commands to get info
-  - '303'                       # sometimes the module doesn't cover all the command options
-  - literal-compare # Allow explicit comparison to True or False
-  - meta-no-info # Allow omitting galaxy info.
-  - ignore-errors # Allow ignore-errors: Linter is stupid and permits `failed_when: false` but disallows `ignore-errors`.
+---
 
-# These rules would be in the `warn_list` except that ansible-lint doesn't handle warnings sensibly.
-# warn_list:
-  - var-naming # There's a LOT of uppercase vars, Consider enabling this rule later later
-  - command-instead-of-shell # allow using `shell` as several required behaviours are not in modules.
+display_relative_path: true
+exclude_paths:
+  - systemd
+  - tests
+  - utils
+
+profile: production
+use_default_rules: true
+verbosity: 1
+
+warn_list:
+  - command-instead-of-module  # allow using `shell` as several required behaviours are not in modules.
+  - command-instead-of-shell   # Shell is required in some cases
+  - fqcn[action-core]
+  - fqcn[keyword]              # Assisted pre-run uses collections keyword to avoid fqcn on each task
+  - ignore-errors
+  - jinja[spacing]             # multiline is not working https://github.com/ansible/ansible-lint/discussions/3015
+  - no-changed-when
+  - var-naming[no-role-prefix] # TODO: use the custom redhat-ci var-naming rule
+  - yaml[line-length]
+  - literal-compare # Allow explicit comparison to True or False
+  - meta-no-info               # Allow omitting galaxy info.
   - empty-string-compare # empty string compare is OK when done correctly

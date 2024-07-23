@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Assisted Pre-run
+  hosts: localhost
   become: false
   gather_facts: false
   vars_files:
@@ -9,7 +10,8 @@
   vars:
     ai_releases_dir: "{{ (ansible_env.HOME, 'releases') | join('/') }}"
   tasks:
-    - block:
+    - name: Assisted Pre-run
+      block:
         - name: "Add Bastion host to provisioner group"
           add_host:
             hostname: "{{ item }}"
@@ -28,12 +30,13 @@
             name: redhatci.ocp.include_components
 
         - name: "Create a DCI component for the Assisted Installer version"
+          ignore_errors: true
           block:
             - name: "Create a DCI component for the Assisted Installer version"
               environment:
-                - DCI_CLIENT_ID: "{{ dci_client_id }}"
-                - DCI_API_SECRET: "{{ dci_api_secret }}"
-                - DCI_CS_URL: "{{ dci_cs_url }}"
+                DCI_CLIENT_ID: "{{ dci_client_id }}"
+                DCI_API_SECRET: "{{ dci_api_secret }}"
+                DCI_CS_URL: "{{ dci_cs_url }}"
               dci_component:
                 display_name: "assisted_installer {{ ai_version }}"
                 version: "{{ ai_version }}"
@@ -54,7 +57,6 @@
               when:
                 - "'component' in ai_version_component"
                 - "'id' in ai_version_component.component"
-          ignore_errors: true
 
         - name: "Process pullsecrets"
           include_tasks: pullsecrets.yml
@@ -153,15 +155,22 @@
             repo_root_path: "{{ dci_cluster_configs_dir }}"
       rescue: &teardown_error
         - name: Run the teardown error handler
+          delegate_to: localhost
+          ignore_unreachable: true
           block:
-            - name: error
+            - name: Error
               dci_job:
                 id: "{{ hostvars.localhost.job_id }}"
                 status: "error"
               tags: [dci]
               delegate_to: localhost
 
-            - block:
+            - name: Teardown hooks
+              when: dci_teardown_on_failure|bool
+              delegate_to: localhost
+              ignore_unreachable: true
+              ignore_errors: true
+              block:
                 - name: Run the teardown hooks
                   include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs }}"
@@ -170,22 +179,17 @@
 
                 - name: Run the teardown play
                   include_tasks: teardown.yml
-              when: dci_teardown_on_failure|bool
-              delegate_to: localhost
-              ignore_unreachable: true
-              ignore_errors: true
           always:
             - name: Run the error process
               include_tasks: failure.yml
-          delegate_to: localhost
-          ignore_unreachable: true
 
 - name: Process KVM nodes
   hosts: bastion
   vars_files:
     - ../group_vars/all
   tasks:
-    - block:
+    - name: Process KVM nodes
+      block:
         - name: Process kvm nodes
           include_role:
             name: redhatci.ocp.process_kvm_nodes
@@ -195,11 +199,12 @@
 - name: Provision VMS
   hosts: vm_hosts
   vars:
-    SETUP_VMS: "{{ setup_vms | default((kvm_nodes | default([])) | length | int >= 1) }}"
+    SETUP_VMS: "{{ setup_vms | default((kvm_nodes | default([])) | length | int >= 1) }}" # noqa var-naming[pattern]
   vars_files:
     - ../group_vars/all
   tasks:
-    - block:
+    - name: Provision VMS
+      block:
         - name: Destroy vms
           include_role:
             name: redhatci.ocp.destroy_vms
@@ -213,6 +218,10 @@
           when: (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
 
         - name: Configure firewall for vm_bridge_zone
+          when:
+            - (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
+            - vm_bridge_zone is defined
+          become: true
           block:
             - name: Move bridge to designated firewall zone
               community.general.nmcli:
@@ -231,15 +240,11 @@
                 comment: Ansible NAT Masquerade
 
             - name: Manage IPv4 forwarding
-              sysctl:
+              ansible.posix.sysctl:
                 name: net.ipv4.ip_forward
                 value: '1'
                 state: present
                 reload: true
-          when:
-            - (SETUP_VM_BRIDGE | default(SETUP_VMS)) | bool
-            - vm_bridge_zone is defined
-          become: true
 
         - name: Create vms
           vars:
@@ -255,12 +260,13 @@
   hosts: dns_host
   gather_facts: "{{ (setup_dns_service | default(True)) | bool }}"
   vars:
-    SETUP_DNS_SERVICE: "{{ setup_dns_service | default(True) }}"
+    SETUP_DNS_SERVICE: "{{ setup_dns_service | default(True) }}"  # noqa var-naming[pattern]
     domain: "{{ cluster_name + '.' + base_dns_domain }}"
   vars_files:
     - ../group_vars/all
   tasks:
-    - block:
+    - name: Setup DNS Records
+      block:
         - name: Insert dns records
           include_role:
             name: redhatci.ocp.insert_dns_records
@@ -303,11 +309,12 @@
   hosts: ntp_host
   gather_facts: "{{ (setup_ntp_service | default(True)) | bool }}"
   vars:
-    SETUP_NTP_SERVICE: "{{setup_ntp_service | default(True)}}"
+    SETUP_NTP_SERVICE: "{{ setup_ntp_service | default(True)}}" # noqa var-naming[pattern]
   vars_files:
     - ../group_vars/all
   tasks:
-    - block:
+    - name: Setup NTP
+      block:
         - name: Setup NTP
           include_role:
             name: redhatci.ocp.setup_ntp
@@ -318,11 +325,12 @@
   hosts: http_store
   gather_facts: "{{ (setup_http_store_service | default(True)) | bool }}"
   vars:
-    SETUP_HTTP_STORE_SERVICE: "{{ setup_http_store_service | default(True) }}"
+    SETUP_HTTP_STORE_SERVICE: "{{ setup_http_store_service | default(True) }}" # noqa var-naming[pattern]
   vars_files:
     - ../group_vars/all
   tasks:
-    - block:
+    - name: Setup HTTP
+      block:
         - name: Setup http store
           include_role:
             name: redhatci.ocp.setup_http_store
@@ -342,8 +350,9 @@
   vars_files:
     - ../group_vars/all
   tasks:
-    - block:
-        - name: pre-compute need to get hashes
+    - name: Setup registry
+      block:
+        - name: Pre-compute need to get hashes
           set_fact:
             run_get_hash: "{{ image_hashes | default({}) | length == 0  }}"
 
@@ -366,11 +375,12 @@
   vars:
     downloads_path: "{{ hostvars.localhost.provision_cache_store | default(ai_releases_dir) }}"
     config_file_path: "{{ dci_cluster_configs_dir }}"
-    SETUP_REGISTRY_SERVICE: "{{ setup_registry_service | default(True)}}"
+    SETUP_REGISTRY_SERVICE: "{{ setup_registry_service | default(True)}}" # noqa var-naming[pattern]
   vars_files:
     - ../group_vars/all
   tasks:
-    - block:
+    - name: Setup Mirror registry
+      block:
         - name: Setup selfsigned cert
           vars:
             repo_root_path: "{{ dci_cluster_configs_dir }}"
@@ -401,28 +411,31 @@
 - name: Setup TFTP
   hosts: tftp_host
   vars:
-    SETUP_TFTP_SERVICE: "{{ setup_pxe_service | default(False) }}"
+    SETUP_TFTP_SERVICE: "{{ setup_pxe_service | default(False) }}" # noqa var-naming[pattern]
   vars_files:
     - ../group_vars/all
   tasks:
-    - block:
+    - name: Setup TFTP
+      block:
         - name: Setup TFTP
           include_role:
             name: redhatci.ocp.setup_tftp
           when: SETUP_TFTP_SERVICE == True
       rescue: *teardown_error
 
-- import_playbook: crucible/deploy_assisted_installer_onprem.yml
+- name: Deploy assisted installer on-prem
+  import_playbook: crucible/deploy_assisted_installer_onprem.yml
   when: not ((use_agent_based_installer | default(true)) | bool)
 
 - name: Deploy sushy tools
   hosts: vm_hosts
   vars:
-    SETUP_SUSHY_TOOLS: "{{ setup_sushy_tools | default(setup_vms | default(True)) }}"
+    SETUP_SUSHY_TOOLS: "{{ setup_sushy_tools | default(setup_vms | default(True)) }}" # noqa var-naming[pattern]
   vars_files:
     - ../group_vars/all
   tasks:
-    - block:
+    - name: Setup sushy tools
+      block:
         - name: Setup sushy tools
           include_role:
             name: redhatci.ocp.setup_sushy_tools
@@ -434,7 +447,8 @@
   vars_files:
     - ../group_vars/all
   tasks:
-    - block:
+    - name: Clean-up nodes
+      block:
         - name: Erase bootloader to prevent old OS to boot
           delegate_to: "{{ item }}"
           become: true

@@ -5,12 +5,14 @@
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
-        - name: "assisted installer: install cluster"
+    - name: Install cluster (Assisted Installer)
+      block:
+        - name: "Install cluster (Assisted Installer)"
           vars:
             repo_root_path: "{{ dci_cluster_configs_dir }}"
           include_role:
             name: redhatci.ocp.install_cluster
       rescue:
-        - include_tasks: teardown_failure.yml
+        - name: Teardown failure
+          include_tasks: teardown_failure.yml
 ...

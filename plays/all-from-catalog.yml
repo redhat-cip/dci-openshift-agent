@@ -1,5 +1,5 @@
 ---
-- name: "Check that {{ install_all_from_catalog }} CatalogSource is Ready"
+- name: Check CatalogSource is Ready - {{ install_all_from_catalog }}
   community.kubernetes.k8s_info:
     api: operators.coreos.com/v1alpha1
     kind: CatalogSource
@@ -33,10 +33,10 @@
   retries: 5
   delay: 5
 
-- name: "deploy-operators : Deploy all operators from an index"
+- name: "Deploy all operators from an index"
   vars:
     # Some operators must be installed in specific namespaces.
-    #Adding those to the following list will take care of creating those during the installation
+    # Adding those to the following list will take care of creating those during the installation
     operator_ns:
       ptp-operator:
         required_ns: "openshift-ptp"

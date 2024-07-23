@@ -19,7 +19,7 @@
     pc_opm_args: "--skip-tls-verify=true"
 
 - name: "Check if the pruned catalog was built"
-  podman_image_info:
+  containers.podman.podman_image_info:
     name: "{{ dci_prune_index }}"
   register: pruned_info
 
@@ -28,7 +28,10 @@
     index_found: "{{ pruned_info.images | length == 1 }}"
     operators_count: 0
 
-- block:
+- name: Push index
+  when:
+    - index_found
+  block:
     - name: "Push the new index image to the local registry"
       shell:
         cmd: >
@@ -54,19 +57,24 @@
 
     - name: "Get dynamic port assigned to grpc"
       shell:
-        cmd: >
+        cmd: >-
+          set -o pipefail;
           podman inspect {{ grpc_container_id.stdout }} |
-          jq '.[].NetworkSettings.Ports."50051/tcp"[].HostPort'
+          jq -r '.[].NetworkSettings.Ports."50051/tcp"[].HostPort'
       register: grpc_port
 
     - name: "Get the operators available in the pruned catalog"
       shell:
-        cmd: >
+        cmd: >-
+          set -o pipefail;
           grpcurl -plaintext
           localhost:{{ grpc_port.stdout }}
           api.Registry/ListPackages |
           jq ".name"
       register: packages_list
+      retries: 3
+      delay: 10
+      until: packages_list.rc == 0
 
     - name: "List operators available in the pruned catalog"
       debug:
@@ -75,6 +83,7 @@
     - name: "Get the number of operators in the pruned catalog"
       shell:
         cmd: >
+          set -o pipefail;
           grpcurl -plaintext
           localhost:{{ grpc_port.stdout }}
           api.Registry/ListPackages |
@@ -98,8 +107,6 @@
           podman rmi
           --force
           {{ dci_prune_index }}
-  when:
-    - index_found
 
 - name: "Set new minor version when operators are missing"
   set_fact:

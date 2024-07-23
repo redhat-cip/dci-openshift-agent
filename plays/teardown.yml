@@ -21,6 +21,9 @@
     - upi_creds_file is defined
 
 - name: "Remove artifact webserver for IPI installs"
+  when:
+    - dci_main == 'install'
+    - install_type == 'ipi'
   block:
     - name: "Remove artifact webserver"
       containers.podman.podman_container:
@@ -28,7 +31,7 @@
         state: absent
 
     - name: "Disallow HTTP traffic"
-      firewalld:
+      ansible.posix.firewalld:
         port: "{{ aw_dynamic_port }}/tcp"
         permanent: false
         immediate: true
@@ -38,9 +41,6 @@
       when:
         - aw_dynamic_port is defined
         - aw_zone is defined
-  when:
-    - dci_main == 'install'
-    - install_type == 'ipi'
 
 - name: "Teardown for storage service tester"
   include_role:

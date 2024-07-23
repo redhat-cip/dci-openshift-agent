@@ -35,6 +35,10 @@
     var: mirror_list
 
 - name: "Prune catalog and mirror the Red Hat operators"
+  when:
+    - dci_disconnected | default(false) | bool
+    - mirror_list is defined
+    - mirror_list | length
   block:
     - name: "Build pruned catalog"
       include_tasks: build-catalog.yml
@@ -71,8 +75,4 @@
       when:
         - mirror_list is defined
         - mirror_list | length
-  when:
-    - dci_disconnected | default(false) | bool
-    - mirror_list is defined
-    - mirror_list | length
 ...

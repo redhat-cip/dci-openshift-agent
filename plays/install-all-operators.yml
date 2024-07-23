@@ -1,5 +1,5 @@
 ---
-- name: "Get specific namespace name for {{ package }} operator"
+- name: "Get specific namespace name for operator: {{ package }}"
   set_fact:
     operator_ns_name: "{{ item.value.required_ns }}"
   loop: "{{ lookup('ansible.builtin.dict', operator_ns, wantlist=True) }}"
@@ -24,7 +24,7 @@
     - operator_packagemanifest.resources[0].status is defined
     - operator_packagemanifest.resources[0].status.catalogSource == install_all_from_catalog
 
-- name: "deploy-operators : Install the operator {{ package }}"
+- name: "Install the operator {{ package }}"
   include_role:
     name: redhatci.ocp.olm_operator
   vars:

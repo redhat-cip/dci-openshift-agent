@@ -67,7 +67,7 @@
               register: release_file
               no_log: true
 
-            - name: "release digest"
+            - name: "Release digest"
               set_fact:
                 release_digest: "{{ release_file.content | regex_search('^Digest:\\s+sha256:(.*)$', '\\1', multiline=True) | first }}"
 
@@ -95,7 +95,7 @@
                 state: present
                 definition: "{{ signature_cm }}"
 
-        - name: "upgrader : Patch clusterversion to point to custom upstream graph"
+        - name: "Patch clusterversion to point to custom upstream graph"
           community.kubernetes.k8s:
             state: present
             name: version
@@ -104,7 +104,7 @@
               spec:
                 upstream: "{{ webserver_url }}/graph-{{ version.split('.')[0:2]|join('.') }}"
 
-        - name: "upgrader : Wait custom upstream graph update"
+        - name: "Wait custom upstream graph update"
           community.kubernetes.k8s_info:
             kind: ClusterVersion
             name: version
@@ -119,7 +119,7 @@
           retries: 10
           delay: 120
 
-        - name: "upgrader : Patch clusterversion pointing to selected channel"
+        - name: "Patch clusterversion pointing to selected channel"
           vars:
             channel: >-
               {{ upgrade_eus | default(false) |
@@ -134,20 +134,20 @@
               spec:
                 channel: "{{ channel }}"
 
-        - name: "upgrader : Get openshift-cluster-version pod name"
+        - name: "Get openshift-cluster-version pod name"
           community.kubernetes.k8s_info:
             kind: Pod
             namespace: openshift-cluster-version
           register: ocvpod
 
-        - name: "upgrader : Delete the openshift-cluster-version pod"
+        - name: "Delete the openshift-cluster-version pod"
           community.kubernetes.k8s:
             state: absent
             kind: Pod
             namespace: openshift-cluster-version
             name: "{{ ocvpod.resources[0].metadata.name }}"
 
-        - name: "upgrader : Wait the openshift-cluster-version pod creation"
+        - name: "Wait the openshift-cluster-version pod creation"
           community.kubernetes.k8s_info:
             kind: Pod
             namespace: openshift-cluster-version
@@ -160,7 +160,7 @@
           retries: 10
           delay: 60
 
-        - name: "upgrader : Wait for an updated clusterversion"
+        - name: "Wait for an updated clusterversion"
           community.kubernetes.k8s_info:
             kind: ClusterVersion
             name: version
@@ -177,7 +177,7 @@
 
     - name: "Execute cluster upgrade command"
       block:
-        - name: "upgrader : Execute the upgrade to {{ target_version }}"
+        - name: "Execute the upgrade to {{ target_version }}"
           vars:
             upgrade_options: >-
               --to-image={{ version_pull_url }}
@@ -197,7 +197,7 @@
             cmd: "{{ oc_tool_path }} adm upgrade {{ upgrade_options }}"
           register: start_upgrade
 
-        - name: "upgrader : Wait for upgrade to start"
+        - name: "Wait for upgrade to start"
           vars:
             cluster_version_conditions: "{{ cluster_version_info.resources.0.status.conditions }}"
             condition_progressing: '{{ cluster_version_conditions | selectattr("type", "equalto", "Progressing") | first }}'

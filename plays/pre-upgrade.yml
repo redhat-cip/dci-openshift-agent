@@ -6,7 +6,10 @@
   register: sriov_crd
   no_log: true
 
-- name: "upgrader : Apply SRIOV recommended settings before operator upgrade"
+- name: "Apply SRIOV recommended settings before operator upgrade"
+  when:
+    - sriov_crd.resources is defined
+    - sriov_crd.resources | length > 0
   block:
     - name: Make sure SRIOV operator webhook is disabled
       community.kubernetes.k8s:
@@ -43,7 +46,4 @@
       loop_control:
         loop_var: policy
         label: "{{ policy.metadata.name }}"
-  when:
-    - sriov_crd.resources is defined
-    - sriov_crd.resources | length > 0
 ...

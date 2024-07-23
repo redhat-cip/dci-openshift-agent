@@ -12,7 +12,7 @@
       - "{{ python_version }}-netaddr"
       - "jq"
       - "expect"
-      - python3-passlib
+      - python3-passlib  # Comes from EPEL, required in redhatci.ocp/oc_setup
     state: installed
 
 - name: Install grpcurl when uninstalled
@@ -28,7 +28,7 @@
         src: https://github.com/fullstorydev/grpcurl/releases/download/v1.8.2/grpcurl_1.8.2_linux_x86_64.tar.gz
         dest: /usr/local/bin
         remote_src: true
-        mode: 0755
+        mode: "0755"
       register: result
       retries: 3
       delay: 10
@@ -49,7 +49,10 @@
   ansible.builtin.set_fact:
     roles_path: "{{ lookup('ansible.builtin.config', 'DEFAULT_ROLES_PATH') }}"
 
-- block:
+- name: Cluster config directory
+  when:
+    - dci_main == 'install'
+  block:
     - name: "Clean up {{ dci_cluster_configs_dir }}"
       file:
         path: "{{ dci_cluster_configs_dir }}"
@@ -60,8 +63,6 @@
         path: "{{ dci_cluster_configs_dir }}"
         state: directory
         mode: "0755"
-  when:
-    - dci_main == 'install'
 
 - name: "Download stable openshift clients"
   vars:
@@ -70,7 +71,7 @@
     src: "{{ item }}"
     dest: "{{ dci_cluster_configs_dir }}"
     remote_src: true
-    mode: 0755
+    mode: "0755"
   register: result
   retries: 3
   delay: 10

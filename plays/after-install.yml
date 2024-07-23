@@ -38,13 +38,13 @@
   copy:
     content: "{{ install_config }}"
     dest: "{{ dci_cluster_configs_dir }}/cluster-install-config.yml"
-    mode: 0600
+    mode: "0600"
 
 - name: "Upload cluster's files to DCI Control Server"
   environment:
-    - DCI_CLIENT_ID: "{{ dci_client_id }}"
-    - DCI_API_SECRET: "{{ dci_api_secret }}"
-    - DCI_CS_URL: "{{ dci_cs_url }}"
+    DCI_CLIENT_ID: "{{ dci_client_id }}"
+    DCI_API_SECRET: "{{ dci_api_secret }}"
+    DCI_CS_URL: "{{ dci_cs_url }}"
   dci_file:
     path: "{{ item }}"
     name: "{{ item | basename }}"
@@ -126,14 +126,15 @@
     - acm_cluster_type | default('') not in ['hypershift', 'sno']
 
 - name: "Create a DCI component for the rhcos_kernel"
+  ignore_errors: true
   block:
     - name: "Create component with the rhcos kernel in use"
       vars:
-        - kernel_version: "{{ control_nodes.resources[0].status.nodeInfo.kernelVersion }}"
+        kernel_version: "{{ control_nodes.resources[0].status.nodeInfo.kernelVersion }}"
       environment:
-        - DCI_CLIENT_ID: "{{ dci_client_id }}"
-        - DCI_API_SECRET: "{{ dci_api_secret }}"
-        - DCI_CS_URL: "{{ dci_cs_url }}"
+        DCI_CLIENT_ID: "{{ dci_client_id }}"
+        DCI_API_SECRET: "{{ dci_api_secret }}"
+        DCI_CS_URL: "{{ dci_cs_url }}"
       dci_component:
         display_name: "rhcos_kernel {{ kernel_version }}"
         version: "{{ kernel_version }}"
@@ -154,7 +155,6 @@
       when:
         - "'component' in kernel_component"
         - "'id' in kernel_component.component"
-  ignore_errors: true
 
 - name: "Patch clusterversion update channel"
   vars:
@@ -171,7 +171,10 @@
   when:
     - acm_cluster_type | default('') != 'hypershift'
 
-- block:
+- name: Afeter install for IPI/UPI/SNO
+  when:
+    - install_type in ['ipi', 'upi', 'sno']
+  block:
     - name: "Merge all inventory hosts"
       set_fact:
         all_hosts: "{{ all_hosts | default([]) + groups[item] }}"
@@ -182,10 +185,11 @@
         name: redhatci.ocp.label_nodes
       vars:
         hosts_list: "{{ all_hosts | list | unique }}"
-  when:
-    - install_type in ['ipi', 'upi', 'sno']
 
 - name: "Disable provisioning"
+  when:
+    - dci_disable_provisioning | default(false) | bool
+    - acm_cluster_type | default('') != 'hypershift'
   block:
     - name: "Get provisioning"
       community.kubernetes.k8s_info:
@@ -205,9 +209,6 @@
             provisioningNetwork: Disabled
       when:
         - provisioning_cr.resources | length
-  when:
-    - dci_disable_provisioning | default(false) | bool
-    - acm_cluster_type | default('') != 'hypershift'
 
 - name: "Setup additional credentials to OCP"
   vars:
@@ -217,9 +218,9 @@
 
 - name: "Upload additional credentials to DCI Control Server"
   environment:
-    - DCI_CLIENT_ID: "{{ dci_client_id }}"
-    - DCI_API_SECRET: "{{ dci_api_secret }}"
-    - DCI_CS_URL: "{{ dci_cs_url }}"
+    DCI_CLIENT_ID: "{{ dci_client_id }}"
+    DCI_API_SECRET: "{{ dci_api_secret }}"
+    DCI_CS_URL: "{{ dci_cs_url }}"
   dci_file:
     path: "{{ item }}"
     name: "{{ item | basename }}"

@@ -31,6 +31,7 @@
     operator_csv: "{{ packagemanifest | json_query(current_csv) | first  }}"
 
 - name: "Upgrade operator if the current CSV is different to the installed one"
+  when: operator_csv != sub.installedCSV
   block:
 
     # Versions may not follow the same convention between releases
@@ -113,5 +114,4 @@
           spec:
             name: "{{ sub.operatorName }}"
             installPlanApproval: "{{ sub.installPlanApproval }}"
-  when: operator_csv != sub.installedCSV
 ...

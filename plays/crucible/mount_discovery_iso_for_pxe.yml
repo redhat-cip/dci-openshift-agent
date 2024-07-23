@@ -2,15 +2,17 @@
 - name: Mount Discovery ISO for PXE
   hosts: http_store
   vars:
-    MOUNT_DISCOVERY_ISO: "{{ setup_pxe_service | default(False)}}"
+    _mount_discovery_iso: "{{ setup_pxe_service | default(False)}}"
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
-        - name: "assisted installer: mount discovery iso for pxe"
+    - name: Mount discovery ISO
+      block:
+        - name: Mount discovery iso for pxe
           include_role:
             name: redhatci.ocp.mount_discovery_iso_for_pxe
-          when: MOUNT_DISCOVERY_ISO == True
+          when: _mount_discovery_iso == True
       rescue:
-        - include_tasks: teardown_failure.yml
+        - name: Teardown failure
+          include_tasks: teardown_failure.yml
 ...

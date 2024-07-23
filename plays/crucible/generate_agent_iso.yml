@@ -4,16 +4,18 @@
   environment:
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   vars:
-    - config_file_path: "{{ dci_cluster_configs_dir }}/config"
+    config_file_path: "{{ dci_cluster_configs_dir }}/config"
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
-        - name: "assisted installer: generate agent iso"
+    - name: Agent ISO
+      block:
+        - name: "Generate agent iso"
           vars:
             repo_root_path: "{{ dci_cluster_configs_dir }}"
           include_role:
             name: redhatci.ocp.generate_agent_iso
       rescue:
-        - include_tasks: teardown_failure.yml
+        - name: Teardown failure
+          include_tasks: teardown_failure.yml
 ...

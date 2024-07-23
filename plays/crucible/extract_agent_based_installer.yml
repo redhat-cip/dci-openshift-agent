@@ -12,19 +12,21 @@
   vars_files:
     - ../../group_vars/all
   tasks:
-    - block:
-        - name: "assisted installer: pre-compute need to get hashes"
+    - name: Extract installer
+      block:
+        - name: "Pre-compute need to get hashes"
           set_fact:
             run_get_hash: "{{ assisted_installer_release_images | default({}) | length == 0  }}"
-        - name: "assisted installer: get image hash"
+        - name: "Get image hash"
           vars:
             repo_root_path: "{{ dci_cluster_configs_dir }}"
           include_role:
             name: redhatci.ocp.get_image_hash
           when: run_get_hash | bool
-        - name: "assisted installer: extract openshift installer"
+        - name: "Extract openshift installer"
           include_role:
             name: redhatci.ocp.extract_openshift_installer
       rescue:
-        - include_tasks: teardown_failure.yml
+        - name: Teardown failures
+          include_tasks: teardown_failure.yml
 ...

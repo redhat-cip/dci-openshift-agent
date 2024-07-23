@@ -1,7 +1,9 @@
 ---
 - name: Run the teardown failure handler
+  delegate_to: localhost
+  ignore_unreachable: true
   block:
-    - name: failure
+    - name: Failure
       dci_job:
         id: "{{ hostvars.localhost.job_id }}"
         status: "failure"
@@ -15,7 +17,12 @@
         loop_var: hookdir
       ignore_errors: true
 
-    - block:
+    - name: Teardown hooks
+      when: dci_teardown_on_failure|bool
+      delegate_to: localhost
+      ignore_unreachable: true
+      ignore_errors: true
+      block:
         - name: Run the teardown hooks
           include_tasks: "{{ hookdir }}/hooks/teardown.yml"
           loop: "{{ dci_config_dirs }}"
@@ -24,13 +31,8 @@
 
         - name: Run the teardown play
           include_tasks: ../teardown.yml
-      when: dci_teardown_on_failure|bool
-      delegate_to: localhost
-      ignore_unreachable: true
-      ignore_errors: true
+
   always:
     - name: Run the failure process
       include_tasks: ../failure.yml
-  delegate_to: localhost
-  ignore_unreachable: true
 ...
