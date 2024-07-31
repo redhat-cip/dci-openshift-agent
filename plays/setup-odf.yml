@@ -3,8 +3,9 @@
   ansible.builtin.include_role:
     name: redhatci.ocp.mirror_images
   vars:
-    images: ['registry.access.redhat.com/ubi8/ubi']
-    authfile: "{{ dci_pullsecret_file }}"
+    mi_images: ['registry.access.redhat.com/ubi8/ubi']
+    mi_authfile: "{{ dci_pullsecret_file }}"
+    mi_registry: "{{ dci_local_registry }}"
   when:
     - dci_disconnected | default(false) | bool
 

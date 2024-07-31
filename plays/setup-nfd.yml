@@ -3,8 +3,9 @@
   ansible.builtin.include_role:
     name: redhatci.ocp.mirror_images
   vars:
-    images: ["{{ nfd_image }}"]
-    authfile: "{{ dci_pullsecret_file }}"
+    mi_images: ["{{ nfd_image }}"]
+    mi_authfile: "{{ dci_pullsecret_file }}"
+    mi_registry: "{{ dci_local_registry }}"
   when:
     - dci_disconnected | default(false) | bool
 

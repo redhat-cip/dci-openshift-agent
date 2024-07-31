@@ -15,10 +15,11 @@
       include_role:
         name: redhatci.ocp.mirror_images
       vars:
-        images:
+        mi_images:
           - quay.io/openshift-kni/cnf-tests:{{ cnf_tests_image }}
           - quay.io/openshift-kni/dpdk:{{ cnf_tests_image }}
-        authfile: "{{ dci_pullsecret_file }}"
+        mi_authfile: "{{ dci_pullsecret_file }}"
+        mi_registry: "{{ dci_local_registry }}"
 
     - name: "Set cnf_tests_image_registry for disconnected env"
       set_fact:

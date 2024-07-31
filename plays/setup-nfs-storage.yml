@@ -3,8 +3,9 @@
   ansible.builtin.include_role:
     name: redhatci.ocp.mirror_images
   vars:
-    images: ['registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2']
-    authfile: "{{ dci_pullsecret_file }}"
+    mi_images: ['registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2']
+    mi_authfile: "{{ dci_pullsecret_file }}"
+    mi_registry: "{{ dci_local_registry }}"
   when:
     - dci_disconnected | default(false) | bool
 

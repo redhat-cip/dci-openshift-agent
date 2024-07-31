@@ -136,8 +136,9 @@
       include_role:
         name: redhatci.ocp.mirror_images
       vars:
-        images: "{{ dci_must_gather_images | default(['registry.redhat.io/openshift4/ose-must-gather']) }}"
-        authfile: "{{ dci_pullsecret_file }}"
+        mi_images: "{{ dci_must_gather_images | default(['registry.redhat.io/openshift4/ose-must-gather']) }}"
+        mi_authfile: "{{ dci_pullsecret_file }}"
+        mi_registry: "{{ dci_local_registry }}"
 
 - name: "Get OCP release artifacts"
   when:

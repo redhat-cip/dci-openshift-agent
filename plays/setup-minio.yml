@@ -3,10 +3,11 @@
   ansible.builtin.include_role:
     name: redhatci.ocp.mirror_images
   vars:
-    images:
+    mi_images:
       - quay.io/minio/minio
       - quay.io/minio/mc
-    authfile: "{{ dci_pullsecret_file }}"
+    mi_authfile: "{{ dci_pullsecret_file }}"
+    mi_registry: "{{ dci_local_registry }}"
   when:
     - dci_disconnected | default(false) | bool
 

@@ -25,8 +25,9 @@
     nro_image_name: "{{ ocp_version is version('4.14.0', '>=') |
                     ternary('noderesourcetopology-scheduler-rhel9', 'noderesourcetopology-scheduler-container-rhel8') }}"
     nro_image_tag: "{{ nro_topo_img_tag | default('v'+ ocp_version_maj +'.'+ ocp_version_min) }}"
-    images: ["{{ nro_image_repo }}/{{ nro_image_name }}:{{ nro_image_tag }}"]
-    authfile: "{{ dci_pullsecret_file }}"
+    mi_images: ["{{ nro_image_repo }}/{{ nro_image_name }}:{{ nro_image_tag }}"]
+    mi_authfile: "{{ dci_pullsecret_file }}"
+    mi_registry: "{{ dci_local_registry }}"
   when:
     - dci_disconnected | default(false) | bool
 
