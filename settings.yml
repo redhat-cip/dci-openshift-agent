@@ -1,7 +1,7 @@
 ---
 
 dci_agent: openshift            # needed for dci-agent-ctl
-dci_topic: OCP-4.15
+dci_topic: OCP-4.16
 
 # -- Atttributes of the job --
 #dci_name: "ocp-install"
@@ -31,9 +31,6 @@ dci_tags: ["debug"]
 
 # By default disconnected mode is disabled
 #dci_disconnected: False
-
-# Specify version of baremetal deploy repo, default is origin/master
-#baremetal_deploy_version: origin/master
 
 # By default we do not run cnf tests
 # dci_openshift_agent_cnf_tests_mode: non-disconnected
