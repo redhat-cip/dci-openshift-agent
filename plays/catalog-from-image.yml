@@ -1,11 +1,11 @@
 ---
-- name: "Build catalog from upstream only for non-GA OCP versions"
+- name: "Build catalog from upstream operators"
   vars:
     short_ver: "{{ '.'.join(ocp_version.split('-')[0].split('.')[:2]) }}"
   include_tasks: build-upstream-catalog.yml
   when:
     - dci_disconnected | default(false) | bool or (dci_local_registry | length )
-    - short_ver is version("4.18", ">=")
+    - dci_upstream_operators | default(false) | bool
 
 - name: "Set mirror variable"
   set_fact:
