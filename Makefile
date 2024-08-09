@@ -35,7 +35,6 @@ install:
 
 	install -dm 755 "$(BUILDROOT)$(DATADIR)/dci-openshift-agent/utils/"
 	install -Dm 755 utils/cleanup-scripts/*{.sh,.py} "$(BUILDROOT)$(DATADIR)/dci-openshift-agent/utils/"
-	install -Dm 755 utils/opm-auths "$(BUILDROOT)$(DATADIR)/dci-openshift-agent/utils/"
 
 	for plugin in action_plugins/*.py; \
 	  do install -p -D -m 644 $$plugin $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$plugin; \

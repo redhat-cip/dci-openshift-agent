@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.19.0
+Version:       0.20.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -83,6 +83,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Aug  7 2024 Tony Garcia <tonyg@redhat.com> 0.20.0-1
+- Remove opm-auth util script
+
 * Wed Jul 31 2024 Tony Garcia <tonyg@redhat.com> 0.19.0-1
 - Requires redhatci.ocp >= 0.15.0 for mirror_images role changes
 
