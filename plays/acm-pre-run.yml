@@ -46,6 +46,12 @@
       when: hub_is | length > 0
       no_log: true
 
+    - name: "Print webserver_url"
+      debug:
+        msg: "{{ hostvars.localhost.webserver_url }}"
+      when:
+        - hostvars.localhost.webserver_url is defined
+
     - name: "Validate webserver_url variable is defined"
       assert:
         that:
@@ -59,7 +65,7 @@
         mor_version: "{{ version }}"
         mor_pull_url: "{{ version_pull_url }}"
         mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
-        mor_webserver_url: "{{ hub_webserver_url | default(None) }}"
+        mor_webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
         mor_registry_url: "{{ hub_registry | urlsplit('netloc') }}"
         mor_registry_path: "{{ ocp_release_path }}"
         mor_auths_file: "{{ dci_pullsecret_file }}"
@@ -67,7 +73,6 @@
         mor_install_type: "{{ install_type }}"
         mor_mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
         mor_mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
-        mor_write_custom_config: false
         mor_build: "{{ build }}"
         mor_oc: "{{ oc_tool_path }}"
 
@@ -152,7 +157,6 @@
         mor_version: "{{ version }}"
         mor_pull_url: "{{ version_pull_url }}"
         mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
-        mor_webserver_url: "{{ hub_webserver_url | default(None) }}"
         mor_auths_file: "{{ dci_pullsecret_file }}"
         mor_force: true
         mor_install_type: "{{ install_type }}"
