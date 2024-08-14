@@ -659,9 +659,9 @@ if [ -s "/var/tmp/$CLUSTER.dci.job_id" ]; then
     OPTS+=(-e "dci_previous_job_id=$(cat /var/tmp/$CLUSTER.dci.job_id)")
 fi
 
-if [ -d cnf-certification-test ]; then
-    # export directory where cnf-certification-test code from PR is located as variable to be used in the dci-openshift-app-agent
-    OPTS+=(-e "kbpc_code_src_dir=$PWD/cnf-certification-test")
+if [ -d certsuite ]; then
+    # export directory where certsuite code from PR is located as variable to be used in the dci-openshift-app-agent
+    OPTS+=(-e "kbpc_code_src_dir=$PWD/certsuite")
 fi
 
 if [ -d openshift-preflight ]; then
