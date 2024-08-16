@@ -296,6 +296,7 @@ This is the dci-openshift-agent variables that can be set in the
 | opm_expire                      | False    | Boolean | True                                                           | Enable or disable expiration label in the operator-mirror catalog.
 | opm_expire_time                 | False    | String  | 24h                                                            | Set the time used for the expiration label in the operator-mirror catalog.
 | opm_mirror_list                 | False    | List    | []                                                             | List additional operators to be mirrored in disconnected environments. The package names of operators deployed using `dci_operators` must be included in this list.
+| dci_catalog_source_name         | False    | String  | mirrored-redhat-operators                                      | The name to use for the catalog source in disconnected environments.
 | dci_operators                   | False    | List    | []                                                             | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details.
 | apply_sriov_upgrade_settings    | False    | Boolean | True                                                           | Whether to apply SR-IOV recommended settings before operator upgrade.
 | enable_cnv                      | False    | Boolean | False                                                          | Configures the CNV and the HCO operator.
@@ -527,7 +528,7 @@ opm_mirror_list:
   - cluster-logging
 ```
 
-> NOTE: By default the catalog source name that can be used to create operator subscription is named mirrored-redhat-operators.
+> NOTE: By default the catalog source name that can be used to create operator subscription is named mirrored-redhat-operators, can be changed with `dci_catalog_source_name`.
 
 > NOTE: Some operators may have other operators dependencies, for such cases the dependencies must be added to the list.
 

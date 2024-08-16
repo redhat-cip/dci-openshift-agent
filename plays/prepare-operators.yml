@@ -2,7 +2,7 @@
 - name: "Set catalog facts for disconnected"
   set_fact:
     opm_local_registry_path: "/pruned/redhat-operator-index"
-    opm_catalog_source_name: "mirrored-redhat-operators"
+    opm_catalog_source_name: "{{ dci_catalog_source_name | default('mirrored-redhat-operators') }}"
     opm_catalog_source_namespace: "openshift-marketplace"
   when:
     - dci_disconnected | default(false) | bool
