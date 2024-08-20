@@ -63,8 +63,8 @@ done <<< "${containers}"
 ####
 
 ### Collect information about lingering images
-# Get the CNF images
-podman images --sort created --filter 'reference=*/cnf-certification-test:*' --format "{{.Repository}}:{{.Tag}}" | grep -E '\w{8}(-\w{4}){3}-\w{12}' > /tmp/clean-images
+# Get the certsuite images
+podman images --sort created --filter 'reference=*/certsuite:*' --format "{{.Repository}}:{{.Tag}}" | grep -E '\w{8}(-\w{4}){3}-\w{12}' > /tmp/clean-images
 
 # Preflight images
 podman images --sort created --filter 'reference=*/preflight:*' --format "{{.Repository}}:{{.Tag}}" | grep -E '\w{8}(-\w{4}){3}-\w{12}' >> /tmp/clean-images
