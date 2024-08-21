@@ -322,7 +322,7 @@ masters_vm_spec['disk_size_gb'] is defined %}
 {% if masters_vm_spec is not defined %}
             vm_spec:
               cpu_cores: 16  # Use a bigger instance for SNO
-              ram_mib: 32718  # Use a bigger instance for SNO
+              ram_mib: 65536  # Use a bigger instance for SNO
               disk_size_gb: 200  # Use a bigger instance for SNO
 {% endif %}
           hosts:
