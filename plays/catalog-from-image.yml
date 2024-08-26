@@ -18,6 +18,7 @@
   when:
     - dci_disconnected | default(false) | bool
     - dci_operators | default([]) | length
+    - dci_pre_ga_catalog | default('') | length == 0
 
 - name: "Get the operators to mirror from dict"
   set_fact:
@@ -25,6 +26,7 @@
   when:
     - dci_disconnected | default(false) | bool
     - opm_mirror_list | type_debug == "dict"
+    - dci_pre_ga_catalog | default('') | length == 0
 
 - name: "Cleanup operators list"
   set_fact:
