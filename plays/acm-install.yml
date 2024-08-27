@@ -43,6 +43,31 @@
       when:
         - metallb_ipaddr_pool_l2 | default('') | length
 
+    - name: Set Release Image Digest
+      when: not acm_release_image | regex_search('@sha256:')
+      block:
+        - name: Get catalog Digest
+          ansible.builtin.shell:
+            cmd: >
+              set -eo pipefail;
+              skopeo inspect
+              --tls-verify=false
+              --authfile "{{ dci_pullsecret_file }}"
+              docker://{{ acm_release_image }} |
+              jq -r '.Digest'
+          register: release_digest
+          retries: 5
+          delay: 5
+          changed_when: release_digest.rc == 0
+          until:
+            - release_digest.stdout | regex_search('^sha')
+
+        - name: Set release image with digest
+          vars:
+            release_base_image: "{{ acm_release_image | regex_search('(^.+):', '\\1') | first }}"
+          ansible.builtin.set_fact:
+            acm_release_image: "{{ release_base_image }}@{{ release_digest.stdout }}"
+
     - name: "Deploy a Hypershift cluster via ACM"
       vars:
         ah_pullsecret_file: "{{ dci_pullsecret_file }}"
