@@ -5,10 +5,8 @@ GitOps ZTP is an OpenShift cluster deployment method based on the principle of m
 ## Table of contents
 
 * [Process description](#process-description)
-* [Requirements](#requirements)
-* [Roles](#roles)
-* [Pipelines examples](#pipelines-examples)
-* [Inventory examples](#inventory-examples)
+* [ZTP ACM Hub Cluster](#ztp-acm-hb-cluster)
+* [ZTP Spoke Cluster](#ztp-spoke-cluster)
 
 ## Process description
 
@@ -22,18 +20,30 @@ These two stages are run through separate DCI jobs that may be pipeline stages.
 
 ## ZTP ACM Hub Cluster
 
+To support ZTP GitOps based deployments, the ACM Hub Cluster must be provisioned with some operators on top of the Advanced Cluster Management. In particular, the OpenShift GitOps Operator and the Topology Aware Lifecycle Manager is required.
+
+Also, for disconnected environments you may need to have a Git repository served from the restricted network. To help with this, the DCI OpenShift Agent allows you to install a Gitea instance on the hub cluster, so it can be reached both, from the jumpbox and the spoke cluster.
+
 ### Requirements for the ZTP ACM Hub Cluster
 
-* The Hub Cluster is located in a connected environment.
-
 * A multi-node or compact cluster (minimum 3 control plane nodes).
+* For disconnected environments, a container image registry running from the DMZ may be used to mirror the Gitea image.
 
 ### Configuration for the ZTP ACM Hub Cluster
 
-| Variable | Description |
-|----------|-------------|
-| dci_operators | List of the operators, along with their specific settings, to be installed in the Hub Cluster. This list must included, at minimum, the advanced-cluster-management, the openshift-gitops-operator and the topology-aware-lifecycle manager.
-| enable_acm | The variable must be set to True for the dci-openshift-agent to run the ACM hub cluster configuration tasks.
+| Variable                | Description |
+|-------------------------|-------------|
+| dci_operators      | List of the operators, along with their specific settings, to be installed in the Hub Cluster. This list must included, at minimum, the advanced-cluster-management, the openshift-gitops-operator and the topology-aware-lifecycle manager. |
+| enable_acm         | The variable must be set to "true" for the dci-openshift-agent to run the ACM hub cluster configuration tasks. |
+| enable_gitea       | For disconnected environments, set it to "true" to enable the deployment of a Gitea server in the hub cluster so you may push your gitops manifests. |
+| dci_pullsecret_file    | In disconnected environments, paths to the pull-secret file to authenticate on the Gitea image registry. |
+| dci_local_registry  | In disconnected environments, base URL to the local registry hosting the Gitea mirrored images. |
+| sg_username        | The internal Git server user name. |
+| sg_password        | The internal Git server user password. |
+| sg_email           | The internal Git server user e-mail address. |
+| sg_repository      | The name to be given to the internal Git repository. |
+| sg_repo_mirror_url | URL to an external reference repository containing the manifests to push (mirror) into the internal Git repository. |
+
 
 ### Pipeline data for the ZTP ACM Hub Cluster
 
@@ -60,6 +70,14 @@ dci_operators:
     operator_group_name: "global-operators"
 # Operators to configure
 enable_acm: true
+# For disconnected environments
+#enable_gitea: true
+#sg_gitea_image: registry.local:5000/gitea/gitea:latest-rootless
+#sg_username: gituser
+#sg_password: Git_Ops_1234
+#sg_email: gituser@example.com
+#sg_repository: gitops
+#sg_repo_mirror_url: git@github.com:gituser/gitops.git
 ```
 
 ### Inventory data for the ZTP ACM Hub Cluster

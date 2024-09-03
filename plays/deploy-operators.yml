@@ -68,6 +68,11 @@
   when:
     - enable_acm | bool
 
+- name: "Setup a Gitea deployment"
+  ansible.builtin.include_tasks: setup-gitea.yml
+  when:
+    - enable_gitea | default(false) | bool
+
 - name: "Setup the Network Observability Operator"
   ansible.builtin.include_tasks: setup-netobserv.yml
   when:

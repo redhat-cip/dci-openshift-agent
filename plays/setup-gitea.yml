@@ -1,0 +1,17 @@
+---
+- name: "Mirroring the Gitea image"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    mi_images:
+      - docker.io/gitea/gitea:latest-rootless
+    mi_authfile: "{{ dci_pullsecret_file }}"
+    mi_registry: "{{ dci_local_registry }}"
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: Deploy a hosted Gitea server
+  ansible.builtin.include_role:
+    name: redhatci.ocp.setup_gitea
+  vars:
+    sg_gitea_image: "{{ dci_disconnected | default(false) | ternary(dci_local_registry, 'docker.io') }}/gitea/gitea:latest-rootless"
