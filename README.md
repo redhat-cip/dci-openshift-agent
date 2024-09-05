@@ -550,6 +550,7 @@ dci_operators:
     channel: stable
     starting_csv: 4.14.0-202307190803
     operator_group_name: local-storage
+    skippable: true
     operator_group_spec:
       targetNamespaces:
         - openshift-local-storage
