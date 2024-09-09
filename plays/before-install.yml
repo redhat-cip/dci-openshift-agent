@@ -14,7 +14,7 @@
 
 - name: Get pullsecret from localhost vars
   ansible.builtin.set_fact:
-    pullsecret: "{{ hostvars.localhost.dci_pullsecret | to_json }}"
+    pullsecret: "{{ hostvars.jumphost.dci_pullsecret | to_json }}"
   no_log: true
 
 - name: Remove any previous predefined performance profile

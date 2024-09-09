@@ -18,13 +18,13 @@
 - name: Install grpcurl when uninstalled
   block:
     - name: Check grpcurl is installed
-      stat:
+      ansible.builtin.stat:
         path: /usr/local/bin/grpcurl
         get_checksum: false
       register: grpcurl_path
 
     - name: Install grpcurl
-      unarchive:
+      ansible.builtin.unarchive:
         src: https://github.com/fullstorydev/grpcurl/releases/download/v1.8.2/grpcurl_1.8.2_linux_x86_64.tar.gz
         dest: /usr/local/bin
         remote_src: true
@@ -37,13 +37,19 @@
       when: not grpcurl_path.stat.exists
 
 - name: Ensure DCI cache directory is present
-  file:
+  ansible.builtin.file:
     path: "{{ dci_cache_dir }}"
     state: directory
     owner: "{{ ansible_user_id }}"
     group: "{{ ansible_user_gid }}"
     mode: "0750"
   become: true
+
+- name: "Ensure tmp directory existes"
+  ansible.builtin.file:
+    state: directory
+    path: "{{ ansible_env.HOME }}/tmp"
+    mode: "0750"
 
 - name: "Set roles_path"
   ansible.builtin.set_fact:
@@ -54,12 +60,12 @@
     - dci_main == 'install'
   block:
     - name: "Clean up {{ dci_cluster_configs_dir }}"
-      file:
+      ansible.builtin.file:
         path: "{{ dci_cluster_configs_dir }}"
         state: absent
 
     - name: "Create {{ dci_cluster_configs_dir }}"
-      file:
+      ansible.builtin.file:
         path: "{{ dci_cluster_configs_dir }}"
         state: directory
         mode: "0755"
@@ -70,7 +76,7 @@
       "https://mirror.openshift.com/pub/openshift-v4/\
       x86_64/clients/ocp/stable"
     opm_suffix: "{{ ansible_distribution_major_version is version('9', '==') | ternary('-rhel9', '') }}"
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ item }}"
     dest: "{{ dci_cluster_configs_dir }}"
     remote_src: true
@@ -84,6 +90,6 @@
     - "{{ ocp_clients_url }}/opm-linux{{ opm_suffix }}.tar.gz"
 
 - name: "Setup podman on the jumphost"
-  include_role:
+  ansible.builtin.include_role:
     name: ansible-role-dci-podman
 ...

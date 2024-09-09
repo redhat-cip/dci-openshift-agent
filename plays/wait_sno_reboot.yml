@@ -1,13 +1,13 @@
 ---
 - name: "Pause 60 seconds to wait for MachineConfig triggers SNO reboot"
-  pause:
+  ansible.builtin.pause:
     seconds: 60
 
 - name: "Wait for API to be available"
-  uri:
+  ansible.builtin.uri:
     url: "https://api.{{ cluster }}.{{ domain is defined | ternary(domain, base_dns_domain) }}:6443/readyz"
-    validate_certs: no
-    return_content: yes
+    validate_certs: false
+    return_content: true
   register: api_ready
   until:
     - "'ok' in api_ready.content"

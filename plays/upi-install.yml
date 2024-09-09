@@ -4,10 +4,10 @@
 
 - name: UPI Installer tasks
   block:
-  - name: "installer : Run UPI installer"
-    import_role:
-      name: redhatci.ocp.upi_installer
-    vars:
-      pull_url: "{{ hostvars.localhost.version_pull_url }}"
-      upi_pullsecret: "{{ hostvars.localhost.pullsecret | to_json }}"
+    - name: "installer : Run UPI installer"
+      import_role:
+        name: redhatci.ocp.upi_installer
+      vars:
+        pull_url: "{{ hostvars.localhost.version_pull_url }}"
+        upi_pullsecret: "{{ hostvars.localhost.pullsecret | to_json }}"
 ...

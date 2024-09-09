@@ -62,6 +62,18 @@
     dci_pullsecret: "{{ mrc_auth_data }}"
   no_log: true
 
+- name: "Copy dci_pullsecret_file localy"
+  ansible.builtin.fetch:
+    src: "{{ dci_pullsecret_file }}"
+    dest: "/tmp/"
+    flat: true
+
+- name: Set dci_pullsecret in localhost scope
+  ansible.builtin.set_fact:
+    dci_pullsecret: "{{ dci_pullsecret }}"
+  delegate_to: localhost
+  delegate_facts: true
+
 - name: "Create releases dir in home directory if needed"
   ansible.builtin.file:
     path: "{{ (ansible_env.HOME, 'releases') | join('/') }}"

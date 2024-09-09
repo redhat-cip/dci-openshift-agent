@@ -9,17 +9,18 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Display proxy settings
       debug:
         msg: "http_proxy={{ http_proxy }} https_proxy={{ https_proxy }} no_proxy={{ no_proxy_list }}"
 
     - name: Read credentials from env vars
-      set_fact:
-        dci_client_id: "{{ lookup('env','DCI_CLIENT_ID') }}"
-        dci_api_secret: "{{ lookup('env','DCI_API_SECRET') }}"
-        dci_cs_url: "{{ lookup('env','DCI_CS_URL') }}"
-        dci_ui_url: "{{ lookup('env','DCI_UI_URL') | default('https://www.distributed-ci.io', True) }}"
+      ansible.builtin.set_fact:
+        dci_client_id: "{{ lookup('env', 'DCI_CLIENT_ID') }}"
+        dci_api_secret: "{{ lookup('env', 'DCI_API_SECRET') }}"
+        dci_cs_url: "{{ lookup('env', 'DCI_CS_URL') }}"
+        dci_ui_url: "{{ lookup('env', 'DCI_UI_URL') | default('https://www.distributed-ci.io', True) }}"
       no_log: "{{ dci_hide_secrets }}"
 
     # Schedule a new job only if not passed via dci-pipeline
@@ -45,15 +46,15 @@
         - dci_custom_component_file | length
       block:
         - name: Load custom build component
-          set_fact:
+          ansible.builtin.set_fact:
             custom_component: "{{ lookup('file', dci_custom_component_file) | from_json }}"
 
     - name: Set the job id
-      set_fact:
+      ansible.builtin.set_fact:
         job_id: '{{ job_info.job.id }}'
 
     - name: Copy the job_id to the JOB_ID_FILE if it exists
-      copy:
+      ansible.builtin.copy:
         content: "{{ job_id }}"
         dest: "{{ JOB_ID_FILE }}"
         mode: "0644"
@@ -61,7 +62,7 @@
 
     # Keep in sync with test-runner parsing
     - name: UI URL
-      debug:
+      ansible.builtin.debug:
         msg: 'Follow the log at: {{ dci_ui_url }}/jobs/{{ hostvars.localhost.job_info.job.id }}/jobStates' # noqa 204
 
     - name: Set DCI tags for the current job
@@ -90,11 +91,11 @@
         value: "{{ dci_workarounds | length }}"
 
     - name: Debug components
-      debug:
+      ansible.builtin.debug:
         msg: "{{ job_info.job.components + [custom_component] if custom_component is defined else job_info.job.components }}"
 
     - name: Get openshift_version from job.components
-      set_fact:
+      ansible.builtin.set_fact:
         ocp_tags: "{{ item['tags'] }}"
         url: "{{ item['url'] | regex_replace('\\/$', '') }}"
         version: "{{ item.version }}"
@@ -104,7 +105,7 @@
       when: item["type"] == "ocp"
 
     - name: Get build from tag
-      set_fact:
+      ansible.builtin.set_fact:
         build: "{{ item.split(':')[1] }}"
       with_items: "{{ ocp_tags }}"
       when: item.split(":")[0] == "build"
@@ -114,9 +115,32 @@
     # for the upstream install playbooks. The dci-feeder adds '-0.rc-$TIMESTAMP'
     # to the version, we have to strip it here.
     - name: Set build:ga when build:candidate
-      set_fact:
+      ansible.builtin.set_fact:
         build: "ga"
       when: build == "candidate"
+
+    - name: Create jumphost host if it doesn't exist
+      ansible.builtin.add_host:
+        name: jumphost
+        groups: jumphost
+        hostname: localhost
+      when:
+        - "'jumphost' not in group_names"
+
+    - name: Set fact also in localhost host scope
+      ansible.builtin.set_fact:
+        version: "{{ version }}"
+        version_pull_url: "{{ version_pull_url }}"
+        job_id: "{{ job_id }}"
+        job_info: "{{ job_info }}"
+        dci_client_id: "{{ dci_client_id }}"
+        dci_api_secret: "{{ dci_api_secret }}"
+        dci_cs_url: "{{ dci_cs_url }}"
+        dci_ui_url: "{{ dci_ui_url }}"
+        install_type: "{{ (install_type | default('ipi')) }}"
+        build: "{{ build }}"
+      delegate_to: jumphost
+      delegate_facts: true
 
     - name: Pre-run
       dci_job:
@@ -144,46 +168,48 @@
         - (install_type | default('ipi')) == 'acm'
       block:
         - name: "Read HUB_KUBECONFIG path from env vars"
-          set_fact:
+          ansible.builtin.set_fact:
             hub_kubeconfig_path: "{{ lookup('env','HUB_KUBECONFIG') }}"
           when: hub_kubeconfig_path is not defined
 
         - name: "Check if HUB_KUBECONFIG path exists"
-          stat:
+          ansible.builtin.stat:
             path: "{{ hub_kubeconfig_path }}"
           register: hub_kubeconfig
 
         - name: "Fail if hub_kubeconfig NOT found"
-          fail:
+          ansible.builtin.fail:
             msg: "hub_kubeconfig not found at {{ hub_kubeconfig_path }}"
           when: not hub_kubeconfig.stat.exists
 
 # Step 1a : pre run
 - name: 'Launch pre-run'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - pre-run
   environment:
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
+
     - name: Pre-run
       block:
         - name: Configure jumpbox
-          include_tasks: plays/configure-jumpbox.yml
+          ansible.builtin.include_tasks: plays/configure-jumpbox.yml
 
         - name: "Setup job_logs directory"
-          include_tasks: plays/log-dir.yml
+          ansible.builtin.include_tasks: plays/log-dir.yml
           when: job_logs is undefined
 
         - name: Run the pre-run
-          include_tasks: plays/pre-run.yml
+          ansible.builtin.include_tasks: plays/pre-run.yml
           when:
             - (install_type | default('ipi')) not in ['acm']
 
         - name: "ACM pre-run"
-          include_tasks:
+          ansible.builtin.include_tasks:
             file: plays/acm-pre-run.yml
             apply:
               environment:
@@ -195,7 +221,6 @@
 
       rescue: &teardown_error
         - name: Run the teardown error handler
-          delegate_to: localhost
           ignore_unreachable: true
           block:
             - name: Error
@@ -207,29 +232,28 @@
 
             - name: Teardown hooks
               when: dci_teardown_on_failure|bool
-              delegate_to: localhost
               ignore_unreachable: true
               ignore_errors: true
               block:
                 - name: Run the teardown hooks
-                  include_tasks: "{{ hookdir }}/hooks/teardown.yml"
+                  ansible.builtin.include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs | reverse | list }}"
                   loop_control:
                     loop_var: hookdir
 
                 - name: Run the teardown play
-                  include_tasks: plays/teardown.yml
+                  ansible.builtin.include_tasks: plays/teardown.yml
 
           always:
             - name: Run the error process
-              include_tasks: plays/failure.yml
+              ansible.builtin.include_tasks: plays/failure.yml
 
             - name: Run agent cleanup
               include_tasks: plays/agent-cleanup.yml
 
 # Step 1b : hook pre run
 - name: 'Launch hook pre-run'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - pre-run
     - hook-pre-run
@@ -238,11 +262,12 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Pre-run hooks
       block:
         - name: Run the pre-run hook
-          include_tasks: '{{ hookdir }}/hooks/pre-run.yml'
+          ansible.builtin.include_tasks: '{{ hookdir }}/hooks/pre-run.yml'
           when:
             - dci_main == 'install'
           loop: "{{ dci_config_dirs }}"
@@ -281,11 +306,11 @@
       block:
         # Prepare provisioner host
         - name: Configure provisioner
-          include_tasks: plays/configure-provisioner.yml
+          ansible.builtin.include_tasks: plays/configure-provisioner.yml
           when: ansible_distribution_major_version == '8'
 
         - name: Launch configure
-          include_tasks: '{{ hookdir }}/hooks/configure.yml'
+          ansible.builtin.include_tasks: '{{ hookdir }}/hooks/configure.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
@@ -307,12 +332,12 @@
         - dci_main == 'install'
       block:
         - name: Launch install {{ (install_type | default('ipi'))}}
-          include_tasks: "plays/{{ (install_type | default('ipi')) }}-install.yml"
+          ansible.builtin.include_tasks: "plays/{{ (install_type | default('ipi')) }}-install.yml"
           when:
             - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
 
         - name: "Get KUBECONFIG auth/creds from provisioner node"
-          fetch:
+          ansible.builtin.fetch:
             src: "{{ item }}"
             dest: "{{ dci_cluster_configs_dir }}/"
             flat: true
@@ -335,7 +360,7 @@
               tags: [dci]
 
             - name: Run the failure process for partners
-              include_tasks: "{{ hookdir }}/hooks/failure.yml"
+              ansible.builtin.include_tasks: "{{ hookdir }}/hooks/failure.yml"
               loop: "{{ dci_config_dirs }}"
               loop_control:
                 loop_var: hookdir
@@ -343,29 +368,29 @@
 
             - name: Teardown Hooks
               when: dci_teardown_on_failure|bool
-              delegate_to: localhost
+              delegate_to: jumphost
               ignore_unreachable: true
               ignore_errors: true
               block:
                 - name: Run the teardown hooks
-                  include_tasks: "{{ hookdir }}/hooks/teardown.yml"
+                  ansible.builtin.include_tasks: "{{ hookdir }}/hooks/teardown.yml"
                   loop: "{{ dci_config_dirs | reverse | list }}"
                   loop_control:
                     loop_var: hookdir
 
                 - name: Run the teardown play
-                  include_tasks: plays/teardown.yml
+                  ansible.builtin.include_tasks: plays/teardown.yml
 
           always:
             - name: Run the failure process
-              include_tasks: plays/failure.yml
+              ansible.builtin.include_tasks: plays/failure.yml
 
             - name: Run agent cleanup
               include_tasks: plays/agent-cleanup.yml
 
 # Step 3a-1 : installing
 - name: 'Launch ACM install'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - running
     - installing
@@ -375,11 +400,12 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Install ACM
       block:
         - name: "ACM Installation"
-          include_tasks:
+          ansible.builtin.include_tasks:
             file: plays/acm-install.yml
             apply:
               environment:
@@ -401,11 +427,12 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Install using ABI
       block:
         - name: "ABI Installation"
-          include_tasks:
+          ansible.builtin.include_tasks:
             file: plays/abi-install.yml
           when:
             - (install_type | default('ipi')) == 'abi'
@@ -414,7 +441,7 @@
 
 # Step 3a-1 : installing
 - name: 'Launch after install'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - running
     - installing
@@ -425,18 +452,19 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: After Install
       block:
         - name: "Launch after install"
-          include_tasks: "plays/after-install.yml"
+          ansible.builtin.include_tasks: "plays/after-install.yml"
           when:
             - dci_main == 'install'
       rescue: *teardown_failure
 
 # Step 3a-2 : deploy operators
 - name: 'Deploy operators to OCP cluster'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - running
     - operator-deployment
@@ -446,6 +474,7 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Deploy operators
       when:
@@ -453,17 +482,17 @@
         - acm_cluster_type | default('') != 'hypershift'
       block:
         - name: "Run cluster health checks"
-          include_tasks: plays/check-cluster-health.yml
+          ansible.builtin.include_tasks: plays/check-cluster-health.yml
         - name: "Setup job_logs directory"
-          include_tasks: plays/log-dir.yml
+          ansible.builtin.include_tasks: plays/log-dir.yml
           when: job_logs is undefined
         - name: "Deploy operators"
-          include_tasks: plays/deploy-operators.yml
+          ansible.builtin.include_tasks: plays/deploy-operators.yml
       rescue: *teardown_failure
 
 # Step 3a-3 : hook installing
 - name: 'Launch hook install'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - running
     - hook-installing
@@ -473,6 +502,7 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Install Hooks
       when:
@@ -480,9 +510,9 @@
         - acm_cluster_type | default('') != 'hypershift'
       block:
         - name: "Run cluster health checks"
-          include_tasks: plays/check-cluster-health.yml
+          ansible.builtin.include_tasks: plays/check-cluster-health.yml
         - name: "Launch partner install"
-          include_tasks: '{{ hookdir }}/hooks/install.yml'
+          ansible.builtin.include_tasks: '{{ hookdir }}/hooks/install.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
@@ -490,7 +520,7 @@
 
 # Step 3b-1 : upgrading
 - name: 'Launch upgrade'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - running
     - upgrading
@@ -500,20 +530,21 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Upgrade
       when:
         - dci_main == 'upgrade'
       block:
         - name: "Run cluster health checks"
-          include_tasks: plays/check-cluster-health.yml
+          ansible.builtin.include_tasks: plays/check-cluster-health.yml
         - name: "Launch upgrade"
-          include_tasks: plays/upgrade.yml
+          ansible.builtin.include_tasks: plays/upgrade.yml
       rescue: *teardown_failure
 
 # Step 3b-2 : hook upgrading
 - name: 'Launch hook upgrade'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - running
     - hook-upgrading
@@ -523,15 +554,16 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Upgrade Hooks
       when:
         - dci_main == 'upgrade'
       block:
         - name: "Run cluster health checks"
-          include_tasks: plays/check-cluster-health.yml
+          ansible.builtin.include_tasks: plays/check-cluster-health.yml
         - name: "Launch partner upgrade"
-          include_tasks: '{{ hookdir }}/hooks/upgrade.yml'
+          ansible.builtin.include_tasks: '{{ hookdir }}/hooks/upgrade.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
@@ -539,7 +571,7 @@
 
 # Step 4 : Red Hat testing
 - name: 'Launch Red Hat tests'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - running
     - testing
@@ -550,23 +582,24 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Red Hat tests
       when:
         - (install_type | default('ipi')) != 'acm'
       block:
         - name: "Run cluster health checks"
-          include_tasks: plays/check-cluster-health.yml
+          ansible.builtin.include_tasks: plays/check-cluster-health.yml
         - name: "Setup job_logs directory"
-          include_tasks: plays/log-dir.yml
+          ansible.builtin.include_tasks: plays/log-dir.yml
           when: job_logs is undefined
         - name: "Launch Red Hat tests"
-          include_tasks: plays/tests.yml
+          ansible.builtin.include_tasks: plays/tests.yml
       rescue: *teardown_failure
 
 # Step 5 : partner testing
 - name: 'Launch partner tests'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - running
     - testing
@@ -577,34 +610,36 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Test Hooks
       when:
         - acm_cluster_type | default('') != 'hypershift'
       block:
         - name: "Run cluster health checks"
-          include_tasks: plays/check-cluster-health.yml
+          ansible.builtin.include_tasks: plays/check-cluster-health.yml
         - name: "Setup job_logs directory"
-          include_tasks: plays/log-dir.yml
+          ansible.builtin.include_tasks: plays/log-dir.yml
           when: job_logs is undefined
         - name: Run the partner tests
-          include_tasks: '{{ hookdir }}/hooks/tests.yml'
+          ansible.builtin.include_tasks: '{{ hookdir }}/hooks/tests.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
         - name: "Run cluster health checks"
-          include_tasks: plays/check-cluster-health.yml
+          ansible.builtin.include_tasks: plays/check-cluster-health.yml
       rescue: *teardown_failure
 
     - name: Post-run
       dci_job:
         id: "{{ job_id }}"
         status: "post-run"
+      delegate_to: localhost
       tags: [dci]
 
 # Step 6 : post run
 - name: Launch post run
-  hosts: localhost
+  hosts: jumphost
   tags:
     - post-run
     - dci
@@ -614,17 +649,18 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Post-run
       block:
         - name: Run the partner post-run
-          include_tasks: '{{ hookdir }}/hooks/post-run.yml'
+          ansible.builtin.include_tasks: '{{ hookdir }}/hooks/post-run.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
 
         - name: Run the post-run
-          include_tasks: plays/post-run.yml
+          ansible.builtin.include_tasks: plays/post-run.yml
 
       rescue: *teardown_error
 
@@ -632,11 +668,12 @@
       dci_job:
         id: "{{ job_id }}"
         status: "success"
+      delegate_to: localhost
       tags: [dci]
 
 # Step 7 : state "success"
 - name: 'Success'
-  hosts: localhost
+  hosts: jumphost
   tags:
     - success
   environment:
@@ -645,31 +682,32 @@
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Success
       ignore_unreachable: true
       ignore_errors: true
       block:
         - name: Run the success hook
-          include_tasks: '{{ hookdir }}/hooks/success.yml'
+          ansible.builtin.include_tasks: '{{ hookdir }}/hooks/success.yml'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
 
         - name: Run the success
-          include_tasks: plays/success.yml
+          ansible.builtin.include_tasks: plays/success.yml
 
         - name: Teardown on success
           when: dci_teardown_on_success | bool
           block:
             - name: Run the teardown hooks
-              include_tasks: "{{ hookdir }}/hooks/teardown.yml"
+              ansible.builtin.include_tasks: "{{ hookdir }}/hooks/teardown.yml"
               loop: "{{ dci_config_dirs | reverse | list }}"
               loop_control:
                 loop_var: hookdir
 
             - name: Run the teardown play
-              include_tasks: plays/teardown.yml
+              ansible.builtin.include_tasks: plays/teardown.yml
 
         - name: Run agent cleanup
           include_tasks: plays/agent-cleanup.yml

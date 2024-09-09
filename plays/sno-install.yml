@@ -6,13 +6,13 @@
   import_role:
     name: redhatci.ocp.sno_node_prep
   vars:
-    sno_pullsecret_file: "{{ hostvars['localhost']['dci_pullsecret_file'] }}"
+    sno_pullsecret_file: "{{ hostvars['jumphost']['dci_pullsecret_file'] }}"
 
 - name: "installer : SNO Run IPI installer"
   import_role:
     name: redhatci.ocp.sno_installer
   vars:
-    pull_url: "{{ hostvars.localhost.version_pull_url }}"
+    pull_url: "{{ hostvars.jumphost.version_pull_url }}"
 
 - name: "installer : SNO sideload-kernel"
   when:
