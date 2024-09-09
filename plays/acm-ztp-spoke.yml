@@ -8,19 +8,68 @@
       - dci_gitops_sites_repo.url is defined
       - dci_gitops_sites_repo.path is defined
       - dci_gitops_sites_repo.branch is defined
-      - dci_gitops_sites_repo.key_path is defined
+      - >
+        dci_gitops_sites_repo.key_path is defined or
+        (dci_gitops_sites_repo.username is defined and
+        dci_gitops_sites_repo.password is defined)
       - dci_gitops_policies_repo is defined
       - dci_gitops_policies_repo.url is defined
       - dci_gitops_policies_repo.path is defined
       - dci_gitops_policies_repo.branch is defined
+      - >
+        dci_gitops_policies_repo.key_path is defined or
+        (dci_gitops_policies_repo.username is defined and
+        dci_gitops_policies_repo.password is defined)
+
+- name: Get deployed ACM version number
+  community.kubernetes.k8s_info:
+    api_version: operators.coreos.com/v1alpha1
+    kind: ClusterServiceVersion
+    namespace: open-cluster-management
+    label_selectors:
+      - operators.coreos.com/advanced-cluster-management.open-cluster-management
+  register: dci_ztp_acm_version_output
+
+- name: Set fact for deployed ACM version number
+  set_fact:
+    dci_ztp_acm_version: "v{{ dci_ztp_acm_version_output | json_query('resources[0].spec.version') }}"
+
+- name: Mirror and configure the GitOps operator ZTP plugin images
+  when:
+    - dci_disconnected is defined
+    - dci_disconnected | bool == true
+    - local_registry_host is defined
+    - local_registry_host | length > 0
+  vars:
+    _local_registry_port: "{{ (local_registry_port | default('') != '') | ternary (':' + (local_registry_port | string), '') }}"
+    _dci_ztp_site_generate_version: "v{{ job_info.job.topic.name | ansible.builtin.regex_replace('OCP-', '') }}"
+    czga_site_generator_image: registry.redhat.io/openshift4/ztp-site-generate-rhel8
+    czga_multicluster_image: registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9
+  block:
+    - name: Mirror the GitOps operator ZTP plugin images
+      ansible.builtin.include_role:
+        name: redhatci.ocp.mirror_images
+      vars:
+        mi_images:
+          - "{{ czga_site_generator_image }}:{{ _dci_ztp_site_generate_version }}"
+          - "{{ czga_multicluster_image }}:{{ dci_ztp_acm_version }}"
+        mi_registry: "{{ local_registry_host }}{{ _local_registry_port }}"
+        mi_authfile: "{{ dci_pullsecret_file }}"
+
+    - name: Export the local URLs to GitOps operator ZTP plugin images
+      ansible.builtin.set_fact:
+        czga_site_generator_image: "{{ local_registry_host }}{{ _local_registry_port }}/{{ czga_site_generator_image | regex_replace('^[^/]*/', '') }}"
+        czga_multicluster_image: "{{ local_registry_host }}{{ _local_registry_port }}/{{ czga_multicluster_image | regex_replace('^[^/]*/', '') }}"
 
 - name: Load the SSH key to access the repository
   ansible.builtin.include_role:
     name: redhatci.ocp.gitops_configure_repo
   vars:
     gcr_ssh_known_hosts: "{{ dci_gitops_sites_repo.known_hosts | default('') }}"
-    gcr_ssh_key_path: "{{ dci_gitops_sites_repo.key_path }}"
+    gcr_ssh_key_path: "{{ dci_gitops_sites_repo.key_path | default(omit) }}"
     gcr_ztp_gitops_repo: "{{ dci_gitops_sites_repo.url }}"
+    gcr_repo_username: "{{ dci_gitops_sites_repo.username | default(omit) }}"
+    gcr_repo_password: "{{ dci_gitops_sites_repo.password | default(omit) }}"
 
 - name: Create the openshit-gitops-operator apps
   ansible.builtin.include_role:
@@ -31,8 +80,8 @@
     czga_clusters_namespace: "{{ cluster }}"
     czga_policies_namespace: "{{ cluster }}-policies"
     czga_ocp_pull_secret: "{{ hub_pull_secret.resources[0].data['.dockerconfigjson'] | b64decode }}"
-    czga_site_generator_image: "{{ hub_registry | default('registry.redhat.io/openshift4') }}/ztp-site-generate-rhel8"
     czga_site_generator_version: "v{{ job_info.job.topic.name | ansible.builtin.regex_replace('OCP-', '') }}"
+    czga_multicluster_version: "{{ dci_ztp_acm_version }}"
     czga_sites_path: "{{ dci_gitops_sites_repo.path}}"
     czga_sites_gitops_repo: "{{ dci_gitops_sites_repo.url }}"
     czga_sites_branch: "{{ dci_gitops_sites_repo.branch }}"

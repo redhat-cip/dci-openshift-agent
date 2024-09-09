@@ -4,7 +4,6 @@
     file: acm-ztp-spoke.yml
   when:
     - acm_cluster_type == 'ztp-spoke'
-    - not (dci_disconnected | default(false) | bool)
 
 - name: "Deploy an SNO node via ACM"
   vars:

@@ -108,17 +108,19 @@ No extra variables are needed in the ACM Hub Cluster inventory.
 
 The following settings must be provided to the SNO Spoke Cluster deployment job.
 
-| Variable | Required | Value | Description |
-|----------|----------|-------|-------------|
-| install_type | yes | acm | Enables the dci-openshift-agent flow that installs a spoke cluster. |
-| acm_cluster_type | yes | ztp-spoke | Enables the gitops-ztp installation method from all the available ACM based methods. |
-| dci_gitops_sites_repo | yes | | Parameters to the site-config manifest repository.
-| dci_gitops_policies_repo | yes | | Parameters to the policy generator template manifest repository. |
-| dci_gitops_*_repo.url | yes | | URL to the repository. |
-| dci_gitops_*_repo.path | yes | | Path to the directory containing the manifests. |
-| dci_gitops_*_repo.branch | yes | | Branch containing your target version of the manifests. |
-| dci_gitops_*_repo.key_path | yes | | Local path to the SSH private key file authorized to access the repository. |
-| dci_gitops_*_repo.known_hosts | no | | (If required) List of the repository SSH fingerprints. |
+| Variable                      | Required | Value | Description |
+|-------------------------------|----------|-------|-------------|
+| install_type                  | yes      | acm | Enables the dci-openshift-agent flow that installs a spoke cluster. |
+| acm_cluster_type              | yes      | ztp-spoke | Enables the gitops-ztp installation method from all the available ACM based methods. |
+| dci_gitops_sites_repo         | yes      | | Parameters to the site-config manifest repository.
+| dci_gitops_policies_repo      | yes      | | Parameters to the policy generator template manifest repository. |
+| dci_gitops_*_repo.url         | yes      | | URL to the repository in SSH or HTTP format. |
+| dci_gitops_*_repo.path        | yes      | | Path to the directory containing the manifests. |
+| dci_gitops_*_repo.branch      | yes      | | Branch containing your target version of the manifests. |
+| dci_gitops_*_repo.key_path    | yes      | | If using SSH protocol, local path to the private key file authorized to access the repository. |
+| dci_gitops_*_repo.username    | yes      | | If using HTTP protocol, user name of an authorized account. |
+| dci_gitops_*_repo.password    | yes      | | If using HTTP protocol, password for the authorized user name. |
+| dci_gitops_*_repo.known_hosts | no       | | (If required) List of the repository SSH fingerprints. |
 
 ### Pipeline example for the ZTP Spoke Cluster
 
@@ -148,7 +150,7 @@ The following settings must be provided to the SNO Spoke Cluster deployment job.
     kubeconfig: "kubeconfig"
 ```
 
-### Inventory example for the ZTP Spoke Cluster inventory - SNO
+### Inventory example for the ZTP Spoke Cluster inventory - SNO running Git over SSH
 
 ```
 all:
@@ -171,7 +173,31 @@ all:
       key_path: "/path/to/ssh/private/key"
       known_hosts: "{{ gitops_repo_known_hosts }}"
     gitops_repo_known_hosts: |
-      github.com ecdsa-sha2-nistp256 ### REDACTED ###
-      github.com ssh-ed25519 ### REDACTED ###
-      github.com ssh-rsa ### REDACTED ###
+      github.com ecdsa-sha2-nistp256 ### KEY ###
+      github.com ssh-ed25519 ### KEY ###
+      github.com ssh-rsa ### KEY ###
+```
+
+### Inventory example for the ZTP Spoke Cluster inventory - SNO running Git over HTTP
+
+```
+all:
+  hosts:
+    localhost:
+      ansible_connection: local
+  vars:
+    cluster: sno1
+    domain: spoke.example.lab
+    dci_gitops_sites_repo:
+      url: git@githost.com:org/spoke-ci-config.git
+      path: files/ztp-spoke/sites
+      branch: ztp_spoke
+      username: ### USERNAME ###
+      password: ### PASSWORD ###
+    dci_gitops_policies_repo:
+      url: git@githost.com:org/spoke-ci-config.git
+      path: files/ztp-spoke/policies
+      branch: ztp_spoke
+      username: ### USERNAME ###
+      password: ### PASSWORD ###
 ```
