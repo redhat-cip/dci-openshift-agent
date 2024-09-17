@@ -30,7 +30,7 @@
   ansible.builtin.pause:
     seconds: 5
 
-- name: Wait for API pods to be recreated
+- name: Wait for API server pods to be recreated
   community.kubernetes.k8s_info:
     api_version: v1
     namespace: "openshift-apiserver"
@@ -43,7 +43,7 @@
     - apiserver_pods.resources is defined
     - apiserver_pods.resources | length > 0
     - apiserver_pods|json_query('resources[*].status.phase')|unique == ["Running"]
-  retries: 30
-  delay: 10
+  retries: 120
+  delay: 5
   no_log: true
 ...
