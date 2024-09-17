@@ -168,20 +168,18 @@
           vars:
             status_query: "resources[*].status.history[?state=='Completed'].state"
             cluster_version_available: "{{ cluster_version | json_query(status_query) | flatten | unique }}"
-          retries: 60
+          retries: 90
           delay: 10
           until: cluster_version_available == ['Completed']
 
       rescue:
         - name: Run the teardown failure handler
-          delegate_to: localhost
           ignore_unreachable: true
           block:
             - name: Failure
               dci_job:
                 id: "{{ hostvars.localhost.job_id }}"
                 status: "failure"
-              delegate_to: localhost
               tags: [dci]
 
             - name: Run the failure process for partners
@@ -193,7 +191,6 @@
 
             - name: Teardown Hooks
               when: dci_teardown_on_failure|bool
-              delegate_to: localhost
               ignore_unreachable: true
               ignore_errors: true
               block:
