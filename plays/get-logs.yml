@@ -1,8 +1,17 @@
 ---
-
 - name: "Setup job_logs directory"
   include_tasks: log-dir.yml
   when: job_logs is undefined
+
+- name: "Find the scripts directory"
+  ansible.builtin.find:
+    paths:
+      - "{{ playbook_dir }}"
+      - "{{ playbook_dir }}/.."
+    file_type: directory
+    patterns: "scripts"
+    recurse: true
+  register: scripts_dir
 
 - name: "Get logs from IPI/UPI deployment"
   vars:
@@ -12,7 +21,7 @@
         default(groups['provisioner'][0]) }}
   shell:
     cmd: >
-      plays/scripts/get-ipi-logs
+      {{ scripts_dir.files[0].path }}/get-ipi-logs
       {{ provisioner_user }}@{{ provisioner_host }}
       {{ job_logs.path }}
       {{ groups['masters'] | union(groups['workers']) | join(' ') }}
@@ -35,12 +44,13 @@
   shell:
     cmd: >
       timeout -v 20m
-      plays/scripts/get-ocp-logs
+      {{ scripts_dir.files[0].path }}/get-ocp-logs
       {% if install_type == 'acm' %}
       -p {{ acm_cluster_type }}
       {% endif %}
       {{ job_logs.path }}
   ignore_errors: true
+  delegate_to: localhost
 
 - name: "Remove the must-gather directory"
   vars:
@@ -83,7 +93,7 @@
     PATH: "{{ ansible_env.PATH }}:/sbin:/usr/sbin:/usr/local/bin/"
   shell:
     cmd: >
-      plays/scripts/get-ocp-logs
+      {{ scripts_dir.files[0].path }}/get-ocp-logs
       {{ job_logs.path }}
   ignore_errors: true
   when:
