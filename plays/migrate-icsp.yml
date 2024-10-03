@@ -37,6 +37,4 @@
     resource_to_check: "MachineConfigPool"
     check_wait_retries: 120
     check_wait_delay: 10
-    check_reason: "Migrate ICSP to IDMS"
-    cr_oc: "{{ oc_tool_path }}"
 ...

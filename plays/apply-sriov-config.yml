@@ -48,6 +48,4 @@
     resource_to_check: "SriovNetworkNodeState"
     check_wait_retries: 300
     check_wait_delay: 10
-    check_reason: "After applying SRIOV config"
-    cr_oc: "{{ oc_tool_path }}"
 ...

@@ -171,8 +171,6 @@
     resource_to_check: "MachineConfigPool"
     check_wait_retries: 120
     check_wait_delay: 10
-    check_reason: "Apply ICSPs for mirrored catalogs"
-    cr_oc: "{{ oc_tool_path }}"
 
 - name: "Clean-up the Image Source list"
   set_fact:
