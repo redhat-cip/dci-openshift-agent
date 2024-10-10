@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.21.0
+Version:       0.22.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -18,7 +18,7 @@ Requires: python3-dciclient >= 3.1.0
 %endif
 Requires: dci-pipeline >= 0.7.0
 Requires: ansible-role-dci-podman
-Requires: ansible-collection-redhatci-ocp >= 0.15.0
+Requires: ansible-collection-redhatci-ocp >= 0.22.0
 
 %{?systemd_requires}
 Requires(pre): shadow-utils
@@ -84,6 +84,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Tue Oct  8 2024 Tony Garcia <tonyg@redhat.com> 0.22.0-1
+- Add etcd data encryption support in redhatci.ocp >= 0.22
+
 * Wed Aug 14 2024 Guillaume Vincent <gvincent@redhat.com> 0.21.0-1
 - Add Microshift support
 

@@ -252,4 +252,19 @@
     - cluster_icsp is defined
     - cluster_icsp.resources | length > 0
     - version is version("4.14", ">=")
+
+- name: Encrypt etcd
+  ansible.builtin.include_role:
+    name: redhatci.ocp.etcd_data
+  vars:
+    ed_action: encrypt
+    ed_enc: "{{ version is version('4.13', '>=') | ternary('aesgcm', 'aescbc') }}"
+  when:
+    - dci_encrypt_etcd | default(false) | bool
+
+- name: Print etcd data result
+  ansible.builtin.debug:
+    var: ed_result
+  when:
+    - dci_encrypt_etcd | default(false) | bool
 ...

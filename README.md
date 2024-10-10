@@ -325,6 +325,7 @@ This is the dci-openshift-agent variables that can be set in the
 | install_all_from_catalog        | False    | String  | ''                                                             | Name of a catalog from which all its operators need to be installed.
 | install_all_from_catalog_source | False    | String  | openshift-marketplace                                          | Namespace where the catalog defined in `install_all_from_catalog` was created.
 | dci_erase_bootloader_on_disk    | False    | Boolean | False                                                          | Boolean to define if node disks should be deleted before powering off during the pre-run
+| dci_encrypt_etcd                | False    | Boolean | False                                                          | Boolean to perform etcd data encryption. OCP versions earlier than 4.12 use the `aescbc` encryption type, OCP 4.13 and later uses `aesgcm`.
 | increase_unavailable_workers    | False    | Boolean | True                                                           | Boolean to define if the default maxUnavailable setting of the MCP worker should be increased from 1 to 2 (Only applied with 4 or more worker nodes are available.
 | dci_console_pass                | False    | String  |                                                                | Password for the core user. This is supported in IPI installer and requires `customize_extramanifests_path` defined.
 
