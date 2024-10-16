@@ -212,9 +212,12 @@
 
 - name: "Setup additional credentials to OCP"
   vars:
-    os_config_dir: "{{ dci_cluster_configs_dir }}"
+    oau_dir: "{{ dci_cluster_configs_dir }}"
+    oau_users:
+      - "admin:admin"
+      - "nonadmin:none"
   include_role:
-    name: redhatci.ocp.oc_setup
+    name: redhatci.ocp.ocp_add_users
 
 - name: "Upload additional credentials to DCI Control Server"
   environment:
