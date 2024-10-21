@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.22.0
+Version:       0.23.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -18,7 +18,7 @@ Requires: python3-dciclient >= 3.1.0
 %endif
 Requires: dci-pipeline >= 0.7.0
 Requires: ansible-role-dci-podman
-Requires: ansible-collection-redhatci-ocp >= 0.22.0
+Requires: ansible-collection-redhatci-ocp >= 0.23.0
 
 %{?systemd_requires}
 Requires(pre): shadow-utils
@@ -84,6 +84,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Wed Oct 16 2024 Tony Garcia <tonyg@redhat.com> - 0.23.0-1
+- Renaming of roles oc_setup is now ocp_add_users in redhatci.ocp >= 0.23
+
 * Tue Oct  8 2024 Tony Garcia <tonyg@redhat.com> 0.22.0-1
 - Add etcd data encryption support in redhatci.ocp >= 0.22
 
