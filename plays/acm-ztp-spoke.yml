@@ -53,6 +53,10 @@
     - install_started.resources is defined
     - install_started.resources | length > 0
     - install_started.resources[0].status is defined
+    - install_started.resources[0].status.progress is defined
+    - install_started.resources[0].status.progress.totalPercentage is defined
+    - install_started.resources[0].status.debugInfo is defined
+    - install_started.resources[0].status.debugInfo.state is defined
 
 - name: "Monitor: Set monitoring facts"
   ansible.builtin.set_fact:
