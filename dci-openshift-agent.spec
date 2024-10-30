@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       1.0.0
+Version:       1.1.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -54,7 +54,6 @@ exit 0
 %{_datadir}/dci-openshift-agent/plays/scripts/*
 %{_datadir}/dci-openshift-agent/action_plugins/*
 %{_datadir}/dci-openshift-agent/utils/*
-%{_datadir}/dci-openshift-agent/plays/crucible/*
 %{_datadir}/dci-openshift-agent/plays/microshift/*
 %{_datadir}/dci-openshift-agent/plays/templates/*
 
@@ -65,6 +64,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Dec 16 2024 Beto Rdz <josearod@redhat.com> 1.1.0-1
+- remove assisted on-prem
+
 * Fri Nov 22 2024 Frederic Lepied <flepied@redhat.com> 1.0.0-1
 - remove dci-openshift-agent-ctl and dci-check-change
 

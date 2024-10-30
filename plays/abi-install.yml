@@ -1,0 +1,128 @@
+---
+- name: "Setup ABI installer"
+  vars:
+    installer_file: >-
+      {{ version is version('4.16', '>=') |
+      ternary('openshift-install', 'openshift-baremetal-install') }}
+    openshift_installer_path: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') |
+                              join('/')) }}/{{ version }}/{{ installer_file }}"
+  block:
+    - name: Copy the installer to Cluster Configs
+      ansible.builtin.copy:
+        src: "{{ openshift_installer_path }}"
+        dest: "{{ dci_cluster_configs_dir }}"
+        mode: '0764'
+
+    - name: Set installer path
+      ansible.builtin.set_fact:
+        openshift_installer_path: "{{ dci_cluster_configs_dir }}/{{ installer_file }}"
+
+- name: Check extracted installer has agent subcommand
+  ansible.builtin.shell:
+    cmd: "{{ openshift_installer_path }} agent --help"
+  register: installer_output
+  failed_when: "'agent' not in installer_output.cmd"
+
+- name: "Setup http store"
+  vars:
+    http_port: "{{ hostvars['http_store']['http_port'] | default(8040) }}"
+  when:
+    - setup_http_store_service | default(true) | bool
+  delegate_to: http_store
+  block:
+    - name: Setup http store
+      vars:
+        file_owner: "{{ ansible_user | default(ansible_env.USER) }}"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.setup_http_store
+
+    - name: Validate http store
+      ansible.builtin.include_role:
+        name: redhatci.ocp.validate_http_store
+
+- name: Set registry_repository fact for install playbooks in disconnected mode
+  ansible.builtin.set_fact:
+    registry_repository: >
+      {{ hostvars[groups['registry_host'][0]].local_repo |
+      default('ocp-'+ version.split('.')[:2] |
+      join('.') +'/'+ version, true) }}
+  when: dci_disconnected | default(false) | bool
+
+- name: "Prereq facts check"
+  vars:
+    pull_secret: "{{ dci_pullsecret }}"
+    ssh_public_check: "{{ not (generate_ssh_keys | default(true)) }}"
+    mirror_certificate_check: "{{ (use_local_mirror_registry | default(false)) and
+                               not (setup_registry_service | default(true)) | bool }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.prereq_facts_check
+
+- name: "Parse openshift version"
+  vars:
+    openshift_full_version: "{{ version }}"
+    repo_root_path: "{{ dci_cluster_configs_dir }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.populate_mirror_registry
+    tasks_from: var_check.yml
+
+- name: Generate_manifests
+  vars:
+    pull_secret: "{{ dci_pullsecret }}"
+    repo_root_path: "{{ dci_cluster_configs_dir }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.generate_manifests
+
+- name: Generate agent ISO
+  vars:
+    pull_secret: "{{ dci_pullsecret }}"
+    repo_root_path: "{{ dci_cluster_configs_dir }}"
+    agent_based_installer_path: "{{ openshift_installer_path }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.generate_agent_iso
+
+- name: Copy generated kubeconfig
+  ansible.builtin.copy:
+    src: "{{ repo_root_path }}/generated/{{ cluster_name }}/auth/kubeconfig"
+    dest: "{{ kubeconfig_path }}"
+    mode: '0664'
+
+- name: Read Kubeadmin Credentials
+  ansible.builtin.slurp:
+    src: "{{ dci_cluster_configs_dir }}/generated/{{ cluster_name }}/auth/kubeadmin-password"
+  register: kubeadmin_password
+  no_log: true
+
+- name: Set credentials map
+  ansible.builtin.set_fact:
+    kubeadmin_credentials:
+      username: kubeadmin
+      password: "{{ kubeadmin_password.content | b64decode }}"
+      console_url: "https://console-openshift-console.apps.{{ cluster_name }}.{{ base_dns_domain }}"
+  no_log: true
+
+- name: Save credentials to file
+  ansible.builtin.copy:
+    content: "{{ kubeadmin_credentials | to_yaml }}"
+    dest: "{{ dci_cluster_configs_dir }}/kubeadmin-password"
+    mode: "0600"
+
+- name: "Fail playbook without boot_iso_url"
+  ansible.builtin.fail:
+    msg: "Missing argument: this playbook requires 'boot_iso' to be defined with the URL of the ISO to boot the systems"
+  when: boot_iso_url is not defined
+
+- name: Boot nodes using the ISO
+  ansible.builtin.include_role:
+    name: "redhatci.ocp.vendors.{{ hostvars[target_host]['vendor'] | lower }}"
+    tasks_from: iso.yml
+  loop: "{{ groups['nodes'] }}"
+  loop_control:
+    loop_var: target_host
+
+- name: Monitor Agent Based Installer
+  vars:
+    agent_based_installer_path: "{{ openshift_installer_path }}"
+    repo_root_path: "{{ dci_cluster_configs_dir }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.monitor_agent_based_installer
+...

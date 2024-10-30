@@ -10,7 +10,6 @@ all:
     ingress_vip: "{{ machine_network_cidr | ipaddr('97') | ipaddr('address') }}"
     cache_dir_base: "/var/cache/dci-openshift-agent"  # customize as needed
     downloads_path: "{{ cache_dir_base }}"
-    assisted_installer_dir: "{{ cache_dir_base }}/ai"
     registry_dir: "{{ cache_dir_base }}/registry"
     vm_create_scripts_dir: "{{ cache_dir_base }}/vm_scripts"
     sushy_dir: "{{ cache_dir_base }}/sushy"

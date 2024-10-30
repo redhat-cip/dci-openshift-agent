@@ -4,7 +4,6 @@ all:
 
     # Flags to enable/disable prerequisite service setup
     # You will need to ensure alternatives are available for anything that will not be automatically set up
-    setup_assisted_installer: true  # always required
     setup_http_store_service: true  # always required to serve boot.iso to nodes
     setup_ntp_service: false  # recommended for libvirt setups
     setup_dns_service: false  # recommended for libvirt setups
@@ -12,9 +11,8 @@ all:
     use_local_mirror_registry: false # set to true on restricted network
 
     # Local cache configuration
-    cache_dir_base: "/opt/dci/assisted"
+    cache_dir_base: "/opt/dci/abi"
     downloads_path: "{{ cache_dir_base }}"
-    assisted_installer_dir: "{{ cache_dir_base }}/ai"
     registry_dir: "{{ cache_dir_base }}/registry"
     vm_create_scripts_dir: "{{ cache_dir_base }}/vm_scripts"
     sushy_dir: "{{ cache_dir_base }}/sushy"
@@ -40,23 +38,20 @@ all:
     VAULT_NODES_BMC_PASSWORD: PASSWORD
 
     ##################################
-    # Assisted Install Configuration #
+    # ABI Install Configuration #
     ##################################
-    # These options configure Assisted Installer and the resulting cluster
-    # https://generator.swagger.io/?url=https://raw.githubusercontent.com/openshift/assisted-service/58a6abd5c99d4e41d939be89cd0962433849a861/swagger.yaml
-    # See section: cluster-create-params
 
     # Cluster name and dns domain combine to give the cluster namespace that will contain OpenShift endpoints
     # e.g. api.clustername.example.lab, worker1.clustername.example.lab
-    cluster_name: "server04-assisted"
+    cluster_name: "server04"
 
-    base_dns_domain: "partnerci.bos2.lab"
+    base_dns_domain: "<my-domain>"
 
     # Virtual IP addresses used to access the resulting OpenShift cluster
     api_vip: "192.168.16.48" # the IP address to be used for api.clustername.example.lab and api-int.clustername.example.lab, if installing SNO set to the same IP as the single master node
     ingress_vip: "192.168.16.49" # the IP address to be used for *.apps.clustername.example.lab, if installing SNO set to the same IP as the single master node
 
-    ## Allocate virtual IPs via DHCP server. Equivalent to the vip_dhcp_allocation configuration option of Assisted Installer
+    ## Allocate virtual IPs via DHCP server.
     vip_dhcp_allocation: false
 
     # The subnet on which all nodes are (or will be) accessible.
@@ -163,25 +158,18 @@ all:
     bastions: # n.b. Currently only a single bastion is supported
       hosts:
         bastion:
-          ansible_host: "server04-assisted.partnerci.bos2.lab" # Must be reachable from the Ansible control node
+          ansible_host: "server04.<my-domain> # Must be reachable from the Ansible control node
           ansible_connection: local
 
     # Configuration and access information for the pre-requisite services
     # TODO: document differences needed for already-deployed and auto-deployed
     services:
       hosts:
-        assisted_installer:
-          ansible_host: "server04-assisted.partnerci.bos2.lab"
-          ansible_connection: local
-          host: "server04-assisted.partnerci.bos2.lab"
-          port: 8090 # Do not change
-          dns: "192.168.16.10"
-
         registry_host:
-          ansible_host: "server04-assisted.partnerci.bos2.lab"
+          ansible_host: "server04.<my-domain>"
           ansible_connection: local
           registry_port: 5000
-          registry_fqdn: "server04-assisted.partnerci.bos2.lab"
+          registry_fqdn: "server04.<my-domain>"
           cert_common_name: "{{ registry_fqdn }}"
           cert_country: US
           cert_locality: Westford
@@ -195,27 +183,27 @@ all:
           disconnected_registry_password: "{{ VAULT_REGISTRY_HOST_DISCONNECTED_REGISTRY_PASSWORD | mandatory }}"
 
         dns_host:
-          ansible_host: "server04-assisted.partnerci.bos2.lab"
+          ansible_host: "server04.<my-domain>"
           ansible_connection: local
 
         http_store:
-          ansible_host: "server04-assisted.partnerci.bos2.lab"
+          ansible_host: "server04.<my-domain>"
           ansible_connection: local
 
         tftp_host:
-          ansible_host: "server04-assisted.partnerci.bos2.lab"
+          ansible_host: "server04.<my-domain>"
           ansible_connection: local
           tftp_directory: /var/lib/tftpboot/
 
         ntp_host:
-          ansible_host: "server04-assisted.partnerci.bos2.lab"
+          ansible_host: "server04.<my-domain>"
           ansible_connection: local
 
     vm_hosts:
       hosts:
         vm_host1: # Required for using "KVM" nodes, ignored if not.
           ansible_connection: local
-          ansible_host: "server04-assisted.partnerci.bos2.lab"
+          ansible_host: "server04.<my-domain>"
           qemu_user: root  # we want the VMs to belong to root
           host_ip_keyword: ansible_host # the varname in the KVM node hostvars which contains the *IP* of the VM
           images_dir: /var/lib/libvirt/images
@@ -237,7 +225,7 @@ all:
       vars:
         bmc_user: "{{ VAULT_NODES_BMC_USER | mandatory }}"
         bmc_password: "{{ VAULT_NODES_BMC_PASSWORD | mandatory }}"
-        bmc_address: "server04-assisted.partnerci.bos2.lab:8082"
+        bmc_address: "server04.<my-domain>:8082"
         vm_host: vm_host1
         vendor: KVM
         vm_spec:

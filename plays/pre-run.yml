@@ -9,6 +9,18 @@
       - provision_cache_store is defined
   when:
     - dci_disconnected | default(false) | bool
+    - install_type not in ['abi']
+
+- name: Validate we have all the pieces to run ABI in disconnected mode
+  assert:
+    that:
+      - boot_iso_url is defined
+      - webserver_url is defined
+      - dci_local_registry | length
+      - provision_cache_store is defined
+  when:
+    - dci_disconnected | default(false) | bool
+    - install_type in ['abi']
 
 - name: "Mirror operators from directory"
   include_role:
@@ -294,6 +306,10 @@
     src: "~{{ hostvars[groups['provisioner'][0]].ansible_user }}/.ssh/id_rsa"
     dest: "~/.ssh/{{ cluster }}-provisioner_rsa"
     flat: true
+  when:
+    - "'provisioner' in groups"
+    - groups['provisioner'] | length > 0
+    - hostvars[groups['provisioner'][0]].ansible_user is defined
 
 - name: Erase bootloader to prevent old OS to boot
   delegate_to: "{{ item }}"

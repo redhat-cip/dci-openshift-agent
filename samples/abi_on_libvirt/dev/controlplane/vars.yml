@@ -7,10 +7,9 @@ all:
     provisioner_username: dci-openshift-agent
     machine_network_cidr: "10.60.0.0/24"
     api_vip: "{{ machine_network_cidr | ipaddr('96') | ipaddr('address') }}"
-    ingress_vip: "{{ api_vip }}"
+    ingress_vip: "{{ machine_network_cidr | ipaddr('97') | ipaddr('address') }}"
     cache_dir_base: "/var/cache/dci-openshift-agent"  # customize as needed
     downloads_path: "{{ cache_dir_base }}"
-    assisted_installer_dir: "{{ cache_dir_base }}/ai"
     registry_dir: "{{ cache_dir_base }}/registry"
     vm_create_scripts_dir: "{{ cache_dir_base }}/vm_scripts"
     sushy_dir: "{{ cache_dir_base }}/sushy"
@@ -23,7 +22,14 @@ all:
     vm_bridge_ip: "{{ machine_network_cidr | ipaddr('1') | ipaddr('address') }}"
     vm_bridge_name: "{{ cluster_name }}-br"
     nodes:
-      sno:
-        ip: "{{ api_vip }}"
-        mac: "DE:AD:BE:EF:C0:06"
+      masters:
+        - name: master-0
+          ip: "{{ machine_network_cidr | ipaddr('100') | ipaddr('address') }}"
+          mac: "DE:AD:BE:EF:C0:00"
+        - name: master-1
+          ip: "{{ machine_network_cidr | ipaddr('101') | ipaddr('address') }}"
+          mac: "DE:AD:BE:EF:C0:01"
+        - name: master-2
+          ip: "{{ machine_network_cidr | ipaddr('102') | ipaddr('address') }}"
+          mac: "DE:AD:BE:EF:C0:02"
 ...

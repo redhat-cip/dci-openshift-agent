@@ -15,7 +15,7 @@
 # under the License.
 
 # Description: A shell script that collects logs from the infrastructure components
-# used by the Assisted installer
+# used by the ABI installer
 # It requires connections details for the cluster servers
 
 # example from IPI for output testing:
@@ -53,9 +53,9 @@ done
 # and bootstrap services should be available
 echo "Collect logs from rendezvous node if it is already in place"
 pods_deployed=$(${rendezvouz_ssh} sudo podman ps -a)
-assisted_installer_present=$(echo $pods_deployed | grep assisted | wc -l)
+abi_installer_present=$(echo $pods_deployed | grep assisted | wc -l)
 
-if [ "$assisted_installer_present" -ne "0" ]; then
+if [ "$abi_installer_present" -ne "0" ]; then
   # Installer logs
   nodes_param=""
   for node in "${nodes[@]}"; do
@@ -73,7 +73,7 @@ if [ "$assisted_installer_present" -ne "0" ]; then
     ${rendezvouz_ssh} journalctl -b -u $serv.service > "${log_dir}"/$serv.log
   done
 
-  # Log for different pods launched during assisted installation
+  # Log for different pods launched during ABI installation
   for pod in service assisted-db assisted-installer cluster-bootstrap; do
     ${rendezvouz_ssh} sudo podman logs ${pod} >> "${log_dir}/${pod}_ai_pod.log" 2>&1
   done

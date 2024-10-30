@@ -759,8 +759,8 @@ You may find extra files for the case of Assisted jobs:
 
 | File                                           | Section | Description                                                                               |
 | ---------------------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| agent-config.yaml                              | Files   | agent-config file from the Assisted deployment                                            |
-| install-config.yaml                            | Files   | install-config file from the Assisted deployment                                          |
+| agent-config.yaml                              | Files   | agent-config file from the ABI deployment                                            |
+| install-config.yaml                            | Files   | install-config file from the ABI deployment                                          |
 | \<pod_name\>_ai_pod.log                        | Files   | Log files from pods (`assisted-db`, `assisted-installer`, `cluster-bootstrap` and `service`) deployed during Assisted bootstrap stage |
 | \<service_name\>.log                           | Files   | Log files from services (`bootkube` and `release-image`) running during Assisted bootstrap stage |
 | log-bundle-\<date\>                            | Files   | If present, it represents the output of `openshift-install gather bootstrap` command      |

@@ -29,9 +29,9 @@
   when:
     - install_type in ['ipi', 'upi']
 
-- name: "Get logs from Assisted deployment"
-  include_tasks: assisted-get-logs.yml
-  when: install_type in ['assisted']
+- name: "Get logs from ABI deployment"
+  include_tasks: abi-get-logs.yml
+  when: install_type in ['abi']
 
 - name: "Get logs from OCP deployment"
   environment:

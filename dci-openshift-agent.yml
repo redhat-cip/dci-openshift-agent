@@ -123,6 +123,22 @@
         id: "{{ job_id }}"
         status: "pre-run"
 
+    - name: "Assisted on-prem is deprecated"
+      ansible.builtin.fail:
+        msg: |
+          Assisted on-prem is deprecated. Please update your inventory and pipeline and set install_type = abi"
+          and remove use_agent_based_installer variable.
+      when:
+        - install_type == 'assisted'
+        - use_agent_based_installer is defined
+
+    - name: Fail when ABI version is not supported
+      ansible.builtin.fail:
+        msg: "ABI support starts in 4.12"
+      when:
+        - version is version('4.12', '<')
+        - install_type == 'abi'
+
     - name: "Requirements for ACM install_type"
       when:
         - install_type == 'acm'
@@ -164,7 +180,7 @@
         - name: Run the pre-run
           include_tasks: plays/pre-run.yml
           when:
-            - install_type not in ['assisted', 'acm']
+            - install_type not in ['acm']
 
         - name: "ACM pre-run"
           include_tasks:
@@ -207,11 +223,6 @@
           always:
             - name: Run the error process
               include_tasks: plays/failure.yml
-
-- name: Assited pre-run
-  import_playbook: plays/assisted-pre-run.yml
-  when:
-    - install_type == 'assisted'
 
 # Step 1b : hook pre run
 - name: 'Launch hook pre-run'
@@ -362,18 +373,30 @@
             apply:
               environment:
                 KUBECONFIG: "{{ hub_kubeconfig_path }}"
-              tags:
-                - acm-install
           when:
             - install_type == 'acm'
-
       rescue: *teardown_failure
 
 # Step 3a-1 : installing
-- name: 'Launch Assisted Install'
-  import_playbook: plays/assisted-install.yml
-  when:
-    - install_type == 'assisted'
+- name: 'Launch ABI install'
+  hosts: localhost
+  tags:
+    - running
+    - installing
+    - abi
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - name: Install using ABI
+      block:
+        - name: "ABI Installation"
+          include_tasks:
+            file: plays/abi-install.yml
+          when:
+            - install_type == 'abi'
+      rescue: *teardown_failure
 
 # Step 3a-1 : installing
 - name: 'Launch after install'

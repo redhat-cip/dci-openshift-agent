@@ -1,11 +1,9 @@
 all:
   vars:
     vm_node_prefix: ''
-    use_agent_based_installer: {{ use_agent_based_installer | default(true) | bool | string | lower }}  # uses ABI install instead of OnPrem
 
     # Flags to enable/disable prerequisite service setup
     # You will need to ensure alternatives are available for anything that will not be automatically set up
-    setup_assisted_installer: true  # always required
     setup_http_store_service: true  # always required to serve boot.iso to nodes
     setup_ntp_service: {{ setup_ntp_service | default('false') | bool | string | lower }}  # recommended true for libvirt setups
     setup_dns_service: {{ setup_dns_service | default('false') | bool | string | lower }}  # recommended true for libvirt setups
@@ -15,7 +13,6 @@ all:
     # Local cache configuration
     cache_dir_base: "{{ cache_dir_base | default('/var/cache/dci-openshift-agent') }}"
     downloads_path: "{{ '{{ cache_dir_base }}' }}"
-    assisted_installer_dir: "{{ '{{ cache_dir_base }}' }}/ai"
     registry_dir: "{{ '{{ cache_dir_base }}' }}/registry"
     vm_create_scripts_dir: "{{ '{{ cache_dir_base }}' }}/vm_scripts"
     sushy_dir: "{{ '{{ cache_dir_base }}' }}/sushy"
@@ -41,11 +38,8 @@ all:
     VAULT_NODES_BMC_PASSWORD: PASSWORD
 
     ##################################
-    # Assisted Install Configuration #
+    # ABI Install Configuration #
     ##################################
-    # These options configure Assisted Installer and the resulting cluster
-    # https://generator.swagger.io/?url=https://raw.githubusercontent.com/openshift/assisted-service/58a6abd5c99d4e41d939be89cd0962433849a861/swagger.yaml
-    # See section: cluster-create-params
 
     # Cluster name and dns domain combine to give the cluster namespace that will contain OpenShift endpoints
     # e.g. api.clustername.example.lab, worker1.clustername.example.lab
@@ -57,7 +51,7 @@ all:
     api_vip: "{{ api_vip }}" # the IP address to be used for api.clustername.example.lab and api-int.clustername.example.lab, if installing SNO set to the same IP as the single master node
     ingress_vip: "{{ ingress_vip }}" # the IP address to be used for *.apps.clustername.example.lab, if installing SNO set to the same IP as the single master node
 
-    ## Allocate virtual IPs via DHCP server. Equivalent to the vip_dhcp_allocation configuration option of Assisted Installer
+    ## Allocate virtual IPs via DHCP server. Equivalent to the vip_dhcp_allocation configuration option of ABI
     vip_dhcp_allocation: false
 
     # The subnet on which all nodes are (or will be) accessible.
@@ -92,6 +86,7 @@ all:
     # discovery_iso_server must be discoverable from all BMCs in order for them to mount the ISO hosted there.
     # It is usually necessary to specify different values for KVM nodes and/or physical BMCs if they are on different subnets.
     discovery_iso_server: "http://{% raw %}{{ hostvars['http_store']['ansible_host'] }}{% endraw %}"
+    boot_iso_url: "{% raw %}{{ discovery_iso_server }}{% endraw %}:{% raw %}{{ hostvars['http_store']['http_port'] }}{% endraw %}/{% raw %}{{ discovery_iso_name }}{% endraw %}"
 
     ############################
     # Local File Configuration #
@@ -164,16 +159,10 @@ all:
     bastions: # n.b. Currently only a single bastion is supported
       hosts:
         bastion:
-{% if (use_agent_based_installer | default(true) | bool) %}
           ansible_host: "localhost"
           ansible_connection: "local"
-{% else %}
-          ansible_host: "{{ provisioner_hostname }}"
-          ansible_user: "{{ provisioner_username | default('root') }}"
-          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
-{% endif %}
 
-    provisioner:
+    provisioners:
       hosts:
         provisioner:
           ansible_host: "{{ provisioner_hostname }}"
@@ -184,14 +173,6 @@ all:
     # TODO: document differences needed for already-deployed and auto-deployed
     services:
       hosts:
-        assisted_installer:
-          ansible_host: "{{ provisioner_hostname }}"
-          ansible_user: "{{ provisioner_username | default('root') }}"
-          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
-          host: "{{ provisioner_hostname }}"
-          port: 8090 # Do not change
-          dns: "{{ provisioner_dns }}"
-
         registry_host:
           ansible_host: "{{ provisioner_hostname }}"
           ansible_user: "{{ provisioner_username | default('root') }}"
@@ -229,6 +210,7 @@ all:
           ansible_host: "{{ provisioner_hostname }}"
           ansible_user: "{{ provisioner_username | default('root') }}"
           ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
+          http_port: 8040
 
         tftp_host:
           ansible_host: "{{ provisioner_hostname }}"

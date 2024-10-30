@@ -22,10 +22,6 @@ install:
 	  install -p -D -m 755 $$script $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$script; \
 	done
 
-	for cru_play in plays/crucible/*.yml; do \
-	  install -p -D -m 755 $$cru_play $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$cru_play; \
-	done
-
 	for microshift_play in plays/microshift/*.yml; do \
 	  install -p -D -m 755 $$microshift_play $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$microshift_play; \
 	done

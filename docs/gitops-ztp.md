@@ -140,7 +140,7 @@ The following settings must be provided to the SNO Spoke Cluster deployment job.
     dci_must_gather_images:
       - registry.redhat.io/openshift4/ose-must-gather
     dci_teardown_on_success: false
-    acm_vm_external_network: False # False when running on ACM Hubs deployed by Assisted
+    acm_vm_external_network: False # False when running on ACM Hubs deployed by ABI
   topic: OCP-4.15
   components:
     - ocp

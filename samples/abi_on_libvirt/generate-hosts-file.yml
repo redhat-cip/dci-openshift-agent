@@ -15,7 +15,6 @@
         mode: '0755'
       loop:
         - "{{ cache_dir_base }}"
-        - "{{ assisted_installer_dir }}"
         - "{{ registry_dir }}"
         - "{{ vm_create_scripts_dir }}"
         - "{{ sushy_dir }}"

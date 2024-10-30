@@ -1,14 +1,10 @@
-# Assisted Installer Based Installation
+# Agent Based Installation
 
-The Assisted Installer (AI for short in this doc) is yet another method DCI OCP
+The Agent Based Installer (ABI) is yet another method DCI OCP
 agent can use to install OpenShift clusters. If you're curious about the
-[Assisted Installer](https://github.com/openshift/assisted-installer) you can
-read
-[several](https://cloud.redhat.com/blog/openshift-assisted-installer-is-now-generally-available)
-[resources](https://cloud.redhat.com/blog/assisted-installer-on-premise-deep-dive)
-[already out
-there](https://cloud.redhat.com/blog/meet-the-new-agent-based-openshift-installer-1).
-This document will focus on explaining how the AI can be used to install an
+[ABI](https://docs.redhat.com/en/documentation/openshift_container_platform/4.12/html-single/installing_an_on-premise_cluster_with_the_agent-based_installer/indexr) you can also
+read [meet the new agent based openshift installer](https://cloud.redhat.com/blog/meet-the-new-agent-based-openshift-installer-1).
+This document will focus on explaining how the ABI can be used to install an
 OpenShift cluster through the DCI agent.
 
 
@@ -21,16 +17,8 @@ OpenShift cluster through the DCI agent.
   * [Disconnected Environment](#disconnected-environment)
 * [Virtual Lab Quick Start](#virtual-lab-quick-start)
   * [Single Node Openshift](#single-node-openshift)
-* [On Premise Assisted Installer](#on-premise-assisted-installer)
-
 
 ## Requirements
-
-You can consult the [upstream
-documentation](https://docs.openshift.com/container-platform/4.10/installing/installing_on_prem_assisted/assisted-installer-preparing-to-install.html)
-on the prerequisites needed for a cluster, but they are basically the same as
-with any other OCP cluster you intend to run, to summarize, for a baremetal
-cluster you will need:
 
 * 3 nodes *minimum* with:
   * 8 CPU cores
@@ -41,10 +29,7 @@ AI does not use a dedicated *bootstrap* node, instead it re-purposes the
 bootstrap node into a control plane node when it completes the installation.
 
 !!! note
-    Due to the nature of when Agent Based installer got released, installation
-    through ABI is only available on version 4.12 and up. If you want to test
-    versions < 4.12 using Assisted Installer it is still possible, but you will
-    need to use the On-Prem method
+    ABI installer in available starting OCP 4.12.
 
 For the DCI Jumpbox you will need:
 
@@ -66,14 +51,14 @@ For the DCI Jumpbox you will need:
     1. The OCP release artifacts are downloaded
     1. A container registry is created
     1. Container/operator images are mirrored to the local registry
-    1. Configuration is put in place so the Assisted Installer uses the locally
+    1. Configuration is put in place so ABI uses the locally
        cached resources
-1.  VM are created if defined in the inventory file
+1.  If VMs are defined in the inventory file, those must exist
 1.  DNS server is installed/configured
 1.  Sushy tools service is configured (if using local VMs)
 1.  A Discovery ISO file is created and mounted on all nodes in the cluster via
     redfish API / virtual media over HTTP
-1.  The AI installation is triggered
+1.  The ABI installation is triggered
 1.  Installation process is monitored until completion
 1.  The `KUBECONFIG` file is fetched and used to perform some connectivity
     checks on the OCP cluster
@@ -81,7 +66,7 @@ For the DCI Jumpbox you will need:
 
 ## Configuration
 
-Before anything else you will need to set `install_method: assisted` in your
+Before anything else you will need to set `install_type: abi` in your
 inventory or pipeline ansible extra variables. We do this because AI is not the
 default install method in the DCI OCP Agent.
 
@@ -95,13 +80,8 @@ The following variables control where **in the jumpbox** the different pieces
 will store their data, make sure you have enough space (at least 200G) to hold
 your cached files, and routinely monitor for disk consumption:
 
-  * `ai_version` [Assisted installer](https://quay.io/repository/edge-infrastructure/assisted-installer-agent) agent version.
-    See group_vars/all for the version supported the the agent.
   * `downloads_path` where the OCP files (ISO files, RAW images, client tools,
     etc) will be downloaded
-  * `assisted_installer_dir` (for on-prem method only) where the data needed by
-    the Assisted Installer service(s) will be stored such as database files,
-    etc
   * `registry_dir` where the locally configured container registry layers will
     be stored
   * `sushy_dir` (for a virtual environment only) stores the files needed by the
@@ -109,8 +89,7 @@ your cached files, and routinely monitor for disk consumption:
     may grow indiscriminately if left unchecked
   * `http_dir` will store the files served over HTTP e.g. the discovery ISO
   * `vm_create_scripts_dir` (for a virtual environment only): holds the shell
-    scripts that tell libvirt how to create the VMs. You can disable Secure Boot
-    (enabled by default) using the dci_assisted_disable_secure_boot flag.
+    scripts that tell libvirt how to create the VMs.
   * `images_dir` (for a virtual environment only): where the generated
     libvirt OS images will be stored
 
@@ -148,18 +127,17 @@ you'll have to adjust:
   `settings.yml` file
 * Turn on the following variables:
   * `setup_registry_service`: Creates a container registry in the jumpbox
-  * `use_local_registry`: Tells the Assisted Installer to use the previously
+  * `use_local_registry`: Tells the Installer to use the previously
     configured container registry
   * `setup_ntp_service` (if needed): Configures an NTP server so the cluster
     can synchronize with. This is turned on by default in the libvirt template
   * `setup_dns_service` (if needed): Configures a DNS server so the cluster can
     resolve names. This is turned on by default in the libvirt template
 
-
 ## Virtual Lab Quick Start
 
-If you want to get started quickly with the OCP Agent to test the Assisted
-Installer the path is fairly easy, assuming you have a jumpbox that meets the
+If you want to get started quickly with the OCP Agent to test ABI the path is fairly easy,
+assuming you have a jumpbox that meets the
 requirements. Here's a quick step by step list of what you need to do:
 
 1.  Create (if there is none) an SSH key for the `dci-openshift-agent` user and
@@ -172,7 +150,7 @@ requirements. Here's a quick step by step list of what you need to do:
 
     ```bash
     CONFIG=sno  # or 'controlplane' or 'split'
-    cd ~/samples/assisted_on_libvirt
+    cd ~/samples/abi_on_libvirt
     ansible-playbook -i $PWD/dev/$CONFIG parse-template.yml
     ```
 
@@ -206,14 +184,3 @@ If you followed the libvirt quickstart above, you can see right away there's a f
 That should be all that is required to install in SNO mode, the playbooks will
 install a SNO cluster and leave you with a kubeconfig/access to the cluster
 once finished.
-
-
-## On Premise Assisted Installer
-
-There is a way for you to use an alternate method to install using Assisted
-Installer, this is by installing the AI service/API on premise on the jumpbox
-itself. This method is currently achievable by setting the inventory variable
-`use_agent_based_installer` to `false`. This method should only be used if you
-need to install a cluster < 4.12.
-The rest of the configuration should behave the same, disconnected environment,
-local cache paths and etc, should be adjusted according to your needs.
