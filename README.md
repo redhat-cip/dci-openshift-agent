@@ -1195,6 +1195,11 @@ Enable the dnf-automatic.timer
 # systemctl enable --now dnf-automatic.timer
 ```
 
+> Important: DNF automatic updates might fail because of a non-satisfied dependency of latest RHEL 8 with ansible 2.9, then it is recommended to add the following command in a cronjob to be executed daily basis.
+```console
+# dnf upgrade --nobest --refresh --repo dci,epel -y
+```
+
 ## Getting involved
 
 Refer to [the development guide](docs/development.md)
