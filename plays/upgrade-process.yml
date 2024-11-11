@@ -65,7 +65,11 @@
                 return_content: true
                 timeout: 10
               register: release_file
-              no_log: true
+              until: release_file.status == 200
+              retries: 6
+              delay: 10
+              failed_when:
+                - release_file.content|length == 0 or release_file.status >= 400
 
             - name: "Release digest"
               set_fact:
