@@ -30,9 +30,8 @@ find "$HOME"/.dci-queue/log/*/ -type f -mtime +"$DAYS" -print0|xargs -0 rm -vf
 
 echo ">>> Removing dangling container images from local storage ======================"
 
-buildah rm --all
-
-podman system prune -f
+buildah rm --prune
+buildah rmi --prune
 
 echo ">>> Removing temporary ansible directories ====================================="
 
