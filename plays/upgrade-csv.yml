@@ -1,8 +1,8 @@
-- name: "Upgrading Operator {{ sub.subscriptionName }}"
+- name: "Upgrading Operator {{ sub.operatorName }}"
   debug:
     msg: "{{ sub.subscriptionName }}"
 
-- name: "Get updated package manifest"
+- name: "Get updated package manifest for {{ sub.operatorName }}"
   community.kubernetes.k8s_info:
     api: packages.operators.coreos.com/v1
     kind: PackageManifest
@@ -12,32 +12,23 @@
     field_selectors:
       - "metadata.name={{ sub.operatorName }}"
   register: packagemanifest
-  retries: 10
-  delay: 5
+  retries: 5
+  delay: 3
+  ignore_errors: true
   until:
     - packagemanifest.resources is defined
     - packagemanifest.resources | length == 1
 
-- name: "Get new operator's default channel name"
+- name: "Upgrade if available and the current CSV is different to the installed one"
   vars:
     channels: "resources[*].status.defaultChannel"
-  set_fact:
     default_channel: "{{ packagemanifest | json_query(channels) | join('') | string }}"
-
-- name: "Get operator's CSV for desired channel"
-  vars:
-    current_csv: "resources[*].status.channels[? name=='{{ default_channel }}' ].currentCSV | [0]"
-  set_fact:
-    operator_csv: "{{ packagemanifest | json_query(current_csv) | first  }}"
-
-- name: "Upgrade operator if the current CSV is different to the installed one"
-  when: operator_csv != sub.installedCSV
+    query_csv: "resources[*].status.channels[? name=='{{ default_channel }}' ].currentCSV | [0]"
+    current_csv: "{{ (packagemanifest | json_query(query_csv)) |
+                    default([sub.installedCSV], true) | first }}"
+  when:
+    - current_csv != sub.installedCSV
   block:
-
-    # Versions may not follow the same convention between releases
-    # Need to delete the non approved install plan, once the subscriptions InstallPlan is set to Automatic
-    # the install plans will be automatically approved in order to get the latest CSV version according to what
-    # is defined in the upgrade graphs.
     - name: "Get Install plans"
       community.kubernetes.k8s_info:
         api: operators.coreos.com/v1alpha1
@@ -85,14 +76,14 @@
 
     - name: "Upgrade details"
       debug:
-        msg: "Upgrading from {{ sub.installedCSV }} to {{ operator_csv }}"
+        msg: "Upgrading from {{ sub.installedCSV }} to {{ current_csv }}"
 
     - name: "Wait up to 2 hours for new operator's CSV to be ready"
       community.kubernetes.k8s_info:
         api: operators.coreos.com/v1alpha1
         namespace: "{{ sub.namespace }}"
         kind: ClusterServiceVersion
-        name: "{{ operator_csv }}"
+        name: "{{ current_csv }}"
       register: csv
       retries: 120
       delay: 60
