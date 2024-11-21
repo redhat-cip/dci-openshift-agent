@@ -298,6 +298,7 @@ This is the dci-openshift-agent variables that can be set in the
 | opm_mirror_list                 | False    | List    | []                                                             | List additional operators to be mirrored in disconnected environments. The package names of operators deployed using `dci_operators` must be included in this list.
 | dci_catalog_source_name         | False    | String  | mirrored-redhat-operators                                      | The name to use for the catalog source in disconnected environments.
 | dci_operators                   | False    | List    | []                                                             | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details.
+| dci_continue_on_mirror_error    | False    | Boolean | False                                                          | Allow to continue if errors during operators mirroring.
 | apply_sriov_upgrade_settings    | False    | Boolean | True                                                           | Whether to apply SR-IOV recommended settings before operator upgrade.
 | enable_cnv                      | False    | Boolean | False                                                          | Configures the CNV and the HCO operator.
 | dci_cnv_test                    | False    | Boolean | False                                                          | Test the deploy of a VM using CNV and HCO operator.

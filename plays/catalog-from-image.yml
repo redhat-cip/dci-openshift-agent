@@ -60,6 +60,7 @@
         mc_registry: "{{ dci_local_registry }}"
         mc_pullsecret: "{{ dci_pullsecret_file }}"
         mc_is_type: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('idms', 'icsp') }}"
+        mc_continue_on_error: "{{ dci_continue_on_mirror_error  | default(false) }}"
 
     - name: "Append the Image Source file"
       set_fact:
