@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       0.23.0
+Version:       1.0.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -42,27 +42,10 @@ getent passwd dci-openshift-agent >/dev/null || \
             -c "DCI OpenShift Agent service" dci-openshift-agent
 exit 0
 
-%post
-%systemd_post %{name}.service
-%systemd_preun %{name}.timer
-
-%preun
-%systemd_preun %{name}.service
-%systemd_preun %{name}.timer
-
-%postun
-%systemd_postun %{name}.service
-%systemd_postun %{name}.timer
-
 %files
 %license LICENSE
 %config(noreplace) %{_sysconfdir}/dci-openshift-agent/hooks/*.yml
-%config(noreplace) %{_sysconfdir}/dci-openshift-agent/settings.yml
 %config(noreplace) %{_datadir}/dci-openshift-agent/ansible.cfg
-%{_bindir}/dci-openshift-agent-ctl
-
-%{_bindir}/dci-check-change
-%{_datadir}/dci-openshift-agent/test-runner
 
 %{_datadir}/dci-openshift-agent/dci-openshift-agent.yml
 %{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
@@ -77,13 +60,14 @@ exit 0
 
 %{_datadir}/dci-openshift-agent/group_vars/all
 
-%{_unitdir}/*
-
 %dir %{_sharedstatedir}/dci-openshift-agent
 %attr(0755, dci-openshift-agent, dci-openshift-agent) %{_sharedstatedir}/dci-openshift-agent
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Fri Nov 22 2024 Frederic Lepied <flepied@redhat.com> 1.0.0-1
+- remove dci-openshift-agent-ctl and dci-check-change
+
 * Wed Oct 16 2024 Tony Garcia <tonyg@redhat.com> - 0.23.0-1
 - Renaming of roles oc_setup is now ocp_add_users in redhatci.ocp >= 0.23
 
