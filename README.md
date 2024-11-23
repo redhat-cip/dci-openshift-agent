@@ -194,14 +194,10 @@ Once `dci-openshift-agent` package is installed, the files and resources you can
 - `/etc/dci-openshift-agent` contains these folders and files: `dcirc.sh.dist` file, `hooks` folder, `settings.yml` file.
 - `/usr/share/dci-openshift-agent/` gathers the following folders and files: `action_plugins` folder, `ansible.cfg` file, `dci-openshift-agent.yml` file, `group_vars` folder, `plays` folder, `test-runner` script and `utils` folder.
 - `/var/lib/dci-openshift-agent` folder holds the `samples` folder.
-- `/usr/bin` folder holds scripts such as `dci-openshift-agent-ctl` or `dci-check-change`.
-
-> Note: scripts provided in this agent are deprecated. You should use `dci-pipeline` instead.
 
 Also, have in mind that:
 
 - `dci-openshift-agent` user (with sudo permissions) and group are created
-- Files under `systemd` folder in this repo will be used to create the corresponding system service for `dci-openshift-agent`.
 
 ## Installation of OCP Provision Host
 
