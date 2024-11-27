@@ -68,7 +68,9 @@
       dci_job:
         id: '{{ job_id }}'
         tags: >
-          {{ ["agent:openshift"] +
+          {{
+          [ (dci_disconnected | default(false) | bool) | ternary("disconnected", "connected") ] +
+          ["agent:openshift"] +
           dci_tags +
           dci_workarounds +
           ((dci_main == "upgrade") |
