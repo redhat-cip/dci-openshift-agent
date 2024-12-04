@@ -32,7 +32,7 @@
       apiVersion: v1
       kind: Node
       metadata:
-        name: "{{ node_fqdn.split('.')[0] }}"
+        name: "{{ node_fqdn }}"
         labels:
           feature.node.kubernetes.io/network-sriov.capable: "true"
   loop: "{{ dci_compute_hosts }}"
