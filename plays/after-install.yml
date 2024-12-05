@@ -83,7 +83,7 @@
     api: metal3.io/v1alpha1
     namespace: openshift-machine-api
   register: bmh_info
-  retries: "{{ (requested_compute | int + 1) * 10 }}"
+  retries: "{{ (requested_compute | int + 4) * 10 }}"
   delay: 30
   until: bmh_unique_states == ['provisioned']
   when:
