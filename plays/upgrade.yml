@@ -8,7 +8,7 @@
   block:
 
     - name: "Get cluster install-config"
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api: v1
         kind: ConfigMap
         name: cluster-config-v1
@@ -32,13 +32,13 @@
         - install_config.resources | length
 
     - name: Find ImageDigestMirrorSet in the cluster
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api_version: config.openshift.io/v1
         kind: ImageDigestMirrorSet
       register: idms_res
 
     - name: "Get Cluster Image Sources"
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api_version: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('config.openshift.io/v1', 'operator.openshift.io/v1alpha1') }}"
         kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
       register: cluster_is
@@ -53,13 +53,13 @@
         - cluster_is.resources | length
 
     - name: "Apply new OCP release Image Sources - EUS"
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition: '{{ lookup("url", "{{ webserver_url }}/{{ version_inter }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
       when:
         - upgrade_eus | default(false) | bool
 
     - name: "Apply new OCP release Image Sources"
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition: '{{ lookup("url", "{{ webserver_url }}/{{ version }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
 
     - name: "Wait for new ImageSources to be applied"
@@ -71,7 +71,7 @@
         check_wait_delay: 30
 
 - name: "Deactivate the upgrade of worker nodes - EUS"
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition:
       kind: MachineConfigPool
       metadata:
@@ -95,7 +95,7 @@
   include_tasks: upgrade-process.yml
 
 - name: "Reactivate the upgrade of worker nodes - EUS"
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition:
       kind: MachineConfigPool
       metadata:
@@ -116,7 +116,7 @@
     - upgrade_eus | default(false) | bool
 
 - name: Check for ICSPs that need to be migrated
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: operator.openshift.io/v1alpha1
     kind: ImageContentSourcePolicy
   register: cluster_icsp

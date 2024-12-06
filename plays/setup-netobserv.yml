@@ -12,7 +12,7 @@
       {%- else %}
       quay.io/minio/mc
       {%- endif %}
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition: "{{ lookup('template', 'minio-bucket.yaml.j2') }}"
     wait: true
     wait_sleep: 10

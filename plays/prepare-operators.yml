@@ -8,7 +8,7 @@
     - dci_disconnected | default(false) | bool
 
 - name: "Get cluster version"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: config.openshift.io/v1
     kind: ClusterVersion
     name: version
@@ -45,7 +45,7 @@
     - dci_disconnected | default(false) | bool
   block:
     - name: "Disable default catalog sources for disconnected deployment"
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition:
           apiVersion: config.openshift.io/v1
           kind: OperatorHub
@@ -62,7 +62,7 @@
                       'redhat-operators']
         catalog_names: "{{ catalogs_list.resources | map(attribute='metadata.name') | list }}"
         catalog_inter: "{{ rh_catalogs | intersect(catalog_names) }}"
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api: operators.coreos.com/v1alpha1
         kind: CatalogSource
         namespace: openshift-marketplace
@@ -73,7 +73,7 @@
       delay: 10
 
     - name: Get OLM pod for catalog-operator
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api_version: v1
         kind: Pod
         namespace: openshift-operator-lifecycle-manager
@@ -82,14 +82,14 @@
       register: olm_pod
 
     - name: Restart matching pods
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition: |
           {{ item }}
         state: absent
       loop: "{{ olm_pod.resources }}"
 
     - name: Wait for OLM pod catalog-operator to be running
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         kind: Pod
         namespace: openshift-operator-lifecycle-manager
         label_selectors:
@@ -149,7 +149,7 @@
     - is_files | length
   block:
     - name: "Apply Image Source manifests"
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         state: present
         src: "{{ is_file }}"
       loop: "{{ is_files | unique | select | list }}"

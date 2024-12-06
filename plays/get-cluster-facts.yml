@@ -1,6 +1,6 @@
 ---
 - name: "Get list of compute and control plane nodes"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: v1
     kind: Node
     label_selectors:
@@ -21,14 +21,14 @@
     dci_control_plane_size: "{{ dci_control_plane_query | length }}"
 
 - name: Get worker MCP status
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: machineconfiguration.openshift.io/v1
     kind: MachineConfigPool
     name: worker
   register: reg_mcpool_worker
 
 - name: Get control-plane MCP status
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: machineconfiguration.openshift.io/v1
     kind: MachineConfigPool
     name: master

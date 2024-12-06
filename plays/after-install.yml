@@ -1,6 +1,6 @@
 ---
 - name: "Get cluster install-config"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: v1
     kind: ConfigMap
     name: cluster-config-v1
@@ -56,7 +56,7 @@
     - "{{ dci_cluster_configs_dir }}/cluster-install-config.yml"
 
 - name: "Check if all cluster-operators are running correctly"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     kind: ClusterOperator
   register: clusteroperator_info
   vars:
@@ -78,7 +78,7 @@
         {{ s.split() | last }}
       {% endfor %}
     bmh_unique_states: "{{ bmh_states.split() | unique }}"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     kind: BareMetalHost
     api: metal3.io/v1alpha1
     namespace: openshift-machine-api
@@ -94,7 +94,7 @@
     control_nodes_count: "{{ control_nodes.resources | length }}"
     install_config: "{{ ic.resources[0].data['install-config'] | from_yaml }}"
     requested_control: "{{ install_config | json_query('controlPlane.replicas') }}"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     kind: Node
     label_selectors:
       - "node-role.kubernetes.io/master"
@@ -112,7 +112,7 @@
     compute_nodes_count: "{{ compute_nodes.resources | length }}"
     install_config: "{{ ic.resources[0].data['install-config'] | from_yaml }}"
     requested_compute: "{{ install_config | json_query('compute[? name==`worker` ].replicas') | first }}"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     kind: Node
     label_selectors:
       - "node-role.kubernetes.io/worker"
@@ -159,7 +159,7 @@
 - name: "Patch clusterversion update channel"
   vars:
     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: present
     name: version
     definition:
@@ -192,14 +192,14 @@
     - acm_cluster_type | default('') != 'hypershift'
   block:
     - name: "Get provisioning"
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api_version: metal3.io/v1alpha1
         kind: Provisioning
         name: provisioning-configuration
       register: provisioning_cr
 
     - name: Disable provisioning
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition:
           apiVersion: metal3.io/v1alpha1
           kind: Provisioning
@@ -244,7 +244,7 @@
     - dci_disconnected | default(false) | bool
 
 - name: Check for ICSPs that need to be migrated
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: operator.openshift.io/v1alpha1
     kind: ImageContentSourcePolicy
   register: cluster_icsp

@@ -8,7 +8,7 @@
     hs_test_vm: "{{ dci_cnv_test | default(false) | bool }}"
 
 - name: "Configuring a StorageProfile for NFS provider"
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition:
       apiVersion: cdi.kubevirt.io/v1beta1
       kind: StorageProfile

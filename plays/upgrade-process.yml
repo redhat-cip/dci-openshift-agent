@@ -1,6 +1,6 @@
 ---
 - name: "Get cluster version"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: config.openshift.io/v1
     kind: ClusterVersion
     name: version
@@ -33,7 +33,7 @@
             namespace: openshift-config
           data:
             ack-{{ current_ver }}-kube-1.{{ k8s_ver }}-api-removals-in-{{ target_version.split('.')[:2] | join('.') }}: "true"
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         state: present
         definition: "{{ cm_def }}"
       when:
@@ -95,12 +95,12 @@
                       release.openshift.io/verification-signatures: ""
                   binaryData:
                     sha256-{{ release_digest }}-1 : {{ encoded_sig }}
-              community.kubernetes.k8s:
+              kubernetes.core.k8s:
                 state: present
                 definition: "{{ signature_cm }}"
 
         - name: "Patch clusterversion to point to custom upstream graph"
-          community.kubernetes.k8s:
+          kubernetes.core.k8s:
             state: present
             name: version
             definition:
@@ -109,7 +109,7 @@
                 upstream: "{{ webserver_url }}/graph-{{ version.split('.')[0:2]|join('.') }}"
 
         - name: "Wait custom upstream graph update"
-          community.kubernetes.k8s_info:
+          kubernetes.core.k8s_info:
             kind: ClusterVersion
             name: version
           register: cv_info
@@ -130,7 +130,7 @@
                 ternary(
                   'eus-' + target_version,
                   dci_ocp_channel | default('fast') + '-' + target_version ) }}
-          community.kubernetes.k8s:
+          kubernetes.core.k8s:
             state: present
             name: version
             definition:
@@ -139,20 +139,20 @@
                 channel: "{{ channel }}"
 
         - name: "Get openshift-cluster-version pod name"
-          community.kubernetes.k8s_info:
+          kubernetes.core.k8s_info:
             kind: Pod
             namespace: openshift-cluster-version
           register: ocvpod
 
         - name: "Delete the openshift-cluster-version pod"
-          community.kubernetes.k8s:
+          kubernetes.core.k8s:
             state: absent
             kind: Pod
             namespace: openshift-cluster-version
             name: "{{ ocvpod.resources[0].metadata.name }}"
 
         - name: "Wait the openshift-cluster-version pod creation"
-          community.kubernetes.k8s_info:
+          kubernetes.core.k8s_info:
             kind: Pod
             namespace: openshift-cluster-version
           register: ocvpod
@@ -165,7 +165,7 @@
           delay: 60
 
         - name: "Wait for an updated clusterversion"
-          community.kubernetes.k8s_info:
+          kubernetes.core.k8s_info:
             kind: ClusterVersion
             name: version
           register: cv_info
@@ -205,7 +205,7 @@
           vars:
             cluster_version_conditions: "{{ cluster_version_info.resources.0.status.conditions }}"
             condition_progressing: '{{ cluster_version_conditions | selectattr("type", "equalto", "Progressing") | first }}'
-          community.kubernetes.k8s_info:
+          kubernetes.core.k8s_info:
             kind: ClusterVersion
             name: version
           register: cluster_version_info
@@ -221,7 +221,7 @@
           include_tasks: monitor-upgrade.yml
 
 - name: Reset maxUnavailable count to default value 1
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition:
       kind: MachineConfigPool
       metadata:

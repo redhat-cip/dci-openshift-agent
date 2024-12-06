@@ -1,6 +1,6 @@
 ---
 - name: Check if IDMS is supported
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     kind: CustomResourceDefinition
     name: imagedigestmirrorsets.config.openshift.io
   register: idms_res

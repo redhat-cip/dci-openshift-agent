@@ -26,11 +26,11 @@
         image_source_file: "{{ migrate_result.stdout_lines[0].split(' ')[-1] }}"
 
     - name: "Apply the IDMS"
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition: "{{ lookup('template', image_source_file) | from_yaml }}"
 
 - name: "Apply the ICSP"
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition: "{{ lookup('template', mdf_image_source_file) | from_yaml }}"
   when:
     - ocp_version is version('4.14', '<')

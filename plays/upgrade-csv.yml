@@ -3,7 +3,7 @@
     msg: "{{ sub.subscriptionName }}"
 
 - name: "Get updated package manifest for {{ sub.operatorName }}"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: packages.operators.coreos.com/v1
     kind: PackageManifest
     namespace: default
@@ -30,7 +30,7 @@
     - current_csv != sub.installedCSV
   block:
     - name: "Get Install plans"
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api: operators.coreos.com/v1alpha1
         kind: InstallPlan
         namespace: "{{ sub.namespace }}"
@@ -47,7 +47,7 @@
       delay: 5
 
     - name: "Change Subscription to Automatic and update channel"
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition:
           apiVersion: operators.coreos.com/v1alpha1
           kind: Subscription
@@ -60,7 +60,7 @@
             channel: "{{ default_channel }}"
 
     - name: "Delete non-approved install plans"
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         api: operators.coreos.com/v1alpha1
         kind: InstallPlan
         namespace: "{{ sub.namespace }}"
@@ -79,7 +79,7 @@
         msg: "Upgrading from {{ sub.installedCSV }} to {{ current_csv }}"
 
     - name: "Wait up to 2 hours for new operator's CSV to be ready"
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api: operators.coreos.com/v1alpha1
         namespace: "{{ sub.namespace }}"
         kind: ClusterServiceVersion
@@ -95,7 +95,7 @@
         - csv.resources[0].status.phase in ['Succeeded', 'Present']
 
     - name: "Set install_approval to its original mode"
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition:
           apiVersion: operators.coreos.com/v1alpha1
           kind: Subscription

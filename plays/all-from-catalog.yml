@@ -1,6 +1,6 @@
 ---
 - name: Check CatalogSource is Ready - {{ install_all_from_catalog }}
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: operators.coreos.com/v1alpha1
     kind: CatalogSource
     name: "{{ install_all_from_catalog }}"
@@ -12,7 +12,7 @@
   delay: 10
 
 - name: "Get operator's package manifests"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: packages.operators.coreos.com/v1
     kind: PackageManifest
     namespace: default

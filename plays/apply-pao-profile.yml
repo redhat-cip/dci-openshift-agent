@@ -18,7 +18,7 @@
     - ocp_version_min|int <= 10
 
 - name: Create PerformanceProfile
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition: "{{ lookup('file', performance_definition) }}"
   register: profile_state
   retries: 5
@@ -28,7 +28,7 @@
 - name: Wait for Performance Profile KubeletConfig creation
   vars:
     check_wait_retries: "{{ 16 * (dci_compute_size | default(dci_control_plane_size) | length + 1 ) }}"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: machineconfiguration.openshift.io/v1
     kind: KubeletConfig
     name: "performance-{{ profile_state.result.metadata.name }}"
@@ -67,7 +67,7 @@
 - name: Create Tuned object
   block:
     - name: Apply tuned definition
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition: "{{ lookup('file', tuned_definition) }}"
       register: tuned_state
       retries: 5
@@ -77,7 +77,7 @@
     - name: Wait for the tuned creation
       vars:
         check_wait_retries: "{{ 16 * (dci_compute_size | default(dci_control_plane_size) | length + 1 ) }}"
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api: tuned.openshift.io/v1
         kind: Tuned
         name: "{{ tuned_state.result.spec.profile[0].name }}"
@@ -101,7 +101,7 @@
   when: tuned_definition is defined
 
 - name: Reset maxUnavailable count to default value 1
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition:
       kind: MachineConfigPool
       metadata:

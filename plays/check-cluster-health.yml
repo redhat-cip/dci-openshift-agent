@@ -4,7 +4,7 @@
     status_check: Degraded
   block:
     - name: "Fail if there are degraded cluster-operators"
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         kind: ClusterOperator
       register: clusteroperator_info
       vars:
@@ -23,7 +23,7 @@
         msg: "The following Cluster Operators are degraded {{ degraded_operators }}"
 
 - name: "Check that control-plane nodes are ready"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     kind: Node
     label_selectors:
       - "node-role.kubernetes.io/master"
@@ -37,7 +37,7 @@
   delay: 10
 
 - name: "Check that Worker nodes are ready"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     kind: Node
     label_selectors:
       - "node-role.kubernetes.io/worker"
@@ -51,7 +51,7 @@
   delay: 10
 
 - name: "Get cluster version information"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     kind: ClusterVersion
     name: version
   register: cluster_version
@@ -70,7 +70,7 @@
   delay: 10
 
 - name: "Check machine-config clusteroperator latest status"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: config.openshift.io/v1
     kind: ClusterOperator
     name: machine-config
@@ -81,7 +81,7 @@
     - co | json_query('resources[*].status.conditions[]')| sort(attribute='lastTransitionTime') | last | json_query('status')
 
 - name: "Get Machine Config Pools status"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: machineconfiguration.openshift.io/v1
     kind: MachineConfigPool
   register: reg_mcpool_status

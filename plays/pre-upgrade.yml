@@ -1,6 +1,6 @@
 ---
 - name: Check if the SRIOV CRDs are present
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     kind: CustomResourceDefinition
     name: "sriovnetworks.sriovnetwork.openshift.io"
   register: sriov_crd
@@ -12,7 +12,7 @@
     - sriov_crd.resources | length > 0
   block:
     - name: Make sure SRIOV operator webhook is disabled
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition:
           apiVersion: sriovnetwork.openshift.io/v1
           kind: SriovOperatorConfig
@@ -23,14 +23,14 @@
             enableOperatorWebhook: false
 
     - name: Get list of SRIOV policies
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api: sriovnetwork.openshift.io/v1
         kind: SriovNetworkNodePolicy
         namespace: openshift-sriov-network-operator
       register: sriov_policies
 
     - name: Make sure SRIOV policies are not using linkType eth
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         definition:
           apiVersion: sriovnetwork.openshift.io/v1
           kind: SriovNetworkNodePolicy

@@ -1,6 +1,6 @@
 ---
 - name: Check if the NRO CRDs are present
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     kind: CustomResourceDefinition
     name: "{{ item }}"
   register: numa_crd
@@ -50,7 +50,7 @@
         - machineConfigPoolSelector:
             matchLabels:
               pools.operator.machineconfiguration.openshift.io/worker: ""
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: present
     definition: "{{ nro_def }}"
 
@@ -90,12 +90,12 @@
         name: numaresourcesscheduler
       spec:
         imageSpec: "{{ nro_image }}"
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: present
     definition: "{{ nro_sch_def }}"
 
 - name: Confirm that NUMA scheduler pods are Running
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: v1
     kind: Pod
     namespace: openshift-numaresources
@@ -107,7 +107,7 @@
   delay: 10
 
 - name: Confirm that NUMA resource-topology pods are Running
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: v1
     kind: Pod
     namespace: openshift-numaresources
@@ -119,7 +119,7 @@
   delay: 10
 
 - name: Reset maxUnavailable count to default value 1
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition:
       kind: MachineConfigPool
       metadata:

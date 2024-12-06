@@ -1,6 +1,6 @@
 ---
 - name: "Get current subscriptions"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: operators.coreos.com/v1alpha1
     kind: Subscription
   register: current_subscriptions
@@ -30,7 +30,7 @@
     - operator_skip_upgrade | default([]) | length
 
 - name: "Change install plans to manual"
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition:
       apiVersion: operators.coreos.com/v1alpha1
       kind: Subscription

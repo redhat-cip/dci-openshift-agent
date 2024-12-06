@@ -10,14 +10,14 @@
 
   block:
     - name: Check if IDMS is supported
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         kind: CustomResourceDefinition
         name: imagedigestmirrorsets.config.openshift.io
       register: idms_res
       no_log: true
 
     - name: "Get Hub Image Source Type"
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api_version: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('config.openshift.io/v1', 'operator.openshift.io/v1alpha1') }}"
         kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
       register: hub_is

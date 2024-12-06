@@ -1,5 +1,5 @@
 - name: Get list of pods
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: v1
     kind: Pod
     label_selectors:
@@ -10,7 +10,7 @@
   delay: 10
 
 - name: Get pod logs
-  community.kubernetes.k8s_log:
+  kubernetes.core.k8s_log:
     namespace: "{{ namespace }}"
     name: "{{ pod.metadata.name }}"
     container: "{{ container }}"
@@ -26,7 +26,7 @@
     - pods_info.resources | length > 0
 
 - name: Recreate pod as workaround
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: absent
     definition:
       apiVersion: v1

@@ -11,12 +11,12 @@
       data:
         {{ registry_id }}: |
           {{ additional_ca | indent(4) }}
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: present
     definition: "{{ trust_bundle }}"
 
 - name: Patch the Cluster Image config
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition:
       apiVersion: config.openshift.io/v1
       kind: Image
@@ -31,7 +31,7 @@
     seconds: 5
 
 - name: Wait for API server pods to be recreated
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: v1
     namespace: "openshift-apiserver"
     kind: Pod

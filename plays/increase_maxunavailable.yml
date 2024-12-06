@@ -8,7 +8,7 @@
         name: worker
       spec:
         maxUnavailable: {{ dci_compute_size | int - 2 }}
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: present
     definition: "{{ mcp_def }}"
   when:

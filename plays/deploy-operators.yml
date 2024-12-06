@@ -79,7 +79,7 @@
     - enable_netobserv | bool
 
 - name: "Setup NMState instance"
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     definition:
       apiVersion: nmstate.io/v1
       kind: NMState
@@ -103,7 +103,7 @@
     - dci_ocp_custom_resources is list
 
 - name: "Validate if the Performance Profile CRD is present"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api_version: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     name: performanceprofiles.performance.openshift.io

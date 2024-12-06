@@ -7,7 +7,7 @@
     - package == item.key
 
 - name: "Get operator's package manifests for {{ package }}"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: packages.operators.coreos.com/v1
     kind: PackageManifest
     namespace: default

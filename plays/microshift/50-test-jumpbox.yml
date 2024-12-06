@@ -8,7 +8,7 @@
 - name: Test MicroShift
   block:
     - name: test_ Testing OCP API
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         kind: Node
         kubeconfig: "{{ _kubeconfig }}"
         validate_certs: false

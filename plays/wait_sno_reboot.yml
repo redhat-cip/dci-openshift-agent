@@ -16,7 +16,7 @@
   delay: 60
 
 - name: "Wait for SNO node to be in Ready state"
-  community.kubernetes.k8s_info:
+  kubernetes.core.k8s_info:
     api: v1
     kind: Node
   register: cluster_nodes
