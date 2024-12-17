@@ -65,6 +65,41 @@
     name: redhatci.ocp.populate_mirror_registry
     tasks_from: var_check.yml
 
+- name: Remove any previous predefined performance profile
+  when:
+    - customize_extramanifests_path is defined
+  delegate_to: localhost
+  ansible.builtin.file:
+    path: "{{ customize_extramanifests_path }}/20_performance_profile.yml"
+    state: absent
+
+- name: Performance profile on install
+  when:
+    - performance_definition is defined
+    - customize_extramanifests_path is defined
+    - version is version('4.16', '>=')
+  block:
+    - name: Verify performance profile file exists
+      ansible.builtin.stat:
+        path: "{{ performance_definition }}"
+        get_checksum: false
+      register: perf_profile
+
+    - name: Copy performance profile to extra manifests with predefined name
+      ansible.builtin.copy:
+        src: "{{ performance_definition }}"
+        dest: "{{ customize_extramanifests_path }}/20_performance_profile.yml"
+        mode: "0644"
+      when:
+        - perf_profile.stat.exists
+
+    - name: Add extra manifests for ABI
+      vars:
+        manifest_file:
+          file: "{{ customize_extramanifests_path }}/20_performance_profile.yml"
+      ansible.builtin.set_fact:
+        extra_manifests: "{{ extra_manifests | default([]) + [manifest_file] }}"
+
 - name: Generate_manifests
   vars:
     pull_secret: "{{ dci_pullsecret }}"

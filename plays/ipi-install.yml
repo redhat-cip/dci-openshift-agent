@@ -1,13 +1,13 @@
 ---
-- name: "Before install"
+- name: Tasks before install
   ansible.builtin.include_tasks: before-install.yml
 
-- name: "Installer: Check if .cache directory exists"
+- name: Check if .cache directory exists
   stat:
     path: "{{ ansible_user_dir }}/.cache"
   register: cache_directory
 
-- name: "Installer: Cleanup old images"
+- name: Cleanup old images
   when:
     - cleanup_old_images | default(false) | bool
     - cache_directory.stat.exists
@@ -21,28 +21,28 @@
         use_regex: true
       register: old_images_to_delete
 
-    - name: "Installer: Delete images older than max_images_age"
+    - name: Delete images older than max_images_age
       file:
         path: "{{ item.path }}"
         state: absent
       loop: "{{ old_images_to_delete.files }}"
 
-- name: "Installer : Populate clusterosimage"
+- name: Populate clusterosimage
   set_fact:
     clusterosimage: "{{ hostvars.localhost.clusterosimage }}"
   when: hostvars.localhost.clusterosimage is defined
 
-- name: "Installer : Populate bootstraposimage"
+- name: Populate bootstraposimage
   set_fact:
     bootstraposimage: "{{ hostvars.localhost.bootstraposimage }}"
   when: hostvars.localhost.bootstraposimage is defined
 
-- name: "Installer : Populate master_network_config_template"
+- name: Populate master_network_config_template
   set_fact:
     master_network_config_template: "{{ hostvars.localhost.master_network_config_template }}"
   when: hostvars.localhost.master_network_config_template is defined
 
-- name: "Installer : Populate worker_network_config_template"
+- name: Populate worker_network_config_template
   set_fact:
     worker_network_config_template: "{{ hostvars.localhost.worker_network_config_template }}"
   when: hostvars.localhost.worker_network_config_template is defined
@@ -69,11 +69,11 @@
 - name: "Public builds"
   when: hostvars.localhost.build != "nightly"
   block:
-    - name: "Installer : Node preparation"
+    - name: Node preparation
       import_role:
         name: redhatci.ocp.node_prep
 
-    - name: "Installer : Run IPI installer"
+    - name: Run IPI installer
       environment: "{{ disconnected_envs | default({}) }}"
       import_role:
         name: redhatci.ocp.installer
@@ -85,8 +85,8 @@
       vars:
         cache_dir: >-
           {{ hostvars.localhost.provision_cache_store |
-            default((hostvars.localhost.ansible_env.HOME, 'releases') |
-            join('/')) }}
+             default((hostvars.localhost.ansible_env.HOME, 'releases') |
+             join('/')) }}
       containers.podman.podman_container:
         name: "{{ hostvars.localhost.job_id }}"
         image: quay.io/fedora/httpd-24:latest
@@ -101,8 +101,8 @@
       set_fact:
         aw_dynamic_port: >-
           {{ aw_container |
-            json_query('container.NetworkSettings.Ports."8080/tcp"[].HostPort') |
-            first }}
+             json_query('container.NetworkSettings.Ports."8080/tcp"[].HostPort') |
+             first }}
       delegate_to: localhost
 
     - name: "Get routable interface to provisionhost"
@@ -151,11 +151,11 @@
       set_fact:
         release_url: "http://{{ controller_url }}:{{ aw_dynamic_port }}"
 
-    - name: "Installer : Node preparation"
+    - name: Node preparation
       import_role:
         name: redhatci.ocp.node_prep
 
-    - name: "Installer : Run IPI installer"
+    - name: Run IPI installer
       environment: "{{ disconnected_envs | default({}) }}"
       import_role:
         name: redhatci.ocp.installer

@@ -109,14 +109,25 @@
     name: performanceprofiles.performance.openshift.io
   register: perf_profile_crd
 
-- name: "Apply the Performance Profile"
-  ansible.builtin.include_tasks: "{{ item }}"
-  loop:
-    - apply-pao-profile.yml
-    - check-cluster-health.yml
+- name: Legacy support for performance profile in old OCP
   when:
     - performance_definition is defined
-    - perf_profile_crd.resources|length > 0
+    - version is version('4.16', '<')
+    - perf_profile_crd.resources | length > 0
+  block:
+    - name: Apply the Performance Profile
+      ansible.builtin.include_tasks: "{{ item }}"
+      loop:
+        - apply-pao-profile.yml
+        - check-cluster-health.yml
+
+- name: Configure TuneD profile
+  ansible.builtin.include_tasks: "{{ item }}"
+  loop:
+    - apply-tuned-profile.yml
+    - check-cluster-health.yml
+  when:
+    - tuned_definition is defined
 
 - name: "Setup NUMA Resource Operator"
   include_tasks: "{{ item }}"
