@@ -70,7 +70,7 @@
         mor_registry_path: "{{ ocp_release_path }}"
         mor_auths_file: "{{ dci_pullsecret_file }}"
         mor_force: false
-        mor_install_type: "{{ install_type }}"
+        mor_install_type: "{{ (install_type | default('ipi')) }}"
         mor_mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
         mor_mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
         mor_build: "{{ build }}"
@@ -159,7 +159,7 @@
         mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
         mor_auths_file: "{{ dci_pullsecret_file }}"
         mor_force: true
-        mor_install_type: "{{ install_type }}"
+        mor_install_type: "{{ (install_type | default('ipi')) }}"
         mor_mirror_disk_images: false
         mor_mirror_container_images: false
         mor_write_custom_config: false

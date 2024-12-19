@@ -35,7 +35,7 @@
   include_tasks: increase_maxunavailable.yml
   when:
     - increase_unavailable_workers | default(True) | bool
-    - install_type is undefined or install_type != 'sno'
+    - (install_type | default('ipi')) != 'sno'
     - acm_cluster_type | default('') not in ['hypershift', 'sno']
 
 - name: Create NUMAResourcesOperator CRD
@@ -58,7 +58,7 @@
   pause:
     seconds: 60
   when:
-    - install_type is undefined or install_type != 'sno'
+    - (install_type | default('ipi')) != 'sno'
     - reg_mcpool_worker.resources[0].status.machineCount >= 1 or reg_mcpool_controlplane.resources[0].status.machineCount >= 1
   no_log: true
 

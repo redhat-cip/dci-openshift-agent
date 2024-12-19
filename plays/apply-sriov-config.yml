@@ -23,8 +23,7 @@
       spec:
         disableDrain: true
   when:
-    - install_type is defined
-    - install_type == "sno"
+    - (install_type | default('ipi')) == "sno"
 
 - name: "Add SRIOV label to worker nodes"
   community.kubernetes.k8s:

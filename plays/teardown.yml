@@ -23,7 +23,7 @@
 - name: "Remove artifact webserver for IPI installs"
   when:
     - dci_main == 'install'
-    - install_type == 'ipi'
+    - (install_type | default('ipi')) == 'ipi'
   block:
     - name: "Remove artifact webserver"
       containers.podman.podman_container:

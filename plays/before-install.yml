@@ -1,6 +1,6 @@
 ---
 
-- name: "installer : set EXTERNAL_SUBNET"
+- name: "Installer : set EXTERNAL_SUBNET"
   set_fact:
     extcidrnet: "{{ ip | ipaddr('network') }}/{{ ip | ipaddr('prefix') }}"
   vars:
@@ -8,12 +8,12 @@
   when:
     - (extcidrnet is not defined or extcidrnet|length < 1)
 
-- name: "installer : Get version and build from localhost vars"
+- name: "Installer : Get version and build from localhost vars"
   set_fact:
     version: "{{ hostvars.localhost.version }}"
     build: "{{ hostvars.localhost.build }}"
 
-- name: "installer : Get pullsecret from localhost vars"
+- name: "Installer : Get pullsecret from localhost vars"
   set_fact:
     pullsecret: "{{ hostvars.localhost.dci_pullsecret | to_json }}"
   no_log: true

@@ -74,7 +74,7 @@
           dci_tags +
           dci_workarounds +
           ((dci_main == "upgrade") |
-          ternary(["upgrade"],["install", "install_type:" + install_type])) }}
+          ternary(["upgrade"], ["install", "install_type:" + (install_type | default('ipi'))])) }}
 
     - name: Add cluster tag to the current job
       dci_job:
@@ -129,7 +129,7 @@
           Assisted on-prem is deprecated. Please update your inventory and pipeline and set install_type = abi"
           and remove use_agent_based_installer variable.
       when:
-        - install_type == 'assisted'
+        - (install_type | default('ipi')) == 'assisted'
         - use_agent_based_installer is defined
 
     - name: Fail when ABI version is not supported
@@ -137,11 +137,11 @@
         msg: "ABI support starts in 4.12"
       when:
         - version is version('4.12', '<')
-        - install_type == 'abi'
+        - (install_type | default('ipi')) == 'abi'
 
     - name: "Requirements for ACM install_type"
       when:
-        - install_type == 'acm'
+        - (install_type | default('ipi')) == 'acm'
       block:
         - name: "Read HUB_KUBECONFIG path from env vars"
           set_fact:
@@ -180,7 +180,7 @@
         - name: Run the pre-run
           include_tasks: plays/pre-run.yml
           when:
-            - install_type not in ['acm']
+            - (install_type | default('ipi')) not in ['acm']
 
         - name: "ACM pre-run"
           include_tasks:
@@ -191,7 +191,7 @@
               tags:
                 - acm-pre-run
           when:
-            - install_type == 'acm'
+            - (install_type | default('ipi')) == 'acm'
 
       rescue: &teardown_error
         - name: Run the teardown error handler
@@ -270,7 +270,7 @@
   tasks:
     - name: Configure
       when:
-        - install_type != 'acm'
+        - (install_type | default('ipi')) != 'acm'
       block:
         # Prepare provisioner host
         - name: Configure provisioner
@@ -297,11 +297,11 @@
   tasks:
     - name: Install IPI/SNO/UPI
       block:
-        - name: Launch install {{ install_type }}
-          include_tasks: "plays/{{ install_type }}-install.yml"
+        - name: Launch install {{ (install_type | default('ipi'))}}
+          include_tasks: "plays/{{ (install_type | default('ipi')) }}-install.yml"
           when:
             - dci_main == 'install'
-            - install_type in ['ipi', 'upi', 'sno']
+            - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
 
         - name: "Get KUBECONFIG auth/creds from provisioner node"
           fetch:
@@ -313,7 +313,7 @@
             - "{{ dir }}/auth/kubeadmin-password"
           when:
             - dci_main == 'install'
-            - install_type in ['ipi', 'upi', 'sno']
+            - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
 
       rescue: &teardown_failure
         - name: Run the teardown failure handler
@@ -374,7 +374,7 @@
               environment:
                 KUBECONFIG: "{{ hub_kubeconfig_path }}"
           when:
-            - install_type == 'acm'
+            - (install_type | default('ipi')) == 'acm'
       rescue: *teardown_failure
 
 # Step 3a-1 : installing
@@ -395,7 +395,7 @@
           include_tasks:
             file: plays/abi-install.yml
           when:
-            - install_type == 'abi'
+            - (install_type | default('ipi')) == 'abi'
       rescue: *teardown_failure
 
 # Step 3a-1 : installing
@@ -533,7 +533,7 @@
   tasks:
     - name: Red Hat tests
       when:
-        - install_type != 'acm'
+        - (install_type | default('ipi')) != 'acm'
       block:
         - name: "Run cluster health checks"
           include_tasks: plays/check-cluster-health.yml

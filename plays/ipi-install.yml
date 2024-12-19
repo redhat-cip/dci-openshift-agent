@@ -1,47 +1,48 @@
 ---
-- include_tasks: before-install.yml
+- name: "Before install"
+  ansible.builtin.include_tasks: before-install.yml
 
-- name: "installer: Check if .cache directory exists"
+- name: "Installer: Check if .cache directory exists"
   stat:
     path: "{{ ansible_user_dir }}/.cache"
   register: cache_directory
 
-- name: "installer: Cleanup old images"
+- name: "Installer: Cleanup old images"
+  when:
+    - cleanup_old_images | default(false) | bool
+    - cache_directory.stat.exists
   block:
-    - name: "installer: Retrieve images older than max_images_age"
+    - name: "Installer: Retrieve images older than max_images_age"
       find:
         paths: "{{ ansible_user_dir }}/.cache/openshift-installer/image_cache"
         file_type: file
         age: "{{ max_images_age | default('4w') | string }}"
-        recurse: no
-        use_regex: yes
+        recurse: false
+        use_regex: true
       register: old_images_to_delete
 
-    - name: "installer: Delete images older than max_images_age"
+    - name: "Installer: Delete images older than max_images_age"
       file:
         path: "{{ item.path }}"
         state: absent
       loop: "{{ old_images_to_delete.files }}"
-  when:
-    - cleanup_old_images | default(false) | bool
-    - cache_directory.stat.exists
 
-- name: "installer : Populate clusterosimage"
+- name: "Installer : Populate clusterosimage"
   set_fact:
     clusterosimage: "{{ hostvars.localhost.clusterosimage }}"
   when: hostvars.localhost.clusterosimage is defined
 
-- name: "installer : Populate bootstraposimage"
+- name: "Installer : Populate bootstraposimage"
   set_fact:
     bootstraposimage: "{{ hostvars.localhost.bootstraposimage }}"
   when: hostvars.localhost.bootstraposimage is defined
 
-- name: "installer : Populate master_network_config_template"
+- name: "Installer : Populate master_network_config_template"
   set_fact:
     master_network_config_template: "{{ hostvars.localhost.master_network_config_template }}"
   when: hostvars.localhost.master_network_config_template is defined
 
-- name: "installer : Populate worker_network_config_template"
+- name: "Installer : Populate worker_network_config_template"
   set_fact:
     worker_network_config_template: "{{ hostvars.localhost.worker_network_config_template }}"
   when: hostvars.localhost.worker_network_config_template is defined
@@ -68,113 +69,113 @@
 - name: "Public builds"
   when: hostvars.localhost.build != "nightly"
   block:
-  - name: "installer : Node preparation"
-    import_role:
-      name: redhatci.ocp.node_prep
+    - name: "Installer : Node preparation"
+      import_role:
+        name: redhatci.ocp.node_prep
 
-  - name: "installer : Run IPI installer"
-    environment: "{{ disconnected_envs | default({}) }}"
-    import_role:
-      name: redhatci.ocp.installer
+    - name: "Installer : Run IPI installer"
+      environment: "{{ disconnected_envs | default({}) }}"
+      import_role:
+        name: redhatci.ocp.installer
 
 - name: "Nightly builds"
   when: hostvars.localhost.build == "nightly"
   block:
-  - name: "Start artifact webserver"
-    vars:
-      cache_dir: >-
-        {{ hostvars.localhost.provision_cache_store |
-           default((hostvars.localhost.ansible_env.HOME, 'releases') |
-           join('/')) }}
-    containers.podman.podman_container:
-      name: "{{ hostvars.localhost.job_id }}"
-      image: quay.io/fedora/httpd-24:latest
-      state: started
-      publish_all: true
-      volumes:
-        - "{{ cache_dir }}:/var/www/html"
-    register: aw_container
-    delegate_to: localhost
+    - name: "Start artifact webserver"
+      vars:
+        cache_dir: >-
+          {{ hostvars.localhost.provision_cache_store |
+            default((hostvars.localhost.ansible_env.HOME, 'releases') |
+            join('/')) }}
+      containers.podman.podman_container:
+        name: "{{ hostvars.localhost.job_id }}"
+        image: quay.io/fedora/httpd-24:latest
+        state: started
+        publish_all: true
+        volumes:
+          - "{{ cache_dir }}:/var/www/html"
+      register: aw_container
+      delegate_to: localhost
 
-  - name: "Get dynamic web port"
-    set_fact:
-      aw_dynamic_port: >-
-        {{ aw_container |
-           json_query('container.NetworkSettings.Ports."8080/tcp"[].HostPort') |
-           first }}
-    delegate_to: localhost
+    - name: "Get dynamic web port"
+      set_fact:
+        aw_dynamic_port: >-
+          {{ aw_container |
+            json_query('container.NetworkSettings.Ports."8080/tcp"[].HostPort') |
+            first }}
+      delegate_to: localhost
 
-  - name: "Get routable interface to provisionhost"
-    vars:
-      target_ip: "{{ hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[2] }}"
-    shell:
-      cmd: /usr/sbin/ip -j route get {{ target_ip }}
-    register: aw_route
-    delegate_to: localhost
+    - name: "Get routable interface to provisionhost"
+      vars:
+        target_ip: "{{ hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[2] }}"
+      shell:
+        cmd: /usr/sbin/ip -j route get {{ target_ip }}
+      register: aw_route
+      delegate_to: localhost
 
-  - name: "Get all active zones in controller"
-    ansible.posix.firewalld_info:
-      active_zones: true
-    register: aw_fw_zones
-    become: true
-    delegate_to: localhost
+    - name: "Get all active zones in controller"
+      ansible.posix.firewalld_info:
+        active_zones: true
+      register: aw_fw_zones
+      become: true
+      delegate_to: localhost
 
-  - name: "Get firewall zone in controller"
-    vars:
-      aw_interface: "{{ aw_route.stdout | from_json | community.general.json_query('[].dev') | first }}"
-      zone_interfaces: "{{ aw_fw_zones.firewalld_info.zones[zone].interfaces }}"
-    set_fact:
-      aw_zone: "{{ zone }}"
-    when:
-      - aw_interface in zone_interfaces
-    loop: "{{ aw_fw_zones.collected_zones }}"
-    loop_control:
-      loop_var: zone
+    - name: "Get firewall zone in controller"
+      vars:
+        aw_interface: "{{ aw_route.stdout | from_json | community.general.json_query('[].dev') | first }}"
+        zone_interfaces: "{{ aw_fw_zones.firewalld_info.zones[zone].interfaces }}"
+      set_fact:
+        aw_zone: "{{ zone }}"
+      when:
+        - aw_interface in zone_interfaces
+      loop: "{{ aw_fw_zones.collected_zones }}"
+      loop_control:
+        loop_var: zone
 
-  - name: "Allow HTTP traffic"
-    when:
-      - aw_zone | default('') != ''
-    firewalld:
-      port: "{{ aw_dynamic_port }}/tcp"
-      permanent: false
-      immediate: true
-      state: enabled
-      zone: "{{ aw_zone }}"
-    become: true
-    delegate_to: localhost
+    - name: "Allow HTTP traffic"
+      when:
+        - aw_zone | default('') != ''
+      ansible.posix.firewalld:
+        port: "{{ aw_dynamic_port }}/tcp"
+        permanent: false
+        immediate: true
+        state: enabled
+        zone: "{{ aw_zone }}"
+      become: true
+      delegate_to: localhost
 
-  - name: Set artifact web URL
-    vars:
-      controller_ip: "{{ hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[0] }}"
-      controller_url: "{{ (controller_ip | ipv6) | ternary('['+ controller_ip + ']', controller_ip) }}"
-    set_fact:
-      release_url: "http://{{ controller_url }}:{{ aw_dynamic_port }}"
+    - name: Set artifact web URL
+      vars:
+        controller_ip: "{{ hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[0] }}"
+        controller_url: "{{ (controller_ip | ipv6) | ternary('['+ controller_ip + ']', controller_ip) }}"
+      set_fact:
+        release_url: "http://{{ controller_url }}:{{ aw_dynamic_port }}"
 
-  - name: "installer : Node preparation"
-    import_role:
-      name: redhatci.ocp.node_prep
+    - name: "Installer : Node preparation"
+      import_role:
+        name: redhatci.ocp.node_prep
 
-  - name: "installer : Run IPI installer"
-    environment: "{{ disconnected_envs | default({}) }}"
-    import_role:
-      name: redhatci.ocp.installer
+    - name: "Installer : Run IPI installer"
+      environment: "{{ disconnected_envs | default({}) }}"
+      import_role:
+        name: redhatci.ocp.installer
 
-  - name: "Remove artifact webserver"
-    containers.podman.podman_container:
-      name: "{{ hostvars.localhost.job_id }}"
-      state: absent
-    delegate_to: localhost
+    - name: "Remove artifact webserver"
+      containers.podman.podman_container:
+        name: "{{ hostvars.localhost.job_id }}"
+        state: absent
+      delegate_to: localhost
 
-  - name: "Disallow HTTP traffic"
-    when:
-      - aw_zone | default('') != ''
-    firewalld:
-      port: "{{ aw_dynamic_port }}/tcp"
-      permanent: false
-      immediate: true
-      state: disabled
-      zone: "{{ aw_zone }}"
-    become: true
-    delegate_to: localhost
+    - name: "Disallow HTTP traffic"
+      when:
+        - aw_zone | default('') != ''
+      ansible.posix.firewalld:
+        port: "{{ aw_dynamic_port }}/tcp"
+        permanent: false
+        immediate: true
+        state: disabled
+        zone: "{{ aw_zone }}"
+      become: true
+      delegate_to: localhost
 
 ...
