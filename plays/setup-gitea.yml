@@ -4,7 +4,7 @@
     name: redhatci.ocp.mirror_images
   vars:
     mi_images:
-      - docker.io/gitea/gitea:latest-rootless
+      - mirror.gcr.io/gitea/gitea:latest-rootless
     mi_authfile: "{{ dci_pullsecret_file }}"
     mi_registry: "{{ dci_local_registry }}"
   when:
