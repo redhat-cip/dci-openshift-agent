@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       1.1.0
+Version:       1.2.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -18,7 +18,7 @@ Requires: python3-dciclient >= 3.1.0
 %endif
 Requires: dci-pipeline >= 0.7.0
 Requires: ansible-role-dci-podman
-Requires: ansible-collection-redhatci-ocp >= 0.23.0
+Requires: ansible-collection-redhatci-ocp >= 0.24.0
 
 %{?systemd_requires}
 Requires(pre): shadow-utils
@@ -64,6 +64,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Tue Jan  7 2025 Tony Garcia <tonyg@redhat.com> - 1.2.EPOCH-VERS
+- Version bump for setup_gitea role updates in redhatci.ocp >= 0.24
+
 * Mon Dec 16 2024 Beto Rdz <josearod@redhat.com> 1.1.0-1
 - remove assisted on-prem
 

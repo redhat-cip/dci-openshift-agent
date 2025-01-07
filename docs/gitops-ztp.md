@@ -31,18 +31,14 @@ Also, for disconnected environments you may need to have a Git repository served
 
 ### Configuration for the ZTP ACM Hub Cluster
 
-| Variable                | Description |
-|-------------------------|-------------|
-| dci_operators      | List of the operators, along with their specific settings, to be installed in the Hub Cluster. This list must included, at minimum, the advanced-cluster-management, the openshift-gitops-operator and the topology-aware-lifecycle manager. |
-| enable_acm         | The variable must be set to "true" for the dci-openshift-agent to run the ACM hub cluster configuration tasks. |
-| enable_gitea       | For disconnected environments, set it to "true" to enable the deployment of a Gitea server in the hub cluster so you may push your gitops manifests. |
-| dci_pullsecret_file    | In disconnected environments, paths to the pull-secret file to authenticate on the Gitea image registry. |
-| dci_local_registry  | In disconnected environments, base URL to the local registry hosting the Gitea mirrored images. |
-| sg_username        | The internal Git server user name. |
-| sg_password        | The internal Git server user password. |
-| sg_email           | The internal Git server user e-mail address. |
-| sg_repository      | The name to be given to the internal Git repository. |
-| sg_repo_mirror_url | URL to an external reference repository containing the manifests to push (mirror) into the internal Git repository. |
+| Variable              | Description
+|---------              |------------
+| dci_operators         | List of the operators, along with their specific settings, to be installed in the Hub Cluster. This list must included, at minimum, the advanced-cluster-management, the openshift-gitops-operator and the topology-aware-lifecycle manager.
+| enable_acm            | The variable must be set to "true" for the dci-openshift-agent to run the ACM hub cluster configuration tasks.
+| enable_gitea          | For disconnected environments, set it to "true" to enable the deployment of a Gitea server in the hub cluster so you may push your gitops manifests.
+| dci_gitea_repo_sshkey | The sshkey to clone the initial repository when the repo requires ssh authentication.
+| dci_pullsecret_file   | In disconnected environments, paths to the pull-secret file to authenticate on the Gitea image registry.
+| dci_local_registry    | In disconnected environments, base URL to the local registry hosting the Gitea mirrored images.
 
 
 ### Pipeline data for the ZTP ACM Hub Cluster
@@ -72,12 +68,8 @@ dci_operators:
 enable_acm: true
 # For disconnected environments
 #enable_gitea: true
-#sg_gitea_image: registry.local:5000/gitea/gitea:latest-rootless
-#sg_username: gituser
-#sg_password: Git_Ops_1234
-#sg_email: gituser@example.com
-#sg_repository: gitops
-#sg_repo_mirror_url: git@github.com:gituser/gitops.git
+# For private repositories
+#dci_gitea_repo_sshkey: /path/to/ssh_private_key
 ```
 
 ### Inventory data for the ZTP ACM Hub Cluster

@@ -15,3 +15,4 @@
     name: redhatci.ocp.setup_gitea
   vars:
     sg_gitea_image: "{{ dci_disconnected | default(false) | ternary(dci_local_registry, 'mirror.gcr.io') }}/gitea/gitea:latest-rootless"
+    sg_repo_sshkey: "{{ dci_gitea_repo_sshkey | default('') }}"
