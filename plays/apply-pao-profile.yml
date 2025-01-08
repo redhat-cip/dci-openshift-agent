@@ -6,14 +6,14 @@
   include_tasks: increase_maxunavailable.yml
   when:
     - increase_unavailable_workers | default(True) | bool
-    - install_type is undefined or install_type != 'sno'
+    - install_type is undefined or (install_type | default('ipi')) != 'sno'
     - acm_cluster_type | default('') not in ['hypershift', 'sno']
 
 - name: Wait for Performance Addon Operator endpoint to become available
   pause:
     seconds: 60
   when:
-    - install_type is defined and install_type == 'sno'
+    - (install_type | default('ipi')) == 'sno'
     - ocp_version_maj|int == 4
     - ocp_version_min|int <= 10
 
@@ -48,7 +48,7 @@
   pause:
     seconds: 60
   when:
-    - install_type is undefined or install_type != 'sno'
+    - (install_type | default('ipi')) != 'sno'
   no_log: true
 
 - name: Wait for SNO node to be available

@@ -18,7 +18,7 @@
   ansible.builtin.include_tasks: add-additional-ca.yml
   when:
     - dci_disconnected | default(false) | bool
-    - install_type not in ['abi']
+    - (install_type | default('ipi')) not in ['abi']
     - dci_local_registry is defined
     - additional_ca | default("")| length > 0
 
@@ -28,7 +28,7 @@
   ansible.builtin.include_tasks: add-additional-ca.yml
   when:
     - dci_disconnected | default(false) | bool
-    - install_type in ['abi']
+    - (install_type | default('ipi')) in ['abi']
     - dci_local_registry is defined
     - mirror_certificate | default("")| length > 0
 
@@ -87,7 +87,7 @@
   delay: 30
   until: bmh_unique_states == ['provisioned']
   when:
-    - install_type in ['ipi', 'upi']
+    - (install_type | default('ipi')) in ['ipi', 'upi']
 
 - name: "Check control plane nodes matches requested"
   vars:
@@ -173,7 +173,7 @@
 
 - name: Afeter install for IPI/UPI/SNO
   when:
-    - install_type in ['ipi', 'upi', 'sno']
+    - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
   block:
     - name: "Merge all inventory hosts"
       set_fact:

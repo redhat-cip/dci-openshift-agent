@@ -27,11 +27,11 @@
       {{ groups['masters'] | union(groups['workers']) | join(' ') }}
   ignore_errors: true
   when:
-    - install_type in ['ipi', 'upi']
+    - (install_type | default('ipi')) in ['ipi', 'upi']
 
 - name: "Get logs from ABI deployment"
   include_tasks: abi-get-logs.yml
-  when: install_type in ['abi']
+  when: (install_type | default('ipi')) in ['abi']
 
 - name: "Get logs from OCP deployment"
   environment:
@@ -45,7 +45,7 @@
     cmd: >
       timeout -v 20m
       {{ scripts_dir.files[0].path }}/get-ocp-logs
-      {% if install_type == 'acm' %}
+      {% if (install_type | default('ipi')) == 'acm' %}
       -p {{ acm_cluster_type }}
       {% endif %}
       {{ job_logs.path }}
@@ -55,7 +55,7 @@
 - name: "Remove the must-gather directory"
   vars:
     dir_prefix: "{{ acm_cluster_type | default('', True) }}"
-    dir_name: "{{ (install_type == 'acm') | ternary(dir_prefix+'_must_gather', 'must_gather') }}"
+    dir_name: "{{ ((install_type | default('ipi')) == 'acm') | ternary(dir_prefix+'_must_gather', 'must_gather') }}"
   file:
     path: "{{ job_logs.path }}/{{ dir_name }}"
     state: absent
@@ -97,7 +97,7 @@
       {{ job_logs.path }}
   ignore_errors: true
   when:
-    - install_type in ['acm']
+    - (install_type | default('ipi')) in ['acm']
 
 - name: Generate SOS reports
   ansible.builtin.include_role:

@@ -12,7 +12,6 @@ dci_teardown_on_failure: false
 dci_teardown_on_success: true
 dci_local_log_dir: /var/tmp
 dci_tags: ['debug']
-install_type: ipi
 ai_version: v2.26.0
 dci_openshift_agent_conformance: ''
 dci_openshift_csi_test_manifest: ''
