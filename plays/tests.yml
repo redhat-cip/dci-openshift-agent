@@ -48,4 +48,12 @@
     - cnf_test_suites is defined
     - cnf_test_suites | length
 
+- name: Run cluster-compare
+  vars:
+    cc_infra_type: "{{ dci_infra_type | default('core') }}"
+    cc_reports_dir: "{{ job_logs.path }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.cluster_compare
+  when:
+    - dci_cluster_compare | default(false) | bool
 ...
