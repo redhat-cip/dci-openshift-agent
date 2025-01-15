@@ -125,9 +125,9 @@
 
     - name: "Assisted on-prem is deprecated"
       ansible.builtin.fail:
-        msg: |
-          Assisted on-prem is deprecated. Please update your inventory and pipeline and set install_type = abi"
-          and remove use_agent_based_installer variable.
+        msg:
+          - "Assisted on-prem is deprecated"
+          - "See Assisted on-prem deprecation at docs/ai-on-prem-deprecation.md for details"
       when:
         - (install_type | default('ipi')) == 'assisted'
         - use_agent_based_installer is defined
