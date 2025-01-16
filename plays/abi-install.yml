@@ -74,9 +74,13 @@
 
 - name: Generate agent ISO
   vars:
-    pull_secret: "{{ dci_pullsecret }}"
-    repo_root_path: "{{ dci_cluster_configs_dir }}"
-    agent_based_installer_path: "{{ openshift_installer_path }}"
+    gai_cluster_name: "{{ cluster_name }}"
+    gai_repo_root_path: "{{ dci_cluster_configs_dir }}"
+    gai_pull_secret: "{{ dci_pullsecret }}"
+    gai_agent_based_installer_path: "{{ openshift_installer_path }}"
+    gai_discovery_iso_name: "{{ discovery_iso_name }}"
+    gai_path_var: "{{ dci_cluster_configs_dir }}:/sbin:/usr/sbin:/usr/local/bin/"
+    gai_iso_download_dest_path: "{{ iso_download_dest_path | default('/opt/http_store/data') }}"
   ansible.builtin.include_role:
     name: redhatci.ocp.generate_agent_iso
 
