@@ -1,4 +1,14 @@
 ---
+- name: "Storage service test (during upgrade only)"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.storage_tester
+  vars:
+    storage_class: "{{ tester_storage_class | default(omit) }}"
+  when:
+    - dci_main is defined
+    - dci_main == 'upgrade'
+    - storage_upgrade_tester | default(false) | bool
+
 - name: Check if the SRIOV CRDs are present
   kubernetes.core.k8s_info:
     kind: CustomResourceDefinition

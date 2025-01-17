@@ -1,76 +1,78 @@
 ---
-- name: "Get cluster facts"
-  include_tasks: get-cluster-facts.yml
+- name: Validate OCP upgrade requirements
+  ansible.builtin.assert:
+    that:
+      - oc_tool_path is defined
+      - version is defined
+      - version_pull_url is defined
 
-- name: "Set common configurations for disconnected environments"
+- name: Validate the provision cache store is defined
+  ansible.builtin.assert:
+    that:
+      - provision_cache_store is defined
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: Get cluster facts
+  ansible.builtin.include_tasks: get-cluster-facts.yml
+
+- name: "Get cluster pull-secret"
+  ansible.builtin.include_tasks: get-cluster-pullsecret.yml
+
+- name: Set common configurations for disconnected environments
   when:
     - dci_disconnected | default(false) | bool
   block:
-
-    - name: "Get cluster install-config"
-      kubernetes.core.k8s_info:
-        api: v1
-        kind: ConfigMap
-        name: cluster-config-v1
-        namespace: kube-system
-      register: install_config
-      until: "'resources' in install_config and install_config.resources != []"
-      retries: 12
-      delay: 5
-
-    - name: "Set webserver URL"
-      vars:
-        cluster_install_info: |-
-          {{ ( install_config.resources[0].data |
-          from_yaml )['install-config'] |
-          from_yaml }}
-      set_fact:
-        webserver_url: "{{ cluster_install_info.platform.baremetal.bootstrapOSImage |
-                        urlsplit('scheme') }}://{{ cluster_install_info.platform.baremetal.bootstrapOSImage |
-                        urlsplit('netloc') }}"
-      when:
-        - install_config.resources | length
-
     - name: Find ImageDigestMirrorSet in the cluster
       kubernetes.core.k8s_info:
         api_version: config.openshift.io/v1
         kind: ImageDigestMirrorSet
       register: idms_res
 
-    - name: "Get Cluster Image Sources"
+    - name: "Get supported Cluster Image Source type"
       kubernetes.core.k8s_info:
         api_version: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('config.openshift.io/v1', 'operator.openshift.io/v1alpha1') }}"
         kind: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('ImageDigestMirrorSet', 'ImageContentSourcePolicy') }}"
       register: cluster_is
 
-    - name: "Set dci_local_registry"
+    - name: Set dci_local_registry
       vars:
         cluster_query: "spec.*[*].mirrors[0]"
         loc_reg: "docker://{{ cluster_is.resources[0] | json_query(cluster_query) | flatten | first }}"
-      set_fact:
+      ansible.builtin.set_fact:
         dci_local_registry: "{{ loc_reg | urlsplit('netloc') }}"
       when:
         - cluster_is.resources | length
 
+    - name: Mirror Job support tools
+      ansible.builtin.include_tasks: mirror-job-tools.yml
+
+- name: Prepare OCP releases for the upgrade
+  ansible.builtin.include_tasks: upgrade-artifacts.yml
+
+- name: Apply Image Sources manifests
+  when:
+    - dci_disconnected | default(false) | bool
+  block:
     - name: "Apply new OCP release Image Sources - EUS"
       kubernetes.core.k8s:
-        definition: '{{ lookup("url", "{{ webserver_url }}/{{ version_inter }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
+        definition: "{{ lookup('file', (provision_cache_store | default(ansible_env.HOME + '/releases')) ~ '/' ~ version_inter ~ '/imagesource.yaml') }}"
       when:
         - upgrade_eus | default(false) | bool
 
     - name: "Apply new OCP release Image Sources"
       kubernetes.core.k8s:
-        definition: '{{ lookup("url", "{{ webserver_url }}/{{ version }}/imagesource.yaml", split_lines=False) | from_yaml_all | list }}'
+        definition: "{{ lookup('file', (provision_cache_store | default(ansible_env.HOME + '/releases')) ~ '/' ~ version ~ '/imagesource.yaml') }}"
 
-    - name: "Wait for new ImageSources to be applied"
-      include_role:
+    - name: Wait for new ImageSources to be applied
+      ansible.builtin.include_role:
         name: redhatci.ocp.check_resource
       vars:
         resource_to_check: "MachineConfigPool"
-        check_wait_retries: "{{ 16 * (dci_control_plane_size + dci_compute_size) | int + 1  }}"
+        check_wait_retries: "{{ 16 * (dci_control_plane_size + dci_compute_size) | int + 1 }}"
         check_wait_delay: 30
 
-- name: "Deactivate the upgrade of worker nodes - EUS"
+- name: Deactivate the upgrade of worker nodes - EUS
   kubernetes.core.k8s:
     definition:
       kind: MachineConfigPool
@@ -81,20 +83,20 @@
   when:
     - upgrade_eus | default(false) | bool
 
-- name: "Upgrader: Running the Intermediate upgrade - EUS"
+- name: Running the Intermediate upgrade - EUS
   vars:
     target_version: "{{ version_inter }}"
     version_pull_url: "{{ image_inter }}"
-  include_tasks: upgrade-process.yml
+  ansible.builtin.include_tasks: upgrade-process.yml
   when:
     - upgrade_eus | default(false) | bool
 
-- name: "Upgrader: Running the upgrade"
+- name: Running the upgrade
   vars:
     target_version: "{{ version }}"
-  include_tasks: upgrade-process.yml
+  ansible.builtin.include_tasks: upgrade-process.yml
 
-- name: "Reactivate the upgrade of worker nodes - EUS"
+- name: Reactivate the upgrade of worker nodes - EUS
   kubernetes.core.k8s:
     definition:
       kind: MachineConfigPool
@@ -105,12 +107,12 @@
   when:
     - upgrade_eus | default(false) | bool
 
-- name: "Wait for Worker's MCPs reconciliation"
-  include_role:
+- name: Wait for Worker's MCPs reconciliation
+  ansible.builtin.include_role:
     name: redhatci.ocp.check_resource
   vars:
     resource_to_check: "MachineConfigPool"
-    check_wait_retries: "{{ 32 * dci_compute_size | int + 1  }}"
+    check_wait_retries: "{{ 32 * dci_compute_size | int + 1 }}"
     check_wait_delay: 90
   when:
     - upgrade_eus | default(false) | bool
@@ -121,24 +123,24 @@
     kind: ImageContentSourcePolicy
   register: cluster_icsp
 
-- name: "Migrate ICSP to IDMS"
+- name: Migrate ICSP to IDMS
   ansible.builtin.include_tasks: migrate-icsp.yml
   when:
     - cluster_icsp is defined
     - cluster_icsp.resources | length > 0
     - version is version("4.14", ">=")
 
-- name: "Upgrader : Pre-upgrade operators tasks"
-  include_tasks: pre-upgrade.yml
+- name: Pre-upgrade operators tasks
+  ansible.builtin.include_tasks: pre-upgrade.yml
 
-- name: "Prepare operators and catalogs"
-  include_tasks: prepare-operators.yml
+- name: Prepare operators and catalogs
+  ansible.builtin.include_tasks: prepare-operators.yml
 
-- name: "Upgrader : Start the upgrade on installed operators"
-  include_tasks: upgrade-operators.yml
+- name: Start the upgrade of the installed operators
+  ansible.builtin.include_tasks: upgrade-operators.yml
   when:
     - upgrade_operators | default(true) | bool
 
-- name: "Run cluster health checks"
-  include_tasks: check-cluster-health.yml
+- name: Run cluster health checks
+  ansible.builtin.include_tasks: check-cluster-health.yml
 ...

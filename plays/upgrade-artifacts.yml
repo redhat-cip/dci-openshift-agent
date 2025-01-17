@@ -1,0 +1,116 @@
+---
+- name: Mirror release
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_ocp_release
+  vars:
+    mor_version: "{{ version }}"
+    mor_pull_url: "{{ version_pull_url }}"
+    mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
+    mor_registry_url: "{{ dci_local_registry }}"
+    mor_registry_path: >-
+      {{
+        hostvars[groups['registry_host'][0]]['local_repo']
+        if groups.get('registry_host') and groups['registry_host'] and
+          'local_repo' in hostvars[groups['registry_host'][0]]
+        else 'ocp-' + (version.split('.')[:2] | join('.')) + '/' + version
+      }}
+    mor_auths_file: "{{ dci_pullsecret_file }}"
+    mor_force: "{{ (dci_force_mirroring | default(false)) or (build == 'candidate') | bool }}"
+    mor_install_type: "{{ (install_type | default('ipi')) }}"
+    mor_is_type: "{{ version is version('4.15', '>=') | ternary('idms', 'icsp') }}"
+    mor_mirror_disk_images: false
+    mor_mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
+    mor_write_custom_config: false
+    mor_build: "{{ build }}"
+    mor_oc: "{{ oc_tool_path }}"
+  when:
+    - dci_disconnected | default(false) |  bool
+
+- name: Mirror intermediate version for EUS Upgrade
+  vars:
+    ocp_major: "{{ version.split('.')[0] }}"
+    ocp_minor: "{{ version.split('.')[1] }}"
+    major_inter: "{{ ocp_major }}.{{ ocp_minor | int - 1 }}"
+    version_core: "{{ version.split('.')[:2] | join('.') }}"
+  when:
+    - upgrade_eus | default(false) | bool
+  block:
+    - name: "Get intermediate release from Graph"
+      ansible.builtin.uri:
+        url: https://api.openshift.com/api/upgrades_info/v1/graph?channel=eus-{{ version_core }}&arch=amd64
+      register: version_inter_graph
+
+    - name: "Set version_inter from Graph"
+      vars:
+        graph_versions: "{{ version_inter_graph.json | json_query('nodes[*].version') }}"
+        filter_inter: "^{{ major_inter }}"
+      ansible.builtin.set_fact:
+        version_inter: "{{ graph_versions | select('match', filter_inter) | list | version_sort | last }}"
+      when:
+        - version_inter is undefined
+        - version_inter_graph.json["nodes"] | length
+
+    - name: "Fail when no intermediate version is provided in the graph"
+      ansible.builtin.fail:
+        msg: "No intermediate version found, try defining one with: version_inter={{ major_inter }}.X"
+      when:
+        - version_inter is undefined
+        - not version_inter_graph.json["nodes"] | length
+
+    - name: "Get intermediate component from DCI"
+      environment:
+        DCI_CLIENT_ID: "{{ dci_client_id }}"
+        DCI_API_SECRET: "{{ dci_api_secret }}"
+        DCI_CS_URL: "{{ dci_cs_url }}"
+      block:
+        - name: "Get intermediate topic"
+          dci_topic:
+            state: search
+            name: "OCP-{{ major_inter }}"
+          register: inter_topic
+
+        - name: "Get intermediate component"
+          dci_component:
+            state: search
+            topic_id: "{{ inter_topic.topics[0].id }}"
+            type: "ocp"
+            version: "{{ version_inter }}"
+          register: inter_component
+
+    - name: "Get image for intermediate version from DCI"
+      ansible.builtin.set_fact:
+        image_inter: "{{ inter_component.components[0].data.pull_url }}"
+      when: inter_component.components | length
+
+    - name: "Fail when the intermediate version is not found in DCI"
+      ansible.builtin.fail:
+        message: "Unable to find {{ version_inter }} in DCI"
+      when: not inter_component.components | length
+
+    - name: "Mirror intermediate OCP release"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.mirror_ocp_release
+      vars:
+        mor_version: "{{ version_inter }}"
+        mor_pull_url: "{{ image_inter }}"
+        mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
+        mor_registry_url: "{{ dci_local_registry }}"
+        mor_registry_path: >-
+          {{
+            hostvars[groups['registry_host'][0]]['local_repo']
+            if groups.get('registry_host') and groups['registry_host'] and
+              'local_repo' in hostvars[groups['registry_host'][0]]
+            else 'ocp-' + (version.split('.')[:2] | join('.')) + '/' + version
+          }}
+        mor_auths_file: "{{ dci_pullsecret_file }}"
+        mor_force: "{{ (dci_force_mirroring | default(false)) or (build == 'candidate') | bool }}"
+        mor_install_type: "{{ (install_type | default('ipi')) }}"
+        mor_is_type: "{{ version is version('4.15', '>=') | ternary('idms', 'icsp') }}"
+        mor_mirror_disk_images: false
+        mor_mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
+        mor_write_custom_config: false
+        mor_build: "{{ build }}"
+        mor_oc: "{{ oc_tool_path }}"
+      when:
+        - dci_disconnected | default(false) |  bool
+...
