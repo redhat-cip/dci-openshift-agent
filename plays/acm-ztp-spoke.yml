@@ -21,6 +21,18 @@
         (dci_gitops_policies_repo.username is defined and
         dci_gitops_policies_repo.password is defined)
 
+- name: Create the spoke cluster image sets
+  ansible.builtin.include_role:
+    name: redhatci.ocp.ztp.setup_cluster_image_set
+  vars:
+    scis_repo_url: "{{ dci_gitops_sites_repo.url }}"
+    scis_sites_path: "{{ dci_gitops_sites_repo.path }}"
+    scis_branch: "{{ dci_gitops_sites_repo.branch | default('main') }}"
+    scis_username: "{{ dci_gitops_sites_repo.username | default(omit) }}"
+    scis_password: "{{ dci_gitops_sites_repo.password | default(omit) }}"
+    scis_key_path: "{{ dci_gitops_sites_repo.key_path | default(omit) }}"
+    scis_release_image_url: "{{ acm_release_image }}"
+
 - name: Get deployed ACM version number
   kubernetes.core.k8s_info:
     api_version: operators.coreos.com/v1alpha1
