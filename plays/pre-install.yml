@@ -1,0 +1,174 @@
+---
+- name: Validate we have all the pieces to install in disconnected mode
+  ansible.builtin.assert:
+    that:
+      - webserver_url is defined
+      - groups['registry_host'] is defined
+      - groups['registry_host'] | length > 0
+      - dci_local_registry | length
+      - provision_cache_store is defined
+  when:
+    - dci_disconnected | default(false) | bool
+    - (install_type | default('ipi')) not in ['abi']
+
+- name: Validate we have all the pieces to run ABI in disconnected mode
+  ansible.builtin.assert:
+    that:
+      - boot_iso_url is defined
+      - webserver_url is defined
+      - dci_local_registry | length
+      - provision_cache_store is defined
+  when:
+    - dci_disconnected | default(false) | bool
+    - (install_type | default('ipi')) in ['abi']
+
+- name: "Mirror operators from directory"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_from_directory
+    tasks_from: validation
+  vars:
+    mfd_local_registry: "{{ dci_local_registry }}"
+    mfd_operators_dir: "{{ operator_catalog_dir }}"
+  when:
+    - operator_catalog_dir is defined
+    - operator_catalog_dir |length
+
+- name: "Assert that operator_catalog_dir exists and has tar files"
+  ansible.builtin.find:
+    path: "{{ operator_catalog_dir }}"
+    recurse: true
+    patterns: "*.tar"
+  register: catalog_path
+  failed_when:
+    - catalog_path is undefined or
+      catalog_path.matched == 0
+  when:
+    - operator_catalog_dir | length
+
+- name: "Read Disconnected auths"
+  ansible.builtin.include_vars:
+    file: "{{ hostvars[groups['registry_host'][0]].disconnected_registry_auths_file }}"
+    name: disconnected_auths
+  no_log: true
+  when:
+    - dci_disconnected | default(false) | bool
+
+- name: "Process pullsecrets"
+  ansible.builtin.include_tasks: pullsecrets.yml
+
+- name: "Set dci_pullsecret_file"
+  ansible.builtin.set_fact:
+    dci_pullsecret_file: "{{ mrc_auth_file }}"
+    dci_pullsecret: "{{ mrc_auth_data }}"
+  no_log: true
+
+- name: "Create releases dir in home directory if needed"
+  ansible.builtin.file:
+    path: "{{ (ansible_env.HOME, 'releases') | join('/') }}"
+    state: directory
+    setype: "container_file_t"
+    mode: "0775"
+  when:
+    - provision_cache_store is undefined
+
+- name: Mirror release
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_ocp_release
+  vars:
+    mor_version: "{{ version }}"
+    mor_pull_url: "{{ version_pull_url }}"
+    mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
+    mor_webserver_url: "{{ webserver_url | default(None) }}"
+    mor_registry_url: "{{ dci_local_registry }}"
+    mor_registry_path: >-
+      {{
+        hostvars[groups['registry_host'][0]]['local_repo']
+        if groups.get('registry_host') and groups['registry_host'] and
+          'local_repo' in hostvars[groups['registry_host'][0]]
+        else 'ocp-' + (version.split('.')[:2] | join('.')) + '/' + version
+      }}
+    mor_auths_file: "{{ dci_pullsecret_file }}"
+    mor_force: "{{ (dci_force_mirroring | default(false)) or (build == 'candidate') | bool }}"
+    mor_install_type: "{{ (install_type | default('ipi')) }}"
+    mor_is_type: "{{ version is version('4.14', '>=') | ternary('idms', 'icsp') }}"
+    mor_mirror_disk_images: "{{ dci_disconnected | default(False) | bool }}"
+    mor_mirror_container_images: "{{ dci_disconnected | default(False) | bool }}"
+    mor_write_custom_config: "{{ dci_disconnected | default(False) | bool }}"
+    mor_build: "{{ build }}"
+    mor_oc: "{{ oc_tool_path }}"
+
+- name: Append mirrors to trust bundle
+  when:
+    - dci_disconnected | default(false) | bool
+  block:
+    - name: Copy initial trust bundle
+      ansible.builtin.copy:
+        src: "{{ hostvars[groups['registry_host'][0]].disconnected_registry_mirrors_file }}"
+        dest: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+        mode: "0644"
+
+    - name: Use imageDigestSources in OCP 4.14+
+      ansible.builtin.replace:
+        path: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+        regexp: "^imageContentSources:$"
+        replace: "imageDigestSources:"
+      when: version is version('4.14', '>=')
+
+    - name: Add mirrors to trust bundle
+      vars:
+        img_src_paths:
+          - "{{ provision_cache_store }}/{{ version }}/imagesource.yaml"
+          - "{{ provision_cache_store }}/{{ version }}/imagecontentsourcepolicy.yaml"
+        img_src_found: "{{ lookup('first_found', img_src_paths) }}"
+        img_src_content: "{{ lookup('file', img_src_found) | from_yaml }}"
+      ansible.builtin.copy:
+        dest: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+        mode: "0644"
+        content: |
+          {{ lookup('file', dci_cluster_configs_dir + '/trust-bundle.yml') }}
+          {{ img_src_content | json_query('spec.*') | first | to_yaml }}
+
+- name: "Set password for core user"
+  ansible.builtin.include_tasks: set-console-pass.yml
+  when:
+    - dci_console_pass | default("") | length > 0
+    - customize_extramanifests_path is defined
+    - (install_type | default('ipi')) in ['ipi']
+
+- name: Get provisioner SSH identity
+  delegate_to: "{{ groups['provisioner'][0] }}"
+  ansible.builtin.fetch:
+    src: "~{{ hostvars[groups['provisioner'][0]].ansible_user }}/.ssh/id_rsa"
+    dest: "~/.ssh/{{ cluster }}-provisioner_rsa"
+    flat: true
+  when:
+    - "'provisioner' in groups"
+    - groups['provisioner'] | length > 0
+    - hostvars[groups['provisioner'][0]].ansible_user is defined
+
+- name: Erase bootloader to prevent old OS to boot
+  delegate_to: "{{ item }}"
+  become: true
+  ansible.builtin.shell: |
+    if grep 'Red Hat Enterprise Linux CoreOS' /etc/os-release; then
+      for disk in /dev/sd?; do
+        dd if=/dev/zero of=$disk bs=512 count=1
+      done
+    fi
+  when:
+    - dci_erase_bootloader_on_disk|default(False)|bool
+  with_items: "{{ groups['masters'] + groups['workers'] | default([]) }}"
+  ignore_unreachable: true
+  ignore_errors: true
+
+- name: Empty Console log files if present
+  ansible.builtin.command: dd if=/dev/null of="{{ item }}"
+  with_fileglob:
+    - "/var/consoles/{{ cluster }}/{{ cluster }}*"
+  when:
+    - cluster is defined
+  become: true
+
+- name: Mirror Job support tools
+  ansible.builtin.include_tasks: mirror-job-tools.yml
+...

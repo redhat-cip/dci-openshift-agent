@@ -99,30 +99,6 @@
                 state: present
                 definition: "{{ signature_cm }}"
 
-        - name: "Patch clusterversion to point to custom upstream graph"
-          kubernetes.core.k8s:
-            state: present
-            name: version
-            definition:
-              kind: ClusterVersion
-              spec:
-                upstream: "{{ webserver_url }}/graph-{{ version.split('.')[0:2]|join('.') }}"
-
-        - name: "Wait custom upstream graph update"
-          kubernetes.core.k8s_info:
-            kind: ClusterVersion
-            name: version
-          register: cv_info
-          vars:
-            status_query: "conditions[?type=='RetrievedUpdates'].status"
-            upgrade_status: "{{ cv_info.resources[0].status | json_query(status_query) }}"
-          until:
-            - upgrade_status == ['True']
-          when:
-            - not force_upgrade | default(false) | bool
-          retries: 10
-          delay: 120
-
         - name: "Patch clusterversion pointing to selected channel"
           vars:
             channel: >-
@@ -197,7 +173,7 @@
               {% if force_upgrade | default(false) or allow_not_recommended | default(false) %}
               --allow-not-recommended
               {%- endif %}
-          command:
+          ansible.builtin.command:
             cmd: "{{ oc_tool_path }} adm upgrade {{ upgrade_options }}"
           register: start_upgrade
 
@@ -214,11 +190,11 @@
           delay: 30
 
         - name: "Upgrade elapsed time"
-          set_fact:
+          ansible.builtin.set_fact:
             elapsed_time: 0
 
-        - name: "Upgrader: Monitor upgrade"
-          include_tasks: monitor-upgrade.yml
+        - name: "Monitor OCP upgrade"
+          ansible.builtin.include_tasks: monitor-upgrade.yml
 
 - name: Reset maxUnavailable count to default value 1
   kubernetes.core.k8s:

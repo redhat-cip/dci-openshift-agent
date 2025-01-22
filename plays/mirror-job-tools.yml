@@ -1,0 +1,38 @@
+---
+- name: "Mirror must gather images"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    mi_images: "{{ dci_must_gather_images | default(['registry.redhat.io/openshift4/ose-must-gather']) }}"
+    mi_authfile: "{{ dci_pullsecret_file }}"
+    mi_registry: "{{ dci_local_registry }}"
+  when: >
+    (dci_disconnected | default(false) | bool) or
+    (dci_local_mirror | default(false) | bool)
+
+- name: Mirror support-tools image
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    mi_images:
+      - registry.redhat.io/rhel9/support-tools
+    mi_authfile: "{{ dci_pullsecret_file }}"
+    mi_registry: "{{ dci_local_registry }}"
+  when: >
+    (dci_disconnected | default(false) | bool) or
+    (dci_local_mirror | default(false) | bool)
+
+- name: Mirror ubi9 image
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    mi_images:
+      - registry.access.redhat.com/ubi9
+    mi_authfile: "{{ dci_pullsecret_file }}"
+    mi_registry: "{{ dci_local_registry }}"
+  when:
+    - dci_sno_sideload_kernel_url is defined
+    - dci_sno_sideload_kernel_url | length
+    - (dci_disconnected | default(false) | bool) or
+      (dci_local_mirror | default(false) | bool)
+...

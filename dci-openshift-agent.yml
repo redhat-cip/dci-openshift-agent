@@ -239,6 +239,8 @@
       block:
         - name: Run the pre-run hook
           include_tasks: '{{ hookdir }}/hooks/pre-run.yml'
+          when:
+            - dci_main == 'install'
           loop: "{{ dci_config_dirs }}"
           loop_control:
             loop_var: hookdir
@@ -296,11 +298,12 @@
     no_proxy: "{{ no_proxy_list }}"
   tasks:
     - name: Install IPI/SNO/UPI
+      when:
+        - dci_main == 'install'
       block:
         - name: Launch install {{ (install_type | default('ipi'))}}
           include_tasks: "plays/{{ (install_type | default('ipi')) }}-install.yml"
           when:
-            - dci_main == 'install'
             - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
 
         - name: "Get KUBECONFIG auth/creds from provisioner node"
@@ -312,7 +315,6 @@
             - "{{ dir }}/auth/kubeconfig"
             - "{{ dir }}/auth/kubeadmin-password"
           when:
-            - dci_main == 'install'
             - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
 
       rescue: &teardown_failure
@@ -375,6 +377,7 @@
                 KUBECONFIG: "{{ hub_kubeconfig_path }}"
           when:
             - (install_type | default('ipi')) == 'acm'
+            - dci_main == 'install'
       rescue: *teardown_failure
 
 # Step 3a-1 : installing
@@ -396,6 +399,7 @@
             file: plays/abi-install.yml
           when:
             - (install_type | default('ipi')) == 'abi'
+            - dci_main == 'install'
       rescue: *teardown_failure
 
 # Step 3a-1 : installing
