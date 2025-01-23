@@ -234,6 +234,7 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Pre-run hooks
       block:
@@ -269,6 +270,7 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Configure
       when:
@@ -366,6 +368,7 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Install ACM
       block:
@@ -391,6 +394,7 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Install using ABI
       block:
@@ -414,6 +418,7 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: After Install
       block:
@@ -434,6 +439,7 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Deploy operators
       when:
@@ -460,6 +466,7 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Install Hooks
       when:
@@ -486,6 +493,7 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Upgrade
       when:
@@ -508,6 +516,7 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Upgrade Hooks
       when:
@@ -534,6 +543,7 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Red Hat tests
       when:
@@ -560,6 +570,7 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Test Hooks
       when:
@@ -596,6 +607,7 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Post-run
       block:
@@ -626,6 +638,7 @@
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
     KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
   tasks:
     - name: Success
       ignore_unreachable: true
