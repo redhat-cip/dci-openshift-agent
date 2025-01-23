@@ -5,7 +5,6 @@
     tasks_from: gathering-logs.yml
     apply:
       environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
         REGISTRY: "{% if dci_local_registry is defined %}{{ dci_local_registry }}{% else %}registry.redhat.io{% endif %}"
         OC_PATH: "{{ oc_tool_path }}"
   when:
