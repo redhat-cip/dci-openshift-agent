@@ -127,6 +127,7 @@
   vars:
     agent_based_installer_path: "{{ openshift_installer_path }}"
     repo_root_path: "{{ dci_cluster_configs_dir }}"
+    mabi_retry_install_complete_check: "{{ ('OCPBUGS-49157' in dci_workarounds) }}"
   ansible.builtin.include_role:
     name: redhatci.ocp.monitor_agent_based_installer
 ...
