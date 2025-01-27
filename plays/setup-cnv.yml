@@ -18,6 +18,7 @@
         claimPropertySets:
           - accessModes:
               - ReadWriteOnce
+            volumeMode: Filesystem
   when:
     - enable_nfs_storage | bool
 ...
