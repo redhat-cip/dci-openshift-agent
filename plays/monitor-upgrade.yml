@@ -1,42 +1,48 @@
-- name: "Get cluster version info (upgrade)"
+- name: Get cluster version info (upgrade)
   kubernetes.core.k8s_info:
     kind: ClusterVersion
     name: version
   register: cluster_version_info
   until: "'resources' in cluster_version_info and cluster_version_info.resources != []"
-  retries: 10
-  delay: 5
+  retries: "{{ upg_mon_retry }}"
+  delay: "{{ upg_mon_wait }}"
 
-- name: "Get upgrade history"
-  set_fact:
+- name: Get upgrade history
+  ansible.builtin.set_fact:
     upgrade_version: "{{ cluster_version_info | json_query('resources[0].status.history[0].version') }}"
     upgrade_state: "{{ cluster_version_info | json_query('resources[0].status.history[0].state') }}"
     current_status: "{{ cluster_version_info | json_query('resources[0].status.conditions[0].message') }}"
 
-- name: "Print upgrade status"
-  debug:
+- name: Get current time
+  ansible.builtin.set_fact:
+    current_time: "{{ lookup('pipe', 'date +%s') }}"
+
+- name: Calculate elapsed time
+  ansible.builtin.set_fact:
+    elapsed_time: "{{ current_time | int - upg_start_time | int }}"
+
+- name: Print upgrade status
+  ansible.builtin.debug:
     msg:
       - "Upgrade history: {{ upgrade_version }} {{ upgrade_state }} {{ current_status }}"
-      - "Approximated elapsed time: {{ elapsed_time | int / 60  }} mins"
+      - "Approximated elapsed time: {{ elapsed_time | int / 60 }} mins"
       - "Maximum wait time defined: {{ max_upgrade_time | int / 60 }} mins"
 
-- name: Wait for upgrade
+- name: "Delay for minutes: {{ delay_minutes }}"
+  vars:
+    delay_minutes: "{{ ((upg_mon_retry | int) * (upg_mon_wait | int)) / 60 | int }}"
+  ansible.builtin.pause:
+    seconds: "{{ (upg_mon_retry | int) * (upg_mon_wait | int) }}"
+
+- name: Wait for upgrade to complete
   when:
     - upgrade_state != "Completed"
   block:
-    - name: "Delay for 10 minutes"
-      pause:
-        seconds: 600
-
-    - name: "Update elapsed time"
-      set_fact:
-        elapsed_time: "{{ elapsed_time | int + 600 }}"
-
-    - name: "Check if time is up"
-      fail:
+    - name: Check if time is up
+      ansible.builtin.fail:
         msg: "Failed due to timeout"
       when:
-        - elapsed_time | int >= max_upgrade_time
+        - elapsed_time | int >= max_upgrade_time | int
 
     - name: Apply work-around for dns pods - OCPBUGS-18472
       when:
@@ -47,12 +53,12 @@
           vars:
             status_query: "resources[*].status.conditions[?type=='Progressing'].message"
             upgrade_status: "{{ cluster_version_info | json_query(status_query) }}"
-          set_fact:
+          ansible.builtin.set_fact:
             apply_wa: true
           when: upgrade_status is search('waiting on dns')
 
         - name: Work-around for pods not able to reach K8s default service in openshift-dns-operator NS
-          include_tasks: pods-restart.yml
+          ansible.builtin.include_tasks: pods-restart.yml
           vars:
             namespace: openshift-dns-operator
             filter: "name = dns-operator"
@@ -62,7 +68,7 @@
             - apply_wa | default(false) | bool
 
         - name: Work-around for pods not able to reach K8s default service in openshift-dns NS
-          include_tasks: pods-restart.yml
+          ansible.builtin.include_tasks: pods-restart.yml
           vars:
             namespace: openshift-dns
             filter: "dns.operator.openshift.io/daemonset-dns = default"
@@ -71,14 +77,14 @@
           when:
             - apply_wa | default(false) | bool
 
-        - name: "Update fact value to not trigger WA OCPBUGS-18472 in a loop"
-          set_fact:
+        - name: Update fact value to not trigger WA OCPBUGS-18472 in a loop
+          ansible.builtin.set_fact:
             apply_wa: false
           when:
             - apply_wa | default(false) | bool
 
-    - name: "Upgrader: Monitor upgrade"
-      include_tasks: monitor-upgrade.yml
+    - name: Monitor upgrade
+      ansible.builtin.include_tasks: monitor-upgrade.yml
       when:
-        - elapsed_time | int < max_upgrade_time
+        - elapsed_time | int < max_upgrade_time | int
 ...
