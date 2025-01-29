@@ -30,7 +30,7 @@
 - name: "Create temp directory for docker auths"
   tempfile:
     state: directory
-    prefix: dci_auth.
+    prefix: "dci_auth_{{ job_id | default('') }}_"
   register: docker_conf
 
 - name: "Copy dci_pull_secret as config.json"
