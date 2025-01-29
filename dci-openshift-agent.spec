@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       1.6.0
+Version:       1.7.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -18,7 +18,7 @@ Requires: python3-dciclient >= 3.1.0
 %endif
 Requires: dci-pipeline >= 0.7.0
 Requires: ansible-role-dci-podman
-Requires: ansible-collection-redhatci-ocp >= 1.1.0
+Requires: ansible-collection-redhatci-ocp >= 1.2.0
 
 %{?systemd_requires}
 Requires(pre): shadow-utils
@@ -64,6 +64,8 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Tue Jan 28 2025 Beto Rdz <josearod@redhat.com> - 1.7.EPOCH-VERS
+- Version bump for updated eject tasks separation in vendor roles
 
 * Mon Jan 27 2025 Ramon Perez <raperez@redhat.com> - 1.6.EPOCH-VERS
 - Version bump for updated monitor_agent_based_installer role in redhatci.ocp >= 1.1
