@@ -14,8 +14,8 @@
     - full_ver is version(target_version, "<>")
   block:
     - name: "Debug upgrade information"
-      debug:
-        msg: "Upgrade from {{ full_ver }} to {{ target_version }} - EUS upgrade: {{ upgrade_eus | default(false) }}"
+      ansible.builtin.debug:
+        msg: "Upgrade/Downgrade from {{ full_ver }} to {{ target_version }} - EUS upgrade: {{ upgrade_eus | default(false) }}"
 
     - name: "Acknowledge deprecated API removals for {{ target_version }}"
       vars:
@@ -40,7 +40,7 @@
         target_ver_minor | int - current_ver_minor | int > 0
 
     - name: Increase maxUnavailable workers
-      include_tasks: increase_maxunavailable.yml
+      ansible.builtin.include_tasks: increase_maxunavailable.yml
       when:
         - increase_unavailable_workers | default(True) | bool
         - (install_type | default('ipi')) != 'sno'
@@ -48,7 +48,7 @@
           default('') not in ['hypershift', 'sno']
 
     - name: Force upgrade for nightly builds
-      set_fact:
+      ansible.builtin.set_fact:
         force_upgrade: true
       when: build == "nightly"
 
@@ -60,7 +60,7 @@
           when: build != "nightly"
           block:
             - name: "Fetch release.txt"
-              uri:
+              ansible.builtin.uri:
                 url: "{{ webserver_url }}/{{ target_version }}/release.txt"
                 return_content: true
                 timeout: 10
@@ -76,7 +76,7 @@
                 release_digest: "{{ release_file.content | regex_search('^Digest:\\s+sha256:(.*)$', '\\1', multiline=True) | first }}"
 
             - name: "Download the release signature"
-              uri:
+              ansible.builtin.uri:
                 url: "https://mirror.openshift.com/pub/openshift-v4/signatures/openshift/release/sha256={{ release_digest }}/signature-1"
                 return_content: true
                 timeout: 900
@@ -177,6 +177,10 @@
             cmd: "{{ oc_tool_path }} adm upgrade {{ upgrade_options }}"
           register: start_upgrade
 
+        - name: Set Upgrade Start Time
+          ansible.builtin.set_fact:
+            upg_start_time: "{{ lookup('pipe', 'date +%s') }}"
+
         - name: "Wait for upgrade to start"
           vars:
             cluster_version_conditions: "{{ cluster_version_info.resources.0.status.conditions }}"
@@ -185,13 +189,31 @@
             kind: ClusterVersion
             name: version
           register: cluster_version_info
-          until: '"Working towards " in condition_progressing.message'
+          until:
+            - '"Working towards " in condition_progressing.message'
           retries: 10
           delay: 30
+          no_log: true
 
-        - name: "Upgrade elapsed time"
+        - name: Get the list of nodes in the cluster
+          kubernetes.core.k8s_info:
+            kind: Node
+          register: node_info
+          no_log: true
+
+        - name: Set wait times for SNO upgrade
           ansible.builtin.set_fact:
-            elapsed_time: 0
+            upg_mon_wait: 2
+            upg_mon_retry: 600
+          when:
+            - node_info.resources | length == 1
+
+        - name: Set wait times for MNO upgrades
+          ansible.builtin.set_fact:
+            upg_mon_wait: 10
+            upg_mon_retry: 60
+          when:
+            - node_info.resources | length != 1
 
         - name: "Monitor OCP upgrade"
           ansible.builtin.include_tasks: monitor-upgrade.yml
