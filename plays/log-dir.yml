@@ -2,7 +2,7 @@
 - name: "Create a temporary directory for job_logs"
   tempfile:
     state: directory
-    prefix: dci_logs.
+    prefix: "dci_logs_{{ job_id | default('') }}_"
   register: job_logs
 
 - name: "Job logs path"

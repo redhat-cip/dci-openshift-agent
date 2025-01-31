@@ -2,7 +2,7 @@
 - name: Create temporary build directory
   tempfile:
     state: directory
-    prefix: bundle_dir.
+    prefix: "dci_build_{{ job_id | default('') }}_"
   register: bundle_tmp_dir
 
 - name: "Set working directory"

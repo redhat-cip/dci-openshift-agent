@@ -2,7 +2,7 @@
 - name: Create migration directory
   ansible.builtin.tempfile:
     state: directory
-    prefix: icsp_tmp
+    prefix: "dci_icsp_{{ job_id | default('') }}_"
   register: icsp_tmp_dir
 
 - name: Migrate ICSP to IDMS
