@@ -64,42 +64,6 @@
     check_wait_retries: "{{ 16 * (dci_compute_size | default(dci_control_plane_size) | length + 1 ) }}"
     check_wait_delay: 90
 
-- name: Create Tuned object
-  block:
-    - name: Apply tuned definition
-      kubernetes.core.k8s:
-        definition: "{{ lookup('file', tuned_definition) }}"
-      register: tuned_state
-      retries: 5
-      delay: 60
-      until: tuned_state is not failed
-
-    - name: Wait for the tuned creation
-      vars:
-        check_wait_retries: "{{ 16 * (dci_compute_size | default(dci_control_plane_size) | length + 1 ) }}"
-      kubernetes.core.k8s_info:
-        api: tuned.openshift.io/v1
-        kind: Tuned
-        name: "{{ tuned_state.result.spec.profile[0].name }}"
-        namespace: openshift-cluster-node-tuning-operator
-      register: tuned_created
-      retries: 10
-      delay: 10
-      until:
-        - tuned_created.resources is defined
-        - tuned_created.resources | length == 1
-      failed_when:
-        - tuned_created.resources | default([]) | length != 1
-
-    - name: Wait for MCP status
-      include_role:
-        name: redhatci.ocp.check_resource
-      vars:
-        resource_to_check: "MachineConfigPool"
-        check_wait_retries: "{{ 16 * (dci_compute_size | default(dci_control_plane_size) | length + 1 ) }}"
-        check_wait_delay: 90
-  when: tuned_definition is defined
-
 - name: Reset maxUnavailable count to default value 1
   kubernetes.core.k8s:
     definition:
