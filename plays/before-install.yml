@@ -20,6 +20,7 @@
 - name: Remove any previous predefined performance profile
   when:
     - customize_extramanifests_path is defined
+  delegate_to: localhost
   ansible.builtin.file:
     path: "{{ customize_extramanifests_path }}/20_performance_profile.yml"
     state: absent
@@ -29,6 +30,7 @@
     - performance_definition is defined
     - customize_extramanifests_path is defined
     - version is version('4.16', '>=')
+  delegate_to: localhost
   block:
     - name: Verify performance profile file exists
       ansible.builtin.stat:
