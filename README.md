@@ -1087,8 +1087,8 @@ Some of the relevant tasks executed during a cluster upgrade are listed below:
 
 1. A DCI job is created to track the upgrade process.
 1. The specific target version is calculated based on the [OCP upgrade graph](https://access.redhat.com/labs/ocpupgradegraph/update_path).
-1. The target OCP release is mirrored to the same images <registry>/<path> that was used for the cluster deployment. For EUS upgrades, the intermediate release images are also mirrored <sup>1</sup>.
-1. The ISO, rootfs, and other artifacts are mirrored to the same `webserver_url` used for the initial cluster deployment <sup>1</sup>.
+1. The target OCP release is mirrored to the <registry_server> that is set in the cluster via IDMS or ICSPs . For EUS upgrades, the intermediate release images are also mirrored <sup>1</sup>.
+1. The deprecated API removals for the `target_version` are acknowledged.
 1. The Image Content Source Policies and OCP signature for the new version are applied <sup>1</sup>.
 1. The "cluster version" is patched for the new target version based on the calculated target version.
 1. The upgrade is executed and monitored for completion.
