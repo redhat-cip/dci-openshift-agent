@@ -59,21 +59,17 @@
         - name: "Get and apply release signature"
           when: build != "nightly"
           block:
-            - name: "Fetch release.txt"
-              ansible.builtin.uri:
-                url: "{{ webserver_url }}/{{ target_version }}/release.txt"
-                return_content: true
-                timeout: 10
-              register: release_file
-              until: release_file.status == 200
-              retries: 6
-              delay: 10
-              failed_when:
-                - release_file.content|length == 0 or release_file.status >= 400
 
-            - name: "Release digest"
+            - name: "Read the release file"
+              slurp:
+                src: "{{ provision_cache_store | default(ansible_env.HOME + '/releases') }}/{{ target_version }}/release.txt"
+              register: release_file_raw
+
+            - name: "Set release image digest"
+              vars:
+                release_file: "{{ release_file_raw['content'] | b64decode }}"
               set_fact:
-                release_digest: "{{ release_file.content | regex_search('^Digest:\\s+sha256:(.*)$', '\\1', multiline=True) | first }}"
+                release_digest: "{{ release_file | regex_search('^Digest:\\s+sha256:(.*)$', '\\1', multiline=True) | first }}"
 
             - name: "Download the release signature"
               ansible.builtin.uri:
@@ -137,21 +133,6 @@
             pod_status: "{{ ocvpod.resources[0].status | json_query(status_query) }}"
           until:
             - pod_status == ['True']
-          retries: 10
-          delay: 60
-
-        - name: "Wait for an updated clusterversion"
-          kubernetes.core.k8s_info:
-            kind: ClusterVersion
-            name: version
-          register: cv_info
-          vars:
-            status_query: "conditions[?type=='RetrievedUpdates'].status"
-            upgrade_status: "{{ cv_info.resources[0].status | json_query(status_query) }}"
-          until:
-            - upgrade_status == ['True']
-          when:
-            - not force_upgrade | default(false) | bool
           retries: 10
           delay: 60
 
