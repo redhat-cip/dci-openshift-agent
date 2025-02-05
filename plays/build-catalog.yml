@@ -23,6 +23,7 @@
     topic_id: "{{ job_info['job']['topic_id'] }}"
     type: "{{ dci_prune_index.split('/') | last | regex_replace(':.*', '') }}"
     state: present
+  delegate_to: localhost
   register: index_component
 
 - name: "Attach pruned catalog to the component's job"
@@ -33,6 +34,7 @@
   until: job_component_result is not failed
   retries: 5
   delay: 20
+  delegate_to: localhost
   when:
     - "'component' in index_component"
     - "'id' in index_component.component"

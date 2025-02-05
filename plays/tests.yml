@@ -10,7 +10,7 @@
   shell: |
     {{ oc_tool_path }} version
   register: oc_version_str
-  delegate_to: localhost
+  delegate_to: jumphost
 
 - name: Get OCP version
   set_fact:

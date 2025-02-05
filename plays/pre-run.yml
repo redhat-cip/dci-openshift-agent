@@ -4,8 +4,6 @@
   when:
     - dci_main == 'install'
 
-## Additional Job validations
-
 - name: "Validate NFS provisioner variables"
   ansible.builtin.assert:
     that:
@@ -50,4 +48,6 @@
     ic_dev_gits: "{{ dev_gits_to_components|flatten }}"
   ansible.builtin.include_role:
     name: redhatci.ocp.include_components
+    apply:
+      delegate_to: localhost
 ...
