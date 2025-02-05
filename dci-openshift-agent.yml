@@ -171,7 +171,8 @@
     - name: Pre-run
       block:
         - name: Configure jumpbox
-          include_tasks: plays/configure-jumpbox.yml
+          ansible.builtin.include_tasks: plays/configure-jumpbox.yml
+          when: not dci_skip_configure | default(false) | bool
 
         - name: "Setup job_logs directory"
           include_tasks: plays/log-dir.yml
