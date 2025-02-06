@@ -1,7 +1,7 @@
 ---
 
 - name: "Get cluster pull-secret"
-  ansible.builtin.include_tasks: get-cluster-pullsecret.yml
+  include_tasks: get-cluster-pullsecret.yml
 
 - name: "Get registry mirror registry details"
   when:
@@ -26,7 +26,7 @@
     - name: "Set hub_registry location"
       vars:
         hub_query: "spec.*[*].mirrors[0]"
-      ansible.builtin.set_fact:
+      set_fact:
         hub_registry: "docker://{{ hub_is.resources[0] | json_query(hub_query) | flatten | first }}"
 
     - name: "Set the path for the OCP release"
@@ -41,31 +41,31 @@
     - name: "Set hub mirrors"
       vars:
         hub_mirrors_type: "resources[*].spec.*[*].{mirrors: mirrors, source: source}"
-      ansible.builtin.set_fact:
+      set_fact:
         hub_mirrors: "{{ hub_is | json_query(hub_mirrors_type) | flatten }}"
       when: hub_is | length > 0
       no_log: true
 
     - name: "Print webserver_url"
-      ansible.builtin.debug:
-        msg: "{{ hostvars.jumphost.webserver_url }}"
+      debug:
+        msg: "{{ hostvars.localhost.webserver_url }}"
       when:
-        - hostvars.jumphost.webserver_url is defined
+        - hostvars.localhost.webserver_url is defined
 
     - name: "Validate webserver_url variable is defined"
-      ansible.builtin.assert:
+      assert:
         that:
-          - hostvars.jumphost.webserver_url | string
-          - (hostvars.jumphost.webserver_url | urlsplit('scheme')) in ('http', 'https',)
+          - hostvars.localhost.webserver_url | string
+          - (hostvars.localhost.webserver_url | urlsplit('scheme')) in ('http', 'https',)
 
     - name: "Mirror OCP release artifacts - Disconnected"
-      ansible.builtin.include_role:
+      include_role:
         name: redhatci.ocp.mirror_ocp_release
       vars:
         mor_version: "{{ version }}"
         mor_pull_url: "{{ version_pull_url }}"
         mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
-        mor_webserver_url: "{{ hostvars.jumphost.webserver_url | default(None) }}"
+        mor_webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
         mor_registry_url: "{{ hub_registry | urlsplit('netloc') }}"
         mor_registry_path: "{{ ocp_release_path }}"
         mor_auths_file: "{{ dci_pullsecret_file }}"
@@ -102,7 +102,7 @@
           {%- endif %}
           {%- endfor %}
           {{ c }}
-      ansible.builtin.set_fact:
+      set_fact:
         acm_registries: |
           unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
           short-name-mode = ""
@@ -131,14 +131,14 @@
         - acm_cluster_type == 'sno'
 
     - name: "Set facts for install via ACM - disconnected"
-      ansible.builtin.set_fact:
-        acm_metal_iso_location: "{{ hostvars.jumphost.webserver_url }}/{{ ocp_release_data['rhcos_images']['metal_iso_location'] | basename }}"
-        acm_rootfs_url: "{{ hostvars.jumphost.webserver_url }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
+      set_fact:
+        acm_metal_iso_location: "{{ hostvars.localhost.webserver_url }}/{{ ocp_release_data['rhcos_images']['metal_iso_location'] | basename }}"
+        acm_rootfs_url: "{{ hostvars.localhost.webserver_url }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
         acm_release_image: "{{ hub_registry | urlsplit('netloc') }}/{{ ocp_release_path }}:{{ version }}"
         dci_local_registry: "{{ hub_registry | urlsplit('netloc') }}"
 
     - name: "Mirror must gather images"
-      ansible.builtin.include_role:
+      include_role:
         name: redhatci.ocp.mirror_images
       vars:
         mi_images: "{{ dci_must_gather_images | default(['registry.redhat.io/openshift4/ose-must-gather']) }}"
@@ -151,7 +151,7 @@
     - acm_cluster_type in ['sno', 'hypershift']
   block:
     - name: Mirror release
-      ansible.builtin.include_role:
+      include_role:
         name: redhatci.ocp.mirror_ocp_release
       vars:
         mor_version: "{{ version }}"
@@ -167,7 +167,7 @@
         mor_oc: "{{ oc_tool_path }}"
 
     - name: "Set facts for install via ACM - connected"
-      ansible.builtin.set_fact:
+      set_fact:
         acm_metal_iso_location: "{{ ocp_release_data.rhcos_images.metal_iso_location }}"
         acm_rootfs_url: "{{ ocp_release_data.rhcos_images.metal_pxe_rootfs_location }}"
         acm_release_image: "{{ ocp_release_data['container_image'] | quote }}"
