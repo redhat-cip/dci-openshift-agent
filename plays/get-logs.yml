@@ -1,6 +1,6 @@
 ---
-- name: "Setup job_logs directory"
-  include_tasks: log-dir.yml
+- name: Setup job_logs directory
+  ansible.builtin.include_tasks: log-dir.yml
   when: job_logs is undefined
 
 - name: "Find the scripts directory"
@@ -19,7 +19,7 @@
     provisioner_host: >-
       {{ hostvars[groups.provisioner.0].ansible_host |
         default(groups['provisioner'][0]) }}
-  shell:
+  ansible.builtin.shell:
     cmd: >
       {{ scripts_dir.files[0].path }}/get-ipi-logs
       {{ provisioner_user }}@{{ provisioner_host }}
@@ -29,8 +29,8 @@
   when:
     - (install_type | default('ipi')) in ['ipi', 'upi']
 
-- name: "Get logs from ABI deployment"
-  include_tasks: abi-get-logs.yml
+- name: Get logs from ABI deployment
+  ansible.builtin.include_tasks: abi-get-logs.yml
   when: (install_type | default('ipi')) in ['abi']
 
 - name: "Get logs from OCP deployment"
@@ -41,7 +41,7 @@
         join(" ") }}
     REGISTRY: "{{ dci_local_registry }}"
     PATH: "{{ ansible_env.PATH }}:{{ dci_cluster_configs_dir }}:/sbin:/usr/sbin:/usr/local/bin/"
-  shell:
+  ansible.builtin.shell:
     cmd: >
       timeout -v 20m
       {{ scripts_dir.files[0].path }}/get-ocp-logs
@@ -65,20 +65,20 @@
     kernel_params: "{{ job_logs.path }}/worker-kernel-params"
   block:
     - name: Read plain kernel params
-      slurp:
+      ansible.builtin.slurp:
         src: "{{ kernel_params }}.txt"
       register: slurp_cmdline
       ignore_errors: true
 
     - name: Generate kernel params json
-      copy:
+      ansible.builtin.copy:
         content: "{{ slurp_cmdline['content'] | b64decode | cmdline_to_json }}"
         dest: "{{ kernel_params }}.json"
         mode: '0644'
       when: slurp_cmdline['content'] is defined
 
     - name: Delete plan kernel params
-      file:
+      ansible.builtin.file:
         path: "{{ kernel_params }}.txt"
         state: absent
 
@@ -91,7 +91,7 @@
     REGISTRY: "{{ dci_local_registry }}"
     KUBECONFIG: "{{ hub_kubeconfig_path }}"
     PATH: "{{ ansible_env.PATH }}:/sbin:/usr/sbin:/usr/local/bin/"
-  shell:
+  ansible.builtin.shell:
     cmd: >
       {{ scripts_dir.files[0].path }}/get-ocp-logs
       {{ job_logs.path }}
@@ -111,8 +111,8 @@
     - dci_sos_report_nodes is defined
     - dci_sos_report_nodes | length
 
-- name: "Find test Junit files"
-  find:
+- name: Find test Junit files
+  ansible.builtin.find:
     paths: "{{ job_logs.path }}"
     recurse: true
     patterns: "*.xml"
@@ -131,7 +131,7 @@
   with_items: "{{ junit_matched.files }}"
 
 - name: Find console logs
-  find:
+  ansible.builtin.find:
     paths: "/var/consoles/{{ cluster }}/"
     patterns: '{{ cluster }}*'
     size: 1k
@@ -139,7 +139,7 @@
   register: console_log_files
 
 - name: Copy console logs into tmp directory
-  fetch:
+  ansible.builtin.fetch:
     src: "{{ item }}"
     dest: "{{ job_logs.path }}/{{ item | basename }}-console.log"
     flat: true
@@ -147,7 +147,7 @@
   loop: "{{ console_log_files.files | map(attribute='path') | list }}"
 
 - name: Find deployment logs (text)
-  find:
+  ansible.builtin.find:
     paths: "{{ job_logs.path }}"
     patterns: "*.log,*.txt,*.html,*.yaml,*.trace,*.pcap,*.json"
   register: logs_matched
@@ -155,12 +155,12 @@
 - name: "Upload text logs"
   vars:
     mime_type: "text/plain"
-  include_tasks: upload-log.yml
+  ansible.builtin.include_tasks: upload-log.yml
   when: not (item.path | regex_search(".*_sig-storage.*"))
   with_items: "{{ logs_matched.files }}"
 
 - name: Find deployment logs (compressed)
-  find:
+  ansible.builtin.find:
     paths: "{{ job_logs.path }}"
     recurse: true
     patterns: "*.gz"
@@ -169,11 +169,11 @@
 - name: "Upload compressed logs"
   vars:
     mime_type: "application/x-gzip"
-  include_tasks: upload-log.yml
+  ansible.builtin.include_tasks: upload-log.yml
   with_items: "{{ logs_matched.files }}"
 
 - name: Find SOS reports (compressed)
-  find:
+  ansible.builtin.find:
     paths: "{{ job_logs.path }}"
     recurse: true
     patterns: "*.tar.xz"
@@ -182,12 +182,10 @@
 - name: Upload more compressed logs
   vars:
     mime_type: "application/x-xz"
-  include_tasks: upload-log.yml
+  ansible.builtin.include_tasks: upload-log.yml
   with_items: "{{ logs_matched.files }}"
 
 - name: Clean up Temp dir
-  file:
+  ansible.builtin.file:
     path: "{{ job_logs.path }}"
     state: absent
-
-...

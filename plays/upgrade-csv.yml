@@ -1,5 +1,5 @@
 - name: "Upgrading Operator {{ sub.operatorName }}"
-  debug:
+  ansible.builtin.debug:
     msg: "{{ sub.subscriptionName }}"
 
 - name: "Get updated package manifest for {{ sub.operatorName }}"
@@ -41,7 +41,7 @@
     - name: "Filter install plans details"
       vars:
         ip_details: "resources[*].{ ipName: metadata.name, approved: spec.approved}"
-      set_fact:
+      ansible.builtin.set_fact:
         ips: "{{ install_plans | json_query(ip_details) }}"
       retries: 5
       delay: 5
@@ -75,7 +75,7 @@
       when: not ip.approved | bool
 
     - name: "Upgrade details"
-      debug:
+      ansible.builtin.debug:
         msg: "Upgrading from {{ sub.installedCSV }} to {{ current_csv }}"
 
     - name: "Wait up to 2 hours for new operator's CSV to be ready"

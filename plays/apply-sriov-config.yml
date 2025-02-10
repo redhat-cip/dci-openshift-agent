@@ -41,7 +41,7 @@
     - dci_compute_hosts | length > 0
 
 - name: "Check SriovNetworkNodeState application for all workers"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.check_resource
   vars:
     resource_to_check: "SriovNetworkNodeState"

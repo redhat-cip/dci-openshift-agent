@@ -6,7 +6,7 @@
   register: idms_res
 
 - name: "Mirror Defined Catalogs"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.mirror_catalog
   vars:
     mc_oc_tool_path: "{{ oc_tool_path }}"
@@ -20,6 +20,6 @@
     - dci_local_registry | length
 
 - name: "Append to list of Image Source files"
-  set_fact:
+  ansible.builtin.set_fact:
     is_files: "{{ is_files | default([]) + [mc_is_file.path] }}"
   when: mc_is_file is defined

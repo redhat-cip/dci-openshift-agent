@@ -9,7 +9,7 @@
     - vars/main.yml
   tasks:
     - name: Verify config
-      assert:
+      ansible.builtin.assert:
         that:
           - groups['masters'] is defined
           - groups['masters'] | length > 0
@@ -88,7 +88,7 @@
         loop_var: network
 
     - name: Setup and enable nat for jumphost network
-      firewalld:
+      ansible.posix.firewalld:
         zone: public
         masquerade: true
         immediate: true
@@ -96,13 +96,13 @@
         state: enabled
 
     - name: Restart dnsmasq and enable the service
-      systemd:
+      ansible.builtin.systemd:
         name: "dnsmasq.service"
         state: restarted
         enabled: true
 
     - name: Reload NetworkManager
-      service:
+      ansible.builtin.service:
         name: NetworkManager
         state: reloaded
 

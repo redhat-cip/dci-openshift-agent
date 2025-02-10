@@ -1,6 +1,6 @@
 ---
 - name: "Teardown for storage service tester"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.storage_tester
     tasks_from: teardown.yml
     apply:
@@ -20,7 +20,7 @@
 - name: "Cleanup minio resources"
   vars:
     sm_action: 'cleanup'
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.setup_minio
   when:
     - enable_minio | bool
@@ -28,7 +28,7 @@
 - name: "Cleanup ClusterLogging resources"
   vars:
     ol_action: 'cleanup'
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.ocp_logging
   when:
     - enable_logs_stack | bool
@@ -36,7 +36,7 @@
 - name: "Cleanup NetObserv resources"
   vars:
     setup_netobserv_stack_action: 'cleanup'
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.setup_netobserv_stack
   when:
     - enable_netobserv | bool

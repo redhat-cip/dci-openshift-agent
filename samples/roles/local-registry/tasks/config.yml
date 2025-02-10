@@ -1,6 +1,6 @@
 ---
 - name: Create sample index file
-  copy:
+  ansible.builtin.copy:
     dest: "{{ registry_cache_dir }}/index.html"
     content: "hello"
     owner: "{{ registry_user }}"
@@ -8,12 +8,12 @@
     mode: 0644
 
 - name: Create htpasswd file
-  shell: >
+  ansible.builtin.shell: >
     htpasswd -bBc {{ registry_dir }}/auth/htpasswd
     {{ registry_http_user }} {{ registry_http_pass }}
 
 - name: Ensure htpasswd file is readable by registry user
-  file:
+  ansible.builtin.file:
     path: "{{ registry_dir }}/auth/htpasswd"
     state: file
     mode: 0644
@@ -21,7 +21,7 @@
     group: "{{ registry_user }}"
 
 - name: Create auths.json file
-  copy:
+  ansible.builtin.copy:
     dest: "{{ registry_cache_dir }}/{{ registry_fqdn }}-auths.json"
     mode: 0644
     owner: "{{ registry_user }}"
@@ -35,7 +35,7 @@
       }
 
 - name: Open ports on firewall
-  firewalld:
+  ansible.posix.firewalld:
     zone: "{{ item[0] }}"
     port: "{{ item[1] }}"
     state: enabled

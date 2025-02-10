@@ -1,6 +1,6 @@
 ---
 - name: "Set catalog facts for disconnected"
-  set_fact:
+  ansible.builtin.set_fact:
     opm_local_registry_path: "/pruned/redhat-operator-index"
     opm_catalog_source_name: "{{ dci_catalog_source_name | default('mirrored-redhat-operators') }}"
     opm_catalog_source_namespace: "openshift-marketplace"
@@ -25,16 +25,16 @@
     ocp_version_min: "{{ current_ver.split('.')[1] }}"
 
 - name: "Get cluster pull-secret"
-  include_tasks: get-cluster-pullsecret.yml
+  ansible.builtin.include_tasks: get-cluster-pullsecret.yml
 
 - name: "Create temp directory for docker auths"
-  tempfile:
+  ansible.builtin.tempfile:
     state: directory
     prefix: "dci_auth_{{ job_id | default('') }}_"
   register: docker_conf
 
 - name: "Copy dci_pull_secret as config.json"
-  copy:
+  ansible.builtin.copy:
     src: "{{ dci_pullsecret_file }}"
     dest: "{{ docker_conf.path }}/config.json"
     mode: "0640"
@@ -100,14 +100,14 @@
       delay: 10
 
 - name: "Catalog from Image"
-  include_tasks:
+  ansible.builtin.include_tasks:
     file: catalog-from-image.yml
     apply:
       environment:
         DOCKER_CONFIG: "{{ docker_conf.path }}"
 
 - name: "Catalog from File"
-  include_tasks:
+  ansible.builtin.include_tasks:
     file: catalog-from-file.yml
     apply:
       environment:
@@ -117,7 +117,7 @@
     - dci_local_registry | length
 
 - name: "Mirror custom catalogs"
-  include_tasks:
+  ansible.builtin.include_tasks:
     file: mirror-catalog.yml
     apply:
       environment:
@@ -129,7 +129,7 @@
     - custom_catalogs | default([]) | length
 
 - name: Pre-GA catalog
-  include_tasks:
+  ansible.builtin.include_tasks:
     file: pre-ga-catalog.yml
     apply:
       environment:
@@ -138,7 +138,7 @@
     - dci_pre_ga_catalog | default('') | length
 
 - name: "Remove docker auths directory"
-  file:
+  ansible.builtin.file:
     path: "{{ docker_conf.path }}"
     state: absent
   when: docker_conf is defined
@@ -157,7 +157,7 @@
         loop_var: is_file
 
     - name: "Delete Image Source manifest"
-      file:
+      ansible.builtin.file:
         path: "{{ is_file }}"
         state: absent
       loop: "{{ is_files | unique | select | list }}"
@@ -165,7 +165,7 @@
         loop_var: is_file
 
 - name: "Wait for updated MCP after applying ICSP"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.check_resource
   vars:
     resource_to_check: "MachineConfigPool"
@@ -173,11 +173,11 @@
     check_wait_delay: 10
 
 - name: "Clean-up the Image Source list"
-  set_fact:
+  ansible.builtin.set_fact:
     is_files: []
 
 - name: "Create custom catalog sources"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.catalog_source
   vars:
     cs_name: "{{ (((catalog | basename).split(':'))[0]).split('@')[0] }}"
@@ -190,7 +190,7 @@
     - custom_catalogs | default([]) | length
 
 - name: "Override the Red Hat catalog in connected"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.catalog_source
   vars:
     cs_name: "redhat-operators"

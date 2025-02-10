@@ -1,5 +1,5 @@
 - name: Verifying the mandatory variables
-  assert:
+  ansible.builtin.assert:
     that:
       - cluster is defined
       - hub_kubeconfig_path is defined
@@ -31,7 +31,7 @@
   register: dci_ztp_acm_version_output
 
 - name: Set fact for deployed ACM version number
-  set_fact:
+  ansible.builtin.set_fact:
     dci_ztp_acm_version: "v{{ dci_ztp_acm_version_output | json_query('resources[0].spec.version') }}"
 
 - name: Mirror and configure the GitOps operator ZTP plugin images

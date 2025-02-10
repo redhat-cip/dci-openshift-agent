@@ -1,6 +1,5 @@
 ---
 - name: Install additional packages
-  package:
+  ansible.builtin.package:
     name: "{{ registry_extra_packages }}"
     state: present
-...

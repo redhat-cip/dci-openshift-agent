@@ -4,14 +4,14 @@
   vars:
     hook_action: install
   tasks:
-    - set_fact:
-        resources: "{{ resources|default([])|union([item.name]) }}"
+    - ansible.builtin.set_fact:
+        resources: "{{ resources | default([]) | union([item.name]) }}"
       with_items:
         - "{{ hosts }}"
-    - set_fact:
+    - ansible.builtin.set_fact:
         vbmc_host_provided: localhost
       when: vbmc_host_provided is not defined
-    - include_role:
+    - ansible.builtin.include_role:
         name: redhatci.ocp.ocp_on_libvirt
       vars:
         ansible_python_interpreter: "{{ (lookup('env', 'container') == 'oci') | ansible.builtin.ternary(hostvars['localhost'].ansible_python_interpreter, '/usr/libexec/platform-python') }}"

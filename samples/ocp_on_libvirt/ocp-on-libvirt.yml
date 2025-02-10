@@ -21,7 +21,7 @@
 
   tasks:
     - name: Assert all required fields exist
-      assert:
+      ansible.builtin.assert:
         that: "{{ item }} != ''"
       with_items:
         - dci_client_id
@@ -33,7 +33,7 @@
     - name: Subscribe system to RHN
       tags:
         - setup
-      redhat_subscription:
+      community.general.redhat_subscription:
         state: present
         username: "{{ rhn_user }}"
         password: "{{ rhn_pass }}"
@@ -44,8 +44,7 @@
     - name: Disable (beaker) repos
       tags:
         - setup
-      shell:
-        dnf config-manager --set-disabled beaker*
+      ansible.builtin.shell: dnf config-manager --set-disabled beaker*
       when:
         - ansible_env.BEAKER is defined
         - ansible_os_family == "RedHat"
@@ -55,7 +54,7 @@
     - name: Install EPEL Release
       tags:
         - setup
-      yum:
+      ansible.builtin.yum:
         name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
         state: present
         disable_gpg_check: true
@@ -70,7 +69,7 @@
 
         - name: Install packages from specific repos
           become: true
-          dnf:
+          ansible.builtin.dnf:
             name: "{{ item.package }} "
             enablerepo: "{{ item.repo }}"
           loop:
@@ -84,7 +83,7 @@
     - name: Install DCI Release
       tags:
         - setup
-      yum:
+      ansible.builtin.yum:
         name: "https://packages.distributed-ci.io/dci-release.el{{ ansible_distribution_major_version }}.noarch.rpm"
         state: present
         disable_gpg_check: true
@@ -93,15 +92,14 @@
       tags:
         - setup
         - pkgs
-      yum:
+      ansible.builtin.yum:
         name: "{{ extra_pkgs }}"
         state: present
 
     - name: Enable extra repos for RHEL7
       tags:
         - setup
-      shell: <
-        subscription-manager repos --enable={{ item }}
+      ansible.builtin.shell: subscription-manager repos --enable={{ item }}
       with_items:
         - rhel-7-server-extras-rpms
         - rhel-7-server-optional-rpms
@@ -113,7 +111,7 @@
       tags:
         - setup
         - install
-      yum:
+      ansible.builtin.yum:
         name: dci-openshift-agent
         state: present
 
@@ -121,7 +119,7 @@
       tags:
         - setup
         - install
-      authorized_key:
+      ansible.posix.authorized_key:
         user: dci-openshift-agent
         state: present
         key: "https://github.com/{{ github_user }}.keys"
@@ -131,7 +129,7 @@
         - setup
         - install
       become_user: dci-openshift-agent
-      file:
+      ansible.builtin.file:
         path: ~/tmp
         state: directory
 
@@ -142,7 +140,7 @@
       become_user: dci-openshift-agent
       environment:
         ANSIBLE_LOG_PATH: /tmp/libvirt-destroy.log
-      shell: ansible-playbook libvirt_destroy.yml
+      ansible.builtin.shell: ansible-playbook libvirt_destroy.yml
       args:
         chdir: ~dci-openshift-agent/samples/ocp_on_libvirt
 
@@ -153,7 +151,7 @@
       become_user: dci-openshift-agent
       environment:
         ANSIBLE_LOG_PATH: /tmp/libvirt-up.log
-      shell: ansible-playbook libvirt_up.yml
+      ansible.builtin.shell: ansible-playbook libvirt_up.yml
       args:
         chdir: ~dci-openshift-agent/samples/ocp_on_libvirt
 
@@ -162,7 +160,7 @@
         - install
         - create
         - config
-      copy:
+      ansible.builtin.copy:
         src: ~dci-openshift-agent/samples/ocp_on_libvirt/hosts
         dest: /etc/dci-openshift-agent/hosts
         remote_src: true
@@ -170,7 +168,7 @@
     - name: Replace all pointers to registry.example.com with our hostname
       tags:
         - config
-      replace:
+      ansible.builtin.replace:
         path: /etc/dci-openshift-agent/hosts
         regexp: 'registry\.example\.com'
         replace: "{{ ansible_fqdn }}"
@@ -178,7 +176,7 @@
     - name: Replace all pointers to /opt/cache with /var/cache/images
       tags:
         - config
-      replace:
+      ansible.builtin.replace:
         path: /etc/dci-openshift-agent/hosts
         regexp: '\/opt\/cache(\/registry)?'
         replace: "/var/cache/images"
@@ -186,7 +184,7 @@
     - name: Make sure registry dir is there
       tags:
         - config
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: /etc/dci-openshift-agent/hosts
         regexp: '^#registry_dir='
         line: '#registry_dir=/var/cache/registry'
@@ -195,7 +193,7 @@
       tags:
         - config
         - customize
-      replace:
+      ansible.builtin.replace:
         path: /etc/dci-openshift-agent/hosts
         regexp: '^#({{ item }}.*)'
         replace: '\1'
@@ -218,7 +216,7 @@
         - install
         - create
         - config
-      copy:
+      ansible.builtin.copy:
         dest: /etc/dci-openshift-agent/dcirc.sh
         content: |
           export DCI_CLIENT_ID='{{ dci_client_id }}'
@@ -230,7 +228,7 @@
       tags:
         - install
         - config
-      copy:
+      ansible.builtin.copy:
         dest: /usr/local/bin/go-dci
         mode: 0755
         content: |

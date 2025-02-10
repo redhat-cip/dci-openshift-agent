@@ -3,7 +3,7 @@
   hosts: provisioner
   tasks:
     - name: Generating hosts inventory file
-      template:
+      ansible.builtin.template:
         src: ./templates/hosts.j2
         dest: "{{ inventory_prefix }}hosts"
       vars:

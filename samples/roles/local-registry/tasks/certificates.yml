@@ -1,12 +1,12 @@
 ---
 - name: Create private key file
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ registry_cert_key }}"
     owner: "{{ registry_user }}"
     group: "{{ registry_user }}"
 
 - name: Create CSR for CA
-  openssl_csr:
+  community.crypto.openssl_csr:
     path: "{{ registry_cert_csr }}"
     owner: "{{ registry_user }}"
     group: "{{ registry_user }}"
@@ -19,7 +19,7 @@
     - "CA:TRUE"
 
 - name: Create self-signed CA certificate
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ registry_cert_ca }}"
     owner: "{{ registry_user }}"
     group: "{{ registry_user }}"
@@ -29,7 +29,7 @@
     mode: 0644
 
 - name: Create ownca certificate
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ registry_cert_crt }}"
     owner: "{{ registry_user }}"
     group: "{{ registry_user }}"
@@ -41,17 +41,17 @@
     mode: 0644
 
 - name: Copy certificate to PKI directory
-  copy:
+  ansible.builtin.copy:
     src: "{{ registry_cert_crt }}"
     dest: "/etc/pki/ca-trust/source/anchors/{{ registry_cert_crt | basename }}"
     remote_src: true
     mode: 0644
 
 - name: Update system CA trust store
-  shell: update-ca-trust extract
+  ansible.builtin.shell: update-ca-trust extract
 
 - name: Make certificate available on http server
-  copy:
+  ansible.builtin.copy:
     src: "{{ registry_cert_crt }}"
     dest: "{{ registry_cache_dir }}/{{ registry_cert_crt | basename }}"
     remote_src: true
@@ -60,12 +60,12 @@
     mode: 0644
 
 - name: Read certificate contents
-  slurp:
+  ansible.builtin.slurp:
     src: "{{ registry_cert_crt }}"
   register: registry_generated_ssl
 
 - name: Create openshift trust bundle
-  copy:
+  ansible.builtin.copy:
     dest: "{{ registry_cache_dir }}/{{ registry_fqdn }}-trust-bundle.yml"
     owner: "{{ registry_user }}"
     group: "{{ registry_user }}"

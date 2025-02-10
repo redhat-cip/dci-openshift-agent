@@ -14,14 +14,13 @@
 
   rescue:
     - name: Create a local log directory
-      file:
+      ansible.builtin.file:
         path: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}"
         state: directory
         mode: "0775"
 
     - name: Copy locally ({{ item.path | basename }})
-      copy:
+      ansible.builtin.copy:
         src: "{{ item.path }}"
         dest: "{{ dci_local_log_dir }}/{{ hostvars.localhost.job_id }}/"
         mode: "0640"
-...

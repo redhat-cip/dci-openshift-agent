@@ -1,33 +1,33 @@
 ---
 - name: "Remove pull secret file"
-  file:
+  ansible.builtin.file:
     path: "{{ dci_pullsecret_file }}"
     state: absent
   when:
     - dci_pullsecret_file is defined
 
 - name: "Remove docker auths directory"
-  file:
+  ansible.builtin.file:
     path: "{{ docker_conf.path }}"
     state: absent
   when: docker_conf is defined
 
 - name: "Remove ICSP conversion directory"
-  file:
+  ansible.builtin.file:
     path: "{{ icsp_tmp_dir.path }}"
     state: absent
   when:
     - icsp_tmp_dir is defined
 
 - name: "Remove bundle build directory"
-  file:
+  ansible.builtin.file:
     path: "{{ bundle_tmp_dir.path }}"
     state: absent
   when:
     - bundle_tmp_dir is defined
 
 - name: "Delete UPI tmp file"
-  file:
+  ansible.builtin.file:
     path: "{{ upi_creds_file.path }}"
     state: absent
   when:
@@ -56,7 +56,7 @@
         - aw_zone is defined
 
 - name: "Delete logs directory"
-  file:
+  ansible.builtin.file:
     path: "{{ job_logs.path }}"
     state: absent
   when:

@@ -1,6 +1,6 @@
 ---
 - name: Build SR-IOV operator bundle
-  include_tasks: upstream-sriov-bundle.yml
+  ansible.builtin.include_tasks: upstream-sriov-bundle.yml
   vars:
     base_version: "{{ version.split('.')[0] }}.{{ version.split('.')[1] }}"
     sriov_bundle: "{{ dci_local_registry }}/telcoci/upstream/sriov-operator-bundle"
@@ -16,7 +16,7 @@
     - upstream_bundles | length
   block:
     - name: Create FBC upstream catalog with upstream bundles
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.fbc_catalog
       vars:
         fbc_index_image: "{{ upstream_catalog }}"
@@ -24,7 +24,7 @@
         fbc_opm_args: "--skip-tls-verify=false"
 
     - name: Push the catalog image to registry
-      shell:
+      ansible.builtin.shell:
         cmd: >
           podman push
           --authfile {{ dci_pullsecret_file }}
@@ -35,12 +35,12 @@
       until: cat_push.rc == 0
 
     - name: Remove local upstream catalog image
-      shell:
+      ansible.builtin.shell:
         cmd: >
           podman rmi -f
           {{ upstream_catalog }}
 
     - name: Add the upstream catalog to the list of additional catalogs
-      set_fact:
+      ansible.builtin.set_fact:
         custom_catalogs: "{{ custom_catalogs | default([]) + [upstream_catalog] }}"
         upstream_source_catalog_name: upstream-operators-catalog

@@ -1,6 +1,6 @@
 ---
 - name: Check the variables needed to add host
-  assert:
+  ansible.builtin.assert:
     that:
       - _sut is defined
       - _ssh_private_key is defined

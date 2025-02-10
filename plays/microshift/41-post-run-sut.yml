@@ -1,6 +1,6 @@
 ---
 - name: Check the variables needed to download kubeconfig
-  assert:
+  ansible.builtin.assert:
     that:
       - _inventory_hostname is defined
       - _dci_cluster_configs_dir is defined
@@ -8,7 +8,7 @@
     quiet: true
 
 - name: Punch a hole in the firewall for OCP API
-  become: yes
+  become: true
   ansible.posix.firewalld:
     zone: public
     port: 6443/tcp

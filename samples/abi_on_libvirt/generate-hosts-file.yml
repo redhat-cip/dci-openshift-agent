@@ -7,7 +7,7 @@
   tasks:
     - name: Create cache_dir_base Directory
       become: true
-      file:
+      ansible.builtin.file:
         path: "{{ item }}"
         state: directory
         owner: "{{ ansible_user_id }}"

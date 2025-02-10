@@ -1,13 +1,13 @@
 ---
-- name: "Remove pull secret file"
-  file:
+- name: Remove pull secret file
+  ansible.builtin.file:
     path: "{{ dci_pullsecret_file }}"
     state: absent
   when:
     - dci_pullsecret_file is defined
 
-- name: "Gathering results for storage service tester"
-  include_role:
+- name: Gathering results for storage service tester
+  ansible.builtin.include_role:
     name: redhatci.ocp.storage_tester
     tasks_from: gathering-logs.yml
     apply:
@@ -21,8 +21,7 @@
     - storage_upgrade_tester | default(false) | bool
 
 - name: Upload logs
-  include_tasks: get-logs.yml
-
+  ansible.builtin.include_tasks: get-logs.yml
 - name: Fail properly
-  fail:
-    msg: 'Something went wrong. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.localhost.job_info.job.id }}/jobStates'
+  ansible.builtin.fail:
+    msg: "Something went wrong. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.localhost.job_info.job.id }}/jobStates"

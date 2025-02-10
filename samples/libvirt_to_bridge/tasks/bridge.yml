@@ -2,24 +2,24 @@
 - name: Setup Bridge Creation
   block:
     - name: Get the provision connection name
-      shell: |
+      ansible.builtin.shell: |
         nmcli device show {{ provisioning_nic }} | grep GENERAL.CONNECTION | awk '{sub(/[^ ]+[ ]+/,"")}1'
       register: prov_con_name
 
     - name: Get the public connection name
-      shell: |
+      ansible.builtin.shell: |
         nmcli device show {{ baremetal_nic }} | grep GENERAL.CONNECTION | awk '{sub(/[^ ]+[ ]+/,"")}1'
       register: pub_con_name
 
     - name: Disconnect baremetal bridge connection
-      command: |
+      ansible.builtin.command: |
         nmcli device disconnect "{{ baremetal_bridge }}"
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Disconnect provisioning_nic bridge connection
-      command: |
+      ansible.builtin.command: |
         nmcli device disconnect "{{ provisioning_bridge }}"
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Delete {{ pub_con_name.stdout }} due to modify nmcli bug
       nmcli:
@@ -115,7 +115,7 @@
         state: present
 
     - name: Reload {{ baremetal_bridge }} bridge and slave interfaces
-      shell: |
+      ansible.builtin.shell: |
         /usr/bin/nmcli connection reload {{ item }}
         /usr/bin/nmcli connection up {{ item }}
       with_items:
@@ -123,7 +123,7 @@
         - "{{ baremetal_nic }}"
 
     - name: Reload provisioning bridge and slave interfaces
-      shell: |
+      ansible.builtin.shell: |
         /usr/bin/nmcli connection reload {{ item }}
         /usr/bin/nmcli connection up {{ item }}
       with_items:
