@@ -1,5 +1,5 @@
 - name: "Deploy {{ dci_operator.name }}"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.olm_operator
   vars:
     operator: "{{ dci_operator.name }}"
@@ -11,4 +11,5 @@
     starting_csv: "{{ dci_operator.starting_csv | default('') }}"
     operator_group_name: "{{ dci_operator.operator_group_name | default(dci_operator.name) }}"
     olm_operator_skippable: "{{ dci_operator.skippable | default(false) }}"
+    install_approval: "{{ dci_operator.install_approval | default('Manual') }}"
 ...

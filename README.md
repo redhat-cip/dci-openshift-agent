@@ -542,6 +542,7 @@ dci_operators:
   - name: compliance-operator
     catalog_source: mirrored-redhat-operators
     namespace: openshift-compliance
+    install_approval: "Automatic"
   - name: cluster-logging
     catalog_source: mirrored-redhat-operators
     namespace: openshift-logging
