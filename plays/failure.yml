@@ -1,5 +1,5 @@
 ---
 - name: Fail properly
   ansible.builtin.fail:
-    msg: "Something went wrong. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.localhost.job_info.job.id }}/jobStates"
+    msg: 'Something went wrong. Review the log at: https://www.distributed-ci.io/jobs/{{ hostvars.jumphost.job_info.job.id }}/jobStates'
 ...

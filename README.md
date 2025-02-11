@@ -417,6 +417,11 @@ hardware_profile=default
 # Provision Host
 [provisioner]
 provisionhost ansible_user=kni prov_nic=eno1 pub_nic=ens3 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+# Jumphost Host
+[jumphost]
+jumphost ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
 ```
 
 > NOTE: If the jumpbox server is in a different network than the baremetal network, then

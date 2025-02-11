@@ -29,23 +29,23 @@
 
 - name: Populate clusterosimage
   ansible.builtin.set_fact:
-    clusterosimage: "{{ hostvars.localhost.clusterosimage }}"
-  when: hostvars.localhost.clusterosimage is defined
+    clusterosimage: "{{ hostvars.jumphost.clusterosimage }}"
+  when: hostvars.jumphost.clusterosimage is defined
 
 - name: Populate bootstraposimage
   ansible.builtin.set_fact:
-    bootstraposimage: "{{ hostvars.localhost.bootstraposimage }}"
-  when: hostvars.localhost.bootstraposimage is defined
+    bootstraposimage: "{{ hostvars.jumphost.bootstraposimage }}"
+  when: hostvars.jumphost.bootstraposimage is defined
 
 - name: Populate master_network_config_template
   ansible.builtin.set_fact:
-    master_network_config_template: "{{ hostvars.localhost.master_network_config_template }}"
-  when: hostvars.localhost.master_network_config_template is defined
+    master_network_config_template: "{{ hostvars.jumphost.master_network_config_template }}"
+  when: hostvars.jumphost.master_network_config_template is defined
 
 - name: Populate worker_network_config_template
   ansible.builtin.set_fact:
-    worker_network_config_template: "{{ hostvars.localhost.worker_network_config_template }}"
-  when: hostvars.localhost.worker_network_config_template is defined
+    worker_network_config_template: "{{ hostvars.jumphost.worker_network_config_template }}"
+  when: hostvars.jumphost.worker_network_config_template is defined
 
 - name: Override disconnected_registry_mirrors_file in the registry host
   ansible.builtin.set_fact:
@@ -67,7 +67,7 @@
     - dci_disconnected | default(false) | bool
 
 - name: "Public builds"
-  when: hostvars.localhost.build != "nightly"
+  when: hostvars.jumphost.build != "nightly"
   block:
     - name: Node preparation
       ansible.builtin.import_role:
@@ -79,12 +79,12 @@
         name: redhatci.ocp.installer
 
 - name: "Nightly builds"
-  when: hostvars.localhost.build == "nightly"
+  when: hostvars.jumphost.build == "nightly"
   block:
     - name: "Start artifact webserver"
       vars:
         cache_dir: >-
-          {{ hostvars.localhost.provision_cache_store |
+          {{ hostvars.jumphost.provision_cache_store |
              default((hostvars.localhost.ansible_env.HOME, 'releases') |
              join('/')) }}
       containers.podman.podman_container:
@@ -95,7 +95,7 @@
         volumes:
           - "{{ cache_dir }}:/var/www/html"
       register: aw_container
-      delegate_to: localhost
+      delegate_to: jumphost
 
     - name: "Get dynamic web port"
       ansible.builtin.set_fact:
@@ -103,7 +103,7 @@
           {{ aw_container |
              json_query('container.NetworkSettings.Ports."8080/tcp"[].HostPort') |
              first }}
-      delegate_to: localhost
+      delegate_to: jumphost
 
     - name: "Get routable interface to provisionhost"
       vars:
@@ -111,14 +111,14 @@
       ansible.builtin.shell:
         cmd: /usr/sbin/ip -j route get {{ target_ip }}
       register: aw_route
-      delegate_to: localhost
+      delegate_to: jumphost
 
     - name: "Get all active zones in controller"
       ansible.posix.firewalld_info:
         active_zones: true
       register: aw_fw_zones
       become: true
-      delegate_to: localhost
+      delegate_to: jumphost
 
     - name: "Get firewall zone in controller"
       vars:
@@ -142,7 +142,7 @@
         state: enabled
         zone: "{{ aw_zone }}"
       become: true
-      delegate_to: localhost
+      delegate_to: jumphost
 
     - name: Set artifact web URL
       vars:
@@ -164,7 +164,7 @@
       containers.podman.podman_container:
         name: "{{ hostvars.localhost.job_id }}"
         state: absent
-      delegate_to: localhost
+      delegate_to: jumphost
 
     - name: "Disallow HTTP traffic"
       when:
@@ -176,6 +176,5 @@
         state: disabled
         zone: "{{ aw_zone }}"
       become: true
-      delegate_to: localhost
-
+      delegate_to: jumphost
 ...

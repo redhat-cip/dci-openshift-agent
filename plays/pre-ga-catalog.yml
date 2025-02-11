@@ -82,4 +82,5 @@
   until: compare_result.rc == 0
   retries: 3
   delay: 10
+  delegate_to: localhost
 ...

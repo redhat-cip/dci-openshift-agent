@@ -88,7 +88,7 @@
     name: redhatci.ocp.configure_ztp_gitops_apps
   vars:
     czga_kubeconfig_path: "{{ hub_kubeconfig_path }}"
-    czga_podman_runner_host: jumpbox
+    czga_podman_runner_host: jumphost
     czga_clusters_namespace: "{{ cluster }}"
     czga_policies_namespace: "{{ cluster }}-policies"
     czga_ocp_pull_secret: "{{ hub_pull_secret.resources[0].data['.dockerconfigjson'] | b64decode }}"
@@ -100,6 +100,7 @@
     czga_policies_path: "{{ dci_gitops_policies_repo.path}}"
     czga_policies_gitops_repo: "{{ dci_gitops_policies_repo.url }}"
     czga_policies_branch: "{{ dci_gitops_policies_repo.branch }}"
+    ansible_user: "{{ ansible_user_id }}"
 
 - name: Wait for the deployment to start
   kubernetes.core.k8s_info:
