@@ -193,3 +193,26 @@ all:
       username: ### USERNAME ###
       password: ### PASSWORD ###
 ```
+
+## Disconnected environments
+
+When working in restricted networks the DCI Agents must run a set of preliminary actions that otherwise would be run by the network administrators in order to set up the conditions to run Disconnected environment deployments.
+
+For the ZTP use cases, this involves mirroring the release images to a local registry where they can be accessed by both the hub and the spoke clusters.
+
+Furthermore, for the deployment to work, a Cluster Image Set must exist in the hub cluster with a name that matches the one specified in the ClusterImageSetNameRef variable from the Site Config manifests.
+
+Bear in mind that, although the ClusterImageSet name value usually identifies the OCP release version number to be installed, in the context of DCI automated deployments the release version number is taken from the OCP DCI Job component, so the DCI agent will read whatever value is set in the site config manifest's ClusterImageSetNameRef field and create a ClusterImageSet of that name resolving to the OCP release image for the release number specified in the DCI component, so the original ClusterImageSetNameRef parameter has no relevance beyond acting as the place holder to link the spoke cluster configuration with the required OCP release number.
+
+The logic for these two operations is part of the dci-openshift-agent and is triggered by the presence of the dci_disconnected variable set to "true" in combination with the acm_cluster_type variable set to "ztp-spoke".
+
+Besides the dci_disconnected and acm_cluster_type variables, the following variables must be defined in the inventory to control the mirroring services:
+
+Variable              | Description
+----------------------|-------------
+pullsecret_file       | Path to a local copy of the pull-secret including the credentials needed to pull images from the public registries and push them to the local registry. 
+registry_certificate  | Path to a local copy of the local registry certificate to allow for its authentication.
+webserver_url         | Base URL to the local cache web server serving every other resource different than a container image.
+provision_cache_store | Local path to the directory containing the resources served by the cache web server.
+local_registry_host   | FQDN to the local registry mirroring container images like the release image.
+local_registry_port   | (Optional) Network port the local registry is bound to.

@@ -6,7 +6,7 @@
 - name: "Get registry mirror registry details"
   when:
     - dci_disconnected | default(false) | bool
-    - acm_cluster_type in ['sno', 'hypershift']
+    - acm_cluster_type in ['sno', 'hypershift', 'ztp-spoke']
 
   block:
     - name: Check if IDMS is supported
@@ -148,7 +148,7 @@
 - name: "Get OCP release artifacts"
   when:
     - not (dci_disconnected | default(false) | bool)
-    - acm_cluster_type in ['sno', 'hypershift']
+    - acm_cluster_type in ['sno', 'hypershift', 'ztp-spoke']
   block:
     - name: Mirror release
       include_role:
