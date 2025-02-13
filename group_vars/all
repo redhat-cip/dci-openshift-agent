@@ -50,6 +50,7 @@ enable_nmstate: false
 enable_minio: false
 enable_nro: false
 enable_netobserv: false
+enable_rhoai: false
 # Lists of packages for each operator
 cnv_operator:
   kubevirt-hyperconverged:
