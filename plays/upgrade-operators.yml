@@ -17,13 +17,13 @@
         catalogSource: spec.source,
         installPlanApproval: spec.installPlanApproval
       }
-  set_fact:
+  ansible.builtin.set_fact:
     subscriptions: "{{ current_subscriptions | json_query(subs_details) }}"
   retries: 5
   delay: 5
 
 - name: "Skip operators to be upgraded"
-  set_fact:
+  ansible.builtin.set_fact:
     subscriptions: "{{ subscriptions | reject('search', item) | list }}"
   loop: "{{ operator_skip_upgrade }}"
   when:
@@ -46,7 +46,7 @@
     label: "{{ sub.subscriptionName }}"
 
 - name: "Update disconnected catalogSources"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.catalog_source
   vars:
     cs_name: "{{ opm_catalog_source_name }}"
@@ -60,7 +60,7 @@
     - dci_prune_index is defined
 
 - name: "Upgrade-operators : Upgrade installed operators"
-  include_tasks: upgrade-csv.yml
+  ansible.builtin.include_tasks: upgrade-csv.yml
   when:
     - sub is defined
     - sub | length

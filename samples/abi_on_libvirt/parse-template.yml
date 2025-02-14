@@ -3,12 +3,12 @@
   hosts: localhost
   tasks:
     - name: Set default VM bridge IP for CI env
-      set_fact:
+      ansible.builtin.set_fact:
         vm_bridge_ip: "10.60.0.190"
       when: vm_bridge_ip is not defined
 
     - name: Set default machine CIDR for CI env
-      set_fact:
+      ansible.builtin.set_fact:
         machine_network_cidr: "192.168.16.0/25"
       when: machine_network_cidr is not defined
 
@@ -16,16 +16,16 @@
       when: provisioner_dns is not defined
       block:
         - name: Query nmcli for DNS server
-          shell:
+          ansible.builtin.shell:
             cmd: "/usr/bin/nmcli device show | grep IP4.DNS | tr -s ' ' | cut -d' ' -f 2 | head -1"
           register: nmcli_cmd
 
         - name: Set fact
-          set_fact:
+          ansible.builtin.set_fact:
             provisioner_dns: "{{ nmcli_cmd.stdout }}"
 
     - name: Generating hosts inventory file
-      template:
+      ansible.builtin.template:
         src: ./templates/hosts.j2
         dest: "{{ inventory_prefix }}hosts"
       vars:

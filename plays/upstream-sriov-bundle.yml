@@ -1,12 +1,12 @@
 ---
 - name: Create temporary build directory
-  tempfile:
+  ansible.builtin.tempfile:
     state: directory
     prefix: "dci_build_{{ job_id | default('') }}_"
   register: bundle_tmp_dir
 
 - name: "Set working directory"
-  set_fact:
+  ansible.builtin.set_fact:
     bundle_tmp_dir: "{{ bundle_tmp_dir.path }}"
 
 - name: "Clone/update SRIOV network-operator repo"
@@ -24,19 +24,19 @@
   until: not sriov_clone.failed
 
 - name: "Add expire label to SRIOV bundle image"
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ bundle_tmp_dir }}/sriov-network-operator/bundleci.Dockerfile"
     line: "LABEL maintainer='Telco DCI team' quay.expires-after=5h"
     insertafter: EOF
 
 - name: "Pin CSV"
-  script:
+  ansible.builtin.script:
     cmd: >
       plays/scripts/use-digest
       {{ bundle_tmp_dir }}/sriov-network-operator/manifests/stable/sriov-network-operator.clusterserviceversion.yaml
 
 - name: "Build SRIOV bundle image"
-  shell: >
+  ansible.builtin.shell: >
     podman build .
     -f bundleci.Dockerfile
     --no-cache
@@ -45,7 +45,7 @@
     chdir: "{{ bundle_tmp_dir }}/sriov-network-operator"
 
 - name: "Push the new bundle image to registry"
-  shell:
+  ansible.builtin.shell:
     cmd: >
       podman push
       --authfile {{ dci_pullsecret_file }}
@@ -56,7 +56,7 @@
   until: cat_push.rc == 0
 
 - name: "Get bundle image SHA256"
-  shell:
+  ansible.builtin.shell:
     cmd: >
       set -o pipefail;
       skopeo inspect
@@ -70,20 +70,20 @@
     - bundle_sha.stdout | regex_search('^sha')
 
 - name: "Delete temp directory"
-  file:
+  ansible.builtin.file:
     state: absent
     path: "{{ bundle_tmp_dir }}"
 
 - name: Add the sriov bundle to the list of upstream bundles
-  set_fact:
+  ansible.builtin.set_fact:
     upstream_bundles: "{{ upstream_bundles | default([]) + [sriov_bundle + '@' + bundle_sha.stdout] }}"
 
 - name: Remove local bundle image
-  shell:
+  ansible.builtin.shell:
     cmd: >
       podman rmi -f
       {{ sriov_bundle }}:{{ base_version }}
 
 - name: Set upstream sriov variable
-  set_fact:
+  ansible.builtin.set_fact:
     upstream_sriov: true

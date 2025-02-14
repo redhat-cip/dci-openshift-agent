@@ -46,7 +46,7 @@
 - name: "Save the install-config"
   vars:
     install_config: '{{ ic.resources[0].data["install-config"] }}'
-  copy:
+  ansible.builtin.copy:
     content: "{{ install_config }}"
     dest: "{{ dci_cluster_configs_dir }}/cluster-install-config.yml"
     mode: "0600"
@@ -187,12 +187,12 @@
     - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
   block:
     - name: "Merge all inventory hosts"
-      set_fact:
+      ansible.builtin.set_fact:
         all_hosts: "{{ all_hosts | default([]) + groups[item] }}"
       loop: "{{ groups.keys() | list }}"
 
     - name: "Apply node labels"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.label_nodes
       vars:
         hosts_list: "{{ all_hosts | list | unique }}"
@@ -227,7 +227,7 @@
     oau_users:
       - "admin:admin"
       - "nonadmin:none"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.ocp_add_users
 
 - name: "Upload additional credentials to DCI Control Server"
@@ -244,7 +244,7 @@
     - "{{ dci_cluster_configs_dir }}/ocp_creds.txt"
 
 - name: Set override fact for ACM hubs
-  set_fact:
+  ansible.builtin.set_fact:
     hub_os_images:
       - openshiftVersion: "{{ version }}"
         version: "{{ version.split('.')[:2] | join('.') }}"

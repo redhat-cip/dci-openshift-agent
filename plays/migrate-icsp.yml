@@ -31,7 +31,7 @@
   when: icsp_tmp_dir is defined
 
 - name: Wait for ICSP migration to complete
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.check_resource
   vars:
     resource_to_check: "MachineConfigPool"

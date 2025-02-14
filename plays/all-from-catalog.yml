@@ -27,7 +27,7 @@
     - operator_packagemanifest.resources | length
 
 - name: "Filter operators names"
-  set_fact:
+  ansible.builtin.set_fact:
     index_operators: "{{ operator_packagemanifest |
                       json_query('resources[*].metadata.name') }}"
   retries: 5
@@ -42,7 +42,7 @@
         required_ns: "openshift-ptp"
       sriov-network-operator:
         required_ns: "openshift-sriov-network-operator"
-  include_tasks: install-all-operators.yml
+  ansible.builtin.include_tasks: install-all-operators.yml
   loop: "{{ index_operators | sort }}"
   loop_control:
     loop_var: package

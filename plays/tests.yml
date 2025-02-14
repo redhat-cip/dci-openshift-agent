@@ -1,19 +1,18 @@
 ---
-
 - name: "Setup podman on the jumphost"
-  include_role:
+  ansible.builtin.include_role:
     name: ansible-role-dci-podman
 
 - name: Get oc version output
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
-  shell: |
+  ansible.builtin.shell: |
     {{ oc_tool_path }} version
   register: oc_version_str
   delegate_to: localhost
 
 - name: Get OCP version
-  set_fact:
+  ansible.builtin.set_fact:
     ocp_version: "{{ '.'.join(item.split(':')[1].strip().split('.')[0:2]) }}"
     ocp_version_major: "{{ item.split(':')[1].strip().split('.')[0] }}"
     ocp_version_minor: "{{ item.split(':')[1].strip().split('.')[1] }}"
@@ -34,7 +33,7 @@
     ts_csi_test_manifest: "{{ dci_openshift_csi_test_manifest }}"
     ts_do_cni_tests: "{{ dci_do_cni_tests }}"
     ts_do_virt_tests: "{{ dci_do_virt_tests }}"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.redhat_tests
 
 - name: "Remove origin-tests image"
@@ -43,7 +42,7 @@
     state: absent
 
 - name: Run cnf tests
-  include_tasks: cnf-tests-run.yml
+  ansible.builtin.include_tasks: cnf-tests-run.yml
   when:
     - cnf_test_suites is defined
     - cnf_test_suites | length

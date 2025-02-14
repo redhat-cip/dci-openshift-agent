@@ -19,7 +19,7 @@
         degraded_operators: "{{ clusteroperator_info | json_query(query) }}"
         query: "resources[?status.conditions[?type=='{{ status_check }}' && status=='True']].
                 {name: metadata.name, message: status.conditions[?type=='{{ status_check }}'].message}"
-      fail:
+      ansible.builtin.fail:
         msg: "The following Cluster Operators are degraded {{ degraded_operators }}"
 
 - name: "Check that control-plane nodes are ready"
@@ -62,7 +62,7 @@
 - name: "Fail if cluster installation/upgrade is not Complete"
   vars:
     upgrade_state: "{{ cluster_version | json_query('resources[0].status.history[0].state') }}"
-  fail:
+  ansible.builtin.fail:
     msg: "Install or upgrade is not Completed"
   when:
     upgrade_state != "Completed"

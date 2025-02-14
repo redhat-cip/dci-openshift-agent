@@ -1,6 +1,6 @@
 ---
 - name: Create registry directory structure
-  file:
+  ansible.builtin.file:
     path: "{{ registry_dir }}"
     state: directory
     owner: "{{ registry_user }}"
@@ -8,7 +8,7 @@
     mode: 0755
 
 - name: Create registry directory structure
-  file:
+  ansible.builtin.file:
     path: "{{ registry_dir }}/{{ item }}"
     state: directory
     owner: "{{ registry_user }}"
@@ -20,7 +20,7 @@
   - data
 
 - name: Create cache directory structure
-  file:
+  ansible.builtin.file:
     path: "{{ registry_cache_dir }}"
     state: directory
     owner: "{{ registry_user }}"
@@ -29,7 +29,7 @@
     setype: httpd_sys_content_t
 
 - name: Create cache directory structure
-  file:
+  ansible.builtin.file:
     path: "{{ registry_cache_dir }}/registry"
     state: directory
     owner: "{{ registry_user }}"

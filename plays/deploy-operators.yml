@@ -1,8 +1,8 @@
 ---
-- name: "Get cluster facts"
-  include_tasks: get-cluster-facts.yml
+- name: Get cluster facts
+  ansible.builtin.include_tasks: get-cluster-facts.yml
 
-- name: "Prepare operators and catalogs"
+- name: Prepare operators and catalogs
   ansible.builtin.include_tasks: prepare-operators.yml
 
 - name: "Install operators"
@@ -129,12 +129,11 @@
   when:
     - tuned_definition is defined
 
-- name: "Setup NUMA Resource Operator"
-  include_tasks: "{{ item }}"
+- name: Setup NUMA Resource Operator
+  ansible.builtin.include_tasks: "{{ item }}"
   loop:
     - setup-nro.yml
     - check-cluster-health.yml
   when:
     - enable_nro | bool
     - ocp_version is version("4.12", ">=")
-...

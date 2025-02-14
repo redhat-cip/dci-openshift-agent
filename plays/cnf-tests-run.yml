@@ -1,10 +1,10 @@
 ---
 - name: "Get current date"
-  command: date +%Y%m%d-%H%M%S
+  ansible.builtin.command: date +%Y%m%d-%H%M%S
   register: date
 
 - name: "Set cnf_test_image version"
-  set_fact:
+  ansible.builtin.set_fact:
     cnf_tests_image: "{{ ocp_version_major }}.{{ ocp_version_minor }}"
 
 - name: "Mirror cnf-test images for disconnected testing"
@@ -12,7 +12,7 @@
     - dci_disconnected | default(false) | bool
   block:
     - name: "Mirror cnf-tests and dpdk images to local repo"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.mirror_images
       vars:
         mi_images:
@@ -22,11 +22,11 @@
         mi_registry: "{{ dci_local_registry }}"
 
     - name: "Set cnf_tests_image_registry for disconnected env"
-      set_fact:
+      ansible.builtin.set_fact:
         cnf_tests_image_registry: "{{ dci_local_registry }}"
 
 - name: "Set cnf_tests_image_registry for connected env"
-  set_fact:
+  ansible.builtin.set_fact:
     cnf_tests_image_registry: 'quay.io/openshift-kni'
   when:
     - not (dci_disconnected | default(false) | bool)
@@ -34,7 +34,7 @@
 - name: "Run SCTP tests"
   environment:
     REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
-  shell:
+  ansible.builtin.shell:
     cmd: >
      podman run
      --rm
@@ -54,7 +54,7 @@
 - name: "Run PTP tests"
   environment:
     REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
-  shell:
+  ansible.builtin.shell:
     cmd: >
      podman run
      --rm
@@ -78,7 +78,7 @@
 - name: "Run performance tests"
   environment:
     REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
-  shell:
+  ansible.builtin.shell:
     cmd: >
      podman run
      --rm
@@ -97,7 +97,7 @@
 - name: "Run SRIOV tests"
   environment:
     REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
-  shell:
+  ansible.builtin.shell:
     cmd: >
        podman run
        --rm
@@ -117,7 +117,7 @@
 - name: "Run DPDK tests"
   environment:
     REGISTRY_AUTH_FILE: "{{ dci_pullsecret_file }}"
-  shell:
+  ansible.builtin.shell:
     cmd: >
       podman run
       --rm
@@ -135,7 +135,7 @@
     - '"dpdk" in ( cnf_test_suites | lower )'
 
 - name: "Rename junit XML files with the feature name"
-  shell: |
+  ansible.builtin.shell: |
     for d in sctp ptp performance sriov dpdk; do
       if [ -d "{{ job_logs.path }}/{{ date.stdout }}/${d}" ]; then
         cd "{{ job_logs.path }}/{{ date.stdout }}/${d}"

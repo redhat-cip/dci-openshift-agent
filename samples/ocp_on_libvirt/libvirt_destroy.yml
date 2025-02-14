@@ -2,10 +2,10 @@
 - name: Destroy bootstrap VM
   hosts: vm_host
   tasks:
-    - set_fact:
+    - ansible.builtin.set_fact:
         vbmc_host_provided: localhost
       when: vbmc_host_provided is not defined
-    - include_role:
+    - ansible.builtin.include_role:
         name: redhatci.ocp.ocp_on_libvirt
       vars:
         hook_action: cleanup

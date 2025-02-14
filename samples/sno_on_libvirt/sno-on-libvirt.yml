@@ -33,7 +33,7 @@
 
   tasks:
     - name: Assert all required fields exist
-      assert:
+      ansible.builtin.assert:
         that: "{{ item }} != ''"
       with_items:
         - dci_client_id
@@ -45,7 +45,7 @@
     - name: Confirm whether or not internet connectivity on sno-on-libvirt host
       tags:
         - setup
-      uri:
+      ansible.builtin.uri:
         url: https://www.redhat.com
         status_code: [-1,200,301]
         timeout: 1
@@ -54,7 +54,7 @@
     - name: Subscribe system to RHN
       tags:
         - setup
-      redhat_subscription:
+      community.general.redhat_subscription:
         state: present
         username: "{{ rhn_user }}"
         password: "{{ rhn_pass }}"
@@ -66,7 +66,7 @@
     - name: Install EPEL Release
       tags:
         - setup
-      yum:
+      ansible.builtin.yum:
         name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
         state: present
         disable_gpg_check: true
@@ -76,7 +76,7 @@
     - name: Install DCI Release
       tags:
         - setup
-      yum:
+      ansible.builtin.yum:
         name: "https://packages.distributed-ci.io/dci-release.el{{ ansible_distribution_major_version }}.noarch.rpm"
         state: present
         disable_gpg_check: true
@@ -87,7 +87,7 @@
       tags:
         - setup
         - pkgs
-      yum:
+      ansible.builtin.yum:
         name: "{{ extra_pkgs }}"
         state: present
 
@@ -95,7 +95,7 @@
       tags:
         - setup
         - install
-      yum:
+      ansible.builtin.yum:
         name: dci-openshift-agent
         state: present
 
@@ -103,7 +103,7 @@
       tags:
         - setup
         - install
-      authorized_key:
+      ansible.posix.authorized_key:
         user: dci-openshift-agent
         state: present
         key: "https://github.com/{{ github_user }}.keys"
@@ -115,7 +115,7 @@
         - setup
         - install
       become_user: dci-openshift-agent
-      file:
+      ansible.builtin.file:
         path: ~/tmp
         state: directory
 
@@ -124,8 +124,8 @@
         - install
         - create
         - config
-      copy:
-        src: "~dci-openshift-agent/samples/sno_on_libvirt/examples/hosts-{{ sno_mode|default('libvirt') }}"
+      ansible.builtin.copy:
+        src: "~dci-openshift-agent/samples/sno_on_libvirt/examples/hosts-{{ sno_mode | default('libvirt') }}"
         dest: /etc/dci-openshift-agent/hosts
         remote_src: true
 
@@ -134,7 +134,7 @@
         - install
         - create
         - config
-      copy:
+      ansible.builtin.copy:
         dest: /etc/dci-openshift-agent/dcirc.sh
         content: |
           export DCI_CLIENT_ID='{{ dci_client_id }}'
@@ -148,7 +148,7 @@
         - create
         - config
         - bashrc
-      copy:
+      ansible.builtin.copy:
         dest: /var/lib/dci-openshift-agent/.bashrc
         content: |
           export DCI_CLIENT_ID='{{ dci_client_id }}'
@@ -159,7 +159,7 @@
         group: dci-openshift-agent
 
     - name: Create .ssh directory for dci-openshift-agent user
-      file:
+      ansible.builtin.file:
         path: /var/lib/dci-openshift-agent/.ssh
         state: directory
         mode: u+rw,g-rwx,o-rwx
@@ -168,13 +168,13 @@
       tags: ssh
 
     - name: Create SSH keys
-      openssh_keypair:
+      community.crypto.openssh_keypair:
         path: /var/lib/dci-openshift-agent/.ssh/id_rsa
         type: ed25519
       tags: ssh
 
     - name: Set owner to dci-openshift-agent SSH keys
-      file:
+      ansible.builtin.file:
         path: "{{ item }}"
         state: file
         owner: dci-openshift-agent
@@ -185,18 +185,18 @@
       tags: ssh
 
     - name: Get the contents of the ssh key for {{ ansible_user_id }}
-      slurp:
+      ansible.builtin.slurp:
         src: "/var/lib/dci-openshift-agent/.ssh/id_rsa.pub"
       register: dcisshkey
       tags: ssh
 
     - name: Set Fact for the ssh key of dci-openshift-agent
-      set_fact:
+      ansible.builtin.set_fact:
         dcissh_pubkey: "{{ dcisshkey['content'] | b64decode }}"
       tags: ssh
 
     - name: Set authorized_keys for dci-openshift-agent
-      copy:
+      ansible.builtin.copy:
         content: |
           {{ dcissh_pubkey }}
         dest: /var/lib/dci-openshift-agent/.ssh/authorized_keys
@@ -206,7 +206,7 @@
       tags: ssh
 
     - name: Set default ssh client settings
-      copy:
+      ansible.builtin.copy:
         content: |
           Host *
                StrictHostKeyChecking no

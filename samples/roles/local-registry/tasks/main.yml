@@ -1,33 +1,33 @@
 ---
 - name: Create and configure user
-  include_tasks: users.yml
+  ansible.builtin.include_tasks: users.yml
   tags:
   - users
 
 - name: Create directory structure
-  include_tasks: directories.yml
+  ansible.builtin.include_tasks: directories.yml
   tags:
   - directories
 
 - name: Install additional packages
-  include_tasks: packages.yml
+  ansible.builtin.include_tasks: packages.yml
   tags:
   - packages
 
 - name: Configure system
-  include_tasks: config.yml
+  ansible.builtin.include_tasks: config.yml
   tags:
   - config
 
 - name: Create self-signed certificates
-  include_tasks: certificates.yml
+  ansible.builtin.include_tasks: certificates.yml
   tags:
   - ssl
   - config
   when: registry_cert_self|bool
 
 - name: Setup podman containers and services
-  include_tasks: service.yml
+  ansible.builtin.include_tasks: service.yml
   vars:
     podman_svc: "{{ item.svc }}"
     podman_cmd: "{{ item.cmd }}"

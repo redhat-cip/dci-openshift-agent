@@ -21,7 +21,7 @@
     acm_root_fs_url: "{{ hostvars.localhost.acm_rootfs_url }}"
     acm_disconnected: "{{ dci_disconnected | default(False) | bool }}"
     acm_user_registry: "{{ acm_registries }}"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.acm_sno
     apply:
       environment:
@@ -35,7 +35,7 @@
     - acm_cluster_type == 'hypershift'
   block:
     - name: "Setup MetalLB in L2 mode"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.metallb_setup
       vars:
         mlb_ipaddr_pool: "{{ metallb_ipaddr_pool_l2 }}"
@@ -73,20 +73,20 @@
         ah_disconnected: "{{ dci_disconnected | default(False) | bool }}"
         ah_release_image: "{{ acm_release_image }}"
         ah_force_deploy: true
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.acm_hypershift
         apply:
           environment:
             - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
 
 - name: Save the kubeconfig ({{ acm_cluster_type }})
-  copy:
+  ansible.builtin.copy:
     content: "{{ acm_kubeconfig_text }}"
     dest: "{{ dci_cluster_configs_dir }}/kubeconfig"
     mode: '0600'
 
 - name: Save credentials ({{ acm_cluster_type }})
-  copy:
+  ansible.builtin.copy:
     content: "{{ acm_cluster_type }} credentials\n
               ---\n
               username: {{ acm_kubeconfig_user }}\n

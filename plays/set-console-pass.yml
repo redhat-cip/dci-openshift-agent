@@ -1,6 +1,6 @@
 ---
 - name: Generate SHA-512 crypt hash of the password
-  command: "mkpasswd --method=sha-512 '{{ dci_console_pass }}'"
+  ansible.builtin.command: "mkpasswd --method=sha-512 '{{ dci_console_pass }}'"
   register: hashed_password
   no_log: true
 

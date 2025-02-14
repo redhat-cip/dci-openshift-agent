@@ -59,16 +59,15 @@
         - name: "Get and apply release signature"
           when: build != "nightly"
           block:
-
             - name: "Read the release file"
-              slurp:
+              ansible.builtin.slurp:
                 src: "{{ provision_cache_store | default(ansible_env.HOME + '/releases') }}/{{ target_version }}/release.txt"
               register: release_file_raw
 
             - name: "Set release image digest"
               vars:
                 release_file: "{{ release_file_raw['content'] | b64decode }}"
-              set_fact:
+              ansible.builtin.set_fact:
                 release_digest: "{{ release_file | regex_search('^Digest:\\s+sha256:(.*)$', '\\1', multiline=True) | first }}"
 
             - name: "Download the release signature"

@@ -1,11 +1,11 @@
 ---
 - name: "Create a temporary directory for job_logs"
-  tempfile:
+  ansible.builtin.tempfile:
     state: directory
     prefix: "dci_logs_{{ job_id | default('') }}_"
   register: job_logs
 
 - name: "Job logs path"
-  debug:
+  ansible.builtin.debug:
     msg: "{{ job_logs.path }}"
 ...

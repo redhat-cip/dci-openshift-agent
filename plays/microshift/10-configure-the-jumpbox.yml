@@ -1,6 +1,6 @@
 ---
 - name: Check the variables needed when configuring the jumpbox
-  assert:
+  ansible.builtin.assert:
     that:
       - _libvirt_pool_dir is defined
       - _suts is defined
@@ -26,7 +26,7 @@
     enabled: true
 
 - name: Ensure default pool storage is present
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.node_prep
     tasks_from: 80_libvirt_pool.yml
   ignore_errors: true
@@ -34,7 +34,7 @@
 - name: Ensure SSH key exists and has correct permissions
   block:
     - name: Check if id_rsa.pub exists
-      stat:
+      ansible.builtin.stat:
         path: "~/.ssh/id_rsa.pub"
       register: ssh_key_check
 
@@ -80,14 +80,14 @@
 
     - name: Delete the SUTs disk
       become: true
-      file:
-        path: "{{ _libvirt_pool_dir }}/{{ item.name}}.qcow2"
+      ansible.builtin.file:
+        path: "{{ _libvirt_pool_dir }}/{{ item.name }}.qcow2"
         state: absent
       with_items: "{{ _suts }}"
 
     - name: Create VMs that will receive Microshift
       become: true
-      command: >-
+      ansible.builtin.command: >-
         virt-install
         --name={{ item.name }}
         --virt-type=kvm
@@ -100,7 +100,7 @@
         --wait=0
       with_items: "{{ _suts }}"
 
-    - debug: # noqa unnamed-task
+    - ansible.builtin.debug: # noqa unnamed-task
         var: _dci_cluster_configs_dir # from group_vars/all
 
 - name: Create clusterconfigs directory
@@ -114,5 +114,5 @@
     http_dir: "{{ _http_store }}"
     http_data_dir: "{{ _http_store }}/data"
     inventory_validated: true
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.setup_http_store

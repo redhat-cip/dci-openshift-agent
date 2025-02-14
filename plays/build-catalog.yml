@@ -1,15 +1,15 @@
 ---
 - name: "Set facts for index fallback - Try up to 3 previous versions"
-  set_fact:
+  ansible.builtin.set_fact:
     fallback_counter: 0
     ocp_major: "{{ ocp_version.split('.')[0] }}"
     ocp_minor: "{{ ocp_version.split('.')[1] }}"
 
 - name: "Prune catalog - recursive"
-  include_tasks: prune-catalog.yml
+  ansible.builtin.include_tasks: prune-catalog.yml
 
 - name: "Required operators not found"
-  fail:
+  ansible.builtin.fail:
     msg: "All the required operators were not found"
   when: prune_count.stdout | int != mirror_list | length
 

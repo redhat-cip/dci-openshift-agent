@@ -2,17 +2,17 @@
 - name: "Build catalog from upstream operators"
   vars:
     short_ver: "{{ '.'.join(ocp_version.split('-')[0].split('.')[:2]) }}"
-  include_tasks: build-upstream-catalog.yml
+  ansible.builtin.include_tasks: build-upstream-catalog.yml
   when:
     - dci_disconnected | default(false) | bool or (dci_local_registry | length )
     - dci_upstream_operators | default(false) | bool
 
-- name: "Set mirror variable"
-  set_fact:
+- name: Set mirror variable
+  ansible.builtin.set_fact:
     mirror_list: {}
 
 - name: "Get operators defined in dci_operators"
-  set_fact:
+  ansible.builtin.set_fact:
     mirror_list: "{{ mirror_list | combine({ item: {} }) }}"
   loop: "{{ dci_operators | selectattr('catalog_source', 'equalto', opm_catalog_source_name)  | map(attribute='name') | list }}"
   when:
@@ -21,7 +21,7 @@
     - dci_pre_ga_catalog | default('') | length == 0
 
 - name: "Get the operators to mirror from dict"
-  set_fact:
+  ansible.builtin.set_fact:
     mirror_list: "{{ mirror_list | combine(opm_mirror_list) | default({}) }}"
   when:
     - dci_disconnected | default(false) | bool
@@ -29,11 +29,11 @@
     - dci_pre_ga_catalog | default('') | length == 0
 
 - name: "Cleanup operators list"
-  set_fact:
+  ansible.builtin.set_fact:
     mirror_list: "{{ mirror_list | dict2items | unique | items2dict }}"
 
 - name: "Operators to be mirrored"
-  debug:
+  ansible.builtin.debug:
     var: mirror_list
 
 - name: "Prune catalog and mirror the Red Hat operators"
@@ -43,7 +43,7 @@
     - mirror_list | length
   block:
     - name: "Build pruned catalog"
-      include_tasks: build-catalog.yml
+      ansible.builtin.include_tasks: build-catalog.yml
 
     - name: Check if IDMS is supported
       kubernetes.core.k8s_info:
@@ -52,7 +52,7 @@
       register: idms_res
 
     - name: "Mirror pruned catalog"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.mirror_catalog
       vars:
         mc_oc_tool_path: "{{ oc_tool_path }}"
@@ -63,12 +63,12 @@
         mc_continue_on_error: "{{ dci_continue_on_mirror_error  | default(false) }}"
 
     - name: "Append the Image Source file"
-      set_fact:
+      ansible.builtin.set_fact:
         is_files: "{{ is_files | default([]) + [mc_is_file.path] }}"
       when: mc_is_file is defined
 
     - name: "Create Red Hat disconnected catalogSource"
-      include_role:
+      ansible.builtin.include_role:
         name: redhatci.ocp.catalog_source
       vars:
         cs_name: "{{ opm_catalog_source_name }}"

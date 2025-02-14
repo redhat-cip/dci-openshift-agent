@@ -1,6 +1,6 @@
 ---
 - name: Check the variables needed to build the Microshift ISO
-  assert:
+  ansible.builtin.assert:
     that:
       - _microshift is defined
       - _job is defined
@@ -10,7 +10,7 @@
 
 - name: Get the GA minor version of RHOCP (todo replace hardcoded value)
   # see https://github.com/openshift/microshift/blob/main/scripts/get-latest-rhocp-repo.sh
-  set_fact:
+  ansible.builtin.set_fact:
     rhocp_ga_minor_version: "4.15"
 
 - name: Build the Microshift ISO image
@@ -23,5 +23,5 @@
     microshift_generate_iso_localhost_folder: "{{ _http_store }}/data/"
     microshift_generate_iso_microshift_iso_name: "microshift.iso"
     microshift_generate_iso_ssh_key: "{{ _ssh_public_key_content }}"
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.microshift_generate_iso

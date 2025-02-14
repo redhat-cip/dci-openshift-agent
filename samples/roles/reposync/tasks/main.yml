@@ -1,14 +1,14 @@
 ---
 - block:
     - name: Create the directory structure
-      file:
+      ansible.builtin.file:
         path: "{{ reposync_base }}/{{ item.releasever | default(ansible_distribution_major_version) }}"
         state: directory
         recurse: true
       with_list: "{{ reposync_repos }}"
 
     - name: Create script to mirror
-      template:
+      ansible.builtin.template:
         src: sync-repos.sh.j2
         dest: "{{ reposync_base }}/sync-repos.sh"
         mode: 0755

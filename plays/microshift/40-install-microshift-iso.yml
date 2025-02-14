@@ -1,12 +1,12 @@
 ---
 - name: Check the variables needed to install ISO on SUTs
-  assert:
+  ansible.builtin.assert:
     that:
       - _suts is defined
     quiet: true
 
 - name: Install ISO on SUTs
-  include_role:
+  ansible.builtin.include_role:
     name: redhatci.ocp.vendors.kvm
     tasks_from: iso.yml
   vars:
