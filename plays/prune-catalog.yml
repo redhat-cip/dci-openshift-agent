@@ -13,7 +13,7 @@
     pc_source_catalog: "{{ operators_index | default('registry.redhat.io/redhat/redhat-operator-index:v' + ocp_major + '.' + ocp_minor) }}"
     pc_destination_catalog: "{{ dci_prune_index }}"
     pc_operators: "{{ mirror_list }}"
-    pc_expire: true
+    pc_expire: "{{ dci_catalogimage_expire | default(true) }}"
     pc_expire_time: "{{ dci_catalog_image_expiration | default('24h') }}"
     pc_ignore_pull_errors: true
     pc_opm_args: "--skip-tls-verify=true"
