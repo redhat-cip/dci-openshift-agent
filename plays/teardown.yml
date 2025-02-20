@@ -40,4 +40,32 @@
     name: redhatci.ocp.setup_netobserv_stack
   when:
     - enable_netobserv | bool
+
+- name: "Teardown ACM-SNO cluster"
+  vars:
+    acm_cluster_name: "{{ hostvars.localhost.acm_cluster_name }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.acm_sno
+    tasks_from: delete-cluster.yml
+    apply:
+      environment:
+        - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+  when:
+    - (install_type | default('ipi')) == 'acm'
+    - acm_cluster_type == 'sno'
+
+- name: Remove the ZTP managed cluster from ArgoCD
+  vars:
+    asm_action: "delete-ztp-by-ref"
+    asm_source_repo: "{{ dci_gitops_sites_repo.url }}"
+    asm_target_revision: "{{ dci_gitops_sites_repo.branch }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.acm_spoke_mgmt
+    apply:
+      environment:
+        - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+  when:
+    - dci_gitops_sites_repo.url | default('') | length
+    - dci_gitops_sites_repo.branch | default('') | length
+    - acm_cluster_type == 'ztp-spoke'
 ...
