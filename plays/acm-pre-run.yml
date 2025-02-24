@@ -1,4 +1,47 @@
 ---
+- name: Include installed software as components
+  vars:
+    mandatory_rpms:
+      - ansible
+      - ansible-collection-redhatci-ocp
+      - dci-ansible
+      - dci-openshift-agent
+      - dci-pipeline
+      - python3-dciclient
+      - python3-kubernetes
+      - python3-openshift
+    ic_rpms: "{{ (dci_rpms_to_components + mandatory_rpms)|flatten }}"
+    ic_gits: "{{ dci_gits_to_components|flatten }}"
+    ic_dev_gits: "{{ dev_gits_to_components|flatten }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.include_components
+
+- name: "Create component for GitOps repository"
+  dci_component:
+    display_name: "GitOps Sites"
+    version: "{{ dci_gitops_sites_repo.branch | default('main') }}"
+    type: "gitops-sites"
+    url: "{{ dci_gitops_sites_repo.url }}"
+    team_id: "{{ job_info['job']['team_id'] }}"
+    topic_id: "{{ job_info['job']['topic_id'] }}"
+    state: present
+  register: gitops_repo_component
+  ignore_errors: true
+  when:
+    - dci_gitops_sites_repo.url | default('') | length
+
+- name: "Attach GitOps Sites component to the job"
+  dci_job_component:
+    component_id: "{{ gitops_repo_component.component.id }}"
+    job_id: "{{ job_id }}"
+  register: job_component_result
+  until: job_component_result is not failed
+  retries: 5
+  delay: 20
+  when:
+    - "'component' in gitops_repo_component"
+    - "'id' in gitops_repo_component.component"
+  ignore_errors: true
 
 - name: "Get cluster pull-secret"
   ansible.builtin.include_tasks: get-cluster-pullsecret.yml
