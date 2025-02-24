@@ -111,6 +111,19 @@
     - dci_sos_report_nodes is defined
     - dci_sos_report_nodes | length
 
+- name: Gathering results for storage service tester
+  ansible.builtin.include_role:
+    name: redhatci.ocp.storage_tester
+    tasks_from: gathering-logs.yml
+    apply:
+      environment:
+        REGISTRY: "{% if dci_local_registry is defined %}{{ dci_local_registry }}{% else %}registry.redhat.io{% endif %}"
+        OC_PATH: "{{ oc_tool_path }}"
+  when:
+    - dci_main is defined
+    - dci_main == 'upgrade'
+    - storage_upgrade_tester | default(false) | bool
+
 - name: Find test Junit files
   ansible.builtin.find:
     paths: "{{ job_logs.path }}"

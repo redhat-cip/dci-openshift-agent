@@ -759,6 +759,8 @@ A DCI job produces a set of relevant configuration files, logs, reports, and tes
 | openshift_install_state.json                    | Files   | The installation state of the cluster, contains paramaters used, progress, etc.           |
 | operators.json                                  | Files   | A JSON file with details about the operators installed in the cluster                     |
 | worker-kernel-params.json                       | Files   | A JSON file with details about the kernel argsuments used by the workers                  |
+| virtual-machines.txt                            | Files   | List of VMs and VMIs allocated on the host cluster                                        |
+| pvc.txt                                         | Files   | List of allocated Persistent Volume Claims                                                |
 
 You may find extra files for the case of Assisted jobs:
 
