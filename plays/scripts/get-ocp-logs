@@ -65,6 +65,9 @@ ${oc_path} get mcp >> "${log_dir}/${prefix}machine-configs.txt"
 ${oc_path} get mc >> "${log_dir}/${prefix}machine-configs.txt"
 ${oc_path} get csr > "${log_dir}/${prefix}csr.txt"
 ${oc_path} get subs -A -o json | jq '[.items[] | {operator_name: .spec.name, version: .status.installedCSV, catalog: .spec.source }]' > "${log_dir}/operators.json"
+${oc_path} get pvc -A > "${log_dir}/pvc.txt"
+${oc_path} get crd virtualmachineinstances.kubevirt.io &>/dev/null && ${oc_path} get vmi -A > "${log_dir}/virtual-machines.txt"
+${oc_path} get crd virtualmachines.kubevirt.io &>/dev/null && ${oc_path} get vm -A >> "${log_dir}/virtual-machines.txt"
 
 # Check for ImageDigestMirrorSets
 idms=$(\

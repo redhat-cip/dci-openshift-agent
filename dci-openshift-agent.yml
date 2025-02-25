@@ -207,6 +207,9 @@
               tags: [dci]
               delegate_to: localhost
 
+            - name: Upload logs
+              ansible.builtin.include_tasks: plays/get-logs.yml
+
             - name: Teardown hooks
               when: dci_teardown_on_failure|bool
               delegate_to: localhost
@@ -342,6 +345,9 @@
               loop_control:
                 loop_var: hookdir
               ignore_errors: true
+
+            - name: Get Logs
+              ansible.builtin.include_tasks: plays/get-logs.yml
 
             - name: Teardown Hooks
               when: dci_teardown_on_failure|bool
