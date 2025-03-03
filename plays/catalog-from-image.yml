@@ -20,12 +20,23 @@
     - dci_operators | default([]) | length
     - dci_pre_ga_catalog | default('') | length == 0
 
-- name: "Get the operators to mirror from dict"
+- name: "Get the operators to mirror from a dict"
   ansible.builtin.set_fact:
     mirror_list: "{{ mirror_list | combine(opm_mirror_list) | default({}) }}"
   when:
     - dci_disconnected | default(false) | bool
     - opm_mirror_list | type_debug == "dict"
+    - dci_pre_ga_catalog | default('') | length == 0
+
+- name: "Get the operators to mirror from a list"
+  vars:
+    mirr_list: "{{ dict(opm_mirror_list | zip([None] * opm_mirror_list | length)) }}"
+  ansible.builtin.set_fact:
+    mirror_list: "{{ mirror_list | combine(mirr_list) }}"
+  when:
+    - dci_disconnected | default(false) | bool
+    - opm_mirror_list | type_debug == "list"
+    - opm_mirror_list | length
     - dci_pre_ga_catalog | default('') | length == 0
 
 - name: "Cleanup operators list"
