@@ -160,6 +160,7 @@
       ansible.builtin.import_role:
         name: redhatci.ocp.installer
 
+  always:
     - name: "Remove artifact webserver"
       containers.podman.podman_container:
         name: "{{ hostvars.localhost.job_id }}"
