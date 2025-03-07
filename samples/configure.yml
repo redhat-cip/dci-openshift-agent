@@ -1,57 +1,170 @@
-- name: Generate /etc/hosts
-  lineinfile:
-    dest: /etc/hosts
-    line: '{{ item.openstack.private_v4 }} {{ item.item.name }}.{{ domain }} {{ item.item.name }}'
+# vim: ft=yaml.ansible
+---
+- name: Setup DCI test lab
+  hosts: jumpbox
   become: true
-  with_items: "{{ hostvars.localhost.vms.results }}"
+  vars:
+    rhsm_org_id: "{{ vault_rhsm_org_id }}"  # from https://console.redhat.com
+    rhsm_activation_key: "{{ vault_rhsm_activation_key }}"  # from https://console.redhat.com/insights/connector/activation-keys
+    dci_client_id: "{{ vault_dci_client_id }}"  # from https://www.distributed-ci.io/remotecis
+    dci_api_secret: "{{ vault_dci_api_secret }}"  # from https://www.distributed-ci.io/remotecis
+    dci_cs_url: "https://api.distributed-ci.io/"
+    insights_tags: "{{ my_insights_tags | default({}) }}"  # a dictionary
+    extra_rhel_repos:
+      - "codeready-builder-for-rhel-{{ ansible_distribution_major_version }}-{{ ansible_architecture }}-rpms"
+      - ansible-2-for-rhel-{{ ansible_distribution_major_version }}-{{ ansible_architecture }}-rpms
+    third_party_releases:
+      dci:
+        url: "https://packages.distributed-ci.io/dci-release.el{{ ansible_distribution_major_version }}.noarch.rpm"
+        key: https://packages.distributed-ci.io/RPM-GPG-KEY-DCI-2024
+      epel:
+        url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+        key: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
 
-- name: Register the node
-  redhat_subscription:
-    state: present
-    username: '{{ rhsm_username }}'
-    password: '{{ rhsm_password }}'
-    autosubscribe: true
-  become: true
+  tasks:
+    - name: Set host name
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+        use: systemd
 
-- name: Disable all repositories
-  rhsm_repository:
-    name: '*'
-    state: disabled
-  become: true
+    - name: RHEL management
+      when: ansible_distribution == 'RedHat'
+      block:
+        - name: Subscribe to RHSM
+          community.general.redhat_subscription:
+            state: present
+            activationkey: "{{ rhsm_activation_key }}"
+            org_id: "{{ rhsm_org_id }}"
 
-- name: Enable RHEL repositories
-  rhsm_repository:
-    name:
-      - rhel-7-server-rpms
-      - rhel-7-server-extras-rpms
-      - rhel-7-server-ansible-{% if dci_topic.split('-')[1]|float > 3.10 %}2.6{% else %}2.4{% endif %}-rpms
-    state: enabled
-  become: true
+        - name: Install RH Insights
+          ansible.builtin.dnf:
+            name: insights-client
+            state: present
+          when: not ansible_check_mode
 
-- name: Ensure packages are updated
-  yum:
-    name: '*'
-    state: latest
-  become: true
+        - name: Configure insights tags
+          ansible.builtin.copy:
+            content: "{{ insights_tags | to_nice_yaml }}"
+            dest: /etc/insights-client/tags.yaml
+            mode: '0644'
 
-- name: Enable DCI Openshift repository
-  get_url:
-    url: '{{ dci_baseurl }}/dci_repo/dci_repo.repo'
-    dest: /etc/yum.repos.d/dci_repo.repo
-  become: true
+        - name: Register to RH insights
+          ansible.builtin.command:
+            cmd: "insights-client --register --display-name={{ inventory_hostname }}"
+            creates: /etc/insights-client/machine-id
 
-- name: Reboot the node
-  shell: |
-    sleep 3
-    reboot
-  become: true
-  async: 1
-  poll: 0
+        - name: Add extra repos
+          ansible.builtin.command:
+            cmd: subscription-manager repos --enable={{ item }}
+          changed_when: false
+          loop: "{{ extra_rhel_repos }}"
 
-- name: Wait for the nodes to be back online
-  wait_for:
-    host: '{{ ansible_host }}'
-    port: 22
-    search_regex: OpenSSH
-    delay: 15
-  delegate_to: localhost
+    - name: Import RPM keys for third party packages
+      ansible.builtin.rpm_key:
+        key: "{{ item.value.key }}"
+        state: present
+      loop: "{{ third_party_releases | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+
+    - name: Install third party packages
+      ansible.builtin.dnf:
+        name: "{{ item.value.url }}"
+        state: present
+      when: not ansible_check_mode
+      loop: "{{ third_party_releases | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+
+    - name: Add ansible-runner repo
+      ansible.builtin.command:
+        cmd: "dnf config-manager --add-repo=https://releases.ansible.com/ansible-runner/ansible-runner.el{{ ansible_distribution_major_version }}.repo"
+        creates: "/etc/yum.repos.d/ansible-runner.el{{ ansible_distribution_major_version }}.repo"
+
+    - name: Install ansible packages
+      ansible.builtin.dnf:
+        name:
+          - dnf-plugin-versionlock
+          - ansible-2.9.27
+        state: present
+      when: not ansible_check_mode
+
+    - name: Lock ansible version
+      community.general.dnf_versionlock:
+        name: ansible
+        state: present
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Install dci-openshift-agent
+      ansible.builtin.dnf:
+        name: dci-openshift-agent
+        state: present
+      when: not ansible_check_mode
+
+    - name: Create ~dci-openshift-agent/.ssh
+      ansible.builtin.file:
+        path: "{{ '~dci-openshift-agent/.ssh' | expanduser }}"
+        state: directory
+        mode: '0750'
+        owner: dci-openshift-agent
+        group: dci-openshift-agent
+
+    - name: Create SSH key
+      vars:
+        _type: rsa
+      community.crypto.openssh_keypair:
+        path: "{{ '~dci-openshift-agent' | expanduser }}/.ssh/id_{{ _type }}"
+        state: present
+        mode: '0600'
+        owner: dci-openshift-agent
+        group: dci-openshift-agent
+        type: "{{ _type }}"
+      register: keypair
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Keyscan localhost
+      ansible.builtin.command: ssh-keyscan localhost
+      register: localhost_key
+      changed_when: false
+
+    - name: Copy localhost keys to known_hosts
+      ansible.builtin.copy:
+        dest: "{{ '~dci-openshift-agent/.ssh/known_hosts' | expanduser }}"
+        content: "{{ localhost_key.stdout }}"
+        mode: '0640'
+        owner: dci-openshift-agent
+        group: dci-openshift-agent
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Add generated keypair to authorized_keys
+      ansible.builtin.lineinfile:
+        path: "{{ '~dci-openshift-agent/.ssh/authorized_keys' | expanduser }}"
+        line: "{{ keypair.public_key }}"
+        state: present
+        create: true
+        mode: '0640'
+        owner: dci-openshift-agent
+        group: dci-openshift-agent
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Create dcirc.sh file
+      ansible.builtin.copy:
+        dest: /etc/dci-openshift-agent/dcirc.sh
+        content: |
+          export DCI_CLIENT_ID={{ dci_client_id }}
+          export DCI_API_SECRET={{ dci_api_secret }}
+          export DCI_CS_URL={{ dci_cs_url }}
+        mode: '0644'
+        owner: dci-openshift-agent
+        group: dci-openshift-agent
+
+    - name: Create credentials file
+      ansible.builtin.copy:
+        dest: /etc/dci-pipeline/credentials.yml
+        content: |
+          ---
+          DCI_CLIENT_ID: {{ dci_client_id }}
+          DCI_API_SECRET: {{ dci_api_secret }}
+          DCI_CS_URL: {{ dci_cs_url }}
+        mode: '0644'
+...

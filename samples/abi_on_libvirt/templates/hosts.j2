@@ -1,13 +1,15 @@
 all:
   vars:
     install_type: "abi"
-    vm_node_prefix: ''
+    vm_node_prefix: "{{ vm_node_prefix | default('') }}"
     # Flags to enable/disable prerequisite service setup
     # You will need to ensure alternatives are available for anything that will not be automatically set up
-    setup_http_store_service: true  # always required to serve boot.iso to nodes
-    setup_ntp_service: {{ setup_ntp_service | default('false') | bool | string | lower }}  # recommended true for libvirt setups
-    setup_dns_service: {{ setup_dns_service | default('false') | bool | string | lower }}  # recommended true for libvirt setups
+    setup_http_store_service: {{ setup_http_store_service | default('true') | bool | string | lower }} # required for ABI setup
+    setup_ntp_service: {{ setup_ntp_service | default('true') | bool | string | lower }}  # recommended true for libvirt setups
+    setup_dns_service: {{ setup_dns_service | default('true') | bool | string | lower }}  # recommended true for libvirt setups
     setup_registry_service: {{ setup_registry_service | default('false') | bool | string | lower }}  # set to true on restricted network
+    setup_vms: {{ setup_vms | default('true') | bool | string | lower }}  # default to true on dev envs
+    setup_conserver: {{ setup_conserver | default('true') | bool | string | lower }}
     use_local_mirror_registry: {{ use_local_mirror_registry | default('false') | bool | string | lower }}  # set to true on restricted network
 
     # Local cache configuration
@@ -232,6 +234,7 @@ all:
           qemu_user: root  # we want the VMs to belong to root
           host_ip_keyword: ansible_host # the varname in the KVM node hostvars which contains the *IP* of the VM
           images_dir: /var/lib/libvirt/images
+          socket_console: true  # conserver access via direct socket
           vm_bridge_name: "{{ vm_bridge_name | default('br0') }}"
           vm_network_test_ip: "{{ ansible_default_ipv4.address }}"
           SETUP_VM_BRIDGE: {{ setup_vm_bridge | default(false) | bool | string | lower }}

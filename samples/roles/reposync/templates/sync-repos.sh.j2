@@ -1,8 +1,0 @@
-#!/bin/bash -x
-{% for item in reposync_repos %}
-/usr/bin/dnf reposync \
-  --releasever="{{ item.releasever | default(ansible_distribution_major_version) }}" \
-  --repoid="{{ item.repoid }}" \
-  --download-metadata \
-  --download-path="{{ reposync_base }}/{{ item.releasever | default(ansible_distribution_major_version) }}"
-{% endfor %}

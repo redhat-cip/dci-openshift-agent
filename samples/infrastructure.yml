@@ -1,23 +1,200 @@
 ---
-- hosts: registry_host
+- name: Provision HTTP service
+  hosts: http_store
   become: true
-
   tasks:
-  - name: Setup podman
-    tags:
-    - podman
-    include_role:
-      name: ansible-role-dci-podman
+    - name: Setup http store
+      ansible.builtin.import_role:
+        name: redhatci.ocp.setup_http_store
+      when: setup_http_store_service | default(false) | bool
+      tags:
+        - httpd
+        - mirror
 
-  - name: Create local registry
-    tags:
-    - registry
-    include_role:
-      name: local-registry
+- name: Provision container registry
+  hosts: registry_host
+  become: true
+  tasks:
+    - name: Setup mirror registry
+      ansible.builtin.import_role:
+        name: redhatci.ocp.setup_mirror_registry
+      when: setup_registry_service | default(false) | bool
+      tags:
+        - registry
+        - mirror
 
-  - name: Create RPM mirroring infra
-    tags:
-    - mirror
-    include_role:
-      name: reposync
+- name: Process KVM nodes
+  hosts: bastion
+  become: true
+  tasks:
+    - name: Process kvm nodes
+      ansible.builtin.import_role:
+        name: redhatci.ocp.process_kvm_nodes
+      when: setup_vms | default(false) | bool
+      tags:
+        - vm
+        - libvirt
+
+- name: Provision VMS
+  hosts: vm_hosts
+  become: true
+  tasks:
+    - name: Destroy vms
+      ansible.builtin.import_role:
+        name: redhatci.ocp.destroy_vms
+      when: setup_vms | default(false) | bool
+      tags:
+        - libvirt
+        - destroy_vms
+
+    - name: Setup vm host network
+      ansible.builtin.import_role:
+        name: redhatci.ocp.setup_vm_host_network
+      when: setup_vm_bridge | default(setup_vms) | bool
+      tags:
+        - libvirt
+
+    - name: Configure firewall for vm_bridge_zone
+      when:
+        - setup_vm_bridge | default(setup_vms) | bool
+        - vm_bridge_zone is defined
+      tags:
+        - libvirt
+      block:
+        - name: Move bridge to designated firewall zone
+          community.general.nmcli:
+            conn_name: "{{ vm_bridge_name }}"
+            state: present
+            zone: "{{ vm_bridge_zone }}"
+
+        - name: Create Iptables NAT chain
+          ansible.builtin.iptables:
+            table: nat
+            chain: POSTROUTING
+            source: '{{ machine_network_cidr }}'
+            destination: '! {{ machine_network_cidr }}'
+            jump: MASQUERADE
+            protocol: all
+            comment: Ansible NAT Masquerade
+
+        - name: Manage IPv4 forwarding
+          ansible.posix.sysctl:
+            name: net.ipv4.ip_forward
+            value: '1'
+            state: present
+            reload: true
+
+    - name: Create vms
+      vars:
+        create_vms_disable_secure_boot: "{{ disable_secure_boot | default(false) | bool }}"
+      ansible.builtin.import_role:
+        name: redhatci.ocp.create_vms
+      when: setup_vms | bool
+      tags:
+        - setup_vms
+        - libvirt
+
+- name: Setup DNS Records
+  hosts: dns_host
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Insert DNS records
+      ansible.builtin.import_role:
+        name: redhatci.ocp.insert_dns_records
+      when: setup_dns_service | default(false) | bool
+      tags:
+        - dns
+
+    - name: Use /etc/hosts
+      ansible.builtin.copy:
+        content: |
+          # /etc/NetworkManager/dnsmasq.d/02-add-hosts.conf
+          # By default, the plugin does not read from /etc/hosts.
+          # This forces the plugin to slurp in the file.
+          #
+          # If you didn't want to write to the /etc/hosts file.  This could
+          # be pointed to another file.
+          #
+          addn-hosts=/etc/hosts
+        dest: /etc/NetworkManager/dnsmasq.d/02-add-hosts.conf
+        mode: '0644'
+      tags:
+        - dns
+
+    - name: Remove expand-hosts entry
+      ansible.builtin.lineinfile:
+        path: /etc/NetworkManager/dnsmasq.d/dnsmasq.{{ cluster_name }}.conf
+        state: absent
+        regexp: ^expand-hosts
+      tags:
+        - dns
+
+    - name: "Restart NetworkManager"
+      ansible.builtin.service:
+        name: NetworkManager
+        state: restarted
+      tags:
+        - dns
+
+    - name: Validate dns records
+      ansible.builtin.import_role:
+        name: redhatci.ocp.validate_dns_records
+      tags:
+        - dns
+
+- name: Setup NTP
+  hosts: ntp_host
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Setup NTP
+      ansible.builtin.import_role:
+        name: redhatci.ocp.setup_ntp
+      when: setup_ntp_service | default(false) | bool
+      tags:
+        - ntp
+
+- name: Deploy sushy tools
+  hosts: vm_hosts
+  become: true
+  tasks:
+    - name: Setup sushy tools
+      vars:
+        fetched_dest: "{{ '~/clusterconfigs' | expanduser }}-{{ cluster_name }}"
+      ansible.builtin.import_role:
+        name: redhatci.ocp.setup_sushy_tools
+      when: setup_sushy_tools | default(setup_vms | default(false)) | bool
+      tags:
+        - vms
+        - sushy
+
+- name: Clean-up nodes - Mainly Baremetal use cases
+  hosts: bastion
+  become: true
+  tasks:
+    - name: Erase bootloader to prevent old OS to boot
+      delegate_to: "{{ item }}"
+      ansible.builtin.shell: |
+        if grep 'Red Hat Enterprise Linux CoreOS' /etc/os-release; then
+          for disk in /dev/sd?; do
+            dd if=/dev/zero of=$disk bs=512 count=1
+          done
+        fi
+      when:
+        - dci_erase_bootloader_on_disk | default(False) | bool
+        - dci_main is not defined or dci_main == 'install'
+      with_items: "{{ groups['masters'] + (groups['workers'] | default([])) }}"
+      ignore_unreachable: true
+      ignore_errors: true
+
+    - name: Empty Console log files if present
+      ansible.builtin.command: dd if=/dev/null of="{{ item }}"
+      with_fileglob:
+        - "/var/consoles/{{ cluster }}/{{ cluster }}*"
+      when:
+        - cluster is defined
+      ignore_errors: true
+      tags:
+        - conserver
 ...
