@@ -42,7 +42,8 @@ rendezvouz_ssh="ssh ${ssh_ops} ${ssh_user}@${rendezvous_ip_address}"
 
 # Build the list of nodes that compose the cluster, based on last arguments
 # Removing domain name if the hostname contains it
-shift 2
+# shift 3 will ignore logs_dir argument as well
+shift 3
 nodes=()
 for name in "$@"; do
   host_name=$(echo "$name" | cut -d"." -f1)
@@ -85,6 +86,10 @@ echo "Gather host's journals"
 
 for h in "${nodes[@]}"; do
   ssh ${ssh_ops} core@"${h}.${domain_name}" 'sudo journalctl --all --since "4 hours ago"' > "${log_dir}/journal-${h}.log"
+  if [ $? -ne 0 ]; then
+  echo "Attempting to collect logs again with hostname ${domain_name}"
+  ssh ${ssh_ops} core@"${domain_name}" 'sudo journalctl --all --since "4 hours ago"' > "${log_dir}/journal-${h}.log"
+  fi
   # Get kernel parameters only from one worker in the list
   if grep -q "worker" <<< "${h}" &&
     [[ ! -s "${log_dir}/worker-kernel-params.txt" ]]; then
