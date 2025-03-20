@@ -1,4 +1,15 @@
 ---
+- name: Deploy a ZTP spoke cluster with SiteConf Operator
+  ansible.builtin.include_tasks:
+    file: acm-ztp-spoke-clusterinstance.yml
+  when:
+    - acm_cluster_type == 'ztp-spoke-clusterinstance'
+  # TODO: ACM naming needs a review, now we have multiple ways to reference it
+  # By number of nodes: SNO, MNO
+  # By installer: AI, ABI, HCP.
+  # By ZTP: with gitops, without it.
+  # On top of that we have diff concepts for clusters from ACM: spoke, managed
+
 - name: "Deploy a ZTP spoke cluster"
   ansible.builtin.include_tasks:
     file: acm-ztp-spoke.yml
@@ -28,7 +39,6 @@
         - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
   when:
     - acm_cluster_type == 'sno'
-
 
 - name: "Deploy a MetalLB and Hypershift cluster via ACM"
   when:

@@ -1,0 +1,92 @@
+---
+- name: Create ClusterImageSets
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: hive.openshift.io/v1
+      kind: ClusterImageSet
+      metadata:
+        name: "dci-{{ version }}"
+      spec:
+        releaseImage: "{{ version_pull_url }}"
+
+- name: Force deletion of Managed Cluster
+  when:
+    - dci_force_deploy_spoke | default(false) | bool
+  block:
+    - name: Get previous ManagedCluster
+      kubernetes.core.k8s_info:
+        api_version: cluster.open-cluster-management.io/v1
+        kind: ManagedCluster
+        name: "{{ cluster_name }}"
+      register: old_managed_cluster
+
+    - name: Delete current cluster
+      ansible.builtin.include_role:
+        name: redhatci.ocp.acm_sno
+        tasks_from: delete-cluster.yml
+      vars:
+        acm_cluster_name: "{{ cluster_name }}"
+      when:
+        - old_managed_cluster.resources | length > 0
+
+- name: Get ACM hub data used to render ClusterInstance templates
+  ansible.builtin.include_role:
+    name: redhatci.ocp.acm_sno
+    tasks_from: acm-pull-data.yml
+  no_log: true
+
+- name: Create ns for the spoke ClusterInstance
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ cluster_name }}"
+    wait: true
+
+- name: Apply templates to create the spoke ClusterInstance
+  vars:
+    clusterinstance_namespace: "{{ cluster_name }}"
+  kubernetes.core.k8s:
+    state: present
+    template: "{{ item }}"
+    wait: true
+  with_fileglob:
+    - "{{ dci_clusterinstance_template_dir }}/{{ cluster_name }}-*.j2"
+
+- name: Wait for the deployment to start
+  kubernetes.core.k8s_info:
+    api: extensions.hive.openshift.io/v1beta1
+    kind: AgentClusterInstall
+    name: "{{ cluster }}"
+    namespace: "{{ cluster_name }}"
+  register: install_started
+  delay: 10
+  retries: 120
+  until:
+    - install_started.resources is defined
+    - install_started.resources | length > 0
+    - install_started.resources[0].status is defined
+    - install_started.resources[0].status.progress is defined
+    - install_started.resources[0].status.progress.totalPercentage is defined
+    - install_started.resources[0].status.debugInfo is defined
+    - install_started.resources[0].status.debugInfo.state is defined
+
+- name: Monitor Set monitoring facts
+  ansible.builtin.set_fact:
+    elapsed_time: 0
+    node_rebooted: false
+
+- name: Monitor installation
+  ansible.builtin.include_role:
+    name: redhatci.ocp.acm_sno
+    tasks_from: monitor-install
+  vars:
+    acm_cluster_name: "{{ cluster }}"
+
+- name: Get Spoke cluster credentials
+  ansible.builtin.include_role:
+    name: redhatci.ocp.acm_sno
+    tasks_from: get-credentials
+  vars:
+    acm_cluster_name: "{{ cluster }}"

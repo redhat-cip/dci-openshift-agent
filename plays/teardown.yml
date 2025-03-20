@@ -52,7 +52,7 @@
         - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
   when:
     - (install_type | default('ipi')) == 'acm'
-    - acm_cluster_type == 'sno'
+    - acm_cluster_type in ['sno', 'ztp-spoke-clusterinstance']
 
 - name: Remove the ZTP managed cluster from ArgoCD
   vars:
