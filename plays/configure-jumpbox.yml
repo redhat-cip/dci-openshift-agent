@@ -15,6 +15,13 @@
       - python3-passlib  # Comes from EPEL, required in redhatci.ocp/oc_setup
     state: installed
 
+- name: Install libraries required by some old openshift installer binaries
+  become: true
+  ansible.builtin.package:
+    name:
+      - libvirt-libs
+    state: installed
+
 - name: Install grpcurl when uninstalled
   block:
     - name: Check grpcurl is installed
