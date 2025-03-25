@@ -177,6 +177,8 @@
       kind: ClusterVersion
       spec:
         channel: "{{ dci_ocp_channel | default('fast') }}-{{ base_version }}"
+  register: patch_channel_result
+  until: patch_channel_result is not failed
   retries: 6
   delay: 10
   when:
