@@ -169,6 +169,20 @@
         - vms
         - sushy
 
+- name: Install and configure conserver
+  hosts: bastion
+  become: true
+  tasks:
+    - name: Setup conserver
+      vars:
+        cluster_nodes: "{{ groups['masters'] + (groups['workers'] | default([])) }}"
+      ansible.builtin.import_role:
+        name: redhatci.ocp.conserver
+      when:
+        - setup_conserver or enable_conserver | default(true) | bool
+      tags:
+        - conserver
+
 - name: Clean-up nodes - Mainly Baremetal use cases
   hosts: bastion
   become: true
