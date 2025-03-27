@@ -18,7 +18,7 @@
   when:
     - dci_disconnected | default(false) | bool
     - dci_operators | default([]) | length
-    - dci_pre_ga_catalog | default('') | length == 0
+    - dci_pre_ga_catalog is undefined
 
 - name: "Get the operators to mirror from a dict"
   ansible.builtin.set_fact:
@@ -26,7 +26,7 @@
   when:
     - dci_disconnected | default(false) | bool
     - opm_mirror_list | type_debug == "dict"
-    - dci_pre_ga_catalog | default('') | length == 0
+    - dci_pre_ga_catalog is undefined
 
 - name: "Get the operators to mirror from a list"
   vars:
@@ -37,7 +37,7 @@
     - dci_disconnected | default(false) | bool
     - opm_mirror_list | type_debug == "list"
     - opm_mirror_list | length
-    - dci_pre_ga_catalog | default('') | length == 0
+    - dci_pre_ga_catalog is undefined
 
 - name: "Cleanup operators list"
   ansible.builtin.set_fact:

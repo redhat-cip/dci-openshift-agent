@@ -99,6 +99,14 @@
       retries: 6
       delay: 10
 
+- name: Get Pre-GA DCI component
+  ansible.builtin.set_fact:
+    dci_pre_ga_catalog: "{{ component.url }}"
+  loop: "{{ job_info.job.components + [custom_component] if custom_component is defined else job_info.job.components }}"
+  loop_control:
+    loop_var: component
+  when: component.type == 'prega-operator-index'
+
 - name: "Catalog from Image"
   ansible.builtin.include_tasks:
     file: catalog-from-image.yml
@@ -135,7 +143,7 @@
       environment:
         DOCKER_CONFIG: "{{ docker_conf.path }}"
   when:
-    - dci_pre_ga_catalog | default('') | length
+    - dci_pre_ga_catalog is defined
 
 - name: "Remove docker auths directory"
   ansible.builtin.file:
