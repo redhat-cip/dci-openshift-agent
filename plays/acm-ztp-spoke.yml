@@ -133,7 +133,8 @@
 
 - name: Get Spoke cluster credentials
   ansible.builtin.include_role:
-    name: redhatci.ocp.acm_sno
+    name: redhatci.ocp.acm.utils
     tasks_from: get-credentials
   vars:
-    acm_cluster_name: "{{ cluster }}"
+    utils_cluster_name: "{{ cluster }}"
+    utils_cluster_namespace: "{{ cluster }}"
