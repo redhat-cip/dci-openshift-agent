@@ -120,16 +120,22 @@
     - install_started.resources[0].status.debugInfo.state is defined
 
 - name: "Monitor: Set monitoring facts"
+  vars:
+    reqs: "{{ install_started.resources[0].spec.provisionRequirements }}"
+    nodes: >-
+      {{ reqs.controlPlaneAgents | int + reqs.workerAgents | default(0) | int }}
   ansible.builtin.set_fact:
-    elapsed_time: 0
-    node_rebooted: false
+    _acm_ztp_monitor_timeout: "{{ ((nodes | int) * 30) + 30 }}"
 
 - name: Monitor installation
   ansible.builtin.include_role:
-    name: redhatci.ocp.acm_sno
+    name: redhatci.ocp.acm.utils
     tasks_from: monitor-install
   vars:
-    acm_cluster_name: "{{ cluster }}"
+    utils_cluster_name: "{{ cluster }}"
+    utils_cluster_namespace: "{{ cluster }}"
+    utils_monitor_timeout: "{{ _acm_ztp_monitor_timeout | int }}"
+    utils_monitor_wait_time: 10
 
 - name: Get Spoke cluster credentials
   ansible.builtin.include_role:
