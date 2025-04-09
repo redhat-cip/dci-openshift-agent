@@ -184,9 +184,9 @@
   when:
     - acm_cluster_type | default('') != 'hypershift'
 
-- name: After install for IPI/UPI/SNO
+- name: After install for IPI/UPI/SNO/ABI
   when:
-    - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
+    - (install_type | default('ipi')) in ['ipi', 'upi', 'sno', 'abi']
   block:
     - name: "Merge all inventory hosts"
       ansible.builtin.set_fact:

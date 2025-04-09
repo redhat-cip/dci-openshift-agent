@@ -145,7 +145,7 @@ all:
         fetched_dest + '/' + (hostvars['registry_host']['cert_file_prefix'] | default('registry')) + '.crt',
         repo_root_path + '/mirror_certificate.txt')
       }}{% endraw %}"
-    mirror_certificate: "{% raw %}{{ lookup('file', local_mirror_certificate_path) }}{% endraw %}"
+    mirror_certificate: "{% raw %}{{ lookup('file', local_mirror_certificate_path, errors='ignore') | default('') }}{% endraw %}"
 
     openshift_version: "{% raw %}{{ openshift_full_version.split('.')[:2] | join('.') }}{% endraw %}"
 
