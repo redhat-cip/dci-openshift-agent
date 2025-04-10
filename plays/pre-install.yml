@@ -14,13 +14,29 @@
 - name: Validate we have all the pieces to run ABI in disconnected mode
   ansible.builtin.assert:
     that:
-      - boot_iso_url is defined
       - webserver_url is defined
       - dci_local_registry | length
       - provision_cache_store is defined
   when:
     - dci_disconnected | default(false) | bool
     - (install_type | default('ipi')) in ['abi']
+
+- name: Validate we have http_store details for ABI
+  ansible.builtin.assert:
+    that:
+      - "'http_store' in hostvars"
+      - "hostvars['http_store']['ansible_host'] is defined"
+  when:
+    - (install_type | default('ipi')) in ['abi']
+
+- name: Validate there is a port for ABI http_store
+  ansible.builtin.assert:
+    that:
+      - "'http_store' in hostvars"
+      - "hostvars['http_store']['http_port'] is defined"
+  when:
+    - (install_type | default('ipi')) in ['abi']
+    - not dci_ephemeral_http_store | default (true) | bool
 
 - name: "Mirror operators from directory"
   ansible.builtin.include_role:

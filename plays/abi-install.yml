@@ -23,121 +23,170 @@
   register: installer_output
   failed_when: "'agent' not in installer_output.cmd"
 
+- name: Set http_store pod and container names
+  ansible.builtin.set_fact:
+    store_pod_name: "{{ dci_ephemeral_http_store | default(true) | bool |
+                    ternary('http_store_pod_' ~ job_id, 'http_store_pod') }}"
+    store_container_name: "{{ dci_ephemeral_http_store | default(true) | bool |
+                          ternary(job_id, 'http_store') }}"
+
 - name: "Setup http store"
-  vars:
-    http_port: "{{ hostvars['http_store']['http_port'] | default(8040) }}"
   when:
     - setup_http_store_service | default(true) | bool
   delegate_to: http_store
   block:
+
+    - name: Find an available ephemeral port
+      shell: |
+        set -x -o pipefail;
+        while :; do
+          port=$(shuf -i 32768-60999 -n 1)
+          ss -lnt | awk '{print $4}' | grep -q ":$port$" || { echo $port; break; }
+        done
+      register: http_store_port
+      changed_when: false
+      when:
+        - dci_ephemeral_http_store | default (true) | bool
+
     - name: Setup http store
       vars:
         file_owner: "{{ ansible_user | default(ansible_env.USER) }}"
+        http_store_container_name: "{{ store_container_name }}"
+        http_store_pod_name: "{{ store_pod_name }}"
+        http_store_ephemeral: "{{ dci_ephemeral_http_store | default (true) }}"
+        http_port: "{{ http_store_port.stdout | default(hostvars['http_store']['http_port']) }}"
       ansible.builtin.include_role:
         name: redhatci.ocp.setup_http_store
 
     - name: Validate http store
+      vars:
+        http_port: "{{ http_store_port.stdout | default(hostvars['http_store']['http_port']) }}"
       ansible.builtin.include_role:
         name: redhatci.ocp.validate_http_store
 
-- name: Set registry_repository fact for install playbooks in disconnected mode
-  ansible.builtin.set_fact:
-    registry_repository: >
-      {{ hostvars[groups['registry_host'][0]].local_repo |
-      default('ocp-'+ version.split('.')[:2] |
-      join('.') +'/'+ version, true) }}
-  when: dci_disconnected | default(false) | bool
+  rescue:
+    - name: Remove http_store pod
+      containers.podman.podman_pod:
+        name: "{{ abi_http_store_name }}"
+        state: absent
+      delegate_to: http_store
+      become: "{{ not dci_ephemeral_http_store | default(true) | bool }}"
+      when:
+        - dci_ephemeral_http_store | default(true) | bool
 
-- name: "Prereq facts check"
-  vars:
-    pull_secret: "{{ dci_pullsecret }}"
-    ssh_public_check: "{{ not (generate_ssh_keys | default(true)) }}"
-    mirror_certificate_check: "{{ (use_local_mirror_registry | default(false)) and
-                               not (setup_registry_service | default(true)) | bool }}"
-  ansible.builtin.include_role:
-    name: redhatci.ocp.prereq_facts_check
+    - name: Fail configuring the http_store
+      fail:
+        msg: "http_store pod failed, cannot continue"
 
-- name: "Parse openshift version"
-  vars:
-    openshift_full_version: "{{ version }}"
-    repo_root_path: "{{ dci_cluster_configs_dir }}"
-  ansible.builtin.include_role:
-    name: redhatci.ocp.populate_mirror_registry
-    tasks_from: var_check.yml
+- name: "ABI install"
+  block:
+    - name: Set registry_repository fact for install playbooks in disconnected mode
+      ansible.builtin.set_fact:
+        registry_repository: >
+          {{ hostvars[groups['registry_host'][0]].local_repo |
+          default('ocp-'+ version.split('.')[:2] |
+          join('.') +'/'+ version, true) }}
+      when: dci_disconnected | default(false) | bool
 
-- name: Add performance profile to extra manifests in ABI
-  vars:
-    manifest_file:
-      file: "{{ performance_definition }}"
-  ansible.builtin.set_fact:
-    extra_manifests: "{{ extra_manifests | default([]) + [manifest_file] }}"
-  when:
-    - performance_definition is defined
-    - version is version('4.16', '>=')
+    - name: "Prereq facts check"
+      vars:
+        pull_secret: "{{ dci_pullsecret }}"
+        ssh_public_check: "{{ not (generate_ssh_keys | default(true)) }}"
+        mirror_certificate_check: "{{ (use_local_mirror_registry | default(false)) and
+                                  not (setup_registry_service | default(true)) | bool }}"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.prereq_facts_check
 
-- name: Generate_manifests
-  vars:
-    pull_secret: "{{ dci_pullsecret }}"
-    repo_root_path: "{{ dci_cluster_configs_dir }}"
-  ansible.builtin.include_role:
-    name: redhatci.ocp.generate_manifests
+    - name: "Parse openshift version"
+      vars:
+        openshift_full_version: "{{ version }}"
+        repo_root_path: "{{ dci_cluster_configs_dir }}"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.populate_mirror_registry
+        tasks_from: var_check.yml
 
-- name: Generate agent ISO
-  vars:
-    gai_cluster_name: "{{ cluster_name }}"
-    gai_repo_root_path: "{{ dci_cluster_configs_dir }}"
-    gai_pull_secret: "{{ dci_pullsecret }}"
-    gai_agent_based_installer_path: "{{ openshift_installer_path }}"
-    gai_discovery_iso_name: "{{ discovery_iso_name }}"
-    gai_path_var: "{{ dci_cluster_configs_dir }}:/sbin:/usr/sbin:/usr/local/bin/"
-    gai_iso_download_dest_path: "{{ iso_download_dest_path | default('/opt/http_store/data') }}"
-  ansible.builtin.include_role:
-    name: redhatci.ocp.generate_agent_iso
+    - name: Add performance profile to extra manifests in ABI
+      vars:
+        manifest_file:
+          file: "{{ performance_definition }}"
+      ansible.builtin.set_fact:
+        extra_manifests: "{{ extra_manifests | default([]) + [manifest_file] }}"
+      when:
+        - performance_definition is defined
+        - version is version('4.16', '>=')
 
-- name: Copy generated kubeconfig
-  ansible.builtin.copy:
-    src: "{{ repo_root_path }}/generated/{{ cluster_name }}/auth/kubeconfig"
-    dest: "{{ kubeconfig_path }}"
-    mode: '0664'
+    - name: Generate_manifests
+      vars:
+        pull_secret: "{{ dci_pullsecret }}"
+        repo_root_path: "{{ dci_cluster_configs_dir }}"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.generate_manifests
 
-- name: Read Kubeadmin Credentials
-  ansible.builtin.slurp:
-    src: "{{ dci_cluster_configs_dir }}/generated/{{ cluster_name }}/auth/kubeadmin-password"
-  register: kubeadmin_password
-  no_log: true
+    - name: Generate agent ISO
+      vars:
+        gai_cluster_name: "{{ cluster_name }}"
+        gai_repo_root_path: "{{ dci_cluster_configs_dir }}"
+        gai_pull_secret: "{{ dci_pullsecret }}"
+        gai_agent_based_installer_path: "{{ openshift_installer_path }}"
+        gai_discovery_iso_name: "{{ discovery_iso_name }}"
+        gai_path_var: "{{ dci_cluster_configs_dir }}:/sbin:/usr/sbin:/usr/local/bin/"
+        gai_iso_download_dest_path: "{{ iso_download_dest_path | default('/opt/http_store/data') }}"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.generate_agent_iso
 
-- name: Set credentials map
-  ansible.builtin.set_fact:
-    kubeadmin_credentials:
-      username: kubeadmin
-      password: "{{ kubeadmin_password.content | b64decode }}"
-      console_url: "https://console-openshift-console.apps.{{ cluster_name }}.{{ base_dns_domain }}"
-  no_log: true
+    - name: Copy generated kubeconfig
+      ansible.builtin.copy:
+        src: "{{ repo_root_path }}/generated/{{ cluster_name }}/auth/kubeconfig"
+        dest: "{{ kubeconfig_path }}"
+        mode: '0664'
 
-- name: Save credentials to file
-  ansible.builtin.copy:
-    content: "{{ kubeadmin_credentials | to_yaml }}"
-    dest: "{{ dci_cluster_configs_dir }}/kubeadmin-password"
-    mode: "0600"
+    - name: Read Kubeadmin Credentials
+      ansible.builtin.slurp:
+        src: "{{ dci_cluster_configs_dir }}/generated/{{ cluster_name }}/auth/kubeadmin-password"
+      register: kubeadmin_password
+      no_log: true
 
-- name: "Fail playbook without boot_iso_url"
-  ansible.builtin.fail:
-    msg: "Missing argument: this playbook requires 'boot_iso' to be defined with the URL of the ISO to boot the systems"
-  when: boot_iso_url is not defined
+    - name: Set credentials map
+      ansible.builtin.set_fact:
+        kubeadmin_credentials:
+          username: kubeadmin
+          password: "{{ kubeadmin_password.content | b64decode }}"
+          console_url: "https://console-openshift-console.apps.{{ cluster_name }}.{{ base_dns_domain }}"
+      no_log: true
 
-- name: Boot nodes using the ISO
-  ansible.builtin.include_role:
-    name: "redhatci.ocp.vendors.{{ hostvars[target_host]['vendor'] | lower }}"
-    tasks_from: iso.yml
-  loop: "{{ groups['nodes'] }}"
-  loop_control:
-    loop_var: target_host
+    - name: Save credentials to file
+      ansible.builtin.copy:
+        content: "{{ kubeadmin_credentials | to_yaml }}"
+        dest: "{{ dci_cluster_configs_dir }}/kubeadmin-password"
+        mode: "0600"
 
-- name: Monitor Agent Based Installer
-  vars:
-    agent_based_installer_path: "{{ openshift_installer_path }}"
-    repo_root_path: "{{ dci_cluster_configs_dir }}"
-    mabi_retry_install_complete_check: "{{ ('OCPBUGS-49157' in dci_workarounds) }}"
-  ansible.builtin.include_role:
-    name: redhatci.ocp.monitor_agent_based_installer
+    - name: Boot nodes using the ISO
+      vars:
+        discovery_iso_name: "discovery/{{ cluster_name }}/discovery-image.iso"
+        discovery_iso_server: "http://{{ hostvars['http_store']['ansible_host'] }}"
+        boot_iso_url: "{{ discovery_iso_server }}:{{ http_store_port.stdout |
+                      default(hostvars['http_store']['http_port']) }}/{{ discovery_iso_name }}"
+      ansible.builtin.include_role:
+        name: "redhatci.ocp.vendors.{{ hostvars[target_host]['vendor'] | lower }}"
+        tasks_from: iso.yml
+      loop: "{{ groups['nodes'] }}"
+      loop_control:
+        loop_var: target_host
+
+    - name: Monitor Agent Based Installer
+      vars:
+        agent_based_installer_path: "{{ openshift_installer_path }}"
+        repo_root_path: "{{ dci_cluster_configs_dir }}"
+        mabi_retry_install_complete_check: "{{ ('OCPBUGS-49157' in dci_workarounds) }}"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.monitor_agent_based_installer
+
+  always:
+    - name: "Remove http_store pod"
+      containers.podman.podman_pod:
+        name: "{{ store_pod_name }}"
+        state: absent
+      delegate_to: http_store
+      when:
+        - dci_ephemeral_http_store | default(true) | bool
 ...
