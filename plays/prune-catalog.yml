@@ -68,7 +68,7 @@
         cmd: >-
           set -o pipefail;
           grpcurl -plaintext
-          localhost:{{ grpc_port.stdout }}
+          jumphost:{{ grpc_port.stdout }}
           api.Registry/ListPackages |
           jq ".name"
       register: packages_list
@@ -85,7 +85,7 @@
         cmd: >
           set -o pipefail;
           grpcurl -plaintext
-          localhost:{{ grpc_port.stdout }}
+          jumphost:{{ grpc_port.stdout }}
           api.Registry/ListPackages |
           jq -s length
       register: prune_count

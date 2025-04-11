@@ -15,6 +15,8 @@
     ic_dev_gits: "{{ dev_gits_to_components|flatten }}"
   ansible.builtin.include_role:
     name: redhatci.ocp.include_components
+    apply:
+      delegate_to: localhost
 
 - name: "Create component for GitOps repository"
   dci_component:
@@ -29,6 +31,7 @@
   ignore_errors: true
   when:
     - dci_gitops_sites_repo.url | default('') | length
+  delegate_to: localhost
 
 - name: "Attach GitOps Sites component to the job"
   dci_job_component:
@@ -42,6 +45,7 @@
     - "'component' in gitops_repo_component"
     - "'id' in gitops_repo_component.component"
   ignore_errors: true
+  delegate_to: localhost
 
 - name: "Get cluster pull-secret"
   ansible.builtin.include_tasks: get-cluster-pullsecret.yml
@@ -91,15 +95,15 @@
 
     - name: "Print webserver_url"
       ansible.builtin.debug:
-        msg: "{{ hostvars.localhost.webserver_url }}"
+        msg: "{{ hostvars.jumphost.webserver_url }}"
       when:
-        - hostvars.localhost.webserver_url is defined
+        - hostvars.jumphost.webserver_url is defined
 
     - name: "Validate webserver_url variable is defined"
       ansible.builtin.assert:
         that:
-          - hostvars.localhost.webserver_url | string
-          - (hostvars.localhost.webserver_url | urlsplit('scheme')) in ('http', 'https',)
+          - hostvars.jumphost.webserver_url | string
+          - (hostvars.jumphost.webserver_url | urlsplit('scheme')) in ('http', 'https',)
 
     - name: "Mirror OCP release artifacts - Disconnected"
       ansible.builtin.include_role:
@@ -108,7 +112,7 @@
         mor_version: "{{ version }}"
         mor_pull_url: "{{ version_pull_url }}"
         mor_cache_dir: "{{ provision_cache_store | default((ansible_env.HOME, 'releases') | join('/')) }}"
-        mor_webserver_url: "{{ hostvars.localhost.webserver_url | default(None) }}"
+        mor_webserver_url: "{{ hostvars.jumphost.webserver_url | default(None) }}"
         mor_registry_url: "{{ hub_registry | urlsplit('netloc') }}"
         mor_registry_path: "{{ ocp_release_path }}"
         mor_auths_file: "{{ dci_pullsecret_file }}"
@@ -175,8 +179,8 @@
 
     - name: "Set facts for install via ACM - disconnected"
       ansible.builtin.set_fact:
-        acm_metal_iso_location: "{{ hostvars.localhost.webserver_url }}/{{ ocp_release_data['rhcos_images']['metal_iso_location'] | basename }}"
-        acm_rootfs_url: "{{ hostvars.localhost.webserver_url }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
+        acm_metal_iso_location: "{{ hostvars.jumphost.webserver_url }}/{{ ocp_release_data['rhcos_images']['metal_iso_location'] | basename }}"
+        acm_rootfs_url: "{{ hostvars.jumphost.webserver_url }}/{{ ocp_release_data['rhcos_images']['metal_pxe_rootfs_location'] | basename }}"
         acm_release_image: "{{ hub_registry | urlsplit('netloc') }}/{{ ocp_release_path }}:{{ version }}"
         dci_local_registry: "{{ hub_registry | urlsplit('netloc') }}"
 

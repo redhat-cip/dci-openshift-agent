@@ -18,18 +18,18 @@
 
 - name: "Deploy an SNO node via ACM"
   vars:
-    acm_ocp_version: "{{ hostvars.localhost.version }}"
-    acm_release_image: "{{ hostvars.localhost.acm_release_image }}"
-    acm_force_deploy: "{{ hostvars.localhost.acm_force_deploy }}"
-    acm_cluster_name: "{{ hostvars.localhost.acm_cluster_name }}"
-    acm_base_domain: "{{ hostvars.localhost.acm_base_domain }}"
-    acm_bmc_address: "{{ hostvars.localhost.acm_bmc_address }}"
-    acm_boot_mac_address: "{{ hostvars.localhost.acm_boot_mac_address }}"
-    acm_machine_cidr: "{{ hostvars.localhost.acm_machine_cidr }}"
-    acm_bmc_user: "{{ hostvars.localhost.acm_bmc_user }}"
-    acm_bmc_pass: "{{ hostvars.localhost.acm_bmc_pass }}"
-    acm_iso_url: "{{ hostvars.localhost.acm_metal_iso_location }}"
-    acm_root_fs_url: "{{ hostvars.localhost.acm_rootfs_url }}"
+    acm_ocp_version: "{{ hostvars.jumphost.version }}"
+    acm_release_image: "{{ hostvars.jumphost.acm_release_image }}"
+    acm_force_deploy: "{{ hostvars.jumphost.acm_force_deploy }}"
+    acm_cluster_name: "{{ hostvars.jumphost.acm_cluster_name }}"
+    acm_base_domain: "{{ hostvars.jumphost.acm_base_domain }}"
+    acm_bmc_address: "{{ hostvars.jumphost.acm_bmc_address }}"
+    acm_boot_mac_address: "{{ hostvars.jumphost.acm_boot_mac_address }}"
+    acm_machine_cidr: "{{ hostvars.jumphost.acm_machine_cidr }}"
+    acm_bmc_user: "{{ hostvars.jumphost.acm_bmc_user }}"
+    acm_bmc_pass: "{{ hostvars.jumphost.acm_bmc_pass }}"
+    acm_iso_url: "{{ hostvars.jumphost.acm_metal_iso_location }}"
+    acm_root_fs_url: "{{ hostvars.jumphost.acm_rootfs_url }}"
     acm_disconnected: "{{ dci_disconnected | default(False) | bool }}"
     acm_user_registry: "{{ acm_registries }}"
   ansible.builtin.include_role:
@@ -49,6 +49,9 @@
         name: redhatci.ocp.metallb_setup
       vars:
         mlb_ipaddr_pool: "{{ metallb_ipaddr_pool_l2 }}"
+        apply:
+          environment:
+            - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
       when:
         - metallb_ipaddr_pool_l2 | default('') | length
 

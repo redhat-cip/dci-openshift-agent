@@ -52,6 +52,12 @@
     mode: "0750"
   become: true
 
+- name: "Ensure tmp directory existes"
+  ansible.builtin.file:
+    state: directory
+    path: "{{ ansible_env.HOME }}/tmp"
+    mode: "0750"
+
 - name: "Set roles_path"
   ansible.builtin.set_fact:
     roles_path: "{{ lookup('ansible.builtin.config', 'DEFAULT_ROLES_PATH') }}"
