@@ -151,6 +151,7 @@
     - name: "Requirements for  Hybrid"
       when:
         - ansible_env.KUBECONFIG is defined
+        - ansible_env.KUBECONFIG | length > 0
       block:
         - name: "Read KUBECONFIG path from env vars"
           ansible.builtin.set_fact:
