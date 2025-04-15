@@ -283,4 +283,17 @@
     var: ed_result
   when:
     - dci_encrypt_etcd | default(false) | bool
+
+- name: Wipe devices used by ODF
+  ansible.builtin.shell:
+    cmd: >
+      plays/scripts/wipe-odf-disks.sh
+      {{ local_storage_devices | join(' ') }}
+  ignore_errors: false
+  when:
+    - ocs_install_type is defined
+    - ocs_install_type == 'internal'
+    - local_storage_devices | default([]) | length
+    - enable_odf | bool
+    - enable_lso | bool
 ...
