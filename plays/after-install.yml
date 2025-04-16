@@ -285,7 +285,7 @@
     - dci_encrypt_etcd | default(false) | bool
 
 - name: Wipe devices used by ODF
-  ansible.builtin.shell:
+  ansible.builtin.script:
     cmd: >
       plays/scripts/wipe-odf-disks.sh
       {{ local_storage_devices | join(' ') }}
