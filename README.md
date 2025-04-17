@@ -297,6 +297,7 @@ This is the dci-openshift-agent variables that can be set in the
 | dci_catalog_image_expiration    | False    | String  | 24h                                                            | The expire time for the image referenced in `dci_catalog_source_name`. The time values could be something like 1h, 2d, 3w.
 | dci_operators                   | False    | List    | []                                                             | List of additional operators or custom operators deployments. Please see the [Customizing the Operators installation](#customizing-the-operators-installation) section for more details.
 | dci_continue_on_mirror_error    | False    | Boolean | False                                                          | Allow to continue if errors during operators mirroring.
+| dci_odf_wipe_local_storage      | False    | Boolean | True                                                           | Wipe local ODF disks defined in `local_storage_devices`.
 | apply_sriov_upgrade_settings    | False    | Boolean | True                                                           | Whether to apply SR-IOV recommended settings before operator upgrade.
 | enable_cnv                      | False    | Boolean | False                                                          | Configures the CNV and the HCO operator.
 | dci_cnv_test                    | False    | Boolean | False                                                          | Test the deploy of a VM using CNV and HCO operator.

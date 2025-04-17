@@ -291,6 +291,7 @@
       {{ local_storage_devices | join(' ') }}
   ignore_errors: false
   when:
+    - dci_wipe_local_storage | default(true) | bool
     - ocs_install_type is defined
     - ocs_install_type == 'internal'
     - local_storage_devices | default([]) | length

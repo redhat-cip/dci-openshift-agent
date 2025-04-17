@@ -20,8 +20,6 @@
 # It requires connections details for the cluster servers
 # The script only works on disks larger than 100GB
 
-#!/bin/bash
-
 set -euo pipefail
 
 oc_path=$(which oc)
