@@ -26,6 +26,11 @@
         dest: "{{ job_logs.path }}/install-config.yaml"
         mode: '0644'
 
+- name: Check if kubeconfig file exists
+  ansible.builtin.stat:
+    path: "{{ repo_root_path }}/generated/{{ cluster_name }}/auth/kubeconfig"
+  register: kubeconfig_stat_
+
 - name: "Get Rendezvouz logs from deployment"
   environment:
     OPENSHIFT_INSTALL_BINARY: "{{ repo_root_path }}/extract/openshift-install"
@@ -42,6 +47,7 @@
       {{ job_logs.path }}
       {{ groups['nodes'] | join (' ') }}
   ignore_errors: true
+  when: kubeconfig_stat_.stat.exists
 
 - name: Upload to DCI remaining logs from previous jobs
   block:
