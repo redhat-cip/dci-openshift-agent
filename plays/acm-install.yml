@@ -36,7 +36,7 @@
     name: redhatci.ocp.acm_sno
     apply:
       environment:
-        - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+        - KUBECONFIG: "{{ hub_kubeconfig_path }}"
   when:
     - acm_cluster_type == 'sno'
 
@@ -51,7 +51,7 @@
         mlb_ipaddr_pool: "{{ metallb_ipaddr_pool_l2 }}"
         apply:
           environment:
-            - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+            - KUBECONFIG: "{{ hub_kubeconfig_path }}"
       when:
         - metallb_ipaddr_pool_l2 | default('') | length
 
@@ -90,7 +90,7 @@
         name: redhatci.ocp.acm_hypershift
         apply:
           environment:
-            - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+            - KUBECONFIG: "{{ hub_kubeconfig_path }}"
 
 - name: Save the kubeconfig ({{ acm_cluster_type }})
   ansible.builtin.copy:

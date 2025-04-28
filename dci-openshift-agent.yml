@@ -148,46 +148,28 @@
         - version is version('4.12', '<')
         - (install_type | default('ipi')) == 'abi'
 
-    - name: "Requirements for  Hybrid"
+    - name: Requirements for ACM install_type
       when:
-        - ansible_env.KUBECONFIG is defined
-        - ansible_env.KUBECONFIG | length > 0
+        - (install_type | default('ipi')) == 'acm'
+        - hub_kubeconfig_path is not defined
       block:
-        - name: "Read KUBECONFIG path from env vars"
-          ansible.builtin.set_fact:
-            hub_kubeconfig_path: "{{ lookup('env','KUBECONFIG') }}"
-          when: hub_kubeconfig_path is not defined
-
-        - name: "Check if HUB_KUBECONFIG path exists"
+        - name: Check HUB_KUBECONFIG path
           ansible.builtin.stat:
-            path: "{{ hub_kubeconfig_path }}"
+            path: "{{ lookup('env','HUB_KUBECONFIG') }}"
           register: hub_kubeconfig
 
-        - name: "Fail if hub_kubeconfig NOT found"
+        - name: Fail when HUB_KUBECONFIG is not found
           ansible.builtin.fail:
-            msg: "hub_kubeconfig not found at {{ hub_kubeconfig_path }}"
+            msg: "HUB_KUBECONFIG not found at: {{ lookup('env','HUB_KUBECONFIG') }}"
           when: not hub_kubeconfig.stat.exists
 
-    - name: "Requirements for ACM install_type or Hybrid"
-      when:
-        - ansible_env.HUB_KUBECONFIG is defined
-      block:
-        - name: "Read HUB_KUBECONFIG path from env vars"
+        - name: Set KUBECONFIG for ACM installs
           ansible.builtin.set_fact:
             hub_kubeconfig_path: "{{ lookup('env','HUB_KUBECONFIG') }}"
-          when: hub_kubeconfig_path is not defined
+          delegate_to: jumphost
+          delegate_facts: true
 
-        - name: "Check if HUB_KUBECONFIG path exists"
-          ansible.builtin.stat:
-            path: "{{ hub_kubeconfig_path }}"
-          register: hub_kubeconfig
-
-        - name: "Fail if hub_kubeconfig NOT found"
-          ansible.builtin.fail:
-            msg: "hub_kubeconfig not found at {{ hub_kubeconfig_path }}"
-          when: not hub_kubeconfig.stat.exists
-
-    - name: Set fact also in localhost host scope
+    - name: Set facts required in jumphost scope
       ansible.builtin.set_fact:
         version: "{{ version }}"
         version_pull_url: "{{ version_pull_url }}"
@@ -234,7 +216,7 @@
             file: plays/acm-pre-run.yml
             apply:
               environment:
-                KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+                KUBECONFIG: "{{ hub_kubeconfig_path }}"
               tags:
                 - acm-pre-run
           when:
@@ -287,7 +269,7 @@
     no_proxy: "{{ no_proxy_list }}"
     PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
     TMPDIR: "{{ ansible_env.HOME }}/tmp"
-    KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path | default('')}}"
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   tasks:
     - name: Pre-run hooks
       block:
@@ -437,7 +419,7 @@
             file: plays/acm-install.yml
             apply:
               environment:
-                KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+                KUBECONFIG: "{{ hub_kubeconfig_path }}"
           when:
             - (install_type | default('ipi')) == 'acm'
             - dci_main == 'install'
