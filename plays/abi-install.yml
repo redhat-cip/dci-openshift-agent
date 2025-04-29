@@ -57,17 +57,25 @@
         http_port: "{{ http_store_port.stdout | default(hostvars['http_store']['http_port']) }}"
       ansible.builtin.include_role:
         name: redhatci.ocp.setup_http_store
+        apply:
+          environment:
+            TMPDIR: ""
 
     - name: Validate http store
       vars:
         http_port: "{{ http_store_port.stdout | default(hostvars['http_store']['http_port']) }}"
       ansible.builtin.include_role:
         name: redhatci.ocp.validate_http_store
+        apply:
+          environment:
+            TMPDIR: ""
 
   rescue:
     - name: Remove http_store pod
+      environment:
+        TMPDIR: ""
       containers.podman.podman_pod:
-        name: "{{ abi_http_store_name }}"
+        name: "{{ store_pod_name }}"
         state: absent
       delegate_to: http_store
       become: "{{ not dci_ephemeral_http_store | default(true) | bool }}"
@@ -183,6 +191,8 @@
 
   always:
     - name: "Remove http_store pod"
+      environment:
+        TMPDIR: ""
       containers.podman.podman_pod:
         name: "{{ store_pod_name }}"
         state: absent
