@@ -1,0 +1,68 @@
+---
+- name: "Mirror RHODS images for disconnected"
+  when:
+    - dci_disconnected | default(false) | bool
+    - dci_local_registry | length
+  block:
+
+    - name: "Get RHODS subscriptions"
+      kubernetes.core.k8s_info:
+        api: operators.coreos.com/v1alpha1
+        kind: Subscription
+        namespace: redhat-ods-operator
+      register: current_subscriptions
+      retries: 5
+      delay: 5
+      no_log: true
+
+    - name: "Mirroring the KSERV controller image"
+      vars:
+        subs_details: resources[*].status.installedCSV
+        rhods_version: "{{ (current_subscriptions |
+                        json_query(subs_details) | first) |
+                        regex_replace('rhods-operator\\.(\\d+\\.\\d+)\\.\\d+', '\\1') }}"
+        mi_images: ['quay.io/modh/kserve-controller:rhoai-{{ rhods_version }}']
+        mi_authfile: "{{ dci_pullsecret_file }}"
+        mi_registry: "{{ dci_local_registry }}"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.mirror_images
+
+    - name: Apply IDMS (<4.13)
+      when:
+        - (cluster_version.resources[0].status |
+          json_query('history[?state==`Completed`] | [0].version'))
+          is version('4.13', '<')
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: operator.openshift.io/v1alpha1
+          kind: ImageContentSourcePolicy
+          metadata:
+            name: rhods
+          spec:
+            repositoryDigestMirrors:
+              - mirrors:
+                  - "{{ dci_local_registry }}/modh/kserve-controller"
+                source: quay.io/modh/kserve-controller
+
+    - name: Apply IDMS (>=4.13)
+      when:
+        - (cluster_version.resources[0].status |
+          json_query('history[?state==`Completed`] | [0].version'))
+          is version('4.13', '>=')
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: config.openshift.io/v1
+          kind: ImageDigestMirrorSet
+          metadata:
+            name: rhods
+          spec:
+            imageDigestMirrors:
+              - mirrors:
+                  - "{{ dci_local_registry }}/modh/kserve-controller"
+                source: quay.io/modh/kserve-controller
+
+- name: "Create a Data Science Cluster"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.rhoai
+    tasks_from: create-dsc.yml
+...

@@ -73,10 +73,8 @@
   when:
     - enable_gitea | default(false) | bool
 
-- name: "Create a Data Science Cluster"
-  ansible.builtin.include_role:
-    name: redhatci.ocp.rhoai
-    tasks_from: create-dsc.yml
+- name: "Setup RHOAI/RHODS instance"
+  ansible.builtin.include_tasks: setup-rhoai.yml
   when:
     - enable_rhoai | bool
 
