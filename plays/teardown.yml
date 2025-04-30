@@ -49,7 +49,7 @@
     tasks_from: delete-cluster.yml
     apply:
       environment:
-        - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+        - KUBECONFIG: "{{ hub_kubeconfig_path }}"
   when:
     - (install_type | default('ipi')) == 'acm'
     - acm_cluster_type in ['sno', 'ztp-spoke-clusterinstance']
@@ -63,7 +63,7 @@
     name: redhatci.ocp.acm_spoke_mgmt
     apply:
       environment:
-        - KUBECONFIG: "{{ hostvars.localhost.hub_kubeconfig_path }}"
+        - KUBECONFIG: "{{ hub_kubeconfig_path }}"
   when:
     - dci_gitops_sites_repo.url | default('') | length
     - dci_gitops_sites_repo.branch | default('') | length
