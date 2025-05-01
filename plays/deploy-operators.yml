@@ -142,3 +142,27 @@
   when:
     - enable_nro | bool
     - ocp_version is version("4.12", ">=")
+
+- name: Check if TALM pods are running
+  when: talm_operator | length > 0
+  vars:
+    talm_operator: "{{ dci_operators | selectattr('name', 'equalto', 'topology-aware-lifecycle-manager') | list }}"
+  block:
+    - name: Fail if not TALM all Pods/containers reach a successful state
+      vars:
+        talm_namespace: "{{ talm_operator[0].namespace }}"
+      kubernetes.core.k8s_info:
+        kind: Pod
+        namespace: "{{ talm_namespace }}"
+      register: talm_pods
+      retries: 30
+      delay: 20
+      until:
+        - talm_pods.resources is defined
+        - "talm_pods.resources|length == 1"
+        - "'status' in talm_pods.resources[0]"
+        - "'containerStatuses' in talm_pods.resources[0].status"
+        - "talm_pods.resources[0].status.containerStatuses|length == 1"
+        - "'ready' in talm_pods.resources[0].status.containerStatuses[0]"
+        - "talm_pods.resources[0].status.containerStatuses[0].ready|bool"
+...
