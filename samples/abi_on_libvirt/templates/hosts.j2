@@ -81,15 +81,6 @@ all:
     # ntp_server_allow is the range of IPs the NTP service will respond to
     ntp_server_allow: "{{ machine_network_cidr }}"  # not required if setup_ntp_service is false
 
-    # HTTP Store Configuration
-    # ISO name must include the `discovery` directory if you have a SuperMicro machine
-    discovery_iso_name: "discovery/{{ '{{ cluster_name }}/discovery-image.iso' }}"
-
-    # discovery_iso_server must be discoverable from all BMCs in order for them to mount the ISO hosted there.
-    # It is usually necessary to specify different values for KVM nodes and/or physical BMCs if they are on different subnets.
-    discovery_iso_server: "http://{% raw %}{{ hostvars['http_store']['ansible_host'] }}{% endraw %}"
-    boot_iso_url: "{% raw %}{{ discovery_iso_server }}{% endraw %}:{% raw %}{{ hostvars['http_store']['http_port'] }}{% endraw %}/{% raw %}{{ discovery_iso_name }}{% endraw %}"
-
     ############################
     # Local File Configuration #
     ############################
@@ -140,22 +131,18 @@ all:
     local_ssh_public_key_path: "{% raw %}{{ lookup('first_found', ssh_public_key_lookup_paths) }}{% endraw %}"
     ssh_public_key: "{% raw %}{{ lookup('file', local_ssh_public_key_path) }}{% endraw %}"
 
-    # provided mirror certificate logic, no need to change.
-    local_mirror_certificate_path: "{% raw %}{{ (setup_registry_service == true) | ternary(
-        fetched_dest + '/' + (hostvars['registry_host']['cert_file_prefix'] | default('registry')) + '.crt',
-        repo_root_path + '/mirror_certificate.txt')
-      }}{% endraw %}"
-    mirror_certificate: "{% raw %}{{ lookup('file', local_mirror_certificate_path, errors='ignore') | default('') }}{% endraw %}"
-
-    openshift_version: "{% raw %}{{ openshift_full_version.split('.')[:2] | join('.') }}{% endraw %}"
-
-    is_valid_single_node_openshift_config: "{% raw %}{{ (groups['nodes'] | length == 1) and (groups['masters'] | length == 1) }}{% endraw %}"
-
     ############################
     # ^^^^^^^^^^^^^^^^^^^^^^^^ #
     #    LOGIC: DO NOT TOUCH   #
     ############################
 
+    # Sushy Tools ssl cert configuration
+    cert_common_name: "{{ '{{ provisioner_hostname }}' }}"
+    cert_country: US
+    cert_locality: Westford
+    cert_organization: DCI
+    cert_organizational_unit: Lab
+    cert_state: MA
 
   children:
     bastions: # n.b. Currently only a single bastion is supported
@@ -175,39 +162,6 @@ all:
     # TODO: document differences needed for already-deployed and auto-deployed
     services:
       hosts:
-        registry_host:
-          ansible_host: "{{ provisioner_hostname }}"
-          ansible_user: "{{ provisioner_username | default('root') }}"
-          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
-          registry_port: 5000
-          registry_fqdn: "{{ provisioner_hostname }}"
-          cert_common_name: "{{ '{{ registry_fqdn }}' }}"
-          cert_country: US
-          cert_locality: Westford
-          cert_organization: DCI
-          cert_organizational_unit: Lab
-          cert_state: MA
-
-          # Configure the following secret values in the inventory.vault.yml file
-          REGISTRY_HTTP_SECRET: "{{ '{{ VAULT_REGISTRY_HOST_REGISTRY_HTTP_SECRET | mandatory }}' }}"
-          disconnected_registry_user: "{{ '{{ VAULT_REGISTRY_HOST_DISCONNECTED_REGISTRY_USER | mandatory }}' }}"
-          disconnected_registry_password: "{{ '{{ VAULT_REGISTRY_HOST_DISCONNECTED_REGISTRY_PASSWORD | mandatory }}' }}"
-
-        dns_host:
-          ansible_host: "{{ provisioner_hostname }}"
-          ansible_user: "{{ provisioner_username | default('root') }}"
-          ansible_connection: "{{ 'local' if provisioner_hostname == 'localhost' else 'ssh' }}"
-{% if setup_dns_service | default(false) | bool %}
-          # The following are required for DHCP setup
-          upstream_dns: "{{ provisioner_dns }}"
-          use_dhcp: true
-          dhcp_range_first: "{{ machine_network_cidr | ipaddr('101') | ipaddr('address') }}"
-          dhcp_range_last: "{{ machine_network_cidr | ipaddr('105') | ipaddr('address') }}"
-          prefix: "{{ machine_network_cidr | ipaddr('prefix') }}"
-          listen_address: "{{ vm_bridge_ip }}"
-          gateway: "{{ vm_bridge_ip }}"
-{% endif %}
-
         http_store:
           ansible_host: "{{ provisioner_hostname }}"
           ansible_user: "{{ provisioner_username | default('root') }}"
@@ -254,15 +208,6 @@ all:
                   stp: True
 {% endif %}
           dns: "{{ vm_bridge_ip }}"  # DNS used by the bridge
-          # ssl cert configuration
-          # sushy_fqdn: ... # use in case of different FQDN for the cert
-          cert_vars_host_var_key: registry_host # Look up cert values from another host by name (excluding cert_common_name)
-          # or
-          # cert_country: US
-          # cert_locality: Raleigh
-          # cert_organization: Red Hat, Inc.
-          # cert_organizational_unit: Lab
-          # cert_state: NC
 
     # Describe the desired cluster members
     nodes:

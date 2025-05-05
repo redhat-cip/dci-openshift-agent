@@ -33,8 +33,4 @@ Your deployments may be affected if:
     $ sudo podman rm -f assisted-db service next-step-runner assisted-installer
     $ sudo podman pod rm assisted-installer
     ```
-1. Add the following variable to the inventory:
-    ```yaml
-    boot_iso_url: "{{ discovery_iso_server }}:{{ hostvars['http_store']['http_port'] }}/{{ discovery_iso_name }}"`
-    ```
 1. For KVM-libvirt deployments, provision infrastructure manually or via a playbook like [the one in samples directory](../samples/infrastructure.yml). You can use the `inventory_playbook` variable to customize the target infrastructure using existing settings.
