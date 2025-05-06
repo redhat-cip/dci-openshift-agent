@@ -44,8 +44,6 @@
   when:
     - (install_type | default('ipi')) == 'abi'
     - groups.nodes is defined
-  delegate_to: localhost
-  delegate_facts: true
 
 - name: "Mirror operators from directory"
   ansible.builtin.include_role:
