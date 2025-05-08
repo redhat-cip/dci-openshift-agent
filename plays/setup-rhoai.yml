@@ -24,6 +24,7 @@
         mi_images: ['quay.io/modh/kserve-controller:rhoai-{{ rhods_version }}']
         mi_authfile: "{{ dci_pullsecret_file }}"
         mi_registry: "{{ dci_local_registry }}"
+        mi_random_tag: true
       ansible.builtin.include_role:
         name: redhatci.ocp.mirror_images
 
