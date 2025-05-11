@@ -38,6 +38,15 @@
     - (install_type | default('ipi')) in ['abi']
     - not dci_ephemeral_http_store | default (true) | bool
 
+- name: Set var to generate SNO manifest in ABI
+  ansible.builtin.set_fact:
+    is_valid_single_node_openshift_config: "{{ groups['nodes'] | length == 1 and groups['masters'] | length == 1 }}"
+  when:
+    - (install_type | default('ipi')) == 'abi'
+    - groups.nodes is defined
+  delegate_to: localhost
+  delegate_facts: true
+
 - name: "Mirror operators from directory"
   ansible.builtin.include_role:
     name: redhatci.ocp.mirror_from_directory
