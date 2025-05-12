@@ -18,7 +18,7 @@
 # and ODF cluster
 
 # It requires connections details for the cluster servers
-# The script only works on disks larger than 100GB
+# The script can wipe out disks up to 10TB
 
 set -euo pipefail
 
@@ -49,14 +49,39 @@ for NODE in $NODES; do
       DEVICE_LINK="/dev/disk/by-id/'"$SCSI_ID"'"
       if [[ -L "$DEVICE_LINK" ]]; then
         DEVICE=$(readlink -f "$DEVICE_LINK")
+
+        # Get disk size in bytes
+        DISK_SIZE_BYTES=$(blockdev --getsize64 "$DEVICE")
+        DISK_SIZE_GB=$((DISK_SIZE_BYTES / 1024**3))
+
+        echo "Wiping device $DEVICE ($DEVICE_LINK) with size ${DISK_SIZE_GB}GB"
+
+        # Always wipe at 0, 1GB, and 10GB
         sgdisk --zap-all $DEVICE
         dd if=/dev/zero of=$DEVICE bs=1 count=204800 seek=0
         dd if=/dev/zero of=$DEVICE bs=1 count=204800 seek=$((1 * 1024**3))
         dd if=/dev/zero of=$DEVICE bs=1 count=204800 seek=$((10 * 1024**3))
-        dd if=/dev/zero of=$DEVICE bs=1 count=204800 seek=$((100 * 1024**3))
+
+        # Wipe at 100GB if disk is >= 100GB
+        if [ $DISK_SIZE_GB -ge 100 ]; then
+          dd if=/dev/zero of=$DEVICE bs=1 count=204800 seek=$((100 * 1024**3))
+        fi
+
+        # Wipe at 1TB if disk is >= 1TB
+        if [ $DISK_SIZE_GB -ge 1024 ]; then
+          dd if=/dev/zero of=$DEVICE bs=1 count=204800 seek=$((1000 * 1024**3))
+        fi
+
+        # Wipe at 10TB if disk is >= 10TB
+        if [ $DISK_SIZE_GB -ge 10240 ]; then
+          dd if=/dev/zero of=$DEVICE bs=1 count=204800 seek=$((10000 * 1024**3))
+        fi
+
         blkdiscard $DEVICE
         blockdev --rereadpt $DEVICE
-        echo "Wiped $DEVICE ($DEVICE_LINK)"
+        echo "Successfully wiped $DEVICE ($DEVICE_LINK)"
+      else
+        echo "Device $DEVICE_LINK not found, skipping"
       fi
     '
   done
