@@ -15,13 +15,24 @@
       delay: 5
       no_log: true
 
-    - name: "Mirroring the KSERV controller image"
+    - name: Get RHOAI images helper
       vars:
         subs_details: resources[*].status.installedCSV
         rhods_version: "{{ (current_subscriptions |
                         json_query(subs_details) | first) |
                         regex_replace('rhods-operator\\.(\\d+\\.\\d+)\\.\\d+', '\\1') }}"
-        mi_images: ['quay.io/modh/kserve-controller:rhoai-{{ rhods_version }}']
+        rhoai_helper_url: "https://raw.githubusercontent.com/red-hat-data-services/rhoai-disconnected-install-helper/refs/heads/main/rhoai-{{ rhods_version }}.md"
+      uri:
+        url: "{{ rhoai_helper_url }}"
+        return_content: true
+      register: rhods_images
+
+    - name: Mirror images for RHOAI
+      vars:
+        name_lines: "{{ rhods_images.content.split('\n') | select('search', '^\\s+- name: ') | list }}"
+        image_lines: "{{ name_lines | select('search', '@sha256:[a-fA-F0-9]{64}') | list }}"
+        image_refs: "{{ image_lines | map('regex_replace', '^\\s*- name:\\s*', '') | list }}"
+        mi_images: "{{ image_refs }}"
         mi_authfile: "{{ dci_pullsecret_file }}"
         mi_registry: "{{ dci_local_registry }}"
         mi_random_tag: true
@@ -42,8 +53,8 @@
           spec:
             repositoryDigestMirrors:
               - mirrors:
-                  - "{{ dci_local_registry }}/modh/kserve-controller"
-                source: quay.io/modh/kserve-controller
+                  - "{{ dci_local_registry }}/modh"
+                source: quay.io/modh
 
     - name: Apply IDMS (>=4.13)
       when:
@@ -59,8 +70,8 @@
           spec:
             imageDigestMirrors:
               - mirrors:
-                  - "{{ dci_local_registry }}/modh/kserve-controller"
-                source: quay.io/modh/kserve-controller
+                  - "{{ dci_local_registry }}/modh"
+                source: quay.io/modh
 
 - name: "Create a Data Science Cluster"
   ansible.builtin.include_role:
