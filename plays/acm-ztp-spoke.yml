@@ -21,6 +21,21 @@
         (dci_gitops_policies_repo.username is defined and
         dci_gitops_policies_repo.password is defined)
 
+- name: Force deletion of Managed Cluster
+  when:
+    - dci_force_deploy_spoke | default(false) | bool
+  block:
+    - name: Remove the ZTP managed cluster from ArgoCD
+      vars:
+        asm_action: "delete-ztp-by-ref"
+        asm_source_repo: "{{ dci_gitops_sites_repo.url }}"
+        asm_target_revision: "{{ dci_gitops_sites_repo.branch }}"
+      ansible.builtin.include_role:
+        name: redhatci.ocp.acm_spoke_mgmt
+        apply:
+          environment:
+            - KUBECONFIG: "{{ hub_kubeconfig_path }}"
+
 - name: Create the spoke cluster image sets
   ansible.builtin.include_role:
     name: redhatci.ocp.ztp.setup_cluster_image_set
