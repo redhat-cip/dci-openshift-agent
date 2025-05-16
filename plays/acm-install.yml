@@ -31,7 +31,7 @@
     acm_iso_url: "{{ hostvars.jumphost.acm_metal_iso_location }}"
     acm_root_fs_url: "{{ hostvars.jumphost.acm_rootfs_url }}"
     acm_disconnected: "{{ dci_disconnected | default(False) | bool }}"
-    acm_user_registry: "{{ acm_registries }}"
+    acm_user_registry: "{{ utils_acm_registries }}"
   ansible.builtin.include_role:
     name: redhatci.ocp.acm_sno
     apply:
