@@ -113,14 +113,13 @@ Please read the role's documentation for more information.
 1. A directory with the templates to apply the ClusterInstance is required `dci_clusterinstance_template_dir`.
 1. Use `dci_pipeline` or the DCI Agent to initiate the deployment using the values defined in the [`acm-clusterinstance-pipeline`](#acm-clusterinstance-pipeline).
 
-#### ClusterInstance Variables
+#### Variables for ACM-based deployments
 
 | Name                             | Required | Default | Description
 | -------------------------------- | -------- | ------- | -----------
 | acm_cluster_type                 | Yes      | None    | The type of cluster to deploy through ACM. Must use: `ztp-spoke-clusterinstance`
 | dci_clusterinstance_template_dir | Yes      | None    | Directory that holds the [ClusterInstance templates](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.12/html-single/multicluster_engine_operator_with_red_hat_advanced_cluster_management/index?ref=cloud-cult-devops#install-clusters-preq)
-| dci_force_deploy_spoke           | No       | False   | Whether or not force an installation of a Cluster using ClusterInstance with the SiteConfig Operator
-
+| dci_force_deploy_spoke           | No       | False   | Whether or not force an installation of a and Spoke cluster
 
 #### ClusterInstance Templates
 

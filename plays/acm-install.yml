@@ -20,7 +20,7 @@
   vars:
     acm_ocp_version: "{{ hostvars.jumphost.version }}"
     acm_release_image: "{{ hostvars.jumphost.acm_release_image }}"
-    acm_force_deploy: "{{ hostvars.jumphost.acm_force_deploy }}"
+    acm_force_deploy: "{{ dci_force_deploy_spoke | default(false) | bool }}"
     acm_cluster_name: "{{ hostvars.jumphost.acm_cluster_name }}"
     acm_base_domain: "{{ hostvars.jumphost.acm_base_domain }}"
     acm_bmc_address: "{{ hostvars.jumphost.acm_bmc_address }}"
