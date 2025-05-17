@@ -71,6 +71,10 @@ all:
     # network_type: OVNKubernetes
     # network_type: OpenShiftSDN
 
+{% if extra_manifests is defined %}
+    extra_manifests: {{ extra_manifests }}
+{% endif %}
+
     ######################################
     # Prerequisite Service Configuration #
     ######################################
