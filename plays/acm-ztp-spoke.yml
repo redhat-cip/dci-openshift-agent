@@ -141,7 +141,7 @@
     nodes: >-
       {{ reqs.controlPlaneAgents | int + reqs.workerAgents | default(0) | int }}
   ansible.builtin.set_fact:
-    _acm_ztp_monitor_timeout: "{{ ((nodes | int) * 30) + 40 }}"
+    _acm_ztp_monitor_timeout: "{{ ((nodes | int) * 30) + 60 }}"
 
 - name: Monitor installation
   ansible.builtin.include_role:
