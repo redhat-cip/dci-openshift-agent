@@ -103,7 +103,7 @@
       - app = secondary-scheduler
   register: pod_list
   until: pod_list|json_query('resources[*].status.phase')|unique == ["Running"]
-  retries: 9
+  retries: 15
   delay: 10
 
 - name: Confirm that NUMA resource-topology pods are Running
