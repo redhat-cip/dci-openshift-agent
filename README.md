@@ -489,11 +489,39 @@ The Agent manages the mirroring and deployment of most of the day-2 operators. F
 
 The workflow for the deployment is:
 
-- Operator mirroring for disconnected environments
+1. Operator mirroring for disconnected environments
 
-- Operator installation
+1. Operator installation
 
-- Operator configuration
+1. Operator configuration
+
+### Control deploy operator deployment stages
+
+The workflow to deploy operators can be modified by using the `ansible_tags` and `ansible_skip_tags` features through the agent. This allows tasks to be included or excluded as part of the overall workflow of a pipeline job.
+
+| Tag                         | Description
+|-----------------------------| ----------------------------
+| operator-mirroring          | Creates a pruned catalog with the operators defined in `opm_mirror_list` and `dci_operators`. It mirrors the operators to the specified `dci_local_registry` and disables the default Red Hat catalog sources. This task is executed only in disconnected environments.
+| operator-install            | Installs the operators specified in `dci_operators`.
+| operator-configuration      | Creates the resources for operators supported by the DCI Agent. See the `enable_<operator>` flags above for details.
+| operator-deployment         | Executes the `operator-mirroring`, `operator_install`, and `operator_configuration` tasks as part of the operator deployment.
+
+See below for some examples of how to use tags to control the operator workflow:
+
+On an already deployed cluster, install the operators defined in `dci_operators`.
+```Shell
+<job_name>:ansible_tags=dci,job,post-run,success openshift-vanilla:ansible_skip_tags=operator-deployment
+```
+
+On an already deployed cluster, mirrors the defined operators and creates the corresponding subscriptions.
+```Shell
+<job_name>:ansible_tags=dci,job,operator-mirror,operator-install,post-run,success
+```
+
+Executes the job's tags and skips the ones related to `dci_operators`.
+```Shell
+<job_name>:ansible_skip_tags=operator-deployment
+````
 
 ### Operators mirroring for disconnected environments
 
@@ -574,7 +602,7 @@ dci_operators:
       openshift.io/cluster-monitoring: "true"
 ```
 
-> Important: For a successful operator installation, ensure that the settings defined in dci_operators align with the packages available in the specified catalog_source. The following examples highlight potential misconfigurations that can cause the operator installation to fail:
+> Important: For a successful operator installation, ensure that the settings defined in dci_operators align with the packages available in the specified `dci_catalog_source_name`. The following examples highlight potential misconfigurations that can cause the operator installation to fail:
 
 * Selecting an installation channel that is unavailable.
 * Configuring an operator group with settings not supported by the operator.
@@ -582,7 +610,7 @@ dci_operators:
 
 ### Operator configuration
 
-For some operators, the agent support the operand creation by setting to `true` specific flags. See `enable_<operator>` variables above. Also, the operator configuration can be executed as part of a run during the `/hooks/install.yml` phase.
+For some operators, the agent support the operand creation by setting to `true` specific flags. See `enable_<operator>` variables above. Also, the operator configuration can be executed as part of a run during the `hooks/install.yml` phase.
 
 ## Install all operators from a catalog
 
