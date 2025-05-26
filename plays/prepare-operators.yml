@@ -7,23 +7,6 @@
   when:
     - dci_disconnected | default(false) | bool
 
-- name: "Get cluster version"
-  kubernetes.core.k8s_info:
-    api: config.openshift.io/v1
-    kind: ClusterVersion
-    name: version
-  register: cluster_version
-
-- name: "Get OCP version"
-  vars:
-    current_ver_query: "history[?state=='Completed'] | [0].version"
-    full_ver: "{{ cluster_version.resources[0].status | json_query(current_ver_query) }}"
-    current_ver: "{{ full_ver.split('-')[0] }}"
-  ansible.builtin.set_fact:
-    ocp_version: "{{ current_ver }}"
-    ocp_version_maj: "{{ current_ver.split('.')[0] }}"
-    ocp_version_min: "{{ current_ver.split('.')[1] }}"
-
 - name: "Get cluster pull-secret"
   ansible.builtin.include_tasks: get-cluster-pullsecret.yml
 

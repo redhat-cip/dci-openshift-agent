@@ -1,7 +1,4 @@
 ---
-- name: "Get cluster facts"
-  include_tasks: get-cluster-facts.yml
-
 - name: Increase maxUnavailable workers
   include_tasks: increase_maxunavailable.yml
   when:

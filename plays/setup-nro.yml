@@ -14,9 +14,6 @@
     msg: "NUMA Resource Operator CRDs are not present, please install the operator in the OperatorHub"
   when: numa_crd.results[0].resources | list | count == 0
 
-- name: "Get cluster facts"
-  include_tasks: get-cluster-facts.yml
-
 - name: Mirroring the NRO scheduler image
   include_role:
     name: redhatci.ocp.mirror_images

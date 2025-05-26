@@ -473,10 +473,40 @@
       rescue: *teardown_failure
 
 # Step 3a-2 : deploy operators
+- name: 'Mirror operators to dci_local_registry'
+  hosts: jumphost
+  tags:
+    - running
+    - operator-mirroring
+    - operator-deployment
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+    KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
+  tasks:
+    - name: Mirror operators and configure catalog sources
+      when:
+        - dci_main == 'install'
+        - acm_cluster_type | default('') != 'hypershift'
+      block:
+        - name: "Run cluster health checks"
+          ansible.builtin.include_tasks: plays/check-cluster-health.yml
+        - name: "Setup job_logs directory"
+          ansible.builtin.include_tasks: plays/log-dir.yml
+          when: job_logs is undefined
+        - name: "Mirror operators"
+          ansible.builtin.include_tasks: plays/prepare-operators.yml
+      rescue: *teardown_failure
+
+# Step 3a-3 : deploy operators
 - name: 'Deploy operators to OCP cluster'
   hosts: jumphost
   tags:
     - running
+    - operator-install
     - operator-deployment
   environment:
     http_proxy: "{{ http_proxy }}"
@@ -491,13 +521,42 @@
         - dci_main == 'install'
         - acm_cluster_type | default('') != 'hypershift'
       block:
-        - name: "Run cluster health checks"
-          ansible.builtin.include_tasks: plays/check-cluster-health.yml
         - name: "Setup job_logs directory"
           ansible.builtin.include_tasks: plays/log-dir.yml
           when: job_logs is undefined
+        - name: "Get Cluster facts"
+          ansible.builtin.include_tasks: plays/get-cluster-facts.yml
         - name: "Deploy operators"
           ansible.builtin.include_tasks: plays/deploy-operators.yml
+      rescue: *teardown_failure
+
+# Step 3a-4 : configure operators
+- name: 'Configure deployed operators'
+  hosts: jumphost
+  tags:
+    - running
+    - operator-configuration
+    - operator-deployment
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+    KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ dci_cluster_configs_dir }}:{{ ansible_env.PATH }}"
+    TMPDIR: "{{ ansible_env.HOME }}/tmp"
+  tasks:
+    - name: Configure operators
+      when:
+        - dci_main == 'install'
+        - acm_cluster_type | default('') != 'hypershift'
+      block:
+        - name: "Setup job_logs directory"
+          ansible.builtin.include_tasks: plays/log-dir.yml
+          when: job_logs is undefined
+        - name: "Get Cluster facts"
+          ansible.builtin.include_tasks: plays/get-cluster-facts.yml
+        - name: "Deploy operators"
+          ansible.builtin.include_tasks: plays/configure-operators.yml
       rescue: *teardown_failure
 
 # Step 3a-3 : hook installing
@@ -548,6 +607,8 @@
       block:
         - name: "Run cluster health checks"
           ansible.builtin.include_tasks: plays/check-cluster-health.yml
+        - name: "Get Cluster facts"
+          ansible.builtin.include_tasks: plays/get-cluster-facts.yml
         - name: "Launch upgrade"
           ansible.builtin.include_tasks: plays/upgrade.yml
       rescue: *teardown_failure
