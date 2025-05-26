@@ -45,7 +45,7 @@ upstream [Network requirements guide from OpenShift](https://openshift-kni.githu
 ### Systems requirements
 
 `DCI OpenShift Agent` needs a dedicated system to act as a `controller node`.
-It is identified as the `DCI Jumpbox` in this document. This system will be
+It is identified as the `DCI Jumphost` in this document. This system will be
 added to a standard OCP topology by being connected to the OCP `baremetal
 network`. The `DCI OpenShift Agent` will drive the RHOCP installation workflow
 from there.
@@ -61,10 +61,10 @@ Choose the OCP version you want to install and follow these steps to configure
 the networks and install RHEL 8 on the **OpenShift Provisioning node**.
 
 1. [Setting up access to DCI](#setting-up-access-to-dci)
-2. [Installation of DCI Jumpbox](#installation-of-dci-jumpbox)
+2. [Installation of DCI Jumphost](#installation-of-dci-jumphost)
 3. [Installation of Provision Host](#installation-of-ocp-provision-host)
 
-As mentioned before, the **DCI Jumpbox** is NOT part of the RHOCP cluster. It
+As mentioned before, the **DCI Jumphost** is NOT part of the RHOCP cluster. It
 is only dedicated to download `RHOCP` artifacts from `DCI` public
 infrastructure and to schedule the RHOCP cluster deployment across all systems
 under test (1x OpenShift Provisioning node and several OCP nodes).
@@ -76,9 +76,9 @@ The 3 remaining systems will run the freshly installed OCP Cluster. “3” is t
 minimum required number of nodes to run RHOCP but it can be more if you need
 to.
 
-### Jumpbox requirements
+### Jumphost requirements
 
-The `Jumpbox` can be a physical server or a virtual machine.
+The `Jumphost` can be a physical server or a virtual machine.
 In any case, it must:
 
 - Be running the latest stable RHEL release (**8.4 or higher**) and registered
@@ -123,13 +123,13 @@ and form the new “fresh” RHOCP cluster.
 All files on these systems are NOT persistent between each
 `dci-openshift-agent` job as the RHOCP cluster is reinstalled at each time.
 Therefore, every expected customization and tests have to be automated from the
-DCI Jumpbox (by using hooks) and will therefore be applied after each
-deployment (More info at [Jumpbox Configuration](#jumpbox-configuration)).
+DCI Jumphost (by using hooks) and will therefore be applied after each
+deployment (More info at [Jumphost Configuration](#jumphost-configuration)).
 
 ## Optional DCI Access
 
 - We strongly advise the partners to provide the Red Hat DCI team with access
-  to their jumpbox. This way, Red Hat engineers can help with initial setup and
+  to their jumphost. This way, Red Hat engineers can help with initial setup and
   troubleshooting.
 - We suggest to run the `full virtualized` provided example first to understand
   how the `dci-openshift-agent` works before going to production with a real
@@ -152,7 +152,7 @@ you have to:
    Authentication column. This should be saved under
    `~/.config/dci-pipeline/dci_credentials.yml`.
 
-## Installation of DCI Jumpbox
+## Installation of DCI Jumphost
 
 Before proceeding you should have set up your networks and systems according to
 the baremetal-deploy doc that was referenced above.
@@ -369,17 +369,17 @@ dnsvip=1.2.3.4
 # Activate disconnected mode in DCI OCP agent, requires you to set the next variables as well
 #dci_disconnected=true
 # Must be reachable from the cluster
-#webserver_url="http://<jumpbox IP/DNS>:8080"
+#webserver_url="http://<jumphost IP/DNS>:8080"
 # Path of the file with the pull secret and registry auths in json format.
 #pullsecret_file=/path/to/clusterX-pull-secret.txt
 # Content of the pull secret as downloaded from from https://cloud.redhat.com/openshift/install/metal/user-provisioned
 # *only* used when running a deployment without DCI.
 #pullsecret='content-in-json-format'
-# Path on the jumpbox
+# Path on the jumphost
 #disconnected_registry_auths_file=/path/to/auths.json
-# Path on the jumpbox
+# Path on the jumphost
 #disconnected_registry_mirrors_file=/path/to/trust-bundle.yml
-# Path on the jumpbox, must have enough space to hold your qcow images
+# Path on the jumphost, must have enough space to hold your qcow images
 # Please set setype to container_file_t if you create this folder manually
 # sudo /usr/bin/chcon -t container_file_t /path/to/qcow/cache
 #provision_cache_store="/path/to/qcow/cache"
@@ -426,7 +426,7 @@ jumphost ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsF
 
 ```
 
-> NOTE: If the jumpbox server is in a different network than the baremetal network, then
+> NOTE: If the jumphost server is in a different network than the baremetal network, then
 > include `extcirdnet=<baremetal-network/mask>` in the `all:vars` section of the inventory
 
 > NOTE: If you choose to create the `provision_cache_store` folder manually, make sure to set the `container_file_t` setype for it. This will help ensure a smooth installation of OCP nightly builds.
@@ -807,7 +807,7 @@ place:
 - Does my pipeline file reflect the right
   topic/component for my needs?
 - Is my `dci-openshift-agent` SSH key transferred to the provision host? e.g.
-  can I SSH without a password from Jumpbox -> provisioner?
+  can I SSH without a password from Jumphost -> provisioner?
 
 ### Troubleshooting network connectivity
 
@@ -819,14 +819,14 @@ to look for are:
 - Your `provisioning` network should be treated as an exclusive "out of band"
   network only intended to PXE boot the initial cluster OS
 - Your `baremetal` network should be capable of routing to:
-    - Your jumpbox
+    - Your jumphost
     - Your cluster nodes' BMCs (e.g. your management network)
-- You should have outbound internet access from your Jumpbox (and OCP cluster
+- You should have outbound internet access from your Jumphost (and OCP cluster
   unless in [disconnected mode](docs/disconnected_en.md))
 - Your `baremetal` network should be DHCP enabled and have addresses for all of
   your cluster nodes *plus* the bootstrap VM (usually not an issue but make
   sure there are enough IP addresses to lease)
-- Your Jumpbox, provisioner, and cluster nodes all should be able to resolve
+- Your Jumphost, provisioner, and cluster nodes all should be able to resolve
   your API and your wildcard DNS entries e.g. `api.<cluster>.<domain>` and
   `*.apps.<cluster>.<domain>`
 - The provision host should have 2 bridges setup: one for the `provisioning`
@@ -970,8 +970,8 @@ Finally from the pod you started, you can run ironic baremetal commands
     - *runs on: localhost*
 
 1. "Pre-run"
-    - Prepare the `Jumpbox`: `/plays/pre-run.yml`
-    - Trigger partner Jumpbox preparation if needed: `/hooks/pre-run.yml`
+    - Prepare the `Jumphost`: `/plays/pre-run.yml`
+    - Trigger partner Jumphost preparation if needed: `/hooks/pre-run.yml`
     - *tags: pre-run, hook-pre-run*
     - *runs on: localhost*
 
@@ -1180,7 +1180,7 @@ Example of a custom component file:
 
 ## Keep the DCI OCP Agent Updated
 
-It is recommended to keep the Jumpbox server updated, enable dnf-automatic
+It is recommended to keep the Jumphost server updated, enable dnf-automatic
 updates to make sure system is using latest dci-openshift-agent
 
 Install dnf-automatic

@@ -19,7 +19,7 @@ them available to the disconnected environment.
 - The registry host needs to have access to the Internet and at least 110 GB of
   disk space. You will download the required software repositories and
   container images to this computer. The registry host will usually be the
-  jumpbox but it can be another server.
+  jumphost but it can be another server.
 
 ## Configurations
 
@@ -75,7 +75,7 @@ Group                   | Variable | Required      | Type   | Description
 [all:vars] | local_registry_user | True | String | Username for the registry server
 [all:vars] | local_registry_password | True | String | Password of the registry user for the registry server
 [all:vars] | provision_cache_store | True | String | Folder using for the caching
-[all:vars] | pullsecret_file | Optional | String | Path of the file in the jumpbox with the pull secret and registry auths in json format. If not provided the content of disconnected_registry_auths_file and pullsecret variable (pulled from DCI components) will be combined to be used by all disconnected tasks.
+[all:vars] | pullsecret_file | Optional | String | Path of the file in the jumphost with the pull secret and registry auths in json format. If not provided the content of disconnected_registry_auths_file and pullsecret variable (pulled from DCI components) will be combined to be used by all disconnected tasks.
 [all:vars] | opm_local_registry_path | True | String | Path on the local registry host where the pruned catalog images will be stored
 [registry_host]         |          | True          | String | Define a host here to create or use a local registry
 [registry_host:vars] | disconnected_registry_auths_file | Optional | String | File that contains extra auth tokens to include in the pull-secret. This file will be generated if it doesn't exist. And only required if pullsecret_file var not provided)
@@ -89,7 +89,7 @@ Group                   | Variable | Required      | Type   | Description
 A playbook exist to deploy the registry and the webserver storing the QCOW
 images
 
-On the jumpbox:
+On the jumphost:
 
 ```Shell
 su - dci-openshift-agent

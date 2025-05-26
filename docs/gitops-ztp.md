@@ -22,7 +22,7 @@ These two stages are run through separate DCI jobs that may be pipeline stages.
 
 To support ZTP GitOps based deployments, the ACM Hub Cluster must be provisioned with some operators on top of the Advanced Cluster Management. In particular, the OpenShift GitOps Operator and the Topology Aware Lifecycle Manager is required.
 
-Also, for disconnected environments you may need to have a Git repository served from the restricted network. To help with this, the DCI OpenShift Agent allows you to install a Gitea instance on the hub cluster, so it can be reached both, from the jumpbox and the spoke cluster.
+Also, for disconnected environments you may need to have a Git repository served from the restricted network. To help with this, the DCI OpenShift Agent allows you to install a Gitea instance on the hub cluster, so it can be reached both, from the jumphost and the spoke cluster.
 
 ### Requirements for the ZTP ACM Hub Cluster
 

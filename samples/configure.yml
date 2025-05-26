@@ -1,7 +1,7 @@
 # vim: ft=yaml.ansible
 ---
 - name: Setup DCI test lab
-  hosts: jumpbox
+  hosts: jumphost
   become: true
   vars:
     rhsm_org_id: "{{ vault_rhsm_org_id }}"  # from https://console.redhat.com

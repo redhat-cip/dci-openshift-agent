@@ -1,6 +1,6 @@
 # Old way to use the dci-openshift-agent
 
-## Jumpbox Configuration
+## Jumphost Configuration
 
 There are three configuration files for `dci-openshift-agent`:
 `/etc/dci-openshift-agent/dcirc.sh`, `/etc/dci-openshift-agent/hosts` and
@@ -11,7 +11,7 @@ There are three configuration files for `dci-openshift-agent`:
 > NOTE: The default `dcirc.sh` is shipped as `/etc/dci-openshift-agent/dcirc.sh.dist`.
 
 Copy the [recently obtained API credentials](#setting-up-access-to-dci) and
-paste it on the Jumpbox to `/etc/dci-openshift-agent/dcirc.sh`.
+paste it on the Jumphost to `/etc/dci-openshift-agent/dcirc.sh`.
 
 This file should be edited once and looks similar to this:
 

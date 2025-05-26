@@ -12,7 +12,7 @@
         machine_network_cidr: "192.168.16.0/25"
       when: machine_network_cidr is not defined
 
-    - name: Figure out the jumpbox's main DNS
+    - name: Figure out the jumphost's main DNS
       when: provisioner_dns is not defined
       block:
         - name: Query nmcli for DNS server

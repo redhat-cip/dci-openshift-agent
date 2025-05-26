@@ -14,8 +14,8 @@ If you haven't already setup your virtualized masters then please ([learn how
  to install the virtual environment](../../docs/ocp_on_libvirt.md))
 
 For this playbook to work you will need two additional network interfaces
-on your jumpbox for a total of 3 networks.  We will call the exisiting
-network on your jumpbox the jumpbox network.  For the additional two
+on your jumphost for a total of 3 networks.  We will call the exisiting
+network on your jumphost the jumphost network.  For the additional two
 networks, one network will be used for the baremetal network and the second
 one will be used for the provisioning network.  Each interface will need to
 be plugged into its own switch or if using one switch it will need to be
@@ -25,7 +25,7 @@ Your physical workers will be plugged into these switches, one switch for
 each network interface.
 
 Your baseboard management controller (BMC) will need to be plugged into
-either the jumpbox or the baremetal network.
+either the jumphost or the baremetal network.
 
 ## How to run the convert bridge playbook
 
@@ -37,7 +37,7 @@ $ id
 uid=990(dci-openshift-agent) gid=987(dci-openshift-agent) groups=987(dci-openshift-agent),107(qemu),985(libvirt) ...
 ```
 
-Run `libvirt_to_bridge` playbook to configure your jumpbox networks.
+Run `libvirt_to_bridge` playbook to configure your jumphost networks.
 This playbook will:
 
 - Shutdown the virtual hosts
@@ -45,7 +45,7 @@ This playbook will:
 - Shutdown and undefine the libvirt networks baremetal and provisioning
 - Create new baremetal and provisioning networks using the 2 new nics
 - Define and start the libvirt networks baremetal and provisioning
-- Setup the Jumpbox network to do NAT
+- Setup the Jumphost network to do NAT
 - Restart dnsmasq on the jumphost
 - boot the provisionhost back up.
 

@@ -336,7 +336,7 @@ all:
   hosts:
     localhost:
       ansible_connection: local
-    jumpbox:
+    jumphost:
       ansible_connection: local
       ansible_python_interpreter: "{{ ansible_playbook_python }}"
       ansible_user: <user>

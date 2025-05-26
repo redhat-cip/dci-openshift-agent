@@ -16,20 +16,20 @@ configuration examples to run the `DCI Openshift Agent` in a “all-in-one” fu
 virtualized environment.
 
 In this case, the agent will use `libvirt` virtual machines deployed on top of
-the DCI `Jumpbox`.
+the DCI `Jumphost`.
 
 Please note that systems are [nested virtual
 machines](#https://www.linux-kvm.org/page/Nested_Guests) at least in the case
 of the provision host: provisioner will spawn a bootstrap VM inside itself, in
 our case that would be a VM inside a VM. Please remember to enable `nested_kvm`
-in your Jumpbox.
+in your Jumphost.
 
-The full virtualized environment scenario requires the DCI Jumpbox to have at
+The full virtualized environment scenario requires the DCI Jumphost to have at
 least 64 Gi of memory and 200 Gi of storage to host a virtual provision machine
 and all virtual masters.
 
 The provided example will create 4 systems (1 provisionner and 3 OCP masters)
-on top of the DCI Jumpbox. The number of nodes can be adapted by modifying the
+on top of the DCI Jumphost. The number of nodes can be adapted by modifying the
 `samples/ocp_on_libvirt/inventory/libvirt_resources.yml` file.
 
 ## How to run the fully virtualized example
@@ -39,9 +39,9 @@ system by running `libvirt` virtual machines. This example is a good path to
 understand the `dci-openshift-agent` (all different steps, hooks, settings) and
 to be used as a development environment.
 
-At this point, the `DCI Jumpbox` is installed with all above prerequisites
+At this point, the `DCI Jumphost` is installed with all above prerequisites
 ([learn how to install the DCI
-Jumpbox](../README.md#installation-of-dci-jumpbox)).
+Jumphost](../README.md#installation-of-dci-jumphost)).
 
 The following documentation covers how to configure deploy virtual systems,
 virtual networks and the according `/etc/dci-openshift-agent/hooks/`
@@ -135,16 +135,18 @@ Alternatively, the Redfish protocol may be used as implemented by the sushy-tool
 
 To do so, your libvirt_up playbook inventory must include the following parameters:
 
-* **enable_redfish (boolean):** to switch from IPMI to Redfish protocol.
+- **enable_redfish (boolean):** to switch from IPMI to Redfish protocol.
 
-* **enable_virtualmedia (boolean):** to boot the image from virtual media.
+- **enable_virtualmedia (boolean):** to boot the image from virtual media.
 
 ### Demo screencast
+
 [![demo](https://asciinema.org/a/Rv35FeMi5CADVsaBUhdu3f6d0.svg)](https://asciinema.org/a/Rv35FeMi5CADVsaBUhdu3f6d0?autoplay=1)
 
 ### Additional resources
+
 We have provided dnsmasq config templates in the samples directory to serve
-dhcp/dns from the dci jumpbox if you don’t already have a dns/dhcp server on
+dhcp/dns from the dci jumphost if you don’t already have a dns/dhcp server on
 your bare metal network.
 
 ## Troubleshooting
@@ -163,7 +165,7 @@ virtualized, the installation may take longer to complete. A recurring timeout
 is reached during the bootstrap.
 
 Two parameters are available to increase this timeout,
-*increase_bootstrap_timeout* and *increase_install_timeout*.
+_increase_bootstrap_timeout_ and _increase_install_timeout_.
 
 ```YAML
 - name: "installer : Run IPI installer"
