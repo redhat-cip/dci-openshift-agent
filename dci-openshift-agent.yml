@@ -497,6 +497,8 @@
         - name: "Setup job_logs directory"
           ansible.builtin.include_tasks: plays/log-dir.yml
           when: job_logs is undefined
+        - name: "Get Cluster facts"
+          ansible.builtin.include_tasks: plays/get-cluster-facts.yml
         - name: "Mirror operators"
           ansible.builtin.include_tasks: plays/prepare-operators.yml
       rescue: *teardown_failure
