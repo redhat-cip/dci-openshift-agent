@@ -75,7 +75,7 @@ Modify your pipeline file `install-microshift-pipeline.yml`:
 
 Ansible configuration with extra vars:
 
-- `hooks_dir`: Location of your hooks files (`error.yml, failure.yml, install.yml, post-run.yml, pre-run.yml, success.yml, test-jumpbox.yml, test-sut.yml`). If your hooks are not found, no worries, `include_tasks` is skipped. Use hooks to customize your pipeline. See [Customizing a DCI job with hooks](general_concepts/#customizing-a-dci-job-with-hooks).
+- `hooks_dir`: Location of your hooks files (`error.yml, failure.yml, install.yml, post-run.yml, pre-run.yml, success.yml, test-jumphost.yml, test-sut.yml`). If your hooks are not found, no worries, `include_tasks` is skipped. Use hooks to customize your pipeline. See [Customizing a DCI job with hooks](general_concepts/#customizing-a-dci-job-with-hooks).
 - `rhsm_offline_token`: RHSM offline token. Get it [here](https://access.redhat.com/management/api)
 - `rhsm_org_id` and `rhsm_activation_key`: RHSM organization ID and activation key. Information available on [console.redhat.com](https://console.redhat.com/insights/connector/activation-keys)
 - `suts`: Describe the system under tests the agent will create. We are using Redfish to install Microshift OStree ISO on the SUTs. Sushy tools is used to control virtual systems with Redfish protocol.

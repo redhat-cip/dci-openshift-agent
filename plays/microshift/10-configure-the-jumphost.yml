@@ -1,5 +1,5 @@
 ---
-- name: Check the variables needed when configuring the jumpbox
+- name: Check the variables needed when configuring the jumphost
   ansible.builtin.assert:
     that:
       - _libvirt_pool_dir is defined

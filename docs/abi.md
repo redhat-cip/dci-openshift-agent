@@ -31,7 +31,7 @@ bootstrap node into a control plane node when it completes the installation.
 !!! note
     ABI installer in available starting OCP 4.12.
 
-For the DCI Jumpbox you will need:
+For the DCI Jumphost you will need:
 
 * A RHEL 8 server with:
   * 100G of available disk in the location where you configure the service to
@@ -76,7 +76,7 @@ configuration shows, it is a YAML file. The YAML file offers more capabilities
 to represent more comples variables (e.g. dicts, lists) then INI files, so
 familiarize yourself with it.
 
-The following variables control where **in the jumpbox** the different pieces
+The following variables control where **in the jumphost** the different pieces
 will store their data, make sure you have enough space (at least 200G) to hold
 your cached files, and routinely monitor for disk consumption:
 
@@ -126,7 +126,7 @@ you'll have to adjust:
 * Set `dci_disconnected` to true, this can be done in the inventory file or the
   `settings.yml` file
 * Turn on the following variables:
-  * `setup_registry_service`: Creates a container registry in the jumpbox
+  * `setup_registry_service`: Creates a container registry in the jumphost
   * `use_local_registry`: Tells the Installer to use the previously
     configured container registry
   * `setup_ntp_service` (if needed): Configures an NTP server so the cluster
@@ -137,7 +137,7 @@ you'll have to adjust:
 ## Virtual Lab Quick Start
 
 If you want to get started quickly with the OCP Agent to test ABI the path is fairly easy,
-assuming you have a jumpbox that meets the
+assuming you have a jumphost that meets the
 requirements. Here's a quick step by step list of what you need to do:
 
 1.  Create (if there is none) an SSH key for the `dci-openshift-agent` user and
@@ -145,7 +145,7 @@ requirements. Here's a quick step by step list of what you need to do:
 1.  Generate the libvirt test inventory file from the sample template, there
     are 3 templates to choose from: `sno` (single node openshift),
     `controlplane` (only 3 control plane nodes), and `split` (3+3 control and
-    compute plane nodes). To generate the inventory file, login to your jumpbox
+    compute plane nodes). To generate the inventory file, login to your jumphost
     and execute the following as the dci-openshift-agent user:
 
     ```bash
