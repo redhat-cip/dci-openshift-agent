@@ -86,6 +86,7 @@
 - name: Get Pre-GA DCI component
   ansible.builtin.set_fact:
     dci_pre_ga_catalog: "{{ component.url }}"
+    dci_pre_ga_component: "{{ component }}"
   loop: "{{ job_info.job.components + [custom_component] if custom_component is defined else job_info.job.components }}"
   loop_control:
     loop_var: component
