@@ -1,12 +1,16 @@
 ---
 - name: Generate SHA-512 crypt hash of the password
-  ansible.builtin.command: "mkpasswd --method=sha-512 '{{ dci_console_pass }}'"
+  ansible.builtin.command: "openssl passwd -6 '{{ dci_core_user_pass }}'"
   register: hashed_password
   no_log: true
 
-- name: Create directory if it does not exist {{ customize_extramanifests_path }}
+- name: Set directory path for core password extra manifests
+  set_fact:
+    core_pass_manifests: "{{ customize_extramanifests_path | default ('/tmp/dci_core/' + job_id | default('') ) }}"
+
+- name: Create directory for extra core user manifests
   ansible.builtin.file:
-    path: "{{ customize_extramanifests_path }}"
+    path: "{{ core_pass_manifests }}"
     state: directory
     mode: '0755'
 
@@ -27,7 +31,7 @@
             users:
             - name: core
               passwordHash: {{ hashed_password.stdout }}
-    dest: "{{ customize_extramanifests_path }}/05_{{ node_role }}-core-password.yaml"
+    dest: "{{ core_pass_manifests }}/05_{{ node_role }}-core-password.yaml"
     mode: "0644"
   loop:
     - worker
@@ -71,7 +75,7 @@
                 ExecStart=/bin/sh -c 'chpasswd -e < /etc/core.passwd'
                 [Install]
                 WantedBy=multi-user.target
-    dest: "{{ customize_extramanifests_path }}/20_{{ node_role }}-core-password.yaml"
+    dest: "{{ core_pass_manifests }}/20_{{ node_role }}-core-password.yaml"
     mode: "0644"
   loop:
     - worker
@@ -80,4 +84,29 @@
     loop_var: node_role
   when:
     - version is version('4.13', '<')
+
+- name: Prepare manifest for ABI
+  when:
+    - install_type | default ('ipi') == 'abi'
+  block:
+    - name: Prepare manifest entries
+      set_fact:
+        core_password_manifests: >-
+          {{
+            core_password_manifests | default([]) +
+            [{
+              'file': core_pass_manifests ~
+                      ( '/20_' if version is version('4.13', '<') else '/05_' ) ~
+                      node_role ~ '-core-password.yaml'
+            }]
+          }}
+      loop:
+        - worker
+        - master
+      loop_control:
+        loop_var: node_role
+
+    - name: Merge with inventory extra_manifests
+      set_fact:
+        dci_extra_manifests: "{{ extra_manifests | default([]) + core_password_manifests }}"
 ...

@@ -166,11 +166,10 @@
           {{ img_src_content | json_query('spec.*') | first | to_yaml }}
 
 - name: "Set password for core user"
-  ansible.builtin.include_tasks: set-console-pass.yml
+  ansible.builtin.include_tasks: set-core-user-pass.yml
   when:
-    - dci_console_pass | default("") | length > 0
-    - customize_extramanifests_path is defined
-    - (install_type | default('ipi')) in ['ipi']
+    - dci_core_user_pass | default("") | length > 0
+    - (install_type | default('ipi')) in ['ipi', 'abi']
 
 - name: Get provisioner SSH identity
   delegate_to: "{{ groups['provisioner'][0] }}"

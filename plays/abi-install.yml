@@ -134,7 +134,7 @@
         manifest_file:
           file: "{{ performance_definition }}"
       ansible.builtin.set_fact:
-        extra_manifests: "{{ extra_manifests | default([]) + [manifest_file] }}"
+        dci_extra_manifests: "{{ hostvars.jumphost.dci_extra_manifests | default([]) + [manifest_file] }}"
       when:
         - performance_definition is defined
         - version is version('4.16', '>=')
@@ -143,6 +143,7 @@
       vars:
         pull_secret: "{{ dci_pullsecret }}"
         repo_root_path: "{{ dci_cluster_configs_dir }}"
+        manifest_templates: "{{ hostvars.jumphost.dci_extra_manifests }}"
       ansible.builtin.include_role:
         name: redhatci.ocp.generate_manifests
 

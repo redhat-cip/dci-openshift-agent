@@ -13,6 +13,7 @@
       - "jq"
       - "expect"
       - python3-passlib  # Comes from EPEL, required in redhatci.ocp/oc_setup
+      - openssl
     state: installed
 
 - name: Install libraries required by some old openshift installer binaries

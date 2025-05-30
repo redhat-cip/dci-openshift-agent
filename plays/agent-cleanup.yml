@@ -26,6 +26,13 @@
   when:
     - bundle_tmp_dir is defined
 
+- name: "Remove core_user manifests directory"
+  ansible.builtin.file:
+    path: "{{ core_pass_manifests }}"
+    state: absent
+  when:
+    - core_pass_manifests is defined
+
 - name: "Delete UPI tmp file"
   ansible.builtin.file:
     path: "{{ upi_creds_file.path }}"
