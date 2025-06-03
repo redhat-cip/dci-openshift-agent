@@ -105,8 +105,4 @@
         - master
       loop_control:
         loop_var: node_role
-
-    - name: Merge with inventory extra_manifests
-      set_fact:
-        dci_extra_manifests: "{{ extra_manifests | default([]) + core_password_manifests }}"
 ...

@@ -129,12 +129,22 @@
         name: redhatci.ocp.populate_mirror_registry
         tasks_from: var_check.yml
 
+    - name: Get extra_manifests defined in the inventory
+      set_fact:
+        dci_extra_manifests: "{{ extra_manifests | default([]) }}"
+
+    - name: Add core_password manifests to dci_extra_manifests
+      ansible.builtin.set_fact:
+        dci_extra_manifests: "{{ dci_extra_manifests + hostvars.jumphost.core_password_manifests }}"
+      when:
+        - hostvars.jumphost.core_password_manifests | default([]) | length > 0
+
     - name: Add performance profile to extra manifests in ABI
       vars:
         manifest_file:
           file: "{{ performance_definition }}"
       ansible.builtin.set_fact:
-        dci_extra_manifests: "{{ hostvars.jumphost.dci_extra_manifests | default([]) + [manifest_file] }}"
+        dci_extra_manifests: "{{ dci_extra_manifests + [manifest_file] }}"
       when:
         - performance_definition is defined
         - version is version('4.16', '>=')
@@ -143,7 +153,7 @@
       vars:
         pull_secret: "{{ dci_pullsecret }}"
         repo_root_path: "{{ dci_cluster_configs_dir }}"
-        manifest_templates: "{{ hostvars.jumphost.dci_extra_manifests }}"
+        manifest_templates: "{{ dci_extra_manifests }}"
       ansible.builtin.include_role:
         name: redhatci.ocp.generate_manifests
 
