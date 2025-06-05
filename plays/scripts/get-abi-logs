@@ -85,14 +85,14 @@ fi
 echo "Gather host's journals"
 
 for h in "${nodes[@]}"; do
-  ssh ${ssh_ops} core@"${h}.${domain_name}" 'sudo journalctl --all --since "4 hours ago"' > "${log_dir}/journal-${h}.log"
+  timeout -v 60s ssh ${ssh_ops} core@"${h}.${domain_name}" 'sudo journalctl --all --since "4 hours ago"' > "${log_dir}/journal-${h}.log"
   if [ $? -ne 0 ]; then
   echo "Attempting to collect logs again with hostname ${domain_name}"
-  ssh ${ssh_ops} core@"${domain_name}" 'sudo journalctl --all --since "4 hours ago"' > "${log_dir}/journal-${h}.log"
+  timeout -v 60s ssh ${ssh_ops} core@"${domain_name}" 'sudo journalctl --all --since "4 hours ago"' > "${log_dir}/journal-${h}.log"
   fi
   # Get kernel parameters only from one worker in the list
   if grep -q "worker" <<< "${h}" &&
     [[ ! -s "${log_dir}/worker-kernel-params.txt" ]]; then
-      ssh ${ssh_ops} core@"${h}.${domain_name}" 'cat /proc/cmdline' > "${log_dir}/worker-kernel-params.txt"
+      timeout -v 60s ssh ${ssh_ops} core@"${h}.${domain_name}" 'cat /proc/cmdline' > "${log_dir}/worker-kernel-params.txt"
   fi
 done
