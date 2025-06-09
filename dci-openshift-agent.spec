@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       1.14.0
+Version:       1.15.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -55,6 +55,7 @@ exit 0
 %{_datadir}/dci-openshift-agent/action_plugins/*
 %{_datadir}/dci-openshift-agent/utils/*
 %{_datadir}/dci-openshift-agent/plays/microshift/*
+%{_datadir}/dci-openshift-agent/plays/empty-agent/*
 %{_datadir}/dci-openshift-agent/plays/templates/*
 
 %{_datadir}/dci-openshift-agent/group_vars/all
@@ -64,6 +65,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Mon Jul 21 2025 Guillaume Vincent <gvincent@redhat.com> - 1.15.EPOCH-VERS
+- Add DCI empty agent plays
+
 * Fri Jul 11 2025 Beto Rdz <josearod@redhat.com> - 1.14.EPOCH-VERS
 - Version bump for redhatci.ocp.deploy_cr changest in redhatci.ocp >= 2.7
 

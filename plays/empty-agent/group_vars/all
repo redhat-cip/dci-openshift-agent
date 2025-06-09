@@ -1,0 +1,10 @@
+---
+# Proxy settings
+http_proxy: "{{ lookup('env','http_proxy') }}"
+https_proxy: "{{ lookup('env','https_proxy') }}"
+no_proxy_list: "{{ lookup('env','no_proxy') }}"
+
+# DCI settings
+dci_tags: []
+dci_hide_secrets: true
+hooks_dir: "/dci-config/hooks"
