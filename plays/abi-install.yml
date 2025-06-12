@@ -236,6 +236,7 @@
         immediate: true
         state: disabled
         zone: "{{ item }}"
+      delegate_to: http_store
       loop:
         - internal
         - public
