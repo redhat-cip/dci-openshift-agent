@@ -98,6 +98,7 @@
     dci_pullsecret: "{{ dci_pullsecret }}"
   delegate_to: localhost
   delegate_facts: true
+  no_log: true
 
 - name: "Create releases dir in home directory if needed"
   ansible.builtin.file:
