@@ -286,6 +286,4 @@
     - ocs_install_type is defined
     - ocs_install_type == 'internal'
     - local_storage_devices | default([]) | length
-    - enable_odf | bool
-    - enable_lso | bool
 ...
