@@ -91,11 +91,11 @@
     name: performanceprofiles.performance.openshift.io
   register: perf_profile_crd
 
-- name: Legacy support for performance profile in old OCP
+- name: Legacy support for performance profile in old OCP and ACM
   when:
     - performance_definition is defined
-    - version is version('4.16', '<')
     - perf_profile_crd.resources | length > 0
+    - version is version('4.16', '<') or install_type | default('ipi') == 'acm'
   block:
     - name: Apply the Performance Profile
       ansible.builtin.include_tasks: "{{ item }}"
