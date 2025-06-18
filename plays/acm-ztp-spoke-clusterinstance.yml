@@ -29,6 +29,15 @@
       when:
         - old_managed_cluster.resources | length > 0
 
+- name: "Create required resources for the spoke on the Hub"
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ item }}"
+    wait: true
+  no_log: true
+  loop: "{{ dci_spoke_manifest_files | default([]) }}"
+  when: (dci_spoke_manifest_files | default([])) | length > 0
+
 - name: Get ACM hub data used to render ClusterInstance templates
   ansible.builtin.include_role:
     name: redhatci.ocp.acm_sno

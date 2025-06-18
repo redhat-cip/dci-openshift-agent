@@ -36,6 +36,15 @@
           environment:
             - KUBECONFIG: "{{ hub_kubeconfig_path }}"
 
+- name: "Create required resources for the spoke on the Hub"
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ item }}"
+    wait: true
+  no_log: true
+  loop: "{{ dci_spoke_manifest_files | default([]) }}"
+  when: (dci_spoke_manifest_files | default([])) | length > 0
+
 - name: Create the spoke cluster image sets
   ansible.builtin.include_role:
     name: redhatci.ocp.ztp.setup_cluster_image_set
