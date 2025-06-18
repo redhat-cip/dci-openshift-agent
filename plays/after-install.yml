@@ -129,6 +129,7 @@
 
 - name: "Create a DCI component for the rhcos_kernel"
   ignore_errors: true
+  delegate_to: localhost
   block:
     - name: "Create component with the rhcos kernel in use"
       vars:
