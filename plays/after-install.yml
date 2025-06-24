@@ -282,6 +282,11 @@
       plays/scripts/wipe-odf-disks.sh
       {{ local_storage_devices | join(' ') }}
   ignore_errors: false
+  register: disk_wipe_result
+  retries: 3
+  delay: 10
+  until: disk_wipe_result is not failed
+  changed_when: false
   when:
     - dci_wipe_local_storage | default(true) | bool
     - ocs_install_type is defined
