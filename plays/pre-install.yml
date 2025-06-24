@@ -76,7 +76,9 @@
     name: disconnected_auths
   no_log: true
   when:
-    - dci_disconnected | default(false) | bool
+    - groups['registry_host'] is defined
+    - groups['registry_host']|length
+    - hostvars[groups['registry_host'][0]]['disconnected_registry_mirrors_file'] is defined
 
 - name: "Process pullsecrets"
   ansible.builtin.include_tasks: pullsecrets.yml
