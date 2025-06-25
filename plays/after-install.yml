@@ -58,17 +58,29 @@
     - "{{ dci_cluster_configs_dir }}/cluster-install-config.yml"
 
 - name: "Check if all cluster-operators are running correctly"
+  vars:
+    co_available_count: "{{
+      clusteroperator_info.resources
+      | map(attribute='status.conditions')
+      | list
+      | flatten
+      | selectattr('type', 'equalto', 'Available')
+      | selectattr('status', 'equalto', 'True')
+      | list
+      | length
+      }}"
+    co_count: "{{ clusteroperator_info.resources | length }}"
   kubernetes.core.k8s_info:
+    api_version: config.openshift.io/v1
     kind: ClusterOperator
   register: clusteroperator_info
-  vars:
-    status_query: "resources[*].status.conditions[?type=='Available'].status"
-    cluster_operators_available: "{{ clusteroperator_info | json_query(status_query) | flatten | unique }}"
+  until:
+    - clusteroperator_info.resources is defined
+    - clusteroperator_info.resources | length > 0
+    - co_available_count == co_count
   retries: 15
   delay: 10
-  until: cluster_operators_available == ['True']
-  when:
-    - acm_cluster_type | default('') != 'hypershift'
+  no_log: true
 
 - name: "Check all nodes have been provisioned"
   vars:
