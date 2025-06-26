@@ -59,7 +59,6 @@ ${oc_path} get clusteroperator > "${log_dir}/${prefix}clusteroperator.txt"
 ${oc_path} get network cluster -o yaml > "${log_dir}/${prefix}clusternetwork.yaml"
 ${oc_path} get nodes -o wide > "${log_dir}/${prefix}nodes.txt"
 ${oc_path} get nodes -o yaml > "${log_dir}/${prefix}all-nodes.yaml"
-${oc_path} get events --all-namespaces --sort-by='.metadata.creationTimestamp' -o custom-columns='NAMESPACE:.involvedObject.namespace,CREATED:.metadata.creationTimestamp,TYPE:.type,REASON:.reason,KIND:.involvedObject.kind,NAME:.involvedObject.name,MESSAGE:.message' > "${log_dir}/${prefix}events.txt"
 ${oc_path} get pods --all-namespaces -o wide > "${log_dir}/${prefix}pods.txt"
 ${oc_path} get mcp >> "${log_dir}/${prefix}machine-configs.txt"
 ${oc_path} get mc >> "${log_dir}/${prefix}machine-configs.txt"
@@ -68,6 +67,22 @@ ${oc_path} get subs -A -o json | jq '[.items[] | {operator_name: .spec.name, ver
 ${oc_path} get pvc -A > "${log_dir}/pvc.txt"
 ${oc_path} get crd virtualmachineinstances.kubevirt.io &>/dev/null && ${oc_path} get vmi -A > "${log_dir}/virtual-machines.txt"
 ${oc_path} get crd virtualmachines.kubevirt.io &>/dev/null && ${oc_path} get vm -A >> "${log_dir}/virtual-machines.txt"
+
+# Get events with created object time
+${oc_path} get events --all-namespaces --sort-by='.metadata.creationTimestamp' -o json |
+  jq -r '
+    "NAMESPACE\tCREATED\tLAST SEEN\tTYPE\tREASON\tOBJECT\tMESSAGE",
+    (.items[] | [
+      (.involvedObject.namespace | tostring),
+      (.metadata.creationTimestamp | tostring),
+      (.lastTimestamp | tostring),
+      (.type | tostring),
+      (.reason | tostring),
+      ((.involvedObject.kind // "") + "/" + (.involvedObject.name // "")),
+      (.message | tostring | gsub("\n"; ";"))
+    ] | @tsv)' |
+  column -t -s $'\t' \
+  > "${log_dir}/${prefix}events.txt"
 
 # Check for ImageDigestMirrorSets
 idms=$(\
