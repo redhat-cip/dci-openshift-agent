@@ -1,38 +1,30 @@
 ---
-# Only do this if `outputs` variable is not defined, to allow customizing
-# this variable.
-# By default, we provide the kubeconfig as standard output.
-- name: Set outputs to be copied
-  ansible.builtin.set_fact:
-    outputs:
-      kubeconfig: "{{ dci_cluster_configs_dir }}/kubeconfig"
-  when: outputs is not defined
 
-# Only copy each entry from `outputs` pipeline folder if:
-# - `outputs` folder (represented by `job_info.outputs` variable) is defined in the pipeline
-# - `outputs` local variable contains the entry defined in `outputs` pipeline field
-# This is to avoid making a job to fail because of a wrong outputs configuration.
+# outputs is passed by dci-pipeline in the job_info variable
+# it is a dictionary like this:
+# <var name>: <path of the file to save the content>
+- name: Print job outputs location
+  when:
+    - job_info.outputs is defined
+  debug:
+    msg: "{{ job_info['outputs'] }}"
+  delegate_to: localhost
+
+- name: Backward compatibility kubeconfig variable
+  when:
+    - kubeconfig is not defined
+    - kubeconfig_path is defined
+  set_fact:
+    kubeconfig: "{{ kubeconfig_path }}"
+
 - name: Copy outputs if defined
   when:
     - job_info.outputs is defined
     - job_info.outputs != None
-    - outputs[item.key] is defined
   block:
-    - name: Create outputs directory
-      ansible.builtin.file:
-        path: "{{ item.value | dirname }}"
-        state: directory
-        recurse: true
-      loop: "{{ job_info.outputs | dict2items }}"
-    - name: Copy outputs in Jumphost
+    - name: Copy outputs
       ansible.builtin.copy:
-        src: "{{ outputs[item.key] }}"
-        dest: "{{ item.value }}"
-        mode: "0644"
-      loop: "{{ job_info.outputs | dict2items }}"
-    - name: Copy outputs in localhost
-      ansible.builtin.copy:
-        src: "{{ outputs[item.key] }}"
+        src: "{{ lookup('vars', item.key) }}"
         dest: "{{ item.value }}"
         mode: "0644"
       loop: "{{ job_info.outputs | dict2items }}"
@@ -42,3 +34,5 @@
   ansible.builtin.shell: "dci-diff-jobs --job_id_1 {{ job_id }} > {{ job_logs.path }}/diff-jobs.txt"
   delegate_to: localhost
   ignore_errors: true
+
+...
