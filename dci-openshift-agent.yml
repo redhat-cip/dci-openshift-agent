@@ -148,6 +148,14 @@
         - version is version('4.12', '<')
         - (install_type | default('ipi')) == 'abi'
 
+    - name: Fail if topology_aware_lifecycle_operator is in dci_operators and enable_acm is false
+      ansible.builtin.fail:
+        msg: "Topology Aware Lifecycle Operator requires a MCE instance. Please set enable_acm to true."
+      when:
+        - dci_operators is defined
+        - 'dci_operators | selectattr("name", "equalto", "topology-aware-lifecycle-manager") | list | length > 0'
+        - not enable_acm | bool
+
     - name: Requirements for ACM install_type
       when:
         - (install_type | default('ipi')) == 'acm'
