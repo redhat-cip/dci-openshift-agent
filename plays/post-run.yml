@@ -1,38 +1,37 @@
 ---
 
-# outputs is passed by dci-pipeline in the job_info variable
-# it is a dictionary like this:
-# <var name>: <path of the file to save the content>
-- name: Print job outputs location
-  when:
-    - job_info.outputs is defined
-  debug:
-    msg: "{{ job_info['outputs'] }}"
+- name: Post-run play
   delegate_to: localhost
-
-- name: Backward compatibility kubeconfig variable
-  when:
-    - kubeconfig is not defined
-    - kubeconfig_path is defined
-  set_fact:
-    kubeconfig: "{{ kubeconfig_path }}"
-
-- name: Copy outputs if defined
-  when:
-    - job_info.outputs is defined
-    - job_info.outputs != None
+  delegate_facts: true
   block:
-    - name: Copy outputs
+    # outputs is passed by dci-pipeline in the job_info variable
+    # it is a dictionary like this:
+    # <var name>: <path of the file to save the content>
+    - name: Print job outputs location
+      when:
+        - job_info.outputs is defined
+      ansible.builtin.debug:
+        msg: "{{ job_info['outputs'] }}"
+
+    - name: Backward compatibility kubeconfig variable
+      when:
+        - kubeconfig is not defined
+        - kubeconfig_path is defined
+      ansible.builtin.set_fact:
+        kubeconfig: "{{ kubeconfig_path }}"
+
+    - name: Copy outputs if defined
+      when:
+        - job_info.outputs is defined
+        - job_info.outputs != None
       ansible.builtin.copy:
-        src: "{{ lookup('vars', item.key) }}"
+        src: "{{ hostvars['localhost'][item.key] }}"
         dest: "{{ item.value }}"
         mode: "0644"
       loop: "{{ job_info.outputs | dict2items }}"
-      delegate_to: localhost
 
-- name: Get the differences from the previous DCI job
-  ansible.builtin.shell: "dci-diff-jobs --job_id_1 {{ job_id }} > {{ job_logs.path }}/diff-jobs.txt"
-  delegate_to: localhost
-  ignore_errors: true
+    - name: Get the differences from the previous DCI job
+      ansible.builtin.shell: "dci-diff-jobs --job_id_1 {{ job_id }} > {{ job_logs.path }}/diff-jobs.txt"
+      ignore_errors: true
 
 ...
