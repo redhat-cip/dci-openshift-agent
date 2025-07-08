@@ -55,6 +55,17 @@
   when:
     - enable_rhoai | bool
 
+- name: "Setup GitOps"
+  vars:
+    sg_ztp_tag: "{{ dci_gitops_ztp_tag | default('v4.19.0') }}"
+    sg_mce_tag: "{{ dci_gitops_mce_tag | default('v2.13') }}"
+    sg_local_registry: "{{ dci_local_registry }}"
+    sg_pullsecret_file: "{{ dci_pullsecret_file | default('') }}"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.setup_gitops
+  when:
+    - enable_gitops | bool
+
 - name: "Setup the Network Observability Operator"
   ansible.builtin.include_tasks: setup-netobserv.yml
   when:
