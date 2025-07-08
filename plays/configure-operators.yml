@@ -45,6 +45,15 @@
   when:
     - enable_acm | bool
 
+- name: "Setup MetalLB in L2 mode"
+  ansible.builtin.include_role:
+    name: redhatci.ocp.metallb_setup
+  vars:
+    mlb_ipaddr_pool: "{{ metallb_ipaddr_pool_l2 }}"
+  when:
+    - metallb_ipaddr_pool_l2 | default([]) | length > 0
+    - enable_mlb | bool
+
 - name: "Setup a Gitea deployment"
   ansible.builtin.include_tasks: setup-gitea.yml
   when:
