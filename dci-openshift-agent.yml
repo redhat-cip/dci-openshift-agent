@@ -23,6 +23,16 @@
         dci_ui_url: "{{ lookup('env', 'DCI_UI_URL') | default('https://www.distributed-ci.io', True) }}"
       no_log: "{{ dci_hide_secrets }}"
 
+    - name: Check if localhost is a container
+      block:
+        - name: Get /run/.containerenv file status
+          ansible.builtin.stat:
+            path: /run/.containerenv
+          register: containerenv
+        - name: Set run_in_container fact
+          ansible.builtin.set_fact:
+            run_in_container: "{{ containerenv.stat.exists }}"
+
     # Schedule a new job only if not passed via dci-pipeline
     - name: Schedule a new job
       dci_job:
@@ -71,6 +81,7 @@
         tags: >
           {{
           [ (dci_disconnected | default(false) | bool) | ternary("disconnected", "connected") ] +
+          [ run_in_container | ternary("use-dci-container", "") ] +
           ["agent:openshift"] +
           dci_tags +
           dci_workarounds +
