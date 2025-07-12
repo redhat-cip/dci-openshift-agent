@@ -59,6 +59,8 @@
     asm_action: "delete-ztp-by-ref"
     asm_source_repo: "{{ dci_gitops_sites_repo.url }}"
     asm_target_revision: "{{ dci_gitops_sites_repo.branch }}"
+    asm_sites_path: "{{ dci_gitops_sites_repo.path }}"
+    asm_policies_path: "{{ dci_gitops_policies_repo.path }}"
   ansible.builtin.include_role:
     name: redhatci.ocp.acm_spoke_mgmt
     apply:
