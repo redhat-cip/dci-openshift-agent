@@ -18,9 +18,9 @@
     - name: Get RHOAI images helper
       vars:
         subs_details: resources[*].status.installedCSV
-        rhods_version: "{{ (current_subscriptions |
-                        json_query(subs_details) | first) |
-                        regex_replace('rhods-operator\\.(\\d+\\.\\d+)\\.\\d+', '\\1') }}"
+        full_version: "{{ (current_subscriptions | json_query(subs_details) | first) | regex_search('\\d+\\.\\d+\\.\\d+') }}"
+        rhods_version: >-
+          {{ full_version if not full_version.endswith('.0') else full_version[:-2] }}
         rhoai_helper_url: "https://raw.githubusercontent.com/red-hat-data-services/rhoai-disconnected-install-helper/refs/heads/main/rhoai-{{ rhods_version }}.md"
       uri:
         url: "{{ rhoai_helper_url }}"
