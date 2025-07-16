@@ -334,7 +334,7 @@ This is the dci-openshift-agent variables that can be set in the
 | increase_unavailable_workers    | False    | Boolean | True                                                           | Boolean to define if the default maxUnavailable setting of the MCP worker should be increased from 1 to 2 (Only applied with 4 or more worker nodes are available.
 | dci_core_user_pass              | False    | String  |                                                                | Password for the core user on the OCP nodes. Supported by both IPI and ABI installers, this only permits access via the console — not SSH.
 | dci_ephemeral_http_store        | False    | Boolean | True                                                           | For ABI installations, specifies whether the web server container that hosts the discovery ISO is managed by Podman or Systemd. By default, an https_store container is created for each job and destroyed after the installation completes.
-
+| dci_ocp_custom_resources        | False    | List    | []                                                             | Allows creating custom resources on cluster after it has been installed.
 
 > NOTE: There are certain particularities about versioning that you can read more in depth
 > in [the versioning document](docs/ocp_versioning.md)
