@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       1.15.0
+Version:       1.16.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -65,6 +65,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Fri Aug  1 2025 Tony Garcia <tonyg@redhat.com> - 1.16.EPOCH-VERS
+- New custom install step for hooks
+
 * Mon Jul 21 2025 Guillaume Vincent <gvincent@redhat.com> - 1.15.EPOCH-VERS
 - Add DCI empty agent plays
 

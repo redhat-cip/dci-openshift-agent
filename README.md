@@ -1014,20 +1014,25 @@ Finally from the pod you started, you can run ironic baremetal commands
     - *runs on: provisioner*
 
 3. "DCI Main"
-    1. "Install" (`dci_main` is "install" or undefined)
+    1. "Custom Install" (`dci_main` is "install" (default) and `/hooks/custom-install.yml` exists)
+        - Triggers partner custom-install hook `/hooks/custom-install.yml`.
+        - *tags: running, custom-install*
+        - *runs on: jumphost*
+
+    2. "Install" (`dci_main` is "install" or undefined)
         - Start OpenShift install: `/plays/install.yml`
         - Trigger partner install hook if needed: `/hooks/install.yml`.
         - *tags: running, installing, hook-installing, post-installing*
         - Runs the post installation: `/plays/post-install.yml`
         - *runs on: provisioner*
 
-    2. "Upgrading" (`dci_main` is "upgrade")
+    3. "Upgrading" (`dci_main` is "upgrade")
         - Start OpenShift upgrade: `/plays/upgrade.yml`
         - Trigger partner upgrade hook if needed `/hooks/upgrade.yml`
         - *tags: running, upgrading, hook-upgrading*
         - *runs on: provisioner*
 
-    3. "Deploy operators"
+    4. "Deploy operators"
         - start operator deployment: `/plays/deploy-operators.yml`
         - *tags: running, operator-deployment*
         - *runs on: provisioner*

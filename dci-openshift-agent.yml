@@ -343,35 +343,47 @@
       rescue: *teardown_error
 
 # Step 3a-1 : installing
-- name: 'Launch [IPI/SNO/UPI] install'
-  hosts: provisioner
+- name: 'Custom install Hooks'
+  hosts: jumphost
   tags:
     - running
-    - installing
+    - custom-install
   environment:
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy_list }}"
+    KUBECONFIG: "{{ hub_kubeconfig_path | default('') }}"
   tasks:
-    - name: Install IPI/SNO/UPI
+    - name: Custom install
       when:
         - dci_main == 'install'
       block:
-        - name: Launch install {{ (install_type | default('ipi'))}}
-          ansible.builtin.include_tasks: "plays/{{ (install_type | default('ipi')) }}-install.yml"
-          when:
-            - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
+        - name: Check for custom-install.yml hook file
+          ansible.builtin.stat:
+            path: "{{ hookdir }}/hooks/custom-install.yml"
+          loop: "{{ dci_config_dirs }}"
+          loop_control:
+            loop_var: hookdir
+          register: _custom_install_hook
 
-        - name: "Get KUBECONFIG auth/creds from provisioner node"
-          ansible.builtin.fetch:
-            src: "{{ item }}"
-            dest: "{{ dci_cluster_configs_dir }}/"
-            flat: true
-          loop:
-            - "{{ dir }}/auth/kubeconfig"
-            - "{{ dir }}/auth/kubeadmin-password"
+        - name: Set custom install hook fact
+          ansible.builtin.set_fact:
+            custom_install_hook: >-
+              {{
+              _custom_install_hook.results
+              | selectattr('stat.exists', 'equalto', true)
+              | list
+              | length > 0
+              }}
+
+        - name: Custom Install Hooks
+          ansible.builtin.include_tasks: '{{ hookdir }}/hooks/custom-install.yml'
+          loop: "{{ dci_config_dirs }}"
+          loop_control:
+            loop_var: hookdir
+            index_var: idx
           when:
-            - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
+            - _custom_install_hook.results[idx].stat.exists
 
       rescue: &teardown_failure
         - name: Run the teardown failure handler
@@ -418,6 +430,39 @@
               include_tasks: plays/agent-cleanup.yml
 
 # Step 3a-1 : installing
+- name: 'Launch [IPI/SNO/UPI] install'
+  hosts: provisioner
+  tags:
+    - running
+    - installing
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - name: Install IPI/SNO/UPI
+      when:
+        - dci_main == 'install'
+        - not custom_install_hook | default(false) | bool
+      block:
+        - name: Launch install {{ (install_type | default('ipi'))}}
+          ansible.builtin.include_tasks: "plays/{{ (install_type | default('ipi')) }}-install.yml"
+          when:
+            - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
+
+        - name: "Get KUBECONFIG auth/creds from provisioner node"
+          ansible.builtin.fetch:
+            src: "{{ item }}"
+            dest: "{{ dci_cluster_configs_dir }}/"
+            flat: true
+          loop:
+            - "{{ dir }}/auth/kubeconfig"
+            - "{{ dir }}/auth/kubeadmin-password"
+          when:
+            - (install_type | default('ipi')) in ['ipi', 'upi', 'sno']
+      rescue: *teardown_failure
+
+# Step 3a-1 : installing
 - name: 'Launch ACM install'
   hosts: jumphost
   tags:
@@ -442,6 +487,7 @@
           when:
             - (install_type | default('ipi')) == 'acm'
             - dci_main == 'install'
+            - not custom_install_hook | default(false) | bool
       rescue: *teardown_failure
 
 # Step 3a-1 : installing
@@ -466,6 +512,7 @@
           when:
             - (install_type | default('ipi')) == 'abi'
             - dci_main == 'install'
+            - not custom_install_hook | default(false) | bool
       rescue: *teardown_failure
 
 # Step 3a-1 : installing
