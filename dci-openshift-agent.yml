@@ -677,14 +677,14 @@
     TMPDIR: "{{ ansible_env.HOME }}/tmp"
   tasks:
     - name: Red Hat tests
-      when:
-        - (install_type | default('ipi')) != 'acm'
       block:
         - name: "Run cluster health checks"
           ansible.builtin.include_tasks: plays/check-cluster-health.yml
         - name: "Setup job_logs directory"
           ansible.builtin.include_tasks: plays/log-dir.yml
           when: job_logs is undefined
+        - name: "Get Cluster facts"
+          ansible.builtin.include_tasks: plays/get-cluster-facts.yml
         - name: "Launch Red Hat tests"
           ansible.builtin.include_tasks: plays/tests.yml
       rescue: *teardown_failure

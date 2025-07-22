@@ -1,24 +1,4 @@
 ---
-- name: "Setup podman on the jumphost"
-  ansible.builtin.include_role:
-    name: ansible-role-dci-podman
-
-- name: Get oc version output
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
-  ansible.builtin.shell: |
-    {{ oc_tool_path }} version
-  register: oc_version_str
-  delegate_to: jumphost
-
-- name: Get OCP version
-  ansible.builtin.set_fact:
-    ocp_version: "{{ '.'.join(item.split(':')[1].strip().split('.')[0:2]) }}"
-    ocp_version_major: "{{ item.split(':')[1].strip().split('.')[0] }}"
-    ocp_version_minor: "{{ item.split(':')[1].strip().split('.')[1] }}"
-  when: "'Server Version' in item"
-  loop: "{{ oc_version_str.stdout_lines }}"
-
 - name: "Run the Red Hat Test Suites"
   vars:
     ts_e2e_image: "quay.io/openshift/origin-tests"
@@ -55,4 +35,24 @@
     name: redhatci.ocp.cluster_compare
   when:
     - dci_cluster_compare | default(false) | bool
+
+- name: Validate ACM policies
+  environment:
+    KUBECONFIG: "{{ hub_kubeconfig_path }}"
+  when:
+    - install_type | default('ipi') == 'acm'
+    - hub_kubeconfig_path | default('') | length > 0
+  block:
+    - name: Check if the Policy CRD exists
+      kubernetes.core.k8s_info:
+        api_version: apiextensions.k8s.io/v1
+        kind: CustomResourceDefinition
+        name: policies.policy.open-cluster-management.io
+      register: policy_crd_info
+      no_log: true
+
+    - name: Validate ACM policies
+      ansible.builtin.include_tasks:
+        file: validate-acm-policies.yml
+      when: policy_crd_info.resources | length > 0
 ...
