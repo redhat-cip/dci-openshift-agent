@@ -27,6 +27,11 @@ install:
 	done
 	install -p -D -m 644 plays/microshift/group_vars/all $(BUILDROOT)$(DATADIR)/dci-openshift-agent/plays/microshift/group_vars/all
 
+	for empty_agent_play in plays/empty-agent/*.yml; do \
+	  install -p -D -m 755 $$empty_agent_play $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$empty_agent_play; \
+	done
+	install -p -D -m 644 plays/empty-agent/group_vars/all $(BUILDROOT)$(DATADIR)/dci-openshift-agent/plays/empty-agent/group_vars/all
+
 	for template in plays/templates/*; do \
 	  install -p -D -m 755 $$template $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$template; \
 	done

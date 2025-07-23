@@ -1,0 +1,195 @@
+---
+- name: Start a DCI job
+  hosts: localhost
+  tags:
+    - job
+    - dci
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - name: Read credentials from env vars
+      ansible.builtin.set_fact:
+        dci_client_id: "{{ lookup('env','DCI_CLIENT_ID') }}"
+        dci_api_secret: "{{ lookup('env','DCI_API_SECRET') }}"
+        dci_cs_url: "{{ lookup('env','DCI_CS_URL') }}"
+        dci_ui_url: "{{ lookup('env','DCI_UI_URL') | default('https://www.distributed-ci.io', True) }}"
+      no_log: "{{ dci_hide_secrets }}"
+
+    - name: Set the _job variable
+      ansible.builtin.set_fact:
+        _job: "{{ job_info.job }}"
+
+    - name: Create a temporary job directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: job
+      register: tempdir_result
+
+    - name: Set _ocp_component from _job.components
+      ansible.builtin.set_fact:
+        _ocp_component: "{{ item }}"
+      with_items: "{{ _job.components }}"
+      when: item["type"] == "ocp"
+
+    - name: Set the _temporary_job_dir variable
+      ansible.builtin.set_fact:
+        _temporary_job_dir: "{{ tempdir_result.path }}"
+
+    - name: Set hook facts
+      ansible.builtin.set_fact:
+        pre_run_hook_path: "{{ hooks_dir | expanduser }}/pre-run.yml"
+        install_hook_path: "{{ hooks_dir | expanduser }}/install.yml"
+        post_run_hook_path: "{{ hooks_dir | expanduser }}/post-run.yml"
+        success_hook_path: "{{ hooks_dir | expanduser }}/success.yml"
+        failure_hook_path: "{{ hooks_dir | expanduser }}/failure.yml"
+        error_hook_path: "{{ hooks_dir | expanduser }}/error.yml"
+
+    - name: Set job tags
+      ansible.legacy.dci_job:
+        id: "{{ _job.id }}"
+        tags: "{{ ['dci-empty-agent'] + dci_tags }}"
+
+- name: Run pre-run tasks
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - pre-run
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - name: Set job status pre-run
+          ansible.legacy.dci_job:
+            id: "{{ _job.id }}"
+            status: "pre-run"
+          tags: [dci]
+
+        - name: Run the pre-run hook
+          ansible.builtin.include_tasks: "{{ pre_run_hook_path }}"
+          vars:
+            job: "{{ _job }}"
+            temporary_job_dir: "{{ _temporary_job_dir }}"
+            ocp_component: "{{ _ocp_component }}"
+          tags: [pre-run, partner-pre-run-hook]
+          when: pre_run_hook_path is file
+
+      rescue: &teardown_error
+        - name: Set job status error
+          ansible.legacy.dci_job:
+            id: "{{ _job.id }}"
+            status: "error"
+          tags: [dci]
+          ignore_unreachable: true
+          delegate_to: localhost
+
+        - block:
+            - name: Run the error hook
+              ansible.builtin.include_tasks: "{{ error_hook_path }}"
+              tags: [partner-error-hook]
+          when: error_hook_path is file
+          delegate_to: localhost
+          ignore_unreachable: true
+
+        - name: Error
+          fail:
+            msg: "Something went wrong. Review the log at: https://www.distributed-ci.io/jobs/{{ _job.id }}/jobStates"
+
+- name: Run install tasks
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - install
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - name: Set job status running
+          ansible.legacy.dci_job:
+            id: "{{ _job.id }}"
+            status: "running"
+          tags: [dci]
+
+        - name: Run the install hook
+          ansible.builtin.include_tasks: "{{ install_hook_path }}"
+          vars:
+            job: "{{ _job }}"
+            temporary_job_dir: "{{ _temporary_job_dir }}"
+            ocp_component: "{{ _ocp_component }}"
+          tags: [partner-install-hook]
+          when: install_hook_path is file
+
+      rescue: &teardown_failure
+        - name: Set job status failure
+          ansible.legacy.dci_job:
+            id: "{{ _job.id }}"
+            status: "failure"
+          tags: [dci]
+          ignore_unreachable: true
+          delegate_to: localhost
+
+        - block:
+            - name: Run the failure hook
+              ansible.builtin.include_tasks: "{{ failure_hook_path }}"
+              tags: [partner-failure-hook]
+          when: failure_hook_path is file
+          delegate_to: localhost
+          ignore_unreachable: true
+
+        - name: Failure
+          fail:
+            msg: "Something went wrong. Review the log at: https://www.distributed-ci.io/jobs/{{ _job.id }}/jobStates"
+
+- name: Run post-run tasks
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - post-run
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - block:
+        - name: Set job status post-run
+          ansible.legacy.dci_job:
+            id: "{{ _job.id }}"
+            status: "post-run"
+          tags: [dci]
+
+        - name: Run the post-run hook
+          ansible.builtin.include_tasks: "{{ post_run_hook_path }}"
+          vars:
+            job: "{{ _job }}"
+            temporary_job_dir: "{{ _temporary_job_dir }}"
+            ocp_component: "{{ _ocp_component }}"
+          tags: [partner-post-run-hook]
+          when: post_run_hook_path is file
+
+      rescue: *teardown_failure
+
+- name: Finish the DCI job
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - success
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy_list }}"
+  tasks:
+    - name: Set job status success
+      ansible.legacy.dci_job:
+        id: "{{ _job.id }}"
+        status: "success"
+      tags: [dci]
+
+    - name: Run the success hook
+      ansible.builtin.include_tasks: "{{ success_hook_path }}"
+      tags: [partner-success-hook]
+      when: success_hook_path is file
