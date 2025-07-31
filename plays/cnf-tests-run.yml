@@ -5,7 +5,7 @@
 
 - name: "Set cnf_test_image version"
   ansible.builtin.set_fact:
-    cnf_tests_image: "{{ ocp_version_major }}.{{ ocp_version_minor }}"
+    cnf_tests_image: "{{ ocp_version_maj }}.{{ ocp_version_min }}"
 
 - name: "Mirror cnf-test images for disconnected testing"
   when:
