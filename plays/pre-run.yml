@@ -34,6 +34,12 @@
         - file_stat is defined
         - file_stat.stat.exists
 
+- name: Include sources as components when using container
+  ansible.builtin.set_fact:
+    dci_listed_to_components: "{{ lookup('file', '/usr/local/src/src_version.txt', errors='ignore') | default([]) | from_yaml }}"
+  delegate_to: localhost
+  when: hostvars.localhost.run_in_container | default(false) | bool
+
 - name: Include installed software as components
   vars:
     mandatory_rpms:
@@ -46,8 +52,9 @@
       - python3-kubernetes
       - python3-openshift
     ic_rpms: "{{ (dci_rpms_to_components + mandatory_rpms)|flatten }}"
-    ic_gits: "{{ dci_gits_to_components|flatten }}"
-    ic_dev_gits: "{{ dev_gits_to_components|flatten }}"
+    ic_gits: "{{ dci_gits_to_components | flatten }}"
+    ic_dev_gits: "{{ dev_gits_to_components | flatten }}"
+    ic_listed: "{{ dci_listed_to_components | flatten }}"
   ansible.builtin.include_role:
     name: redhatci.ocp.include_components
     apply:
