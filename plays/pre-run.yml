@@ -54,7 +54,7 @@
     ic_rpms: "{{ (dci_rpms_to_components + mandatory_rpms)|flatten }}"
     ic_gits: "{{ dci_gits_to_components | flatten }}"
     ic_dev_gits: "{{ dev_gits_to_components | flatten }}"
-    ic_listed: "{{ dci_listed_to_components | flatten }}"
+    ic_listed: "{{ dci_listed_to_components | default([]) | flatten }}"
   ansible.builtin.include_role:
     name: redhatci.ocp.include_components
     apply:
