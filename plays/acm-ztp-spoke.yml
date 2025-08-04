@@ -59,19 +59,6 @@
     scis_key_path: "{{ dci_gitops_sites_repo.key_path | default(omit) }}"
     scis_release_image_url: "{{ acm_release_image }}"
 
-- name: Get deployed ACM version number
-  kubernetes.core.k8s_info:
-    api_version: operators.coreos.com/v1alpha1
-    kind: ClusterServiceVersion
-    namespace: open-cluster-management
-    label_selectors:
-      - operators.coreos.com/advanced-cluster-management.open-cluster-management
-  register: dci_ztp_acm_version_output
-
-- name: Set fact for deployed ACM version number
-  ansible.builtin.set_fact:
-    dci_ztp_acm_version: "v{{ dci_ztp_acm_version_output | json_query('resources[0].spec.version') }}"
-
 - name: Mirror and configure the GitOps operator ZTP plugin images
   when:
     - dci_disconnected is defined
@@ -80,7 +67,6 @@
     - local_registry_host | length > 0
   vars:
     _local_registry_port: "{{ (local_registry_port | default('') != '') | ternary (':' + (local_registry_port | string), '') }}"
-    _dci_ztp_site_generate_version: "v{{ job_info.job.topic.name | ansible.builtin.regex_replace('OCP-', '') }}"
     czga_site_generator_image: registry.redhat.io/openshift4/ztp-site-generate-rhel8
     czga_multicluster_image: registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9
   block:
@@ -89,8 +75,8 @@
         name: redhatci.ocp.mirror_images
       vars:
         mi_images:
-          - "{{ czga_site_generator_image }}:{{ _dci_ztp_site_generate_version }}"
-          - "{{ czga_multicluster_image }}:{{ dci_ztp_acm_version }}"
+          - "{{ czga_site_generator_image }}:{{ dci_gitops_ztp_tag | default('v4.19.0') }}"
+          - "{{ czga_multicluster_image }}:{{ dci_gitops_mce_tag | default('v2.13') }}"
         mi_registry: "{{ local_registry_host }}{{ _local_registry_port }}"
         mi_authfile: "{{ dci_pullsecret_file }}"
 
@@ -118,8 +104,8 @@
     czga_clusters_namespace: "{{ cluster }}"
     czga_policies_namespace: "{{ cluster }}-policies"
     czga_ocp_pull_secret: "{{ hub_pull_secret.resources[0].data['.dockerconfigjson'] | b64decode }}"
-    czga_site_generator_version: "v{{ job_info.job.topic.name | ansible.builtin.regex_replace('OCP-', '') }}"
-    czga_multicluster_version: "{{ dci_ztp_acm_version }}"
+    czga_site_generator_version: "{{ dci_gitops_ztp_tag | default('v4.19.0') }}"
+    czga_multicluster_version: "{{ dci_gitops_mce_tag | default('v2.13') }}"
     czga_sites_path: "{{ dci_gitops_sites_repo.path}}"
     czga_sites_gitops_repo: "{{ dci_gitops_sites_repo.url }}"
     czga_sites_branch: "{{ dci_gitops_sites_repo.branch }}"
