@@ -60,27 +60,44 @@
     path: "{{ job_logs.path }}/{{ dir_name }}"
     state: absent
 
-- name: Kernel parameters
+- name: Get list of nodes from cluster
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Node
+  register: nodes_info
+  ignore_errors: true
+
+- name: Get kernel information for all nodes
   vars:
-    kernel_params: "{{ job_logs.path }}/worker-kernel-params"
-  block:
-    - name: Read plain kernel params
-      ansible.builtin.slurp:
-        src: "{{ kernel_params }}.txt"
-      register: slurp_cmdline
-      ignore_errors: true
+    node_name: "{{ item.metadata.name }}"
+  ansible.builtin.shell:
+    cmd: >
+      {{ oc_tool_path }} debug node/{{ node_name }}
+      -- chroot /host sh -c 'echo "{\"version\": \"$(uname -r)\", \"params\": \"$(cat /proc/cmdline)\"}"'
+  register: kernel_info
+  ignore_errors: true
+  loop: "{{ nodes_info.resources | default([]) }}"
+  when:
+    - nodes_info.resources is defined
+    - item.status.conditions | selectattr('type', 'equalto', 'Ready') | selectattr('status', 'equalto', 'True') | list | length > 0
 
-    - name: Generate kernel params json
-      ansible.builtin.copy:
-        content: "{{ slurp_cmdline['content'] | b64decode | cmdline_to_json }}"
-        dest: "{{ kernel_params }}.json"
-        mode: '0644'
-      when: slurp_cmdline['content'] is defined
-
-    - name: Delete plan kernel params
-      ansible.builtin.file:
-        path: "{{ kernel_params }}.txt"
-        state: absent
+- name: Save kernel information to files
+  ansible.builtin.copy:
+    content: >-
+      {{ {
+        'version': (item.stdout | from_json).version,
+        'params': (((item.stdout | from_json).params | default('') | cmdline_to_json | from_json))
+      } | to_json }}
+    dest: "{{ job_logs.path }}/dci-extra.kernel.{{ item.item.metadata.name }}.json"
+    mode: '0644'
+  ignore_errors: true
+  loop: "{{ kernel_info.results | default([]) }}"
+  when:
+    - item is defined
+    - item.rc is defined
+    - item.rc == 0
+    - item.stdout is defined
+    - (item.stdout | length) > 0
 
 - name: "Get logs from ACM-Hub"
   environment:
@@ -169,8 +186,20 @@
   vars:
     mime_type: "text/plain"
   ansible.builtin.include_tasks: upload-log.yml
-  when: not (item.path | regex_search(".*_sig-storage.*"))
+  when: not (item.path | regex_search(".*_sig-storage.*|dci-extra\..*\.json$"))
   with_items: "{{ logs_matched.files }}"
+
+- name: Find DCI analytics files
+  ansible.builtin.find:
+    paths: "{{ job_logs.path }}"
+    patterns: "dci-extra.*.json"
+  register: dci_analytics_matched
+
+- name: "Upload DCI analytics files"
+  vars:
+    mime_type: "application/dci-analytics+json"
+  ansible.builtin.include_tasks: upload-log.yml
+  with_items: "{{ dci_analytics_matched.files }}"
 
 - name: Find deployment logs (compressed)
   ansible.builtin.find:
