@@ -73,7 +73,7 @@
   ansible.builtin.shell:
     cmd: >
       {{ oc_tool_path }} debug node/{{ node_name }}
-      -- chroot /host sh -c 'echo "{\"version\": \"$(uname -r)\", \"params\": \"$(cat /proc/cmdline)\"}"'
+      -- chroot /host sh -c 'echo "{\"node\": \"{{ node_name }}\", \"version\": \"$(uname -r)\", \"params\": \"$(cat /proc/cmdline)\"}"'
   register: kernel_info
   ignore_errors: true
   loop: "{{ nodes_info.resources | default([]) }}"
@@ -84,10 +84,11 @@
 - name: Save kernel information to files
   ansible.builtin.copy:
     content: >-
-      {{ {
+      {{ { 'kernel': {
+        'node': (item.stdout | from_json).node,
         'version': (item.stdout | from_json).version,
         'params': (((item.stdout | from_json).params | default('') | cmdline_to_json | from_json))
-      } | to_json }}
+      } } | to_json }}
     dest: "{{ job_logs.path }}/dci-extra.kernel.{{ item.item.metadata.name }}.json"
     mode: '0644'
   ignore_errors: true

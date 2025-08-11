@@ -797,7 +797,7 @@ A DCI job produces a set of relevant configuration files, logs, reports, and tes
 | image-sources.yaml                              | Files   | ImageDigestMirrorSetis or ImageContentSourcePolicies applied to the cluster               |
 | openshift_install_state.json                    | Files   | The installation state of the cluster, contains paramaters used, progress, etc.           |
 | operators.json                                  | Files   | A JSON file with details about the operators installed in the cluster                     |
-| dci-extra.kernel.*.json                         | Files   | JSON files with kernel version and parameters for each cluster node (format: {"version": "kernel_version", "params": {<kernel parameter dictionary>}}) |
+| dci-extra.kernel.*.json                         | Files   | JSON files with kernel version and parameters for each cluster node (format: {"kernel": {"node": "<node name>" "version": "<kernel version>", "params": {<kernel parameter dictionary>}}}) |
 | virtual-machines.txt                            | Files   | List of VMs and VMIs allocated on the host cluster                                        |
 | pvc.txt                                         | Files   | List of allocated Persistent Volume Claims                                                |
 
