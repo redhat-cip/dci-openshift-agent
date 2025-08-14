@@ -1,0 +1,78 @@
+apiVersion: config.openshift.io/v1
+kind: ImageDigestMirrorSet
+metadata:
+  name: prega-odf-idms
+spec:
+  imageDigestMirrors:
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-odf-rhel9-operator
+    source: registry.redhat.io/odf4/odf-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-odf-console-rhel9
+    source: registry.redhat.io/odf4/odf-console-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-ocs-rhel9-operator
+    source: registry.redhat.io/odf4/ocs-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-cephcsi-rhel9-operator
+    source: registry.redhat.io/odf4/cephcsi-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-odf-csi-addons-rhel9-operator
+    source: registry.redhat.io/odf4/odf-csi-addons-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-ocs-client-rhel9-operator
+    source: registry.redhat.io/odf4/ocs-client-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-ocs-metrics-exporter-rhel9
+    source: registry.redhat.io/odf4/ocs-metrics-exporter-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-odf-external-snapshotter-rhel9-operator
+    source: registry.redhat.io/odf4/odf-external-snapshotter-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-rook-ceph-rhel9-operator
+    source: registry.redhat.io/odf4/rook-ceph-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/openshift-ose-oauth-proxy-rhel9
+    source: registry.redhat.io/openshift4/ose-oauth-proxy-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-cephcsi-rhel9-operator
+    source: registry.redhat.io/odf4/cephcsi-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-odf-cloudnative-pg-rhel9-operator
+    source: registry.redhat.io/odf4/odf-cloudnative-pg-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-mcg-rhel9-operator
+    source: registry.redhat.io/odf4/mcg-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-ocs-client-console-rhel9
+    source: registry.redhat.io/odf4/ocs-client-console-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-odf-csi-addons-sidecar-rhel9
+    source: registry.redhat.io/odf4/odf-csi-addons-sidecar-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-cephcsi-rhel9
+    source: registry.redhat.io/odf4/cephcsi-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-odf-external-snapshotter-sidecar-rhel9
+    source: registry.redhat.io/odf4/odf-external-snapshotter-sidecar-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/openshift-ose-csi-external-provisioner-rhel9
+    source: registry.redhat.io/openshift4/ose-csi-external-provisioner-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/openshift-ose-csi-external-resizer-rhel9
+    source: registry.redhat.io/openshift4/ose-csi-external-resizer-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/openshift-ose-csi-external-attacher-rhel9
+    source: registry.redhat.io/openshift4/ose-csi-external-attacher-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/openshift-ose-csi-node-driver-registrar-rhel9
+    source: registry.redhat.io/openshift4/ose-csi-node-driver-registrar-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-mcg-core-rhel9
+    source: registry.redhat.io/odf4/mcg-core-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/rhceph-8-rhel9
+    source: registry.redhat.io/rhceph/rhceph-8-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/rhceph-dev/openshift-ose-csi-external-snapshotter-rhel9
+    source: registry.redhat.io/openshift4/ose-csi-external-snapshotter-rhel9

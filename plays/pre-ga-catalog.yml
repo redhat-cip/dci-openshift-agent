@@ -31,6 +31,15 @@
   when: mc_is_file is defined
   changed_when: false
 
+- name: "Apply additional IDMS for ODF"
+  vars:
+    prega_mirror: "{{ dci_disconnected | default(false) | bool |
+                ternary (dci_local_registry,
+                'quay.io') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'pre-ga-idms.j2') }}"
+
 - name: Append to list of Image Source files
   ansible.builtin.set_fact:
     is_files: "{{ is_files | default([]) + [mc_is_file.path] }}"
