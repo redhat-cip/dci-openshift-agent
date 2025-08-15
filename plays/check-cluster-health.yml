@@ -24,7 +24,7 @@
         - clusteroperator_info.resources is defined
         - clusteroperator_info.resources | length > 0
         - co_available_count == co_count
-      retries: 15
+      retries: 30
       delay: 10
       no_log: true
   rescue:
