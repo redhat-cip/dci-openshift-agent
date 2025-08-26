@@ -81,8 +81,8 @@
         tags: >
           {{
           [ (dci_disconnected | default(false) | bool) | ternary("disconnected", "connected") ] +
-          [ run_in_container | ternary("use-dci-container", "") ] +
           ["agent:openshift"] +
+          run_in_container | ternary(["use-dci-container"], []) +
           dci_tags +
           dci_workarounds +
           ((dci_main == "upgrade") |
