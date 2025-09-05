@@ -15,7 +15,7 @@
     mc_pullsecret: "{{ dci_pullsecret_file }}"
     mc_is_type: "{{ idms_res.resources is defined and idms_res.resources | length | ternary('idms', 'icsp') }}"
     mc_manifest_only: "{{ not (dci_disconnected | default(false) | bool) }}"
-    mc_max_components: 4
+    mc_max_components: 8
 
 - name: Modify Pre-GA Image Sources, except bundles
   vars:
