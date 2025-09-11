@@ -33,7 +33,7 @@ upstream [Network requirements guide from OpenShift](https://openshift-kni.githu
   bootstrap VM
 - Must have 2 reserved virtual IPs for API (`api.<cluster>.<domain>`) and
   wildcard ingress (`*.apps.<cluster>.<domain>`) and DNS setup for both. Please
-  follow the [Openshift Baremetal DNS server
+  follow the [OpenShift Baremetal DNS server
   configuration](https://openshift-kni.github.io/baremetal-deploy/latest/Deployment#DNS)
   as a reference guide
 - Optional - Include DNS entries for the hostnames for each of the servers
@@ -84,8 +84,8 @@ In any case, it must:
 - Be running the latest stable RHEL release (**8.4 or higher**) and registered
   via RHSM.
 - Have at least 160GB of free space available in `/var`
-- Having full access to Internet is highly recommended
-- Be able to connect the following Web urls:
+- Having full access to the Internet is highly recommended
+- Be able to connect to the following Web URLs:
     - DCI API: <https://api.distributed-ci.io>
     - DCI Packages: <https://packages.distributed-ci.io>
     - DCI Repository: <https://repo.distributed-ci.io>
@@ -113,7 +113,7 @@ In any case, it must:
 
 > NOTES:
  - Make sure rhel-8-for-x86_64-appstream-rpms repo provides access to libvirt => 6.0.0 packages
- - The installer may require access to other endpoint (CDNs). The list above is for well know URLs that be subject to change.
+ - The installer may require access to other endpoint (CDNs). The list above is for well known URLs that may be subject to change.
 
 ## Systems under test
 
@@ -121,7 +121,7 @@ In any case, it must:
 and form the new “fresh” RHOCP cluster.
 
 All files on these systems are NOT persistent between each
-`dci-openshift-agent` job as the RHOCP cluster is reinstalled at each time.
+`dci-openshift-agent` job as the RHOCP cluster is reinstalled each time.
 Therefore, every expected customization and tests have to be automated from the
 DCI Jumphost (by using hooks) and will therefore be applied after each
 deployment (More info at [Jumphost Configuration](#jumphost-configuration)).
@@ -144,11 +144,11 @@ you have to:
    sso.redhat.com so you'll use your RH account credentials
 2. If you are not part of any teams you can contact an admin to get yourself
    added
-3. You will have to create a Remote CI for use later, go on the left navigation bar on the `Remotecis` option and click
-   on "Create a new remoteci"
+3. You will have to create a Remote CI for use later, go to the left navigation bar and click
+   on the `Remotecis` option and click on "Create a new remoteci"
 4. Fill out the description and which team it belongs to then click Create
 5. You should see your newly created remoteci in the list, you can get
-   the credentials in YAML format by click the button in the
+   the credentials in YAML format by clicking the button in the
    Authentication column. This should be saved under
    `~/.config/dci-pipeline/dci_credentials.yml`.
 
@@ -161,7 +161,7 @@ Provision the Jumphost with RHEL8. This includes subscribing the host to RHSM
 and ensuring it's receiving updates.
 
 The `dci-openshift-agent` is packaged and available as a RPM file.
-However,`dci-release` and `epel-release` along with additional support
+However, `dci-release` and `epel-release` along with additional support
 repos must be installed first:
 
 For RHEL-8
@@ -195,7 +195,7 @@ Once `dci-openshift-agent` package is installed, the files and resources you can
 - `/usr/share/dci-openshift-agent/` gathers the following folders and files: `action_plugins` folder, `ansible.cfg` file, `dci-openshift-agent.yml` file, `group_vars` folder, `plays` folder, `test-runner` script and `utils` folder.
 - `/var/lib/dci-openshift-agent` folder holds the `samples` folder.
 
-Also, have in mind that:
+Also, keep in mind that:
 
 - `dci-openshift-agent` user (with sudo permissions) and group are created
 
@@ -211,7 +211,7 @@ host are:
 - Must have 2 NICs: one for the baremetal public/routed network and another for
   the provisioning private network
 - Create a `kni` user
-- Create a ssh key for the `kni` user
+- Create an SSH key for the `kni` user
 
 ### Copying the ssh key to your provisioner
 
@@ -260,7 +260,7 @@ This is the dci-openshift-agent variables that can be set in the
 
 | Variable                        | Required | Type    | Default                                                        | Description
 |---------------------------------| -------- | ------- | -------------------------------------------------------------- | ------------
-| install_type                    | False    | String  | ipi                                                            | Openshift Installer type.
+| install_type                    | False    | String  | ipi                                                            | OpenShift Installer type.
 | dci_must_gather_images          | False    | List    |["registry.redhat.io/openshift4/ose-must-gather"]               | List of the must-gather images to use when retrieving "logs.\*".
 | dci_teardown_on_failure         | False    | Boolean | False                                                          | Whether or not execute the teardown hook on a failure.
 | dci_teardown_on_success         | False    | Boolean | True                                                           | Whether or not execute the teardown hook on success.
@@ -273,10 +273,10 @@ This is the dci-openshift-agent variables that can be set in the
 | dci_openshift_csi_test_manifest | False    | String  | ""                                                             | Manifest file that contains the tests for CSI validation. Please review [test-parameters](https://redhat-connect.gitbook.io/openshift-badges/badges/container-storage-interface-csi-1/workflow/setup-test-parameters) and [csi-e2e](https://github.com/kubernetes/kubernetes/tree/v1.16.0/test/e2e/storage/external) for details about drivers capabilities.
 | dci_sno_sideload_kernel_uri     | False    | String  | Undefined                                                      | URI to a kernel RPM to sideload on an SNO cluster.
 | dci_delete_uefi_boot_entries    | False    | Boolean | False                                                          | Delete non-active UEFI boot entries for all the nodes in the cluster during success of a job.
-| dci_do_cni_tests                | False    | Boolean | False                                                          | Executes the CNI tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cni).
-| dci_do_virt_tests               | False    | Boolean | False                                                          | Execute the Kubevirt Conformance tests as described in the [Openshift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cnii). Hyperconverged operator must be installed on the cluster. For airgapped environments this is only supported on OCP 4.9 and newer versions.
+| dci_do_cni_tests                | False    | Boolean | False                                                          | Executes the CNI tests as described in the [OpenShift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cni).
+| dci_do_virt_tests               | False    | Boolean | False                                                          | Execute the Kubevirt Conformance tests as described in the [OpenShift Badges documentation](https://redhat-connect.gitbook.io/openshift-badges/badges/container-network-interface-cni). Hyperconverged operator must be installed on the cluster. For airgapped environments this is only supported on OCP 4.9 and newer versions.
 | dci_cluster_compare             | False    | Boolean | False                                                          | Executes the cluster-compare tool.
-| dci_infra_type                  | False    | String  | core                                                           | Defines the OCP infrastructure type (core, ran). The value is use to choose the cluster_compare manifest according the cluster purpose.
+| dci_infra_type                  | False    | String  | core                                                           | Defines the OCP infrastructure type (core, ran). The value is used to choose the cluster_compare manifest according to the cluster purpose.
 | dci_sos_report_nodes            | False    | List    | Undefined                                                      | A list of nodes to generate SOS report from. Uses [redhatci.ocp.sos_report](https://github.com/redhatci/ocp/tree/main/roles/sos_report) module.
 | dci_upstream_operators          | False    | Boolean | False                                                          | Enable building upstream operators and make them available in the cluster. Requires `dci_local_registry`. Currently, SR-IOV is the only upstream operator available.
 | dci_skip_configure              | False    | Boolean | False                                                          | Allows to skip the jumphost configuration, this will keep the files present in `dci_cluster_configs_dir`.
@@ -309,11 +309,11 @@ This is the dci-openshift-agent variables that can be set in the
 | enable_mlb                      | False    | Boolean | False                                                          | Configures a MetalLB instance in L2 mode. Requires `metallb_ipaddr_pool_l2` defined.
 | metallb_ipaddr_pool_l2          | False    | List    | []                                                             | A list of IP Address (v4|v6) ranges to be assigned to the MetalLB instance.
 | enable_nmstate                  | False    | Boolean | False                                                          | Configures the k8s NMstate operator and creates initial instance.
-| enable_odf                      | False    | Boolean | False                                                          | Configures the ODF Operator and its dependencies(ocs, lso, mcg, odf-csi-addons). Staring OCP 4.10, ODF replaces OCS. See: [Openshift Data Foundation](https://www.redhat.com/en/technologies/cloud-computing/openshift-data-foundation) and creates a storage cluster using Red Hat OpenShift Data Foundation.
-| enable_rhoai                    | False    | Boolean | False                                                          | Created a Data Science Cluster using the RHOAI operators (servicemesh, serverless, rhods). See: [Red Hat Openshift AI self-managed](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed)
+| enable_odf                      | False    | Boolean | False                                                          | Configures the ODF Operator and its dependencies(ocs, lso, mcg, odf-csi-addons). Starting OCP 4.10, ODF replaces OCS. See: [OpenShift Data Foundation](https://www.redhat.com/en/technologies/cloud-computing/openshift-data-foundation) and creates a storage cluster using Red Hat OpenShift Data Foundation.
+| enable_rhoai                    | False    | Boolean | False                                                          | Creates a Data Science Cluster using the RHOAI operators (servicemesh, serverless, rhods). See: [Red Hat OpenShift AI self-managed](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed)
 | enable_nro                      | False    | Boolean | False                                                          | Configures NUMA Resources Operator CRDs (NUMA-Aware). GA from 4.12.24, it is Technology preview before.
 | nro_topo_img_tag                | False    | String  |                                                                | Tag of the NUMA Topology scheduler image, by default it matches the OCP release name, but non-GA releases will require this variable to specify a tag from a previous OCP release.
-| enable_nfs_storage              | False    | Boolean | False                                                          | Enable an NFS as external storage provisioner. Values for `nfs_server` and `nfs_path` are required if for this. See [nfs_external_storage](https://github/redhatci/ansible-collections-redhatci-ocp/roles/nfs_external_storage) for details.
+| enable_nfs_storage              | False    | Boolean | False                                                          | Enable an NFS as external storage provisioner. Values for `nfs_server` and `nfs_path` are required for this. See [nfs_external_storage](https://github/redhatci/ansible-collections-redhatci-ocp/roles/nfs_external_storage) for details.
 | enable_gitops                   | False    | Boolean | False                                                          | Configures GitOps operator to support Kustomize and PolicyGenerator. Use `dci_ztp_tag` `dci_mce_tag` to override the tags for the required images. See [setup_gitops](https://github/redhatci/ansible-collections-redhatci-ocp/roles/setup_gitops) for details.
 | dci_ztp_tag                     | False    | String  | v4.19.0                                                        | Tag for ZTP site generator image.
 | dci_mce_tag                     | False    | String  | v2.13                                                          | Tag for Multicluster Engine subscription image.
@@ -331,7 +331,7 @@ This is the dci-openshift-agent variables that can be set in the
 | install_all_from_catalog_source | False    | String  | openshift-marketplace                                          | Namespace where the catalog defined in `install_all_from_catalog` was created.
 | dci_erase_bootloader_on_disk    | False    | Boolean | False                                                          | Boolean to define if node disks should be deleted before powering off during the pre-run.
 | dci_encrypt_etcd                | False    | Boolean | False                                                          | Boolean to perform etcd data encryption. OCP versions earlier than 4.12 use the `aescbc` encryption type, OCP 4.13 and later uses `aesgcm`.
-| increase_unavailable_workers    | False    | Boolean | True                                                           | Boolean to define if the default maxUnavailable setting of the MCP worker should be increased from 1 to 2 (Only applied with 4 or more worker nodes are available.
+| increase_unavailable_workers    | False    | Boolean | True                                                           | Boolean to define if the default maxUnavailable setting of the MCP worker should be increased from 1 to 2 (Only applied when 4 or more worker nodes are available).
 | dci_core_user_pass              | False    | String  |                                                                | Password for the core user on the OCP nodes. Supported by both IPI and ABI installers, this only permits access via the console — not SSH.
 | dci_ephemeral_http_store        | False    | Boolean | True                                                           | For ABI installations, specifies whether the web server container that hosts the discovery ISO is managed by Podman or Systemd. By default, an https_store container is created for each job and destroyed after the installation completes.
 | dci_ocp_custom_resources        | False    | List    | []                                                             | Allows creating custom resources on cluster after it has been installed.
@@ -376,7 +376,7 @@ dnsvip=1.2.3.4
 #webserver_url="http://<jumphost IP/DNS>:8080"
 # Path of the file with the pull secret and registry auths in json format.
 #pullsecret_file=/path/to/clusterX-pull-secret.txt
-# Content of the pull secret as downloaded from from https://cloud.redhat.com/openshift/install/metal/user-provisioned
+# Content of the pull secret as downloaded from https://cloud.redhat.com/openshift/install/metal/user-provisioned
 # *only* used when running a deployment without DCI.
 #pullsecret='content-in-json-format'
 # Path on the jumphost
@@ -431,7 +431,7 @@ jumphost ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsF
 ```
 
 > NOTE: If the jumphost server is in a different network than the baremetal network, then
-> include `extcirdnet=<baremetal-network/mask>` in the `all:vars` section of the inventory
+> include `extcidrnet=<baremetal-network/mask>` in the `all:vars` section of the inventory
 
 > NOTE: If you choose to create the `provision_cache_store` folder manually, make sure to set the `container_file_t` setype for it. This will help ensure a smooth installation of OCP nightly builds.
 
@@ -450,10 +450,10 @@ the [disconnected doc](docs/disconnected_en.md) for more details.
 
 Pull secrets are credentials used against container registries that require authentication.
 
-DCI provide pull secrets used to deploy OCP on every job.
+DCI provides pull secrets used to deploy OCP on every job.
 
 - `cloud.openshift.com` - Insights monitoring
-- `quay.io` - Openshift releases
+- `quay.io` - OpenShift releases
 - `registry.ci.openshift.org` - Nightly builds
 - `registry.connect.redhat.com` - Red Hat images
 - `registry.redhat.io` - Red Hat images
@@ -464,13 +464,13 @@ These pull secrets are used by default, but the agent allows using other pull se
 - `disconnected_registry_auths_file`: A file with a string that contains the auths for private registries.
 - `pullsecret_file`: File with secrets in JSON format that will be used along with the ones provided by DCI job and the `openshift_secret`.
 
-The content all these variables is merged by DCI, those secrets are combined in a single podman authentication file used to interact with the required registries during the mirroring, image inspections, pruning tasks performed byt the DCI Openshift agent.
+The content of all these variables is merged by DCI, those secrets are combined in a single podman authentication file used to interact with the required registries during the mirroring, image inspections, pruning tasks performed by the DCI OpenShift agent.
 
 Important:
 
 - Secrets are processed in the following order: Job secrets --> openshift_secret --> disconnected_auths --> pull_secret_file
 - If a registry entry exists in multiple sources, the last one processed takes priority
-- It is recommended that the additional secrets are set in the form of registryA/<namespace> to use an specific auth entry against a registry as recommended in the [podman documentation](https://github.com/containers/image/blob/main/docs/containers-auth.json.5.md)
+- It is recommended that the additional secrets are set in the form of registryA/<namespace> to use a specific auth entry against a registry as recommended in the [podman documentation](https://github.com/containers/image/blob/main/docs/containers-auth.json.5.md)
 
 ### Disconnected environment
 
@@ -479,8 +479,8 @@ Another related variable is `disconnected_registry_auths_files` used in IPI or S
 This is an inventory variable used in disconnected environments.
 The content of this file is appended to the list of DCI provided pull secrets. This file is used for two main purposes.
 
-- To allow the cluster to communicate to a local registry
-- To use to mirror images to the local registry
+- To allow the cluster to communicate with a local registry
+- To be used to mirror images to the local registry
 
 ## Storing secrets
 
@@ -499,7 +499,7 @@ The workflow for the deployment is:
 
 1. Operator configuration
 
-### Control deploy operator deployment stages
+### Controlling operator deployment stages
 
 The workflow to deploy operators can be modified by using the `ansible_tags` and `ansible_skip_tags` features through the agent. This allows tasks to be included or excluded as part of the overall workflow of a pipeline job.
 
@@ -529,7 +529,7 @@ Executes the job's tags and skips the ones related to `dci_operators`.
 
 ### Operators mirroring for disconnected environments
 
-The opm_mirror_list variable, controls the operators that are mirrored when dci_disconnected is true. The Agent takes care of mirroring the required operator's images and creates a pruned catalog source for the OCP cluster. Some examples are below:
+The opm_mirror_list variable controls the operators that are mirrored when dci_disconnected is true. The Agent takes care of mirroring the required operator's images and creates a pruned catalog source for the OCP cluster. Some examples are below:
 
 - Explicit definition (This is recommended)
 
@@ -614,7 +614,7 @@ dci_operators:
 
 ### Operator configuration
 
-For some operators, the agent support the operand creation by setting to `true` specific flags. See `enable_<operator>` variables above. Also, the operator configuration can be executed as part of a run during the `hooks/install.yml` phase.
+For some operators, the agent supports the operand creation by setting to `true` specific flags. See `enable_<operator>` variables above. Also, the operator configuration can be executed as part of a run during the `hooks/install.yml` phase.
 
 ## Install all operators from a catalog
 
@@ -645,7 +645,7 @@ Please see the [settings table](#ansible-variables) for the variables names to c
 
 #### Mirroring from directory
 
-In fully disconnected environments, mirroring can be performed by loading operators previously stored in a local file. The `oc mirror` plugin, allows the creation of catalogs that can be stored on a USB stick that will be used later to load operators on a local image registry.
+In fully disconnected environments, mirroring can be performed by loading operators previously stored in a local file. The `oc mirror` plugin allows the creation of catalogs that can be stored on a USB stick that will be used later to load operators on a local image registry.
 
 The dci-openshift-agent can consume files generated by the `oc mirror` plugin. The agent uploads these files to the local registry, creates the catalog source, and applies the corresponding  ImageContentSourcePolicies (ICSPs). The catalog source is then used to deploy the operators enabled for testing.
 
@@ -655,9 +655,9 @@ Subscriptions for the mirrored operators can be defined using the `dci_operators
 
 ## Minio deployment
 
-Some workloads like Migration Toolkit for Containers or Loki may require an object Object Storage provider. For such cases, a [Minio](https://min.io/) instance can be deployed on the OCP cluster by setting `true` to the `enable_minio` flag.
+Some workloads like Migration Toolkit for Containers or Loki may require an Object Storage provider. For such cases, a [Minio](https://min.io/) instance can be deployed on the OCP cluster by setting `true` to the `enable_minio` flag.
 
-In the DCI Openshift Agent integration, an initial bucket named `loki` is deployed and is used for the [logging](#logging-stack) if no information about an external Object provider are provided.
+In the DCI OpenShift Agent integration, an initial bucket named `loki` is deployed and is used for the [logging](#logging-stack) if no information about an external Object provider are provided.
 
 The following variables allow customizing the Minio deployment. Please see the [minio_setup](https://github.com/redhatci/ansible-collection-redhatci-ocp/tree/main/roles/setup_minio) role for additional details.
 
@@ -668,13 +668,13 @@ The following variables allow customizing the Minio deployment. Please see the [
 | minio_namespace                        | minio                         | No         | Deployment Namespace                          |
 | minio_access_key_id                    | minioadmin                    | No         | Minio's Initial Username                      |
 | minio_access_key_secret                | minioadmin                    | No         | Minio's Initial Password                      |
-| monio_bucket_name                      | minio                         | No         | Initial Bucket name                           |
+| minio_bucket_name                      | minio                         | No         | Initial Bucket name                           |
 
 The workloads that require Object Storage, can use the `http://minio-service.minio:9000` endpoint and the default credentials set in the [minio_setup](https://github.com/redhatci/ansible-collection-redhatci-ocp/tree/main/roles/setup_minio) role to start shipping data to Minio.
 
 ## Logging stack
 
-The `enable_logs_stack` variable allows configuring OCP to send log files and metrics produced by the infrastructure and workloads to a logging stack. This stack is integrated by the ClusterLogging, Loki and an Object storage system.
+The `enable_logs_stack` variable allows configuring OCP to send log files and metrics produced by the infrastructure and workloads to a logging stack. This stack integrates the ClusterLogging, Loki and an Object storage system.
 
 The following variables allow customizing the logs stack deployment. Please see the [ocp_logging](https://github.com/redhatci/ansible-collection-redhatci-ocp/tree/main/roles/ocp_logging) role for additional details.
 
@@ -690,11 +690,11 @@ The following variables allow customizing the logs stack deployment. Please see 
 | logs_event_router_image         | False    | String  | registry.redhat.io/openshift-logging/eventrouter-rhel8:v5.2.1-1| Event Router image.
 | logs_settings                   | False    | String  | ""                                                             | An optional yaml file with the variables listed above. The variables defined there take precedence over the ones defined at role level
 
-Enabling the openshift `cluster-logging` components requires high amounts of storage available for data persistency, please take this in consideration during the sizing of the Object Storage provider.
+Enabling the openshift `cluster-logging` components requires high amounts of storage available for data persistency, please take this into consideration during the sizing of the Object Storage provider.
 
 ## Network Observability stack
 
-The `enable_netobserv` variable allows configuring the Network Observability operator to collect information about OCP network flows and traffic. This stack is integrated by the Network Observability Operator, Loki, an Object storage system and the Flow Collector.
+The `enable_netobserv` variable allows configuring the Network Observability operator to collect information about OCP network flows and traffic. This stack integrates the Network Observability Operator, Loki, an Object storage system and the Flow Collector.
 
 The following variables allow customizing the Network Observability stack deployment. Please see the [ocp_netobserv](https://github.com/redhatci/ansible-collection-redhatci-ocp/tree/main/roles/ocp_netobserv) role for additional details.
 
@@ -722,7 +722,7 @@ setup_netobserv_stackstorage_class                | managed-nfs-storage         
 
 The configuration setting can be passed using the `dci_netobserv_conf_file` containing the variables listed above.
 
-Enabling the Openshift `Network observability Operator` requires high amounts of storage available for data persistency, please take this in consideration during the sizing of the Object Storage provider. By default, the stack is configured to use the internal [Minio deployment](#minio-deployment) as backend.
+Enabling the OpenShift `Network observability Operator` requires high amounts of storage available for data persistency, please take this into consideration during the sizing of the Object Storage provider. By default, the stack is configured to use the internal [Minio deployment](#minio-deployment) as a backend.
 
 ## Interacting with your RHOCP Cluster
 
@@ -742,7 +742,7 @@ After you run a DCI job you will be able to interact with the RHOCP cluster usin
    Obtain the credentials generated during the installation from /home/`<user>`/`<clusterconfigs-path>`/ocp_creds.txt in
    the jumphost.
 
-   Get the the URL of the cluster GUI:
+   Get the URL of the cluster GUI:
 
     ```bash
     $ oc whoami --show-console
@@ -750,8 +750,8 @@ After you run a DCI job you will be able to interact with the RHOCP cluster usin
     ```
 
 > NOTE: The dci-openshift-agent is part of
-> a [Continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) tool aimed to perform OCP deployments,
-> should not be considered for production workloads. Use the above connection methods if some troubleshooting is required.
+> a [Continuous integration](https://en.wikipedia.org/wiki/Continuous_integration) tool aimed at performing OCP deployments,
+> and should not be considered for production workloads. Use the above connection methods if some troubleshooting is required.
 
 ## Non-GA versions of API
 
@@ -773,7 +773,7 @@ A DCI job produces a set of relevant configuration files, logs, reports, and tes
 | File                                            | Section | Description                                                                               |
 | ----------------------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
 | install-config-yaml.txt                         | Files   | Configuration file used for the cluster deployment                                        |
-| all-nodes.yaml                                  | Files   | The output `oc get get nodes -o yaml` command                                             |
+| all-nodes.yaml                                  | Files   | The output `oc get nodes -o yaml` command                                             |
 | *.log                                           | Files   | Log files generated during the job execution and stored in the `dci_log` directory        |
 | *.trace                                         | Files   | Tracing files generated during the job execution and stored in the `dci_log` directory    |
 | \<cluster-name\>-\<master\|worker\>-console.log | Files   | Console log from the specific master or worker node                                       |
@@ -789,13 +789,13 @@ A DCI job produces a set of relevant configuration files, logs, reports, and tes
 | pods.txt                                        | Files   | Output of the `oc get pods -A` command                                                    |
 | must_gather.tar.gz                              | Files   | Cluster state information. Useful for support cases or troubleshooting with [O Must Gather tool](https://github.com/kxr/o-must-gather) |
 | ocp_creds.txt                                   | Files   | A set of admin and non-admin credentials attached to an httpasswd identity provider       |
-| openshift_install.log                           | Files   | Openshift installation log file                                                           |
-| version.txt                                     | Files   | Report of the OCP client and server version using during the deployment                   |
+| openshift_install.log                           | Files   | OpenShift installation log file                                                           |
+| version.txt                                     | Files   | Report of the OCP client and server version used during the deployment                   |
 | diff-jobs.txt                                   | Files   | A report that compares the `current` and `previous` job's components of the same type     |
 | *.junit                                         | Tests   | Processed JUnit files generated by the Job or partner tests                               |
 | machine-configs.txt                             | Tests   | Debugging information regarding the machine configs status                                |
-| image-sources.yaml                              | Files   | ImageDigestMirrorSetis or ImageContentSourcePolicies applied to the cluster               |
-| openshift_install_state.json                    | Files   | The installation state of the cluster, contains paramaters used, progress, etc.           |
+| image-sources.yaml                              | Files   | ImageDigestMirrorSets or ImageContentSourcePolicies applied to the cluster               |
+| openshift_install_state.json                    | Files   | The installation state of the cluster, contains parameters used, progress, etc.           |
 | operators.json                                  | Files   | A JSON file with details about the operators installed in the cluster                     |
 | dci-extra.kernel.*.json                         | Files   | JSON files with kernel version and parameters for each cluster node (format: {"kernel": {"node": "<node name>" "version": "<kernel version>", "params": {<kernel parameter dictionary>}}}) |
 | virtual-machines.txt                            | Files   | List of VMs and VMIs allocated on the host cluster                                        |
@@ -862,7 +862,7 @@ to look for are:
   your API and your wildcard DNS entries e.g. `api.<cluster>.<domain>` and
   `*.apps.<cluster>.<domain>`
 - The provision host should have 2 bridges setup: one for the `provisioning`
-  network and another for the `baremetal` network, are both setup? Are the
+  network and another for the `baremetal` network, are both setup? Are they
   functional?
 
 Here are a few things you can check to make sure the above assertions are true:
@@ -887,11 +887,11 @@ If you're having issues once the agent gets to the point where
   make sure the manifest looks correct
 - Is the bootstrap VM coming up? e.g. `sudo virsh list --all` should list a VM
   named `*-bootstrap` about 5-10 minutes after you started the run
-- Is the bootstrap VM getting IP address from the `baremetal` network? Run
+- Is the bootstrap VM getting an IP address from the `baremetal` network? Run
   `virsh console <bootstrap VM>` and a linux login prompt should be visible,
   hit `<Enter>` and it should show 2 IP addresses: a DHCP one as per your
   configuration, and a static `172.22.0.22` on the `provisioning` network
-- Is your bootstrap VM up coming up correctly? You can `ssh core@172.22.0.2`
+- Is your bootstrap VM coming up correctly? You can `ssh core@172.22.0.2`
   and check the status of the pods running on the system by `sudo podman ps`.
   You should see (after a few minutes) some pods named
   `ironic-{api,conductor,inspector}`
@@ -904,7 +904,7 @@ If you're having issues once the agent gets to the point where
 
 ### Troubleshooting OCP install
 
-During the deployment, ironic services are started temporally in the bootstrap
+During the deployment, ironic services are started temporarily in the bootstrap
 VM, to help bootstrapping the master nodes.
 Then after the master nodes are ready to take the role, bootstrap VM is deleted
 and ironic services are started in the cluster.
@@ -946,7 +946,7 @@ bar
 Then prepare a clouds.yaml with the following information, and replace the IP
 addresses and password accordingly
 
-> NOTE: Starting with OCP 4.7 `metal3-boostrap` service uses `auth_type: http_basic`, but in in older versions it
+> NOTE: Starting with OCP 4.7 `metal3-boostrap` service uses `auth_type: http_basic`, but in older versions it
 > uses `auth_type: none` so there's no need to set auth section with the credentials
 
 ```YAML
@@ -956,15 +956,15 @@ clouds:
     auth:
       username: bootstrap-user
       password: $BOOTSTRAP_PASSWORD
-    baremetal_endpoint_override: http://IP-Provisioining-bootstrapVM-IP:6385
-    baremetal_introspection_endpoint_override: http://IP-Provisioining-bootstrapVM-IP:5050
+    baremetal_endpoint_override: http://IP-Provisioning-bootstrapVM-IP:6385
+    baremetal_introspection_endpoint_override: http://IP-Provisioning-bootstrapVM-IP:5050
   metal3:
     auth_type: http_basic
     auth:
       username: ironic-user
       password: $IRONIC_PASSWORD
-    baremetal_endpoint_override: http://IP-Provisioining-Master-IP:6385
-    baremetal_introspection_endpoint_override: http://IP-Provisioining-Master-IP:5050
+    baremetal_endpoint_override: http://IP-Provisioning-Master-IP:6385
+    baremetal_introspection_endpoint_override: http://IP-Provisioning-Master-IP:5050
 ```
 
 Back in the provisioning host, install podman and start a container, set
@@ -1083,7 +1083,7 @@ and submitted automatically to the DCI control server.
 
 The `dci-openshift-agent` supports testing cluster upgrades by executing an `upgrade pipeline`.
 
-See below and an example of a pipeline job definition:
+See below for an example of a pipeline job definition:
 
 ```yaml
 - name: openshift-vanilla-upgrade-4.10
@@ -1127,8 +1127,8 @@ See: [dci-pipeline](https://docs.distributed-ci.io/dci-pipeline/) documentation 
 
 The agent supports 2 types of upgrades:
 
-1. Upgrades to the next support <major>.<minor>-<patch> release version according the [OCP update graph](https://access.redhat.com/labsinfo/ocpupgradegraph).
-1. Extended Update Support (EUS) upgrades, if the current cluster version is EUS supported version. See [preparing EUS-EUS upgrade](https://docs.openshift.com/container-platform/4.10/updating/preparing-eus-eus-upgrade.html).
+1. Upgrades to the next supported <major>.<minor>-<patch> release version according to the [OCP update graph](https://access.redhat.com/labsinfo/ocpupgradegraph).
+1. Extended Update Support (EUS) upgrades, if the current cluster version is an EUS supported version. See [preparing EUS-EUS upgrade](https://docs.openshift.com/container-platform/4.10/updating/preparing-eus-eus-upgrade.html).
 
 #### The upgrade process
 
@@ -1243,7 +1243,7 @@ Enable the dnf-automatic.timer
 # systemctl enable --now dnf-automatic.timer
 ```
 
-> Important: DNF automatic updates might fail because of a non-satisfied dependency of latest RHEL 8 with ansible 2.9, then it is recommended to add the following command in a cronjob to be executed daily basis.
+> Important: DNF automatic updates might fail because of a non-satisfied dependency of latest RHEL 8 with ansible 2.9, then it is recommended to add the following command in a cronjob to be executed on a daily basis.
 ```console
 # dnf upgrade --nobest --refresh -y
 ```
@@ -1254,7 +1254,7 @@ Refer to [the development guide](docs/development.md)
 
 ## Create your DCI account on distributed-ci.io
 
-Every user needs to create his personal account by connecting to
+Every user needs to create their personal account by connecting to
 <https://www.distributed-ci.io> by using a Red Hat SSO account.
 
 The account will be created in the DCI database at the first connection with
