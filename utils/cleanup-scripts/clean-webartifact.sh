@@ -64,6 +64,21 @@ do
   fi
 done <<< "${containers}"
 
+###
+# Cleaning http_store pods
+###
+
+httpd_pods=$(podman pod ps --sort created --filter 'name=http_store*' --format "{{.Name}}"|cut -d "_" -f4-)
+while read -r name
+do
+  fail_states=( failure error killed )
+  job_status=$(dcictl --format json job-show "${name}" | jq -er .job.status)
+  if [[ -n "$job_status" && " ${fail_states[*]} " =~ ${job_status} ]]; then
+    podman pod rm -f "${name}"
+    echo "Removed pod ${name}"
+  fi
+done <<< "${httpd_pods}"
+
 ####
 # Remove lingering images
 ####
