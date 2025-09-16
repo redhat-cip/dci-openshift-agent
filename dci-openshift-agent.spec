@@ -1,5 +1,5 @@
 Name:          dci-openshift-agent
-Version:       1.17.0
+Version:       1.18.0
 Release:       1.VERS%{?dist}
 Summary:       DCI Openshift Agent
 License:       ASL 2.0
@@ -51,6 +51,7 @@ exit 0
 %{_sysconfdir}/dci-openshift-agent/dcirc.sh.dist
 
 %{_datadir}/dci-openshift-agent/plays/*.yml
+%{_datadir}/dci-openshift-agent/plays/files/*
 %{_datadir}/dci-openshift-agent/plays/scripts/*
 %{_datadir}/dci-openshift-agent/action_plugins/*
 %{_datadir}/dci-openshift-agent/utils/*
@@ -65,6 +66,9 @@ exit 0
 %{_sysconfdir}/sudoers.d/%{name}
 
 %changelog
+* Thu Sep 25 2025 Frederic Lepied <flepied@redhat.com> - 1.18.0-1.VERS
+- Include %{_datadir}/dci-openshift-agent/plays/files
+
 * Fri Sep 19 2025 Tony Garcia <tonyg@redhat.com> - 1.17.EPOCH-VERS
 - Version bump for redhatci.ocp.redact in redhatci.ocp >= 2.10
 

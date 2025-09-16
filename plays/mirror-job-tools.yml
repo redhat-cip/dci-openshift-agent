@@ -1,4 +1,5 @@
 ---
+
 - name: "Mirror must gather images"
   ansible.builtin.include_role:
     name: redhatci.ocp.mirror_images
@@ -22,6 +23,7 @@
     (dci_disconnected | default(false) | bool) or
     (dci_local_mirror | default(false) | bool)
 
+# Needed by the kernel sideloading logic in sno-install.yml
 - name: Mirror ubi9 image
   ansible.builtin.include_role:
     name: redhatci.ocp.mirror_images
@@ -34,5 +36,19 @@
     - dci_sno_sideload_kernel_url is defined
     - dci_sno_sideload_kernel_url | length
     - (dci_disconnected | default(false) | bool) or
-      (dci_local_mirror | default(false) | bool)
+      (dci_local_registry is defined and dci_local_registry != '')
+
+# Needed for hardware info logic in get-hardware-data.yml
+- name: Mirror ubi10 image
+  ansible.builtin.include_role:
+    name: redhatci.ocp.mirror_images
+  vars:
+    mi_images:
+      - registry.redhat.io/ubi10/ubi:latest
+    mi_authfile: "{{ dci_pullsecret_file }}"
+    mi_registry: "{{ dci_local_registry }}"
+  when: >
+    (dci_disconnected | default(false) | bool) or
+    (dci_local_registry is defined and dci_local_registry != '')
+
 ...

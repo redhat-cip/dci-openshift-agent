@@ -18,6 +18,10 @@ install:
 	  do install -p -D -m 644 $$play $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$play; \
 	done
 
+	for file in plays/files/*; \
+	  do install -p -D -m 644 $$file $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$file; \
+	done
+
 	for script in plays/scripts/*; do \
 	  install -p -D -m 755 $$script $(BUILDROOT)$(DATADIR)/dci-openshift-agent/$$script; \
 	done

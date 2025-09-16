@@ -1,0 +1,149 @@
+---
+
+- name: "Set disconnected mode variable"
+  ansible.builtin.set_fact:
+    dci_disconnected: "{{ dci_disconnected | default(false) }}"
+
+- name: Get list of nodes from cluster
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Node
+  register: nodes_info
+  ignore_errors: true
+
+- name: Filter ready nodes
+  ansible.builtin.set_fact:
+    ready_node_names: >-
+      {{ ready_node_names | default([]) + [item.metadata.name] }}
+  loop: "{{ nodes_info.resources | default([]) }}"
+  when:
+    - item.status.conditions is defined
+    - item.status.conditions | selectattr('type', 'equalto', 'Ready') | selectattr('status', 'equalto', 'True') | list | length > 0
+
+- name: Debug ready_node_names
+  debug:
+    var: ready_node_names
+
+- name: Get kernel information for all nodes
+  vars:
+    node_name: "{{ item }}"
+  ansible.builtin.shell:
+    cmd: >
+      {{ oc_tool_path }} debug node/{{ node_name }}
+      -- chroot /host sh -c 'echo "{\"node\": \"{{ node_name }}\", \"version\": \"$(uname -r)\", \"params\": \"$(cat /proc/cmdline)\"}"'
+  register: kernel_info
+  ignore_errors: true
+  loop: "{{ ready_node_names | default([]) }}"
+  when: ready_node_names is defined
+
+- name: Save kernel information to files
+  ansible.builtin.copy:
+    content: >-
+      {{ { 'kernel': {
+        'node': (item.stdout | from_json).node,
+        'version': (item.stdout | from_json).version,
+        'params': (((item.stdout | from_json).params | default('') | cmdline_to_json | from_json))
+      } } | to_json }}
+    dest: "{{ job_logs.path }}/dci-extra.kernel.{{ item.item }}.json"
+    mode: '0644'
+  ignore_errors: true
+  loop: "{{ kernel_info.results | default([]) }}"
+  when:
+    - item is defined
+    - item.rc is defined
+    - item.rc == 0
+    - item.stdout is defined
+    - (item.stdout | length) > 0
+
+- name: "Disconnected part"
+  when: dci_disconnected
+  block:
+
+    - name: "Create temporary build directory for container"
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: lshw-build
+      register: build_dir
+
+    - name: "Copy Containerfile to build directory"
+      ansible.builtin.copy:
+        src: "files/Containerfile"
+        dest: "{{ build_dir.path }}/Containerfile"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: "Build lshw container"
+      ansible.builtin.shell:
+        cmd: >
+          podman build
+          {% if dci_pullsecret_file is defined %} --authfile {{ dci_pullsecret_file }} {% endif %}
+          -t dci-lshw-container:latest
+          {{ build_dir.path }}
+      register: container_build_result
+      ignore_errors: true
+
+    - name: Push container image to local registry
+      ansible.builtin.shell:
+        cmd: >
+          podman push
+          {% if dci_pullsecret_file is defined %} --authfile {{ dci_pullsecret_file }} {% endif %}
+          dci-lshw-container:latest
+          {{ dci_local_registry }}/dci-lshw-container:latest
+      register: container_push_result
+      ignore_errors: true
+      when: container_build_result.rc == 0
+
+    - name: "Clean up build directory"
+      ansible.builtin.file:
+        path: "{{ build_dir.path }}"
+        state: absent
+
+    - name: "Run lshw using local container"
+      vars:
+        node_name: "{{ item }}"
+      ansible.builtin.shell:
+        cmd: >
+          {{ oc_tool_path }} debug node/{{ node_name }}
+          --image={{ dci_local_registry }}/dci-lshw-container:latest
+          -- sh -c 'lshw -json -sanitize -numeric'
+      register: disconnected_hardware_info
+      ignore_errors: true
+      loop: "{{ ready_node_names | default([]) }}"
+      when:
+        - ready_node_names is defined
+        - container_push_result.rc == 0
+
+- name: "Connected part"
+  when: not dci_disconnected
+  block:
+
+    - name: "Run lshw using UBI10 container (connected mode)"
+      vars:
+        node_name: "{{ item }}"
+      ansible.builtin.shell:
+        cmd: >
+          {{ oc_tool_path }} debug node/{{ node_name }}
+          --image="{% if dci_local_registry is defined and dci_local_registry != '' %}{{ dci_local_registry }}{% else %}registry.access.redhat.com{% endif %}/ubi10/ubi:latest"
+          -- sh -c 'dnf install -y lshw > /dev/null && lshw -json -sanitize -numeric'
+      register: connected_hardware_info
+      ignore_errors: true
+      loop: "{{ ready_node_names | default([]) }}"
+
+- name: "Debug hardware_info"
+  debug:
+    msg: "{{ dci_disconnected | ternary(disconnected_hardware_info.results, connected_hardware_info.results) | default([]) }}"
+
+- name: "Save hardware information to files"
+  ansible.builtin.copy:
+    content: >-
+      {{ { 'hardware': {
+        'node': item.item,
+        'data': (item.stdout | from_json | dot_to_underscore) if (item.stdout is defined) else (null | default({})),
+        'error': item.stderr if (item.rc is defined and item.rc != 0) else (null | default(''))
+      } } | to_json }}
+    dest: "{{ job_logs.path }}/dci-extra.hardware.{{ item.item }}.json"
+    mode: '0644'
+  ignore_errors: true
+  loop: "{{ dci_disconnected | ternary(disconnected_hardware_info.results, connected_hardware_info.results) | default([]) }}"
+
+...
