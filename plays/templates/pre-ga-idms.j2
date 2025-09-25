@@ -1,7 +1,7 @@
 apiVersion: config.openshift.io/v1
 kind: ImageDigestMirrorSet
 metadata:
-  name: prega-odf-idms
+  name: prega-extra-idms
 spec:
   imageDigestMirrors:
   - mirrors:
@@ -79,3 +79,291 @@ spec:
   - mirrors:
     - {{ prega_mirror }}/prega/test/rhceph-dev/odf4-odf-must-gather-rhel9
     source: registry.redhat.io/odf4/odf-must-gather-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/multiclusterhub-rhel9
+    source: registry.redhat.io/rhacm2/multiclusterhub-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-search-v2-rhel9
+    source: registry.redhat.io/rhacm2/acm-search-v2-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/cluster-image-set-controller-rhel9
+    source: registry.redhat.io/multicluster-engine/cluster-image-set-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/multicluster-operators-channel-rhel9
+    source: registry.redhat.io/rhacm2/multicluster-operators-channel-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/multicluster-role-assignment-rhel9
+    source: registry.redhat.io/rhacm2/multicluster-role-assignment-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/prometheus-rhel9
+    source: registry.redhat.io/rhacm2/prometheus-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/assisted-image-service-rhel9
+    source: registry.redhat.io/multicluster-engine/assisted-image-service-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/cluster-curator-controller-rhel9
+    source: registry.redhat.io/multicluster-engine/cluster-curator-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/rbac-query-proxy-rhel9
+    source: registry.redhat.io/rhacm2/rbac-query-proxy-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/cluster-backup-rhel9-operator
+    source: registry.redhat.io/rhacm2/cluster-backup-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/mce-operator-bundle
+    source: {{ prega_mirror }}/prega/test/acm-d/mce-operator-bundle
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/cluster-api-provider-kubevirt-rhel9
+    source: registry.redhat.io/multicluster-engine/cluster-api-provider-kubevirt-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-cli-rhel9
+    source: registry.redhat.io/rhacm2/acm-cli-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/insights-metrics-rhel9
+    source: registry.redhat.io/rhacm2/insights-metrics-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-governance-policy-addon-controller-rhel9
+    source: registry.redhat.io/rhacm2/acm-governance-policy-addon-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/provider-credential-controller-rhel9
+    source: registry.redhat.io/multicluster-engine/provider-credential-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/governance-policy-propagator-rhel9
+    source: registry.redhat.io/rhacm2/governance-policy-propagator-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/multicluster-operators-subscription-rhel9
+    source: registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/thanos-receive-controller-rhel9
+    source: registry.redhat.io/rhacm2/thanos-receive-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/discovery-rhel9
+    source: registry.redhat.io/multicluster-engine/discovery-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/registration-operator-rhel9
+    source: registry.redhat.io/multicluster-engine/registration-operator-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/search-collector-rhel9
+    source: registry.redhat.io/rhacm2/search-collector-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/multicluster-operators-application-rhel9
+    source: registry.redhat.io/rhacm2/multicluster-operators-application-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/metrics-collector-rhel9
+    source: registry.redhat.io/rhacm2/metrics-collector-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/grafana-dashboard-loader-rhel9
+    source: registry.redhat.io/rhacm2/grafana-dashboard-loader-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/cluster-proxy-addon-rhel9
+    source: registry.redhat.io/multicluster-engine/cluster-proxy-addon-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/config-policy-controller-rhel9
+    source: registry.redhat.io/rhacm2/config-policy-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-search-v2-api-rhel9
+    source: registry.redhat.io/rhacm2/acm-search-v2-api-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/backplane-rhel9-operator
+    source: registry.redhat.io/multicluster-engine/backplane-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/cluster-api-provider-agent-rhel9
+    source: registry.redhat.io/multicluster-engine/cluster-api-provider-agent-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/memcached-exporter-rhel9
+    source: registry.redhat.io/rhacm2/memcached-exporter-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/hive-rhel9
+    source: registry.redhat.io/multicluster-engine/hive-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/console-mce-rhel9
+    source: registry.redhat.io/multicluster-engine/console-mce-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/addon-manager-rhel9
+    source: registry.redhat.io/multicluster-engine/addon-manager-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/kube-rbac-proxy-mce-rhel9
+    source: registry.redhat.io/multicluster-engine/kube-rbac-proxy-mce-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/registration-rhel9
+    source: registry.redhat.io/multicluster-engine/registration-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/assisted-installer-agent-rhel9
+    source: registry.redhat.io/multicluster-engine/assisted-installer-agent-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/mce-capi-webhook-config-rhel9
+    source: registry.redhat.io/multicluster-engine/mce-capi-webhook-config-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/submariner-addon-rhel9
+    source: registry.redhat.io/rhacm2/submariner-addon-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/image-based-install-rhel9
+    source: registry.redhat.io/multicluster-engine/image-based-install-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/endpoint-monitoring-rhel9-operator
+    source: registry.redhat.io/rhacm2/endpoint-monitoring-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-must-gather-rhel9
+    source: registry.redhat.io/rhacm2/acm-must-gather-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/assisted-installer-rhel9
+    source: registry.redhat.io/multicluster-engine/assisted-installer-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-multicluster-observability-addon-rhel9
+    source: registry.redhat.io/rhacm2/acm-multicluster-observability-addon-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/observatorium-rhel9-operator
+    source: registry.redhat.io/rhacm2/observatorium-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/cert-policy-controller-rhel9
+    source: registry.redhat.io/rhacm2/cert-policy-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/placement-rhel9
+    source: registry.redhat.io/multicluster-engine/placement-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/hypershift-addon-rhel9-operator
+    source: registry.redhat.io/multicluster-engine/hypershift-addon-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/mtv-integrations-rhel9
+    source: registry.redhat.io/rhacm2/mtv-integrations-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/multicloud-integrations-rhel9
+    source: registry.redhat.io/rhacm2/multicloud-integrations-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-search-indexer-rhel9
+    source: registry.redhat.io/rhacm2/acm-search-indexer-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/multicluster-observability-rhel9-operator
+    source: registry.redhat.io/rhacm2/multicluster-observability-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-prometheus-config-reloader-rhel9
+    source: registry.redhat.io/rhacm2/acm-prometheus-config-reloader-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-prometheus-rhel9
+    source: registry.redhat.io/rhacm2/acm-prometheus-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/kube-rbac-proxy-rhel9
+    source: registry.redhat.io/rhacm2/kube-rbac-proxy-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/assisted-installer-controller-rhel9
+    source: registry.redhat.io/multicluster-engine/assisted-installer-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/kube-state-metrics-rhel9
+    source: registry.redhat.io/rhacm2/kube-state-metrics-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/hypershift-rhel9-operator
+    source: registry.redhat.io/multicluster-engine/hypershift-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/must-gather-rhel9
+    source: registry.redhat.io/multicluster-engine/must-gather-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/thanos-rhel9
+    source: registry.redhat.io/rhacm2/thanos-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/assisted-service-8-rhel8
+    source: registry.redhat.io/multicluster-engine/assisted-service-8-rhel8
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/insights-client-rhel9
+    source: registry.redhat.io/rhacm2/insights-client-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/klusterlet-addon-controller-rhel9
+    source: registry.redhat.io/rhacm2/klusterlet-addon-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/assisted-service-9-rhel9
+    source: registry.redhat.io/multicluster-engine/assisted-service-9-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-volsync-addon-controller-rhel9
+    source: registry.redhat.io/rhacm2/acm-volsync-addon-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-grafana-rhel9
+    source: registry.redhat.io/rhacm2/acm-grafana-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/work-rhel9
+    source: registry.redhat.io/multicluster-engine/work-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/volsync-rhel9
+    source: registry.redhat.io/rhacm2/volsync-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-governance-policy-framework-addon-rhel9
+    source: registry.redhat.io/rhacm2/acm-governance-policy-framework-addon-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/clusterlifecycle-state-metrics-rhel9
+    source: registry.redhat.io/multicluster-engine/clusterlifecycle-state-metrics-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/managed-serviceaccount-rhel9
+    source: registry.redhat.io/multicluster-engine/managed-serviceaccount-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/managedcluster-import-controller-rhel9
+    source: registry.redhat.io/multicluster-engine/managedcluster-import-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/capoa-control-plane-rhel9
+    source: registry.redhat.io/multicluster-engine/capoa-control-plane-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/node-exporter-rhel9
+    source: registry.redhat.io/rhacm2/node-exporter-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/clusterclaims-controller-rhel9
+    source: registry.redhat.io/multicluster-engine/clusterclaims-controller-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/capoa-bootstrap-rhel9
+    source: registry.redhat.io/multicluster-engine/capoa-bootstrap-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/observatorium-rhel9
+    source: registry.redhat.io/rhacm2/observatorium-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-siteconfig-rhel9
+    source: registry.redhat.io/rhacm2/acm-siteconfig-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/hypershift-cli-rhel9
+    source: registry.redhat.io/multicluster-engine/hypershift-cli-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/multicloud-manager-rhel9
+    source: registry.redhat.io/multicluster-engine/multicloud-manager-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/prometheus-alertmanager-rhel9
+    source: registry.redhat.io/rhacm2/prometheus-alertmanager-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/cluster-proxy-rhel9
+    source: registry.redhat.io/multicluster-engine/cluster-proxy-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/console-rhel9
+    source: registry.redhat.io/rhacm2/console-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-operator-bundle
+    source: {{ prega_mirror }}/prega/test/acm-d/acm-operator-bundle
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-cluster-permission-rhel9
+    source: registry.redhat.io/rhacm2/acm-cluster-permission-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/acm-cluster-permission-rhel9
+    source: registry.redhat.io/multicluster-engine/backplane-rhel9-operator
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/flightctl-cli-artifacts-rhel9
+    source: registry.redhat.io/rhem/flightctl-cli-artifacts-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/flightctl-ui-ocp-rhel9
+    source: registry.redhat.io/rhem/flightctl-ui-ocp-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/flightctl-alert-exporter-rhel9
+    source: registry.redhat.io/rhem/flightctl-alert-exporter-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/flightctl-ui-rhel9
+    source: registry.redhat.io/rhem/flightctl-ui-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/flightctl-alertmanager-proxy-rhel9
+    source: registry.redhat.io/rhem/flightctl-alertmanager-proxy-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/flightctl-db-setup-rhel9
+    source: registry.redhat.io/rhem/flightctl-db-setup-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/flightctl-periodic-rhel9
+    source: registry.redhat.io/rhem/flightctl-periodic-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/flightctl-worker-rhel9
+    source: registry.redhat.io/rhem/flightctl-worker-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/flightctl-api-rhel9
+    source: registry.redhat.io/rhem/flightctl-api-rhel9
+  - mirrors:
+    - {{ prega_mirror }}/prega/test/acm-d/flightctl-userinfo-proxy-rhel9
+    source: registry.redhat.io/rhem/flightctl-userinfo-proxy-rhel9
