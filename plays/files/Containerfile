@@ -1,14 +1,6 @@
-FROM registry.redhat.io/ubi10/ubi:latest
+FROM registry.access.redhat.com/ubi10/ubi-minimal:latest
 
 # Install lshw and other useful tools
-RUN dnf update -y && \
-    dnf install -y lshw && \
-    dnf clean all
-
-# Set working directory
-WORKDIR /workspace
-
-# Ensure container runs as root
-USER root
-
-# No default command - let the caller specify what to run
+RUN microdnf update -y && \
+    microdnf install -y lshw && \
+    microdnf clean all
