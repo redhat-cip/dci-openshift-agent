@@ -59,4 +59,13 @@
     name: redhatci.ocp.include_components
     apply:
       delegate_to: localhost
+
+- name: Override disconnected_registry_mirrors_file in the registry host
+  ansible.builtin.set_fact:
+    disconnected_registry_mirrors_file: "{{ dci_cluster_configs_dir }}/trust-bundle.yml"
+  delegate_facts: true
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['jumphost'] + (groups['provisioner'] | default([])) + (groups['registry_host'] | default([])) | ansible.builtin.unique}}"
+  when:
+    - dci_disconnected | default(false) | bool
 ...

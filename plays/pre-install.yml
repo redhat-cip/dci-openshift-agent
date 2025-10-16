@@ -5,7 +5,7 @@
       - webserver_url is defined
       - groups['registry_host'] is defined
       - groups['registry_host'] | length > 0
-      - dci_local_registry | length
+      - dci_local_registry | length > 0
       - provision_cache_store is defined
   when:
     - dci_disconnected | default(false) | bool
