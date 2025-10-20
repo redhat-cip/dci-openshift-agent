@@ -55,6 +55,7 @@
         http_store_pod_name: "{{ store_pod_name }}"
         http_store_ephemeral: "{{ dci_ephemeral_http_store | default (true) }}"
         http_port: "{{ http_store_port.stdout | default(hostvars['http_store']['http_port']) }}"
+        http_store_ip_version: "{{ dci_http_store_ip_version | default('ipv4') }}"
       ansible.builtin.include_role:
         name: redhatci.ocp.setup_http_store
         apply:
@@ -198,7 +199,8 @@
     - name: Boot nodes using the ISO
       vars:
         discovery_iso_name: "discovery/{{ cluster_name }}/discovery-image.iso"
-        discovery_iso_server: "http://{{ hostvars['http_store']['ansible_host'] }}"
+        discovery_iso_server: "{{ (dci_http_store_ip_version | default('ipv4') == 'ipv4') |
+                      ternary('http://' + hostvars['http_store']['ansible_host'], 'http://[' + hostvars['http_store']['ansible_host'] + ']') }}"
         boot_iso_url: "{{ discovery_iso_server }}:{{ http_store_port.stdout |
                       default(hostvars['http_store']['http_port']) }}/{{ discovery_iso_name }}"
       ansible.builtin.include_role:
