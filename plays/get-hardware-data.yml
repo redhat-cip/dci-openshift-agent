@@ -5,6 +5,7 @@
     kind: Node
   register: nodes_info
   no_log: true
+  ignore_errors: true
 
 - name: Filter ready nodes
   ansible.builtin.set_fact:
@@ -15,10 +16,12 @@
     - item.status.conditions is defined
     - item.status.conditions | selectattr('type', 'equalto', 'Ready') | selectattr('status', 'equalto', 'True') | list | length > 0
   no_log: true
+  ignore_errors: true
 
 - name: Debug ready_node_names
   ansible.builtin.debug:
     var: ready_node_names
+  when: ready_node_names is defined
 
 - name: Get kernel information for all nodes
   ansible.builtin.shell:
@@ -120,6 +123,9 @@
 - name: Debug hardware_info
   ansible.builtin.debug:
     msg: "{{ hardware_info.results }}"
+  when:
+    - hardware_info is defined
+    - hardware_info.results is defined
 
 - name: Save hardware information to files
   ansible.builtin.copy:
