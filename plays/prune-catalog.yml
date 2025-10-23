@@ -67,7 +67,7 @@
       shell:
         cmd: >-
           set -o pipefail;
-          grpcurl -plaintext
+          /usr/local/bin/grpcurl -plaintext
           jumphost:{{ grpc_port.stdout }}
           api.Registry/ListPackages |
           jq ".name"
